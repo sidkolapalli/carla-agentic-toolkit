@@ -1,0 +1,190 @@
+"""Behavior specs for the one-tool CARLA script API surface."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, cast
+
+from carla_mcp.models import Location, SensorInfo, Transform
+from carla_mcp.script_api import CarlaScriptApi
+from carla_mcp.session import CarlaSession
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from carla_mcp.adapter import CarlaAdapter
+
+
+SENSOR_ID = 101
+PARENT_ID = 22
+ACTOR_ID = 44
+ROUTE_STEP_METERS = 3.0
+
+
+@dataclass
+class ScriptAdapter:
+    """Test double for script-only API methods."""
+
+    calls: list[tuple[str, dict[str, object]]] = field(default_factory=list)
+
+    @property
+    def host(self) -> str:
+        """Return a CARLA host."""
+        return "127.0.0.1"
+
+    @property
+    def port(self) -> int:
+        """Return a CARLA port."""
+        return 2000
+
+    @property
+    def timeout(self) -> float:
+        """Return a CARLA timeout."""
+        return 10.0
+
+    def attach_sensor(
+        self,
+        *,
+        blueprint_id: str,
+        transform: Transform,
+        attributes: dict[str, str],
+        parent_actor_id: int | None,
+    ) -> SensorInfo:
+        """Attach a fake sensor."""
+        self.calls.append(
+            (
+                "attach_sensor",
+                {
+                    "blueprint_id": blueprint_id,
+                    "transform": transform.to_dict(),
+                    "attributes": attributes,
+                    "parent_actor_id": parent_actor_id,
+                },
+            )
+        )
+        return SensorInfo(
+            sensor_id=SENSOR_ID,
+            blueprint_id=blueprint_id,
+            parent_actor_id=parent_actor_id,
+            attributes=attributes,
+            transform=transform,
+        )
+
+    def generate_route(
+        self,
+        *,
+        start: Location,
+        end: Location,
+        step_meters: float,
+        max_steps: int,
+    ) -> dict[str, object]:
+        """Return a fake route."""
+        self.calls.append(
+            (
+                "generate_route",
+                {
+                    "start": start.to_dict(),
+                    "end": end.to_dict(),
+                    "step_meters": step_meters,
+                    "max_steps": max_steps,
+                },
+            )
+        )
+        return {"waypoint_count": 1, "route": [{"road_id": 1}]}
+
+    def apply_vehicle_control(
+        self,
+        *,
+        actor_id: int,
+        control: dict[str, object],
+    ) -> dict[str, object]:
+        """Return applied direct control."""
+        self.calls.append(("apply_vehicle_control", {"actor_id": actor_id, "control": control}))
+        return {"actor_id": actor_id, "applied_control": control}
+
+    def list_capabilities(self) -> dict[str, object]:
+        """Return fake live capability probes."""
+        return {"client_version": "0.9.16", "map": {"get_waypoint": True}}
+
+    def save_screenshot(
+        self,
+        *,
+        output_path: Path,
+        attributes: dict[str, str],
+    ) -> dict[str, object]:
+        """Return a fake screenshot capture."""
+        return {"path": str(output_path), "attributes": attributes}
+
+
+def test_describe_api_publishes_runtime_catalog() -> None:
+    """The one-tool model should expose runtime API discovery."""
+    session = CarlaSession()
+    api = build_api(adapter=ScriptAdapter(), session=session)
+
+    catalog = api.describe_api()
+    methods = cast("dict[str, object]", catalog["methods"])
+
+    assert_catalog_has_methods(
+        methods,
+        ("attach_sensor", "apply_vehicle_control", "list_capabilities"),
+    )
+    assert_catalog_hides_private_state(methods)
+    assert session.read_resource("carla://api") == catalog
+
+
+def test_attach_event_sensor_maps_kind_and_publishes_resource() -> None:
+    """Event sensors should use official CARLA sensor blueprints."""
+    session = CarlaSession()
+    adapter = ScriptAdapter()
+    api = build_api(adapter=adapter, session=session)
+
+    sensor = api.attach_event_sensor("collision", parent_id=PARENT_ID)
+
+    assert sensor["blueprint_id"] == "sensor.other.collision"
+    assert adapter.calls[0][1]["parent_actor_id"] == PARENT_ID
+    assert session.read_resource(f"carla://sensors/{SENSOR_ID}") == sensor
+
+
+def test_generate_route_parses_locations_and_publishes_resource() -> None:
+    """Routes should accept JSON locations and publish a route resource."""
+    session = CarlaSession()
+    adapter = ScriptAdapter()
+    api = build_api(adapter=adapter, session=session)
+
+    route = api.generate_route(
+        start={"x": 1.0, "y": 2.0, "z": 0.0},
+        end={"x": 8.0, "y": 2.0, "z": 0.0},
+        step_meters=ROUTE_STEP_METERS,
+        max_steps=20,
+    )
+
+    assert route["waypoint_count"] == 1
+    assert adapter.calls[0][1]["step_meters"] == ROUTE_STEP_METERS
+    assert session.read_resource("carla://route/latest") == route
+
+
+def test_apply_vehicle_control_passes_direct_control_kwargs() -> None:
+    """Direct control should keep the kwargs shape expected by CARLA VehicleControl."""
+    adapter = ScriptAdapter()
+    api = build_api(adapter=adapter, session=CarlaSession())
+
+    result = api.apply_vehicle_control(ACTOR_ID, throttle=0.4, steer=-0.1, brake=0.0)
+
+    assert result["applied_control"] == {"throttle": 0.4, "steer": -0.1, "brake": 0.0}
+    assert adapter.calls[0][1]["actor_id"] == ACTOR_ID
+
+
+def build_api(adapter: ScriptAdapter, session: CarlaSession) -> CarlaScriptApi:
+    """Build a script API with a partial fake adapter for behavior specs."""
+    return CarlaScriptApi(adapter=cast("CarlaAdapter", adapter), session=session)
+
+
+def assert_catalog_has_methods(methods: dict[str, object], names: tuple[str, ...]) -> None:
+    """Assert that the catalog exposes expected public methods."""
+    missing = [name for name in names if name not in methods]
+    assert missing == []
+
+
+def assert_catalog_hides_private_state(methods: dict[str, object]) -> None:
+    """Assert that private implementation attributes are absent."""
+    assert "_adapter" not in methods

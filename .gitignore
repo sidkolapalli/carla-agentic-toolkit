@@ -1,0 +1,12 @@
+.venv/
+.pytest_cache/
+.coverage
+.coverage.*
+__pycache__/
+*.py[cod]
+.ruff_cache/
+dist/
+carla-mcp-output/
+target/
+.claude/settings.local.json
+

@@ -1,0 +1,176 @@
+"""Navigation and map runtime helpers for script-only CARLA experiments."""
+
+from __future__ import annotations
+
+import math
+from importlib import import_module
+from typing import TYPE_CHECKING, Any, cast
+
+from carla_mcp.errors import CarlaAdapterError
+from carla_mcp.experiment_common import (
+    carla_location,
+    float_attr,
+    int_attr,
+    optional_transform_dict,
+    transform_dict,
+    unavailable,
+)
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from carla_mcp.carla_protocols import CarlaWorld
+    from carla_mcp.models import Location
+
+
+def spawn_points(world: CarlaWorld) -> dict[str, object]:
+    """Return legal vehicle spawn transforms from the loaded map."""
+    return {"spawn_points": [transform_dict(point) for point in world.get_map().get_spawn_points()]}
+
+
+def waypoint(
+    world: CarlaWorld,
+    *,
+    location: Location,
+    lane_type_name: str,
+    project_to_road: bool,
+) -> dict[str, object]:
+    """Return map waypoint metadata for a location."""
+    world_map = world.get_map()
+    carla_module = import_module("carla")
+    try:
+        found_waypoint = cast("Any", world_map).get_waypoint(
+            carla_location(carla_module, location),
+            project_to_road=project_to_road,
+            lane_type=lane_type(carla_module, lane_type_name),
+        )
+    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+        raise CarlaAdapterError(str(exc)) from exc
+    return {"waypoint": waypoint_dict(found_waypoint)}
+
+
+def route(
+    world: CarlaWorld,
+    *,
+    start: Location,
+    end: Location,
+    step_meters: float,
+    max_steps: int,
+) -> dict[str, object]:
+    """Generate an A-to-B waypoint route by following official waypoint.next links."""
+    world_map = world.get_map()
+    carla_module = import_module("carla")
+    start_waypoint = cast("Any", world_map).get_waypoint(carla_location(carla_module, start))
+    end_location = carla_location(carla_module, end)
+    waypoints = follow_waypoints(start_waypoint, end_location, step_meters, max_steps)
+    return {
+        "step_meters": step_meters,
+        "waypoint_count": len(waypoints),
+        "route": [waypoint_dict(item) for item in waypoints],
+    }
+
+
+def topology(world: CarlaWorld, *, max_segments: int) -> dict[str, object]:
+    """Return a compact road topology graph."""
+    segments = cast("Any", world.get_map()).get_topology()
+    selected = [
+        {"entry": waypoint_dict(entry), "exit": waypoint_dict(exit_)}
+        for entry, exit_ in segments[: max(max_segments, 0)]
+    ]
+    return {
+        "segments": selected,
+        "returned_segments": len(selected),
+        "truncated": len(segments) > len(selected),
+    }
+
+
+def landmarks(world: CarlaWorld, *, max_count: int) -> dict[str, object]:
+    """Return map landmarks when the CARLA map exposes them."""
+    world_map = world.get_map()
+    method = getattr(world_map, "get_all_landmarks", None)
+    if not callable(method):
+        return unavailable("map.get_all_landmarks is not available in this CARLA build.")
+    all_landmarks = method()
+    selected = all_landmarks[: max(max_count, 0)]
+    return {
+        "landmarks": [landmark_dict(landmark) for landmark in selected],
+        "returned_landmarks": len(selected),
+        "truncated": len(all_landmarks) > len(selected),
+    }
+
+
+def lane_type(module: object, lane_type_name: str) -> object:
+    """Return a CARLA LaneType enum value."""
+    return enum_value(cast("Any", module).LaneType, lane_type_name)
+
+
+def enum_value(enum_type: object, name: str) -> object:
+    """Return a CARLA enum member by name."""
+    try:
+        return getattr(enum_type, name)
+    except AttributeError as exc:
+        msg = f"Unknown CARLA enum value: {name}."
+        raise CarlaAdapterError(msg) from exc
+
+
+def follow_waypoints(
+    start_waypoint: object,
+    end_location: object,
+    step_meters: float,
+    max_steps: int,
+) -> list[object]:
+    """Follow waypoint.next options toward a destination."""
+    route_points = [start_waypoint]
+    for _ in range(max(max_steps - 1, 0)):
+        choices = cast("Any", route_points[-1]).next(max(step_meters, 0.1))
+        if not choices:
+            break
+        route_points.append(closest_waypoint(choices, end_location))
+        if distance(cast("Any", route_points[-1]).transform.location, end_location) <= step_meters:
+            break
+    return route_points
+
+
+def closest_waypoint(waypoints: Iterable[object], location: object) -> object:
+    """Return the waypoint nearest to a CARLA location."""
+    return min(
+        waypoints,
+        key=lambda waypoint_item: distance(cast("Any", waypoint_item).transform.location, location),
+    )
+
+
+def distance(first: object, second: object) -> float:
+    """Return Euclidean distance between CARLA locations."""
+    first_location = cast("Any", first)
+    second_location = cast("Any", second)
+    return math.sqrt(
+        (float(first_location.x) - float(second_location.x)) ** 2
+        + (float(first_location.y) - float(second_location.y)) ** 2
+        + (float(first_location.z) - float(second_location.z)) ** 2
+    )
+
+
+def waypoint_dict(waypoint_item: object) -> dict[str, object]:
+    """Return compact waypoint metadata."""
+    typed_waypoint = cast("Any", waypoint_item)
+    return {
+        "road_id": int_attr(typed_waypoint, "road_id"),
+        "section_id": int_attr(typed_waypoint, "section_id"),
+        "lane_id": int_attr(typed_waypoint, "lane_id"),
+        "s": float_attr(typed_waypoint, "s"),
+        "lane_type": str(getattr(typed_waypoint, "lane_type", "")),
+        "is_junction": bool(getattr(typed_waypoint, "is_junction", False)),
+        "transform": transform_dict(typed_waypoint.transform),
+    }
+
+
+def landmark_dict(landmark: object) -> dict[str, object]:
+    """Return compact landmark metadata."""
+    return {
+        "id": str(getattr(landmark, "id", "")),
+        "name": str(getattr(landmark, "name", "")),
+        "type": str(getattr(landmark, "type", "")),
+        "road_id": int_attr(landmark, "road_id"),
+        "distance": float_attr(landmark, "distance"),
+        "transform": optional_transform_dict(getattr(landmark, "transform", None)),
+    }

@@ -1,0 +1,54 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "carla-mcp"
+version = "0.1.0"
+description = "MCP server for controlling, diagnosing, and recording CARLA simulations through the CARLA Python API."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+dependencies = [
+    "mcp>=2.0.0,<3",
+]
+
+[project.scripts]
+carla-mcp = "carla_mcp.server:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "radon>=6.0.1",
+    "ruff>=0.8.0",
+    "ty>=0.0.1a20",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "COM812",
+    "D203",
+    "D213",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]
+"src/carla_mcp/sandbox.py" = ["S603"]
+"src/carla_mcp/script_runner.py" = ["BLE001"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.ty.rules]
+unresolved-import = "ignore"
