@@ -5,16 +5,23 @@ use landlock::{
     NetPort, Ruleset, RulesetAttr, RulesetCreatedAttr, RulesetStatus, ABI,
 };
 use serde_json::{json, Value};
-use std::io;
+use std::io::{self, Read};
 use std::os::unix::process::{CommandExt, ExitStatusExt};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
+use std::sync::{
+    atomic::{AtomicBool, AtomicUsize, Ordering},
+    Arc,
+};
+use std::thread::{self, JoinHandle};
 use std::time::Duration;
 use wait_timeout::ChildExt;
 
 const ADDRESS_SPACE_LIMIT_BYTES: libc::rlim_t = 4 * 1024 * 1024 * 1024;
 const CPU_LIMIT_SECONDS: libc::rlim_t = 60;
 const PROCESS_LIMIT: libc::rlim_t = 4096;
+const MAX_OUTPUT_BYTES: usize = 1024 * 1024;
+const WATCHDOG_MARGIN_SECONDS: f64 = 2.0;
 
 #[derive(Parser, Debug)]
 #[command(version, about = "Run a CARLA Python script inside a Landlock sandbox")]
@@ -93,30 +100,61 @@ fn run() -> Result<Value> {
     let mut child = command
         .spawn()
         .with_context(|| format!("failed to spawn Python runner: {}", args.python.display()))?;
-    let timeout = Duration::from_secs_f64(args.timeout_seconds.max(0.1));
-    if child.wait_timeout(timeout)?.is_none() {
+    let total_bytes = Arc::new(AtomicUsize::new(0));
+    let output_too_large = Arc::new(AtomicBool::new(false));
+    let stdout_reader = drain_pipe(
+        child
+            .stdout
+            .take()
+            .context("Python runner stdout was not piped")?,
+        Arc::clone(&total_bytes),
+        Arc::clone(&output_too_large),
+    );
+    let stderr_reader = drain_pipe(
+        child
+            .stderr
+            .take()
+            .context("Python runner stderr was not piped")?,
+        total_bytes,
+        Arc::clone(&output_too_large),
+    );
+    let timeout = Duration::from_secs_f64(args.timeout_seconds.max(0.1) + WATCHDOG_MARGIN_SECONDS);
+    let timed_out = child.wait_timeout(timeout)?.is_none();
+    if timed_out {
         kill_process_group(child.id()).context("failed to kill timed-out Python process group")?;
-        let captured = child
-            .wait_with_output()
-            .context("failed to collect timed-out Python runner output")?;
+    }
+    let child_status = child.wait().context("failed to wait for Python runner")?;
+    let stdout_bytes = join_reader(stdout_reader, "stdout")?;
+    let stderr_bytes = join_reader(stderr_reader, "stderr")?;
+    let stdout = String::from_utf8_lossy(&stdout_bytes);
+    let stderr = String::from_utf8_lossy(&stderr_bytes);
+    if timed_out {
         return Ok(json!({
             "ok": false,
             "result": null,
-            "stdout": String::from_utf8_lossy(&captured.stdout),
+            "stdout": stdout,
             "error": format!("Script exceeded {:.0}s timeout.", args.timeout_seconds),
             "error_type": "script_timeout",
             "landlock": status,
             "timed_out": true,
-            "exit_status": captured.status.code(),
-            "signal": captured.status.signal()
+            "exit_status": child_status.code(),
+            "signal": child_status.signal()
         }));
     }
-    let captured = child
-        .wait_with_output()
-        .context("failed to collect Python runner output")?;
-    let stdout = String::from_utf8_lossy(&captured.stdout);
-    let stderr = String::from_utf8_lossy(&captured.stderr);
-    if !captured.status.success() {
+    if output_too_large.load(Ordering::Relaxed) {
+        return Ok(json!({
+            "ok": false,
+            "result": null,
+            "stdout": "",
+            "error": format!("Script output exceeded {MAX_OUTPUT_BYTES} bytes."),
+            "error_type": "output_too_large",
+            "landlock": status,
+            "exit_status": child_status.code(),
+            "signal": child_status.signal(),
+            "timed_out": false
+        }));
+    }
+    if !child_status.success() {
         return Ok(json!({
             "ok": false,
             "result": null,
@@ -124,8 +162,8 @@ fn run() -> Result<Value> {
             "error": stderr,
             "error_type": "python_runner_failed",
             "landlock": status,
-            "exit_status": captured.status.code(),
-            "signal": captured.status.signal(),
+            "exit_status": child_status.code(),
+            "signal": child_status.signal(),
             "timed_out": false
         }));
     }
@@ -140,6 +178,39 @@ fn run() -> Result<Value> {
         object.insert("stderr".to_string(), Value::String(stderr.to_string()));
     }
     Ok(payload)
+}
+
+fn drain_pipe<R: Read + Send + 'static>(
+    mut pipe: R,
+    total_bytes: Arc<AtomicUsize>,
+    output_too_large: Arc<AtomicBool>,
+) -> JoinHandle<io::Result<Vec<u8>>> {
+    thread::spawn(move || {
+        let mut captured = Vec::new();
+        let mut chunk = [0_u8; 8192];
+        loop {
+            let count = pipe.read(&mut chunk)?;
+            if count == 0 {
+                break;
+            }
+            let previous = total_bytes.fetch_add(count, Ordering::Relaxed);
+            if previous < MAX_OUTPUT_BYTES {
+                let retained = count.min(MAX_OUTPUT_BYTES - previous);
+                captured.extend_from_slice(&chunk[..retained]);
+            }
+            if previous.saturating_add(count) > MAX_OUTPUT_BYTES {
+                output_too_large.store(true, Ordering::Relaxed);
+            }
+        }
+        Ok(captured)
+    })
+}
+
+fn join_reader(reader: JoinHandle<io::Result<Vec<u8>>>, name: &str) -> Result<Vec<u8>> {
+    reader
+        .join()
+        .map_err(|_| anyhow!("Python runner {name} reader panicked"))?
+        .with_context(|| format!("failed to read Python runner {name}"))
 }
 
 fn configure_child_process() -> io::Result<()> {

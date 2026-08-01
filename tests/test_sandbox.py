@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 from typing import TYPE_CHECKING
+
+import pytest
 
 from carla_mcp import sandbox
 from carla_mcp.script_runner import run_script_file
@@ -11,7 +14,6 @@ from carla_mcp.script_runner import run_script_file
 if TYPE_CHECKING:
     from pathlib import Path
 
-    import pytest
 
 
 def test_execute_script_reports_missing_rust_runner(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -131,6 +133,17 @@ def test_execute_script_preserves_resources_from_runner(
 
     assert outcome.resources == {"carla://world/current": {"frame": 1}}
     assert outcome.to_dict()["resources"] == {"carla://world/current": {"frame": 1}}
+
+
+@pytest.mark.skipif(sys.platform != "linux", reason="requires the Linux sandbox runner")
+def test_large_script_output_is_bounded_without_a_false_timeout() -> None:
+    """A full pipe should become output_too_large rather than script_timeout."""
+    outcome = sandbox.execute_script('result = "x" * 1_500_000', timeout_seconds=5)
+
+    assert outcome.ok is False
+    assert outcome.error_type == "output_too_large"
+    assert outcome.sandbox is not None
+    assert outcome.sandbox["timed_out"] is False
 
 
 def test_execute_script_does_not_grant_proc_read_access(

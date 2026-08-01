@@ -33,6 +33,11 @@ The AST validator is defense in depth, not a replacement for Landlock. The
 server intentionally fails closed when the runner is missing or the requested
 Landlock rules cannot be fully enforced.
 
+Child stdout and stderr are drained while the script runs and share a 1 MiB
+capture limit. Exceeding it discards the captured payload and returns
+`output_too_large`; a genuine deadline overrun keeps bounded partial output and
+returns `script_timeout` after killing the process group.
+
 The current release is a local experimental stdio server. It does not claim to
 provide authentication, authorization, tenant isolation, or safe exposure over a
 public network.
