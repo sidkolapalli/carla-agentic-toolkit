@@ -5,13 +5,46 @@ CARLA MCP runs locally through stdio. Linux clients launch it directly; Windows
 Rust/Landlock sandbox inside WSL2. There is no remote endpoint or standalone
 wheel yet.
 
+## Prerequisites
+
+CARLA and CARLA MCP are separate programs. CARLA is the simulator; this
+repository is the MCP server that connects to it.
+
+| Component | Linux | Windows 11 |
+| --- | --- | --- |
+| CARLA simulator | Linux host or another reachable machine | Windows host or another reachable machine |
+| MCP server, CARLA Python API, and Rust sandbox | Linux | WSL2 |
+| MCP client | Linux | Windows |
+| `carla-mcp-windows` launcher | Not needed | Windows |
+
+Before starting, install or confirm:
+
+- Git and access to this private repository. Authenticate Git separately inside
+  WSL because Windows credentials are not inherited automatically.
+- Python 3.12, [uv](https://docs.astral.sh/uv/), a Rust toolchain, and a C/C++
+  linker (`build-essential` on Ubuntu). Pin Python 3.12: newer Linux releases
+  may otherwise select Python 3.14, which CARLA 0.9.16 does not support.
+- Linux kernel 6.15 or newer, which provides the Landlock ABI V7 required by the
+  sandbox. On Windows this kernel must be supplied by WSL2.
+- A reachable CARLA server and the same CARLA Python API version in the MCP
+  virtual environment. A 0.9.16 server requires `carla==0.9.16`.
+- Free CARLA ports. The defaults are RPC 2000, streaming 2001, secondary 2002,
+  and Traffic Manager 8000.
+
+The official CARLA packaged-release requirements are Windows 10/11 or Ubuntu
+20.04/22.04, about 20 GB of disk, and a dedicated GPU equivalent to an NVIDIA
+RTX 2070 with at least 8 GB VRAM recommended. Download CARLA from its
+[official release page](https://carla.readthedocs.io/en/0.9.16/download/), not
+from this repository.
+
 ## 1. Prepare the Server
 
 ```bash
 git clone https://github.com/sidkolapalli/carla-mcp.git
 cd carla-mcp
-uv sync --locked
-# Install the CARLA Python API matching your simulator into this .venv.
+uv sync --locked --python 3.12
+# Replace 0.9.16 if your simulator uses another version.
+uv pip install --python .venv "carla==0.9.16"
 cargo build --locked --manifest-path sandbox-runner/Cargo.toml --release
 
 export CARLA_MCP_HOME="$(pwd)"
@@ -143,25 +176,47 @@ kernel and is the definitive compatibility test.
 Then, inside that WSL2 distribution:
 
 ```bash
+sudo apt update
+sudo apt install -y build-essential curl git
+curl -LsSf https://astral.sh/uv/install.sh | sh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
+  sh -s -- -y --profile minimal
+source "$HOME/.local/bin/env"
+source "$HOME/.cargo/env"
+
+# Reuse Git for Windows credentials when it is installed at this path.
+if test -x "/mnt/c/Program Files/Git/mingw64/bin/git-credential-manager.exe"; then
+  git config --global credential.helper \
+    "/mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe"
+fi
+# This must succeed before cloning the private repository.
+git ls-remote https://github.com/sidkolapalli/carla-mcp.git HEAD
 git clone https://github.com/sidkolapalli/carla-mcp.git
 cd carla-mcp
 git switch feat/windows-support
-uv sync --locked
-# Install the matching CARLA Python API into this WSL .venv.
+uv sync --locked --python 3.12
+# Replace 0.9.16 if your simulator uses another version.
+uv pip install --python .venv "carla==0.9.16"
 cargo build --locked --manifest-path sandbox-runner/Cargo.toml --release
+mkdir -p "$HOME/carla-mcp-output"
 
 command -v uv
 pwd
 ```
 
-Keep this checkout in the WSL filesystem, such as `/home/user/carla-mcp`. On
-Windows, prepare a second checkout for the small launcher:
+The helper command above reuses an authenticated Git for Windows installation.
+If it is installed elsewhere, update the path or authenticate Git inside WSL by
+another method. Keep the working checkout in the WSL filesystem rather than
+running it under `/mnt/c`.
+
+On Windows, prepare a second checkout for the small launcher:
 
 ```powershell
-git clone https://github.com/sidkolapalli/carla-mcp.git C:\src\carla-mcp
-Set-Location C:\src\carla-mcp
+New-Item -ItemType Directory -Force "$HOME\src" | Out-Null
+git clone https://github.com/sidkolapalli/carla-mcp.git "$HOME\src\carla-mcp"
+Set-Location "$HOME\src\carla-mcp"
 git switch feat/windows-support
-uv sync --locked
+uv sync --locked --python 3.12
 
 $env:CARLA_MCP_WSL_DISTRO = "Ubuntu-24.04"
 $env:CARLA_MCP_WSL_PROJECT = "/home/user/carla-mcp"
@@ -183,7 +238,7 @@ there and leaves no artifact. Neither command requires a running CARLA simulator
 Configure the Windows MCP client to run:
 
 ```text
-C:\absolute\path\to\uv.exe --directory C:\src\carla-mcp run carla-mcp-windows
+C:\absolute\path\to\uv.exe --directory C:\Users\you\src\carla-mcp run carla-mcp-windows
 ```
 
 The client entry must set these environment variables:
@@ -201,8 +256,39 @@ available from Windows under
 `\\wsl.localhost\<distribution>\home\<user>\carla-mcp-output`.
 
 If CARLA itself runs on Windows, WSL2 mirrored networking can use
-`127.0.0.1`. With WSL2's default NAT networking, pass the Windows host address
-as the tool's `host` input instead.
+`127.0.0.1`. With WSL2's default NAT networking, get the Windows host address
+from inside WSL and pass it as the tool's `host` input:
+
+```bash
+ip route show default | awk '{print $3}'
+```
+
+### Verify in order
+
+1. Run `uv run carla-mcp-windows --check` from Windows. This proves WSL2,
+   Landlock, the Rust runner, and persistent output without requiring CARLA.
+2. Run `uv run python scripts/windows_e2e.py`. This additionally proves MCP
+   stdio and a real denied filesystem write, still without requiring CARLA.
+3. Download and extract the Windows package matching the Python API version,
+   then start it exactly as the official CARLA guide specifies:
+
+   ```powershell
+   Set-Location "C:\path\to\CARLA_0.9.16"
+   .\CarlaUE4.exe
+   ```
+
+4. With CARLA listening, run the live check inside WSL. For default NAT, replace
+   the example host with the address returned by the command above:
+
+   ```bash
+   cd "$HOME/carla-mcp"
+   uv run python scripts/live_smoke.py --host 172.18.112.1 \
+     --reset-existing --vehicle-count 4
+   ```
+
+Git Bash rewrites Linux-looking environment values such as `/home/user` before
+passing them to Windows programs. Prefer PowerShell for launcher commands. If
+Git Bash is required, prefix the command with `MSYS_NO_PATHCONV=1`.
 
 ## 5. First Request
 
@@ -246,12 +332,19 @@ authentication, deployment, and a packaged sandbox runner.
   into the checkout's `.venv`, then rerun the import preflight.
 - **CARLA connection fails:** start CARLA and verify the host plus RPC, streaming,
   secondary, and Traffic Manager ports.
+- **`CARLA_MCP_WSL_PROJECT must be an absolute Linux path` in Git Bash:** use
+  PowerShell or set `MSYS_NO_PATHCONV=1` so Git Bash does not rewrite `/home/...`
+  as a Windows path.
+- **`CarlaUE4.exe` exits before opening port 2000:** this is a CARLA simulator
+  failure, not an MCP startup failure. Follow CARLA's official FAQ and inspect
+  `%LOCALAPPDATA%\CarlaUE4\Saved\Crashes`; the MCP can use any compatible,
+  reachable CARLA server.
 - **Codex reports a timeout:** raise `tool_timeout_sec`; keep it above the script's
   `timeout_seconds` plus the sandbox wrapper margin.
 - **Output is missing:** use relative paths in scripts and inspect
   `CARLA_MCP_OUTPUT_DIR`.
 
-## Official Client References
+## Official References
 
 - [Claude Code MCP](https://code.claude.com/docs/en/mcp)
 - [OpenAI Codex MCP](https://developers.openai.com/codex/mcp)
@@ -259,3 +352,6 @@ authentication, deployment, and a packaged sandbox runner.
 - [Microsoft WSL commands](https://learn.microsoft.com/windows/wsl/basic-commands)
 - [Microsoft WSL networking](https://learn.microsoft.com/windows/wsl/networking)
 - [Landlock ABI versions](https://landlock.io/rust-landlock/landlock/enum.ABI.html)
+- [CARLA 0.9.16 quick start](https://carla.readthedocs.io/en/0.9.16/start_quickstart/)
+- [CARLA rendering options](https://carla.readthedocs.io/en/0.9.16/adv_rendering_options/)
+- [CARLA FAQ](https://carla.readthedocs.io/en/0.9.16/build_faq/)

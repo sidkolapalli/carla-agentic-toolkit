@@ -50,9 +50,9 @@ with Linux Landlock, and given a dedicated place for durable captures,
 recordings, and evidence.
 
 > [!IMPORTANT]
-> The CARLA Agentic Toolkit is an experimental, local, Linux-only community
-> project. It is not affiliated with or endorsed by CARLA, and it is not a
-> production multi-user security boundary.
+> The CARLA Agentic Toolkit is an experimental, local, Linux-hosted community
+> project. Windows clients run it inside WSL2. It is not affiliated with or
+> endorsed by CARLA, and it is not a production multi-user security boundary.
 
 ## Overview
 
@@ -99,17 +99,21 @@ evidence remains available.
 ### Requirements
 
 - Linux with Landlock ABI V7, or Windows 11 with a WSL2 kernel that provides it
-- Python 3.12+, [uv](https://docs.astral.sh/uv/), and a Rust toolchain
+- Python 3.12, [uv](https://docs.astral.sh/uv/), and a Rust toolchain
 - A CARLA Python API version matching a reachable CARLA server
+
+New to CARLA or WSL2? Read the **[prerequisites and platform
+layout](docs/client-setup.md#prerequisites)** before continuing.
 
 ### 1. Prepare the Toolkit
 
 ```bash
 git clone https://github.com/sidkolapalli/carla-mcp.git
 cd carla-mcp
-uv sync --locked
+uv sync --locked --python 3.12
 
-# Install the CARLA Python API matching your simulator into this .venv.
+# Replace 0.9.16 if your simulator uses another version.
+uv pip install --python .venv "carla==0.9.16"
 cargo build --locked --manifest-path sandbox-runner/Cargo.toml --release
 
 export CARLA_MCP_HOME="$(pwd)"
