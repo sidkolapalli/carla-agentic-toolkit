@@ -8,7 +8,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 
+
+@pytest.mark.skipif(sys.platform != "linux", reason="requires the Linux Landlock sandbox runner")
 def test_preflight_proves_landlock_and_persistent_output(tmp_path: Path) -> None:
     """The public preflight should exercise the real sandbox without CARLA."""
     project_root = Path(__file__).resolve().parents[1]

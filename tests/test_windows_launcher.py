@@ -11,11 +11,26 @@ from pathlib import Path
 import pytest
 
 
+def _fake_wsl_command(tmp_path: Path, script: str) -> Path:
+    """Write an executable fake WSL command for the current host."""
+    fake = tmp_path / "recording-wsl"
+    fake.write_text(script, encoding="utf-8")
+    if os.name == "nt":
+        wrapper = tmp_path / "recording-wsl.cmd"
+        wrapper.write_text(
+            f'@echo off\n"{sys.executable}" "%~dp0recording-wsl" %*\n',
+            encoding="utf-8",
+        )
+        return wrapper
+    fake.chmod(0o755)
+    return fake
+
+
 def test_windows_launcher_proxies_stdio_and_child_exit_status(tmp_path: Path) -> None:
     """The public launcher should transparently proxy the WSL-hosted MCP server."""
-    wsl_command = tmp_path / "recording-wsl"
     arguments_log = tmp_path / "arguments.json"
-    wsl_command.write_text(
+    wsl_command = _fake_wsl_command(
+        tmp_path,
         f"""#!{sys.executable}
 import json
 import os
@@ -27,9 +42,7 @@ sys.stdout.write(sys.stdin.read())
 sys.stderr.write("WSL diagnostic\\n")
 raise SystemExit(23)
 """,
-        encoding="utf-8",
     )
-    wsl_command.chmod(0o755)
     request = '{"jsonrpc":"2.0","method":"initialize"}\n'
     env = {
         **os.environ,
@@ -80,9 +93,9 @@ raise SystemExit(23)
 
 def test_windows_launcher_check_runs_wsl2_preflight(tmp_path: Path) -> None:
     """The public check mode should require WSL2 and exercise the real preflight."""
-    wsl_command = tmp_path / "recording-wsl"
     arguments_log = tmp_path / "arguments.json"
-    wsl_command.write_text(
+    wsl_command = _fake_wsl_command(
+        tmp_path,
         f"""#!{sys.executable}
 import json
 import os
@@ -91,9 +104,7 @@ import sys
 with open(os.environ["WSL_ARGUMENTS_LOG"], "w", encoding="utf-8") as stream:
     json.dump(sys.argv[1:], stream)
 """,
-        encoding="utf-8",
     )
-    wsl_command.chmod(0o755)
     env = {
         **os.environ,
         "CARLA_MCP_WSL_COMMAND": str(wsl_command),
