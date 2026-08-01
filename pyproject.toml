@@ -15,6 +15,8 @@ dependencies = [
 
 [project.scripts]
 carla-mcp = "carla_mcp.server:main"
+carla-mcp-windows = "carla_mcp.windows_launcher:main"
+carla-mcp-preflight = "carla_mcp.preflight:main"
 
 [dependency-groups]
 dev = [
@@ -42,8 +44,12 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101"]
+"scripts/windows_e2e.py" = ["S603"]
 "src/carla_mcp/sandbox.py" = ["S603"]
+"src/carla_mcp/windows_launcher.py" = ["S603"]
 "src/carla_mcp/script_runner.py" = ["BLE001"]
+"tests/test_preflight.py" = ["S101", "S603"]
+"tests/test_windows_launcher.py" = ["S101", "S603"]
 
 [tool.ruff.format]
 quote-style = "double"

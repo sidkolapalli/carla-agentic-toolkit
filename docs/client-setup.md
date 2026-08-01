@@ -1,8 +1,9 @@
 # Client Setup
 
-CARLA MCP is currently a local Linux stdio server. Every client launches the
-same source checkout with `uv`; there is no remote endpoint or standalone wheel
-yet.
+CARLA MCP runs locally through stdio. Linux clients launch it directly; Windows
+11 clients use `carla-mcp-windows` to launch the entire server and its existing
+Rust/Landlock sandbox inside WSL2. There is no remote endpoint or standalone
+wheel yet.
 
 ## 1. Prepare the Server
 
@@ -115,6 +116,80 @@ Use **MCP: List Servers** to start, stop, and inspect it. Do not enable VS Code'
 outer MCP sandbox by default: CARLA MCP already applies Landlock to scripts, and
 an additional parent sandbox can block the CARLA TCP connection.
 
+## Windows 11 with WSL2
+
+The Windows launcher uses `wsl.exe --exec` directly. It never runs
+agent-authored code with Windows Python and never falls back to an unsandboxed
+path.
+
+First prepare the Linux runtime inside WSL2:
+
+```powershell
+wsl --install --distribution Ubuntu-24.04
+wsl --list --verbose
+```
+
+Then, inside that WSL2 distribution:
+
+```bash
+git clone https://github.com/sidkolapalli/carla-mcp.git
+cd carla-mcp
+uv sync --locked
+# Install the matching CARLA Python API into this WSL .venv.
+cargo build --locked --manifest-path sandbox-runner/Cargo.toml --release
+
+command -v uv
+pwd
+```
+
+Keep this checkout in the WSL filesystem, such as `/home/user/carla-mcp`. On
+Windows, prepare a second checkout for the small launcher:
+
+```powershell
+git clone https://github.com/sidkolapalli/carla-mcp.git C:\src\carla-mcp
+Set-Location C:\src\carla-mcp
+uv sync --locked
+
+$env:CARLA_MCP_WSL_DISTRO = "Ubuntu-24.04"
+$env:CARLA_MCP_WSL_PROJECT = "/home/user/carla-mcp"
+$env:CARLA_MCP_WSL_UV = "/home/user/.local/bin/uv"
+$env:CARLA_MCP_WSL_OUTPUT_DIR = "/home/user/carla-mcp-output"
+
+uv run carla-mcp-windows --check
+uv run python scripts/windows_e2e.py
+```
+
+Replace `user`, the distribution, and the `uv` path with values from the WSL
+commands above. `--check` requires WSL2, executes a harmless script through the
+real Rust runner, requires fully enforced Landlock, verifies persistent output,
+and cleans its preflight artifact. The end-to-end script additionally verifies
+MCP initialization, tool discovery, safe execution, and rejection of private API
+access. Neither command requires a running CARLA simulator.
+
+Configure the Windows MCP client to run:
+
+```text
+C:\absolute\path\to\uv.exe --directory C:\src\carla-mcp run carla-mcp-windows
+```
+
+The client entry must set these environment variables:
+
+| Variable | Value |
+| --- | --- |
+| `CARLA_MCP_WSL_DISTRO` | Exact name reported by `wsl --list --verbose` |
+| `CARLA_MCP_WSL_PROJECT` | Absolute Linux path to the WSL checkout |
+| `CARLA_MCP_WSL_UV` | Absolute Linux path reported by `command -v uv` |
+| `CARLA_MCP_WSL_OUTPUT_DIR` | Absolute Linux path for durable output |
+
+Use the Claude Code, Codex, or VS Code configuration shape above, replacing the
+program with `carla-mcp-windows` and adding all four variables. Output is
+available from Windows under
+`\\wsl.localhost\<distribution>\home\<user>\carla-mcp-output`.
+
+If CARLA itself runs on Windows, WSL2 mirrored networking can use
+`127.0.0.1`. With WSL2's default NAT networking, pass the Windows host address
+as the tool's `host` input instead.
+
 ## 5. First Request
 
 Start CARLA, then ask your client:
@@ -134,8 +209,8 @@ information.
 | Claude Code on Linux | Supported via stdio |
 | Codex CLI/IDE on Linux | Supported via stdio |
 | VS Code on Linux | Supported via stdio |
-| macOS or Windows clients | Unsupported; the runner requires Linux Landlock |
-| WSL2 | Unverified; requires all requested Landlock features |
+| Windows 11 clients | Experimental via the WSL2 launcher |
+| macOS or WSL1 | Unsupported; the runner requires Linux Landlock |
 | Web or cloud agents | Unsupported; requires a future HTTP server |
 
 A future Streamable HTTP distribution is separate work because it also requires
@@ -148,6 +223,10 @@ authentication, deployment, and a packaged sandbox runner.
 - **`sandbox_runner_missing`:** rerun the release `cargo build` command above.
 - **`sandbox_error` / Landlock not fully enforced:** the kernel lacks a required
   Landlock feature. Execution intentionally fails closed; do not bypass it.
+- **`carla-mcp-windows --check` rejects the distribution:** confirm
+  `wsl --list --verbose` reports version 2, then run `wsl --update`.
+- **Windows cannot reach `wsl.exe`:** install or update WSL from an elevated
+  PowerShell prompt, then reopen the client.
 - **CARLA API is not importable:** install the API version matching the simulator
   into the checkout's `.venv`, then rerun the import preflight.
 - **CARLA connection fails:** start CARLA and verify the host plus RPC, streaming,
@@ -162,3 +241,5 @@ authentication, deployment, and a packaged sandbox runner.
 - [Claude Code MCP](https://code.claude.com/docs/en/mcp)
 - [OpenAI Codex MCP](https://developers.openai.com/codex/mcp)
 - [VS Code MCP configuration](https://code.visualstudio.com/docs/agents/reference/mcp-configuration)
+- [Microsoft WSL commands](https://learn.microsoft.com/windows/wsl/basic-commands)
+- [Microsoft WSL networking](https://learn.microsoft.com/windows/wsl/networking)

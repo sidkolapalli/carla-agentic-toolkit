@@ -98,7 +98,7 @@ evidence remains available.
 
 ### Requirements
 
-- Linux with the Landlock features requested by the runner
+- Linux with Landlock, or Windows 11 with a WSL2 distribution that provides it
 - Python 3.12+, [uv](https://docs.astral.sh/uv/), and a Rust toolchain
 - A CARLA Python API version matching a reachable CARLA server
 
@@ -142,6 +142,9 @@ codex mcp list
 For VS Code configuration, Claude scopes, Codex timeout and approval settings,
 preflight checks, and troubleshooting, see the **[Client Setup
 Guide](docs/client-setup.md)**.
+
+Windows 11 users run the complete server and Rust/Landlock sandbox inside WSL2
+through `carla-mcp-windows`; follow the Windows setup in the client guide.
 
 ### 3. Send the First Request
 
@@ -226,14 +229,15 @@ assumptions, and private vulnerability reporting process.
 | Claude Code on Linux | Supported through stdio |
 | OpenAI Codex CLI/IDE on Linux | Supported through stdio |
 | VS Code on Linux | Supported through stdio |
-| macOS or Windows clients | Unsupported; the runner requires Linux Landlock |
-| WSL2 | Unverified; requires every requested Landlock feature |
+| Windows 11 clients | Experimental through `carla-mcp-windows` and WSL2 |
+| macOS or WSL1 | Unsupported; the runner requires Linux Landlock |
 | Web or cloud agents | Unsupported; requires an authenticated HTTP deployment |
 
 ## Current Boundaries
 
 - Source checkout only; the Python wheel does not yet bundle the Rust runner.
 - Local stdio only; there is no authenticated remote transport.
+- Windows support uses WSL2; there is no weaker native Windows sandbox fallback.
 - Traffic controller state lasts for one script process. Keep that script alive
   with `api.wait()` or use the live sidecar.
 - Automated tests use mock CARLA adapters. Live simulator validation remains a
