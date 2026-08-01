@@ -22,6 +22,17 @@ def _successful_script(*_args: object, **_kwargs: object) -> ScriptOutcome:
     return ScriptOutcome(ok=True, result=1, stdout="", resources={})
 
 
+def _failed_script(*_args: object, **_kwargs: object) -> ScriptOutcome:
+    """Return a failed sandbox result without launching a subprocess."""
+    return ScriptOutcome(
+        ok=False,
+        result=None,
+        stdout="partial output",
+        error="boom",
+        error_type="sandbox_error",
+    )
+
+
 async def _call_script_tool(
     server: MCPServer,
 ) -> tuple[str, Implementation | None, CallToolResult]:
@@ -68,3 +79,15 @@ def test_server_supports_latest_mcp_protocol(monkeypatch: pytest.MonkeyPatch) ->
         "is_error": False,
         "result": 1,
     }
+
+
+def test_server_marks_failed_script_as_mcp_tool_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Fatal sandbox failures should set MCP isError without losing diagnostics."""
+    monkeypatch.setattr(server_module, "execute_script", _failed_script)
+
+    _, _, result = asyncio.run(_call_script_tool(build_server()))
+
+    assert result.is_error is True
+    assert result.structured_content is not None
+    assert result.structured_content["error_type"] == "sandbox_error"
+    assert result.structured_content["stdout"] == "partial output"

@@ -129,8 +129,11 @@ class ToolResult:
 
     @classmethod
     def error(cls, structured_content: JsonObject, message: str | None = None) -> ToolResult:
-        """Create a tool execution error result."""
-        return cls(structured_content=structured_content, is_error=True, message=message)
+        """Create a recoverable operation error with an explicit script marker."""
+        payload = {"ok": False, **structured_content}
+        if message is not None:
+            payload["error"] = message
+        return cls(structured_content=payload, is_error=True, message=message)
 
 
 @dataclass(frozen=True, slots=True)

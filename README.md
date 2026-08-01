@@ -180,6 +180,11 @@ Call `api.describe_api()` inside a script for the live method catalog. This
 keeps discovery next to execution and lets an agent compose a workflow without
 round-tripping through a large collection of narrow tools.
 
+Recoverable CARLA operation failures return a script value with `ok: false`,
+`error_type`, and `message`. Script rejection, uncaught exceptions, runner
+failures, and timeouts fail the complete MCP call with `isError: true` while
+retaining the structured diagnostics.
+
 ## Capabilities
 
 | Control surface | Examples |

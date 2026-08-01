@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, cast
 
+from carla_mcp.errors import CarlaAdapterError
 from carla_mcp.models import Location, SensorInfo, Transform
 from carla_mcp.script_api import CarlaScriptApi
 from carla_mcp.session import CarlaSession
@@ -19,6 +20,7 @@ SENSOR_ID = 101
 PARENT_ID = 22
 ACTOR_ID = 44
 ROUTE_STEP_METERS = 3.0
+CONNECTION_REFUSED = "connection refused"
 
 
 @dataclass
@@ -116,6 +118,14 @@ class ScriptAdapter:
         return {"path": str(output_path), "attributes": attributes}
 
 
+class FailingHealthAdapter(ScriptAdapter):
+    """Adapter that reports a recoverable CARLA operation failure."""
+
+    def health_check(self) -> None:
+        """Fail like an unreachable CARLA server."""
+        raise CarlaAdapterError(CONNECTION_REFUSED)
+
+
 def test_describe_api_publishes_runtime_catalog() -> None:
     """The one-tool model should expose runtime API discovery."""
     session = CarlaSession()
@@ -172,6 +182,22 @@ def test_apply_vehicle_control_passes_direct_control_kwargs() -> None:
 
     assert result["applied_control"] == {"throttle": 0.4, "steer": -0.1, "brake": 0.0}
     assert adapter.calls[0][1]["actor_id"] == ACTOR_ID
+
+
+def test_recoverable_tool_failure_keeps_an_explicit_error_marker() -> None:
+    """Scripts should be able to inspect and recover from CARLA operation failures."""
+    api = build_api(adapter=FailingHealthAdapter(), session=CarlaSession())
+
+    result = api.health_check()
+
+    assert result == {
+        "ok": False,
+        "error_type": "carla_connection_failed",
+        "message": "connection refused",
+        "retryable": True,
+        "suggested_next_tools": ["diagnose_environment", "health_check"],
+        "error": "CARLA health check failed.",
+    }
 
 
 def build_api(adapter: ScriptAdapter, session: CarlaSession) -> CarlaScriptApi:

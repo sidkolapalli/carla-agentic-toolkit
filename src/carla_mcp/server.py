@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import json
+from typing import cast
+
 from mcp.server import MCPServer
-from mcp.types import ToolAnnotations
+from mcp.types import CallToolResult, TextContent, ToolAnnotations
 
 from carla_mcp import __version__
 from carla_mcp.sandbox import execute_script
@@ -50,7 +53,15 @@ def _register_script_tool(mcp: MCPServer) -> None:
             timeout_seconds=timeout_seconds,
             traffic_manager_ports=traffic_manager_ports or (),
         )
-        return outcome.to_dict()
+        payload = outcome.to_dict()
+        return cast(
+            "dict[str, object]",
+            CallToolResult(
+                content=[TextContent(type="text", text=json.dumps(payload))],
+                structured_content=payload,
+                is_error=not outcome.ok,
+            ),
+        )
 
 
 def _register_prompts(mcp: MCPServer) -> None:
