@@ -205,7 +205,8 @@ flowchart LR
     Runner --> Guard["Python runner<br/>AST validation · curated api"]
     Guard -->|allowed CARLA ports| Carla["CARLA simulator"]
     Guard --> Scratch["Per-run scratch<br/>deleted after execution"]
-    Guard --> Output["Durable output<br/>captures · recordings · evidence"]
+    Guard --> Output["Durable MCP output<br/>captures · evidence"]
+    Guard --> Recorder["Simulator-side output<br/>CARLA recordings"]
 ```
 
 The public MCP surface stays deliberately small. Complexity lives behind that
@@ -252,8 +253,11 @@ assumptions, and private vulnerability reporting process.
 - Automated tests use mock CARLA adapters. Live simulator validation remains a
   manual gate.
 
-Relative output paths such as `captures/front.png` are rooted in
-`CARLA_MCP_OUTPUT_DIR`. Per-run scratch space is deleted after every script.
+Relative capture and evidence paths such as `captures/front.png` are rooted in
+`CARLA_MCP_OUTPUT_DIR`. Recorder paths are opened by the CARLA simulator host;
+set `CARLA_MCP_RECORDER_DIR` to an absolute directory understood by that host.
+The toolkit reports CARLA's accepted path and does not copy recorder files
+between hosts. Per-run scratch space is deleted after every script.
 
 ## Development
 

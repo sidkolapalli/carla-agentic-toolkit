@@ -23,6 +23,7 @@ class WslLaunchConfig:
     project_dir: PurePosixPath
     uv: PurePosixPath
     output_dir: PurePosixPath
+    recorder_dir: str | None
 
     @classmethod
     def from_environment(cls) -> WslLaunchConfig:
@@ -50,11 +51,15 @@ class WslLaunchConfig:
             project_dir=project_dir,
             uv=uv,
             output_dir=output_dir,
+            recorder_dir=os.environ.get("CARLA_MCP_RECORDER_DIR"),
         )
 
     def command(self, program: Sequence[str]) -> list[str]:
         """Return a direct-exec WSL command for a toolkit program."""
         project_dir = str(self.project_dir)
+        recorder_environment = (
+            [f"CARLA_MCP_RECORDER_DIR={self.recorder_dir}"] if self.recorder_dir else []
+        )
         return [
             self.wsl_command,
             "--distribution",
@@ -64,6 +69,7 @@ class WslLaunchConfig:
             "--exec",
             "/usr/bin/env",
             f"CARLA_MCP_OUTPUT_DIR={self.output_dir}",
+            *recorder_environment,
             str(self.uv),
             "--directory",
             project_dir,

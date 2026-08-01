@@ -50,6 +50,7 @@ raise SystemExit(23)
         "CARLA_MCP_WSL_DISTRO": "Ubuntu-24.04",
         "CARLA_MCP_WSL_PROJECT": "/home/carla/carla-mcp",
         "CARLA_MCP_WSL_UV": "/home/carla/.local/bin/uv",
+        "CARLA_MCP_RECORDER_DIR": "E:/CARLA_0.9.16",
         "WSL_ARGUMENTS_LOG": str(arguments_log),
     }
     launcher_name = "carla-mcp-windows.exe" if os.name == "nt" else "carla-mcp-windows"
@@ -82,6 +83,7 @@ raise SystemExit(23)
             "--exec",
             "/usr/bin/env",
             "CARLA_MCP_OUTPUT_DIR=/home/carla/carla-mcp/carla-mcp-output",
+            "CARLA_MCP_RECORDER_DIR=E:/CARLA_0.9.16",
             "/home/carla/.local/bin/uv",
             "--directory",
             "/home/carla/carla-mcp",

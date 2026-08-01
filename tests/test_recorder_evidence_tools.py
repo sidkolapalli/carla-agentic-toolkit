@@ -7,12 +7,36 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
 
+import pytest
+
+from carla_mcp.adapter import PythonCarlaAdapter
+from carla_mcp.errors import CarlaAdapterError
 from carla_mcp.models import RecordingInfo
 from carla_mcp.session import CarlaSession
 from carla_mcp.tools.evidence import export_evidence_packet
 from carla_mcp.tools.recorder import record_episode, stop_recording
 
 RECORDING_ID: Final = "recording-001"
+REQUESTED_RECORDING: Final = "live-mcp/episode.log"
+ACCEPTED_RECORDING: Final = "E:/CARLA_0.9.16/live-mcp/episode.log"
+RECORDER_REJECTED: Final = "CARLA did not open recorder path"
+
+
+@dataclass
+@dataclass
+class RecorderClient:
+    """Fake official client recorder return contract."""
+
+    accepted_path: str
+    requested_path: str | None = None
+
+    def start_recorder(self, path: str) -> str:
+        """Return the path accepted by the simulator server."""
+        self.requested_path = path
+        return self.accepted_path
+
+    def stop_recorder(self) -> None:
+        """Stop the fake recorder."""
 
 
 @dataclass
@@ -31,6 +55,47 @@ class RecorderAdapter:
         if self.started_recording is None:
             return RecordingInfo(recording_id=RECORDING_ID, path=Path("missing.log"), active=False)
         return RecordingInfo(recording_id=RECORDING_ID, path=self.started_recording, active=False)
+
+
+def test_python_adapter_rejects_empty_recorder_response(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An empty official start_recorder result must never report active recording."""
+    client = RecorderClient(accepted_path="")
+    adapter = PythonCarlaAdapter()
+    monkeypatch.setattr(adapter, "_client", lambda: client)
+
+    with pytest.raises(CarlaAdapterError, match=RECORDER_REJECTED):
+        adapter.record_episode(Path(REQUESTED_RECORDING))
+
+
+def test_python_adapter_uses_server_recorder_dir_and_accepted_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Cross-host recording should use and report the simulator-side path."""
+    client = RecorderClient(accepted_path=ACCEPTED_RECORDING)
+    adapter = PythonCarlaAdapter()
+    monkeypatch.setenv("CARLA_MCP_RECORDER_DIR", "E:/CARLA_0.9.16")
+    monkeypatch.setattr(adapter, "_client", lambda: client)
+
+    recording = adapter.record_episode(Path(REQUESTED_RECORDING))
+    stopped = adapter.stop_recording()
+
+    assert {
+        "requested_path": client.requested_path,
+        "accepted_path": recording.path,
+        "started": recording.active,
+        "same_recording": stopped.recording_id == recording.recording_id,
+        "stopped_path": stopped.path,
+        "stopped": not stopped.active,
+    } == {
+        "requested_path": ACCEPTED_RECORDING,
+        "accepted_path": Path(ACCEPTED_RECORDING),
+        "started": True,
+        "same_recording": True,
+        "stopped_path": recording.path,
+        "stopped": True,
+    }
 
 
 def test_record_episode_registers_recording_resource(tmp_path: Path) -> None:

@@ -78,6 +78,7 @@ def test_execute_script_passes_carla_ports_to_rust_runner(
 
     monkeypatch.setenv("CARLA_MCP_SANDBOX", str(runner))
     monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(output_dir))
+    monkeypatch.setenv("CARLA_MCP_RECORDER_DIR", "E:/CARLA_0.9.16/recordings")
     monkeypatch.setattr(sandbox.subprocess, "run", run_command)
 
     outcome = sandbox.execute_script(
@@ -94,6 +95,7 @@ def test_execute_script_passes_carla_ports_to_rust_runner(
         "output_dir_arguments": commands[0].count(resolved_output_dir),
         "has_output_dir_option": "--output-dir" in commands[0],
         "has_tcp_rule": "--tcp-connect" in commands[0],
+        "recorder_dir": commands[0][commands[0].index("--recorder-dir") + 1],
         "allowed_ports": {"2000", "2001", "2002", "8050"} <= set(commands[0]),
     } == {
         "ok": True,
@@ -102,6 +104,7 @@ def test_execute_script_passes_carla_ports_to_rust_runner(
         "output_dir_arguments": 2,
         "has_output_dir_option": True,
         "has_tcp_rule": True,
+        "recorder_dir": "E:/CARLA_0.9.16/recordings",
         "allowed_ports": True,
     }
 

@@ -56,6 +56,7 @@ class RunnerCommandRequest:
     port: int
     timeout_seconds: float
     traffic_manager_ports: Sequence[int]
+    recorder_dir: str | None
 
 
 def execute_script(
@@ -97,6 +98,7 @@ def execute_script(
                 port=port,
                 timeout_seconds=timeout_seconds,
                 traffic_manager_ports=traffic_manager_ports,
+                recorder_dir=os.environ.get("CARLA_MCP_RECORDER_DIR"),
             )
         )
         completed = subprocess.run(
@@ -134,6 +136,8 @@ def _runner_command(request: RunnerCommandRequest) -> list[str]:
         "--output-dir",
         str(request.output_dir),
     ]
+    if request.recorder_dir:
+        command.extend(("--recorder-dir", request.recorder_dir))
     for path in _read_only_paths():
         command.extend(("--read-only", str(path)))
     command.extend(("--read-write", str(request.work_dir)))

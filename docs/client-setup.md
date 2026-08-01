@@ -223,6 +223,8 @@ $env:CARLA_MCP_WSL_DISTRO = "Ubuntu-24.04"
 $env:CARLA_MCP_WSL_PROJECT = "/home/user/carla-mcp"
 $env:CARLA_MCP_WSL_UV = "/home/user/.local/bin/uv"
 $env:CARLA_MCP_WSL_OUTPUT_DIR = "/home/user/carla-mcp-output"
+# Optional: server-side directory when CARLA runs on Windows.
+$env:CARLA_MCP_RECORDER_DIR = "E:/CARLA_0.9.16/recordings"
 
 uv run carla-mcp-windows --check
 uv run python scripts/windows_e2e.py
@@ -250,11 +252,18 @@ The client entry must set these environment variables:
 | `CARLA_MCP_WSL_PROJECT` | Absolute Linux path to the WSL checkout |
 | `CARLA_MCP_WSL_UV` | Absolute Linux path reported by `command -v uv` |
 | `CARLA_MCP_WSL_OUTPUT_DIR` | Absolute Linux path for durable output |
+| `CARLA_MCP_RECORDER_DIR` | Optional absolute recorder directory understood by the CARLA simulator host |
 
 Use the Claude Code, Codex, or VS Code configuration shape above, replacing the
-program with `carla-mcp-windows` and adding all four variables. Output is
+program with `carla-mcp-windows` and adding the four required variables. Output is
 available from Windows under
 `\\wsl.localhost\<distribution>\home\<user>\carla-mcp-output`.
+
+CARLA opens recorder files on the simulator host, not in WSL. With
+`CARLA_MCP_RECORDER_DIR` set, a relative `record_episode("run.log")` request is
+sent under that directory and success reports the exact path CARLA accepted.
+An empty CARLA response becomes `record_episode_failed`; no response claims the
+file was copied into `CARLA_MCP_WSL_OUTPUT_DIR`.
 
 If CARLA itself runs on Windows, WSL2 mirrored networking can use
 `127.0.0.1`. With WSL2's default NAT networking, get the Windows host address

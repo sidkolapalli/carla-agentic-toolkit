@@ -42,6 +42,8 @@ struct Args {
     work_dir: PathBuf,
     #[arg(long)]
     output_dir: PathBuf,
+    #[arg(long)]
+    recorder_dir: Option<String>,
     #[arg(long = "read-only")]
     read_only: Vec<PathBuf>,
     #[arg(long = "read-write")]
@@ -94,6 +96,9 @@ fn run() -> Result<Value> {
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    if let Some(recorder_dir) = &args.recorder_dir {
+        command.env("CARLA_MCP_RECORDER_DIR", recorder_dir);
+    }
     unsafe {
         command.pre_exec(configure_child_process);
     }

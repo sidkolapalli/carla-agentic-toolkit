@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from importlib import import_module
 from pathlib import Path
 from queue import Empty, Queue
@@ -87,6 +88,7 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
         self._host = host
         self._port = port
         self._timeout = timeout
+        self._recording: RecordingInfo | None = None
 
     @property
     def host(self) -> str:
@@ -282,13 +284,19 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
         return configure_traffic_manager_runtime(traffic_manager_instance, request)
 
     def record_episode(self, output_path: Path) -> RecordingInfo:
-        """Start recording an episode."""
+        """Start recording an episode at the simulator-side path."""
         client = self._client()
+        requested_path = _server_recorder_path(output_path)
         try:
-            client.start_recorder(str(output_path))
+            accepted_path = client.start_recorder(requested_path)
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
             raise CarlaAdapterError(str(exc)) from exc
-        return RecordingInfo(recording_id=output_path.stem, path=output_path, active=True)
+        if not accepted_path:
+            msg = f"CARLA did not open recorder path: {requested_path}"
+            raise CarlaAdapterError(msg)
+        path = Path(accepted_path)
+        self._recording = RecordingInfo(recording_id=path.stem, path=path, active=True)
+        return self._recording
 
     def stop_recording(self) -> RecordingInfo:
         """Stop the active recording."""
@@ -297,7 +305,15 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
             client.stop_recorder()
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
             raise CarlaAdapterError(str(exc)) from exc
-        return RecordingInfo(recording_id="latest", path=Path("latest.log"), active=False)
+        if self._recording is None:
+            return RecordingInfo(recording_id="latest", path=Path("latest.log"), active=False)
+        stopped = RecordingInfo(
+            recording_id=self._recording.recording_id,
+            path=self._recording.path,
+            active=False,
+        )
+        self._recording = None
+        return stopped
 
     def attach_camera(
         self,
@@ -361,6 +377,16 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
             return client.get_world()
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
             raise CarlaAdapterError(str(exc)) from exc
+
+
+def _server_recorder_path(output_path: Path) -> str:
+    """Resolve a relative recording under an optional simulator-side directory."""
+    path = output_path.as_posix()
+    directory = os.environ.get("CARLA_MCP_RECORDER_DIR")
+    if directory and not output_path.is_absolute() and not (len(path) > 1 and path[1] == ":"):
+        base = directory.rstrip("/\\")
+        return f"{base}/{path}"
+    return path
 
 
 def _carla_client_factory() -> CarlaClientFactory:
