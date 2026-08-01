@@ -33,6 +33,14 @@ if TYPE_CHECKING:
 class HealthAdapter(Protocol):
     """Adapter contract for diagnostic tools."""
 
+    @property
+    def host(self) -> str:
+        """Return the attempted CARLA host."""
+
+    @property
+    def port(self) -> int:
+        """Return the attempted CARLA port."""
+
     def health_check(self) -> HealthReport:
         """Return health details for the connected CARLA server."""
 

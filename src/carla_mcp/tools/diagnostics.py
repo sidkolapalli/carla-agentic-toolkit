@@ -18,8 +18,10 @@ def health_check(adapter: HealthAdapter, session: CarlaSession) -> ToolResult:
     except CarlaAdapterError as exc:
         return ToolResult.error(
             {
-                "error_type": "carla_connection_failed",
+                "error_type": "carla_connection_error",
                 "message": str(exc),
+                "host": adapter.host,
+                "port": adapter.port,
                 "retryable": True,
                 "suggested_next_tools": ["diagnose_environment", "health_check"],
             },

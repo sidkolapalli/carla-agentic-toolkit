@@ -192,8 +192,10 @@ def test_recoverable_tool_failure_keeps_an_explicit_error_marker() -> None:
 
     assert result == {
         "ok": False,
-        "error_type": "carla_connection_failed",
+        "error_type": "carla_connection_error",
         "message": "connection refused",
+        "host": "127.0.0.1",
+        "port": 2000,
         "retryable": True,
         "suggested_next_tools": ["diagnose_environment", "health_check"],
         "error": "CARLA health check failed.",

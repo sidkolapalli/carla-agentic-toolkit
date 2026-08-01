@@ -339,8 +339,10 @@ authentication, deployment, and a packaged sandbox runner.
   PowerShell prompt, then reopen the client.
 - **CARLA API is not importable:** install the API version matching the simulator
   into the checkout's `.venv`, then rerun the import preflight.
-- **CARLA connection fails:** start CARLA and verify the host plus RPC, streaming,
-  secondary, and Traffic Manager ports.
+- **`carla_connection_error`:** start CARLA and verify the reported host and RPC
+  port plus the adjacent streaming/secondary ports and Traffic Manager port. The
+  Rust watchdog allows two seconds beyond CARLA's client deadline so this error
+  can be serialized; genuine script budget exhaustion remains `script_timeout`.
 - **`CARLA_MCP_WSL_PROJECT must be an absolute Linux path` in Git Bash:** use
   PowerShell or set `MSYS_NO_PATHCONV=1` so Git Bash does not rewrite `/home/...`
   as a Windows path.

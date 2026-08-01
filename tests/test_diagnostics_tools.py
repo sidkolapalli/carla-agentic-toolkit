@@ -16,6 +16,7 @@ from carla_mcp.tools.world import get_world_state, list_worlds
 DEFAULT_MAPS: Final = ("Town10HD_Opt", "Town01")
 EXPECTED_FRAME: Final = 42
 EXPECTED_VEHICLES: Final = 2
+DEFAULT_CARLA_PORT: Final = 2000
 UNREACHABLE_SERVER_MESSAGE: Final = "CARLA server is not reachable on 127.0.0.1:2000"
 
 
@@ -27,6 +28,8 @@ class FakeAdapter:
     world: WorldState
     maps: tuple[str, ...] = DEFAULT_MAPS
     fail_health: bool = False
+    host: str = "127.0.0.1"
+    port: int = DEFAULT_CARLA_PORT
 
     def health_check(self) -> HealthReport:
         """Return a health report or simulate a CARLA connection failure."""
@@ -117,9 +120,19 @@ def test_health_check_returns_tool_error_when_carla_connection_fails() -> None:
 
     result = health_check(adapter=adapter, session=session)
 
-    assert result.is_error is True
-    assert result.structured_content["error_type"] == "carla_connection_failed"
-    assert result.structured_content["retryable"] is True
+    assert {
+        "is_error": result.is_error,
+        "error_type": result.structured_content["error_type"],
+        "host": result.structured_content["host"],
+        "port": result.structured_content["port"],
+        "retryable": result.structured_content["retryable"],
+    } == {
+        "is_error": True,
+        "error_type": "carla_connection_error",
+        "host": "127.0.0.1",
+        "port": DEFAULT_CARLA_PORT,
+        "retryable": True,
+    }
     with pytest.raises(KeyError):
         session.read_resource("carla://session/status")
 
