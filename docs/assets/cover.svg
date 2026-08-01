@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="600" viewBox="0 0 2000 600" role="img" aria-labelledby="title desc">
+  <title id="title">CARLA Agentic Toolkit — Powerful simulation. Carefully contained.</title>
+  <desc id="desc">A bright, minimal product banner with soft glass control cards for MCP, Landlock, CARLA, and persistent output.</desc>
+
+  <defs>
+    <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.58" stop-color="#f5f5f7"/>
+      <stop offset="1" stop-color="#ececf1"/>
+    </linearGradient>
+    <linearGradient id="icon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a84ff"/>
+      <stop offset="0.5" stop-color="#5e5ce6"/>
+      <stop offset="1" stop-color="#bf5af2"/>
+    </linearGradient>
+    <linearGradient id="darkCard" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1c1c1e"/>
+      <stop offset="0.52" stop-color="#111114"/>
+      <stop offset="1" stop-color="#2c2438"/>
+    </linearGradient>
+    <linearGradient id="roadGlow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#64d2ff"/>
+      <stop offset="1" stop-color="#bf5af2"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.96"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.68"/>
+    </linearGradient>
+    <radialGradient id="blueAura">
+      <stop offset="0" stop-color="#0a84ff" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#0a84ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="purpleAura">
+      <stop offset="0" stop-color="#bf5af2" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#bf5af2" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur40" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="40"/>
+    </filter>
+    <filter id="cardShadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="22" stdDeviation="28" flood-color="#26263a" flood-opacity="0.16"/>
+    </filter>
+    <filter id="tileShadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#28283c" flood-opacity="0.1"/>
+    </filter>
+    <clipPath id="frame">
+      <rect x="2" y="2" width="1996" height="596" rx="38"/>
+    </clipPath>
+    <clipPath id="mainTile">
+      <rect x="1370" y="108" width="468" height="218" rx="44"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <rect width="2000" height="600" fill="url(#canvas)"/>
+
+    <circle cx="1560" cy="166" r="360" fill="url(#blueAura)" filter="url(#blur40)"/>
+    <circle cx="1810" cy="480" r="330" fill="url(#purpleAura)" filter="url(#blur40)"/>
+    <circle cx="1240" cy="550" r="260" fill="#ff9f0a" fill-opacity="0.08" filter="url(#blur40)"/>
+
+    <g transform="translate(104 70)">
+      <rect width="58" height="58" rx="17" fill="url(#icon)"/>
+      <path d="M37 17a16 16 0 1 0 0 24" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+      <path d="M29 18v22M22 29h14" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+      <text x="80" y="40" fill="#1d1d1f" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif" font-size="30" font-weight="700" letter-spacing="0.5">CARLA AGENTIC TOOLKIT</text>
+    </g>
+
+    <g transform="translate(108 194)" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif">
+      <text x="0" y="0" fill="#1d1d1f" font-size="84" font-weight="720" letter-spacing="-4">Powerful simulation.</text>
+      <text x="0" y="94" fill="url(#icon)" font-size="84" font-weight="720" letter-spacing="-4">Carefully contained.</text>
+      <text x="4" y="158" fill="#6e6e73" font-size="28" font-weight="430" letter-spacing="-0.4">One composable tool for agent-driven CARLA workflows.</text>
+    </g>
+
+    <g transform="translate(108 430)" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif">
+      <g>
+        <rect width="170" height="48" rx="24" fill="#ffffff" stroke="#d8d8dd"/>
+        <circle cx="26" cy="24" r="7" fill="#30d158"/>
+        <text x="44" y="31" fill="#3a3a3c" font-size="18" font-weight="600">Local first</text>
+      </g>
+      <g transform="translate(184)">
+        <rect width="188" height="48" rx="24" fill="#ffffff" stroke="#d8d8dd"/>
+        <circle cx="26" cy="24" r="7" fill="#0a84ff"/>
+        <text x="44" y="31" fill="#3a3a3c" font-size="18" font-weight="600">Linux sandbox</text>
+      </g>
+      <g transform="translate(386)">
+        <rect width="190" height="48" rx="24" fill="#ffffff" stroke="#d8d8dd"/>
+        <circle cx="26" cy="24" r="7" fill="#ff9f0a"/>
+        <text x="44" y="31" fill="#3a3a3c" font-size="18" font-weight="600">Open source</text>
+      </g>
+    </g>
+
+    <g filter="url(#cardShadow)">
+      <rect x="1328" y="66" width="552" height="476" rx="62" fill="url(#glass)" stroke="#ffffff" stroke-opacity="0.9" stroke-width="2"/>
+    </g>
+
+    <g clip-path="url(#mainTile)">
+      <rect x="1370" y="108" width="468" height="218" rx="44" fill="url(#darkCard)"/>
+      <circle cx="1764" cy="153" r="180" fill="url(#purpleAura)"/>
+      <path d="M1594 326L1686 194L1728 194L1838 304V326Z" fill="#ffffff" fill-opacity="0.055"/>
+      <path d="M1594 326L1686 194M1838 304L1728 194" fill="none" stroke="url(#roadGlow)" stroke-opacity="0.65" stroke-width="2"/>
+      <path d="M1660 326L1705 198" fill="none" stroke="#ffffff" stroke-opacity="0.62" stroke-width="4" stroke-dasharray="20 17"/>
+      <path d="M1779 326L1718 198" fill="none" stroke="#ffffff" stroke-opacity="0.28" stroke-width="4" stroke-dasharray="20 17"/>
+    </g>
+
+    <g font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif">
+      <g transform="translate(1404 140)">
+        <circle cx="8" cy="8" r="8" fill="#30d158"/>
+        <text x="28" y="16" fill="#ffffff" font-size="20" font-weight="650">MCP connected</text>
+        <text x="0" y="58" fill="#a7a7ad" font-size="16" font-weight="500">CONTROL PLANE</text>
+      </g>
+
+      <g transform="translate(1404 262)">
+        <rect width="188" height="42" rx="21" fill="#ffffff" fill-opacity="0.13" stroke="#ffffff" stroke-opacity="0.12"/>
+        <text x="22" y="27" fill="#ffffff" font-size="16" font-weight="600">execute_carla_script</text>
+      </g>
+
+      <g filter="url(#tileShadow)">
+        <rect x="1370" y="346" width="220" height="154" rx="38" fill="#ffffff" fill-opacity="0.9"/>
+        <rect x="1610" y="346" width="228" height="154" rx="38" fill="#ffffff" fill-opacity="0.9"/>
+      </g>
+
+      <g transform="translate(1398 373)">
+        <rect width="46" height="46" rx="15" fill="#30d158"/>
+        <path d="M14 23l7 7 13-15" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="0" y="78" fill="#1d1d1f" font-size="21" font-weight="670">Landlock</text>
+        <text x="0" y="104" fill="#6e6e73" font-size="17" font-weight="500">Fully enforced</text>
+      </g>
+
+      <g transform="translate(1638 373)">
+        <rect width="46" height="46" rx="15" fill="#0a84ff"/>
+        <path d="M13 30h20M16 23h14M20 16h6" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+        <text x="0" y="78" fill="#1d1d1f" font-size="21" font-weight="670">Evidence</text>
+        <text x="0" y="104" fill="#6e6e73" font-size="17" font-weight="500">Saved outside scratch</text>
+      </g>
+    </g>
+  </g>
+
+  <rect x="2" y="2" width="1996" height="596" rx="38" fill="none" stroke="#d9d9de" stroke-width="4"/>
+</svg>
