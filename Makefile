@@ -1,4 +1,4 @@
-.PHONY: check format lint radon rust-check rust-clippy rust-fmt test type
+.PHONY: check format lint radon rust-build rust-check rust-clippy rust-fmt rust-test test type
 
 test:
 	uv run pytest
@@ -20,8 +20,14 @@ rust-fmt:
 	cargo fmt --manifest-path sandbox-runner/Cargo.toml -- --check
 
 rust-clippy:
-	cargo clippy --manifest-path sandbox-runner/Cargo.toml -- -D warnings
+	cargo clippy --locked --manifest-path sandbox-runner/Cargo.toml -- -D warnings
 
-rust-check: rust-fmt rust-clippy
+rust-build:
+	cargo build --locked --manifest-path sandbox-runner/Cargo.toml
+
+rust-test:
+	cargo test --locked --manifest-path sandbox-runner/Cargo.toml
+
+rust-check: rust-fmt rust-clippy rust-build rust-test
 
 check: lint type radon rust-check test

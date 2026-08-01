@@ -25,7 +25,8 @@ Use `make format` before the final check when formatting changes are needed.
 - Ty type checking
 - Radon A-grade complexity and maintainability checks
 - Rustfmt and Clippy with warnings denied
-- pytest
+- a debug Rust runner build and Rust tests
+- pytest, including the real Landlock preflight
 
 Tests use mock CARLA adapters and must not require a running simulator. If a
 change affects real CARLA behavior, also run the manual smoke test and report the

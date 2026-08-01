@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import json
 import os
+import platform
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
+
+IS_WSL2 = "microsoft" in platform.release().casefold() and "wsl2" in platform.release().casefold()
 
 
 @pytest.mark.skipif(sys.platform != "linux", reason="requires the Linux Landlock sandbox runner")
@@ -49,13 +52,14 @@ def test_preflight_proves_landlock_and_persistent_output(tmp_path: Path) -> None
         "stderr": "",
         "ok": True,
         "system": "Linux",
-        "wsl2": False,
+        "wsl2": IS_WSL2,
         "ruleset_enforced": True,
         "evidence_persisted": True,
         "artifacts_cleaned": True,
     }
 
 
+@pytest.mark.skipif(IS_WSL2, reason="requires a non-WSL host")
 def test_preflight_rejects_non_wsl2_when_windows_support_is_requested(
     tmp_path: Path,
 ) -> None:
