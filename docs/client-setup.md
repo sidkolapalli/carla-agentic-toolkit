@@ -28,8 +28,9 @@ Before starting, install or confirm:
   sandbox. On Windows this kernel must be supplied by WSL2.
 - A reachable CARLA server and the same CARLA Python API version in the MCP
   virtual environment. A 0.9.16 server requires `carla==0.9.16`.
-- Free CARLA ports. The defaults are RPC 2000, streaming 2001, secondary 2002,
-  and Traffic Manager 8000.
+- Free, non-reserved CARLA ports. The defaults are RPC 2000, streaming 2001,
+  secondary 2002, and Traffic Manager 8000. WSL2/Hyper-V may reserve the
+  defaults on Windows even when `netstat` shows no listener.
 
 The official CARLA packaged-release requirements are Windows 10/11 or Ubuntu
 20.04/22.04, about 20 GB of disk, and a dedicated GPU equivalent to an NVIDIA
@@ -269,12 +270,19 @@ ip route show default | awk '{print $3}'
    Landlock, the Rust runner, and persistent output without requiring CARLA.
 2. Run `uv run python scripts/windows_e2e.py`. This additionally proves MCP
    stdio and a real denied filesystem write, still without requiring CARLA.
-3. Download and extract the Windows package matching the Python API version,
-   then start it exactly as the official CARLA guide specifies:
+3. Download and extract the Windows package matching the Python API version.
+   Check whether Windows has reserved CARLA's default ports:
+
+   ```powershell
+   netsh interface ipv4 show excludedportrange protocol=tcp
+   ```
+
+   If 2000-2002 are available, start `CarlaUE4.exe` normally. If they fall in an
+   excluded range, use another free three-port block such as 3000-3002:
 
    ```powershell
    Set-Location "C:\path\to\CARLA_0.9.16"
-   .\CarlaUE4.exe
+   .\CarlaUE4.exe -carla-rpc-port=3000
    ```
 
 4. With CARLA listening, run the live check inside WSL. For default NAT, replace
@@ -282,7 +290,7 @@ ip route show default | awk '{print $3}'
 
    ```bash
    cd "$HOME/carla-mcp"
-   uv run python scripts/live_smoke.py --host 172.18.112.1 \
+   uv run python scripts/live_smoke.py --host 172.18.112.1 --port 3000 \
      --reset-existing --vehicle-count 4
    ```
 
@@ -300,7 +308,8 @@ Start CARLA, then ask your client:
 The client normally requests approval because `execute_carla_script` is marked
 destructive and open-world, unless local client policy explicitly auto-approves
 it. A successful response includes connection, version, map, and actor
-information.
+information. If CARLA uses a non-default endpoint, include it in the request,
+for example `host="172.18.112.1"` and `port=3000`.
 
 ## Platform and Client Support
 
@@ -335,10 +344,11 @@ authentication, deployment, and a packaged sandbox runner.
 - **`CARLA_MCP_WSL_PROJECT must be an absolute Linux path` in Git Bash:** use
   PowerShell or set `MSYS_NO_PATHCONV=1` so Git Bash does not rewrite `/home/...`
   as a Windows path.
-- **`CarlaUE4.exe` exits before opening port 2000:** this is a CARLA simulator
-  failure, not an MCP startup failure. Follow CARLA's official FAQ and inspect
-  `%LOCALAPPDATA%\CarlaUE4\Saved\Crashes`; the MCP can use any compatible,
-  reachable CARLA server.
+- **`CarlaUE4.exe` shows `Fatal error` immediately:** run `netsh interface ipv4
+  show excludedportrange protocol=tcp`. If Windows reserved 2000-2002, launch
+  with `-carla-rpc-port=3000` and pass `port=3000` to the MCP tool. This can
+  happen even when `netstat` shows no listener. For other crashes, follow
+  CARLA's official FAQ and inspect `%LOCALAPPDATA%\CarlaUE4\Saved\Crashes`.
 - **Codex reports a timeout:** raise `tool_timeout_sec`; keep it above the script's
   `timeout_seconds` plus the sandbox wrapper margin.
 - **Output is missing:** use relative paths in scripts and inspect
