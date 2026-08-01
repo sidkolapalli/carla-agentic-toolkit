@@ -122,6 +122,10 @@ The Windows launcher uses `wsl.exe --exec` directly. It never runs
 agent-authored code with Windows Python and never falls back to an unsandboxed
 path.
 
+> [!NOTE]
+> For pre-merge testing, check out `feat/windows-support` in both the WSL and
+> Windows clones. After the branch merges, use `main` instead.
+
 First prepare the Linux runtime inside WSL2:
 
 ```powershell
@@ -134,6 +138,7 @@ Then, inside that WSL2 distribution:
 ```bash
 git clone https://github.com/sidkolapalli/carla-mcp.git
 cd carla-mcp
+git switch feat/windows-support
 uv sync --locked
 # Install the matching CARLA Python API into this WSL .venv.
 cargo build --locked --manifest-path sandbox-runner/Cargo.toml --release
@@ -148,6 +153,7 @@ Windows, prepare a second checkout for the small launcher:
 ```powershell
 git clone https://github.com/sidkolapalli/carla-mcp.git C:\src\carla-mcp
 Set-Location C:\src\carla-mcp
+git switch feat/windows-support
 uv sync --locked
 
 $env:CARLA_MCP_WSL_DISTRO = "Ubuntu-24.04"
@@ -163,8 +169,9 @@ Replace `user`, the distribution, and the `uv` path with values from the WSL
 commands above. `--check` requires WSL2, executes a harmless script through the
 real Rust runner, requires fully enforced Landlock, verifies persistent output,
 and cleans its preflight artifact. The end-to-end script additionally verifies
-MCP initialization, tool discovery, safe execution, and rejection of private API
-access. Neither command requires a running CARLA simulator.
+MCP initialization, tool discovery, safe execution, and a real Landlock denial:
+the WSL user can write under the project, but the sandbox cannot create a probe
+there and leaves no artifact. Neither command requires a running CARLA simulator.
 
 Configure the Windows MCP client to run:
 

@@ -7,7 +7,8 @@ import json
 import os
 import subprocess
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+from uuid import uuid4
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -71,27 +72,80 @@ async def _verify_mcp(launcher: Path) -> dict[str, object]:
             condition=landlock.get("ruleset_enforced") is True,
         )
 
-        rejected = await session.call_tool(
-            "execute_carla_script",
-            {"code": "result = api._adapter.host", "timeout_seconds": 5},
-        )
-        rejected_result = _mapping(rejected.structured_content, "rejected tool result")
+        project_dir = os.environ["CARLA_MCP_WSL_PROJECT"]
         _require(
-            f"private API access was not rejected: {rejected_result}",
-            condition=rejected_result.get("error_type") == "script_rejected",
+            f"WSL project is not writable by its user: {project_dir}",
+            condition=_wsl_test("-w", project_dir),
+        )
+        probe_path = str(PurePosixPath(project_dir) / f".carla-mcp-landlock-probe-{uuid4().hex}")
+        probe_code = f"result = api.export_evidence_packet({json.dumps(probe_path)})"
+        blocked = await session.call_tool(
+            "execute_carla_script",
+            {"code": probe_code, "timeout_seconds": 5},
+        )
+        blocked_result = _mapping(blocked.structured_content, "blocked write result")
+        _require(
+            f"write outside the output directory was not denied: {blocked_result}",
+            condition=blocked_result.get("error_type") == "PermissionError",
+        )
+        artifact_exists = _wsl_test("-e", probe_path)
+        if artifact_exists:
+            _remove_wsl_probe(probe_path)
+        _require(
+            f"blocked write left an artifact: {probe_path}",
+            condition=not artifact_exists,
         )
 
     return {
         "server": initialized.server_info.name,
         "tools": tool_names,
         "landlock_enforced": True,
-        "unsafe_access_rejected": True,
+        "filesystem_write_blocked": True,
     }
 
 
 def _launcher() -> Path:
     name = "carla-mcp-windows.exe" if os.name == "nt" else "carla-mcp-windows"
     return Path(sys.executable).with_name(name)
+
+
+def _wsl_test(operator: str, path: str) -> bool:
+    """Run one trusted filesystem predicate inside the selected WSL2 distribution."""
+    completed = subprocess.run(
+        [
+            os.environ.get("CARLA_MCP_WSL_COMMAND", "wsl.exe"),
+            "--distribution",
+            os.environ["CARLA_MCP_WSL_DISTRO"],
+            "--exec",
+            "/usr/bin/test",
+            operator,
+            path,
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode not in (0, 1):
+        message = completed.stderr.strip() or "WSL filesystem check failed"
+        raise RuntimeError(message)
+    return completed.returncode == 0
+
+
+def _remove_wsl_probe(path: str) -> None:
+    """Remove only the unique probe path after an unexpected sandbox escape."""
+    subprocess.run(
+        [
+            os.environ.get("CARLA_MCP_WSL_COMMAND", "wsl.exe"),
+            "--distribution",
+            os.environ["CARLA_MCP_WSL_DISTRO"],
+            "--exec",
+            "/usr/bin/rm",
+            "-rf",
+            "--",
+            path,
+        ],
+        check=False,
+    )
 
 
 def _mapping(value: object, label: str) -> dict[str, object]:
