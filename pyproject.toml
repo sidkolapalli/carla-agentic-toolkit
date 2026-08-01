@@ -20,7 +20,7 @@ carla-mcp = "carla_mcp.server:main"
 dev = [
     "pytest>=8.0.0",
     "radon>=6.0.1",
-    "ruff>=0.8.0",
+    "ruff>=0.16.0",
     "ty>=0.0.1a20",
 ]
 
