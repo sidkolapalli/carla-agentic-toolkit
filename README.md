@@ -98,7 +98,7 @@ evidence remains available.
 
 ### Requirements
 
-- Linux with Landlock, or Windows 11 with a WSL2 distribution that provides it
+- Linux with Landlock ABI V7, or Windows 11 with a WSL2 kernel that provides it
 - Python 3.12+, [uv](https://docs.astral.sh/uv/), and a Rust toolchain
 - A CARLA Python API version matching a reachable CARLA server
 

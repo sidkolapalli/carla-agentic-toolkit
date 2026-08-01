@@ -131,7 +131,14 @@ First prepare the Linux runtime inside WSL2:
 ```powershell
 wsl --install --distribution Ubuntu-24.04
 wsl --list --verbose
+wsl --update
+wsl --version
 ```
+
+The Rust runner hard-requires Landlock ABI V7, introduced with Linux 6.15.
+Older WSL2 kernels, including 6.6, fail closed because they cannot enforce the
+same filesystem and TCP rules. `carla-mcp-windows --check` reports the actual
+kernel and is the definitive compatibility test.
 
 Then, inside that WSL2 distribution:
 
@@ -231,7 +238,8 @@ authentication, deployment, and a packaged sandbox runner.
 - **`sandbox_error` / Landlock not fully enforced:** the kernel lacks a required
   Landlock feature. Execution intentionally fails closed; do not bypass it.
 - **`carla-mcp-windows --check` rejects the distribution:** confirm
-  `wsl --list --verbose` reports version 2, then run `wsl --update`.
+  `wsl --list --verbose` reports version 2 and `wsl --version` reports a Linux
+  6.15-or-newer kernel, then run `wsl --update`. Do not bypass a failed check.
 - **Windows cannot reach `wsl.exe`:** install or update WSL from an elevated
   PowerShell prompt, then reopen the client.
 - **CARLA API is not importable:** install the API version matching the simulator
@@ -250,3 +258,4 @@ authentication, deployment, and a packaged sandbox runner.
 - [VS Code MCP configuration](https://code.visualstudio.com/docs/agents/reference/mcp-configuration)
 - [Microsoft WSL commands](https://learn.microsoft.com/windows/wsl/basic-commands)
 - [Microsoft WSL networking](https://learn.microsoft.com/windows/wsl/networking)
+- [Landlock ABI versions](https://landlock.io/rust-landlock/landlock/enum.ABI.html)
