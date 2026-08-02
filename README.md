@@ -279,6 +279,16 @@ uv run python scripts/live_smoke.py --reset-existing --vehicle-count 12
 
 Use `--keep-running` to keep the sidecar Traffic Manager client alive.
 
+For an explicit, self-cleaning test through MCP stdio itself:
+
+```bash
+uv run python scripts/live_mcp_smoke.py --confirm-live --host 127.0.0.1 --port 2000
+```
+
+Add `--windows` to launch through `carla-mcp-windows`. The harness tags and
+removes only its own vehicle, detaches its camera, restores weather, and emits
+one JSON report. Never run it against a shared simulator without permission.
+
 ## Documentation
 
 | Guide | Contents |

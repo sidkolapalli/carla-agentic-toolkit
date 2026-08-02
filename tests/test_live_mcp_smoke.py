@@ -1,0 +1,23 @@
+"""Behavior specs for the opt-in live MCP smoke harness."""
+
+from __future__ import annotations
+
+import pytest
+
+from scripts.live_mcp_smoke import _mutation_script, _parse_args
+
+
+def test_live_smoke_requires_explicit_confirmation() -> None:
+    """A live simulator mutation must never run by default."""
+    with pytest.raises(SystemExit):
+        _parse_args([])
+
+
+def test_live_smoke_script_tags_and_cleans_only_its_actors() -> None:
+    """The generated script should own cleanup through its unique role tag."""
+    code = _mutation_script("carla-mcp-smoke-test")
+
+    assert "carla-mcp-smoke-test" in code
+    assert "finally:" in code
+    assert "api.destroy_actors(actor_ids)" in code
+    assert "api.set_weather(weather_before)" in code
