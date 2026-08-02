@@ -39,17 +39,39 @@ def get_environment_objects(
     *,
     label: str = "Any",
     max_count: int = 200,
+    include_level_bounds: bool = False,
 ) -> dict[str, object]:
-    """Return bounded environment objects for one runtime semantic label."""
-    if isinstance(max_count, bool) or not 1 <= max_count <= MAX_ENVIRONMENT_OBJECTS:
-        message = f"max_count must be in 1..{MAX_ENVIRONMENT_OBJECTS}."
+    """Return bounded objects and optional level bounds for one semantic label."""
+    _validate_max_count(max_count)
+    if not isinstance(include_level_bounds, bool):
+        message = "include_level_bounds must be a boolean."
         raise CarlaAdapterError(message)
     enum_value = _enum_value("CityObjectLabel", label)
     objects = list(cast("Any", call_required(world, "get_environment_objects", enum_value)))
-    return {
+    result: dict[str, object] = {
         "label": label,
         "objects": [_environment_object(item) for item in objects[:max_count]],
         "truncated": len(objects) > max_count,
+    }
+    if include_level_bounds:
+        result["level_bounds"] = get_level_bounding_boxes(world, label=label, max_count=max_count)
+    return result
+
+
+def get_level_bounding_boxes(
+    world: object,
+    *,
+    label: str = "Any",
+    max_count: int = 200,
+) -> dict[str, object]:
+    """Return bounded level geometry for one runtime semantic label."""
+    _validate_max_count(max_count)
+    enum_value = _enum_value("CityObjectLabel", label)
+    boxes = list(cast("Any", call_required(world, "get_level_bbs", enum_value)))
+    return {
+        "label": label,
+        "bounding_boxes": [_bounding_box(item) for item in boxes[:max_count]],
+        "truncated": len(boxes) > max_count,
     }
 
 
@@ -108,6 +130,16 @@ def generate_opendrive_world(
         parameter_object,
         _boolean(reset_settings),
     )
+
+
+def _validate_max_count(max_count: int) -> None:
+    if (
+        isinstance(max_count, bool)
+        or not isinstance(max_count, int)
+        or not 1 <= max_count <= MAX_ENVIRONMENT_OBJECTS
+    ):
+        message = f"max_count must be in 1..{MAX_ENVIRONMENT_OBJECTS}."
+        raise CarlaAdapterError(message)
 
 
 def _environment_object(value: object) -> dict[str, object]:

@@ -8,13 +8,17 @@ from typing import TYPE_CHECKING, Any, cast
 
 from carla_mcp.errors import CarlaAdapterError
 from carla_mcp.experiment_common import (
+    call_required,
     carla_location,
     float_attr,
     int_attr,
+    optional_str_attr,
     optional_transform_dict,
     transform_dict,
-    unavailable,
 )
+
+MAX_LANDMARKS = 1000
+MAX_LANDMARK_FILTER_LENGTH = 128
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -84,19 +88,64 @@ def topology(world: CarlaWorld, *, max_segments: int) -> dict[str, object]:
     }
 
 
-def landmarks(world: CarlaWorld, *, max_count: int) -> dict[str, object]:
-    """Return map landmarks when the CARLA map exposes them."""
-    world_map = world.get_map()
-    method = getattr(world_map, "get_all_landmarks", None)
-    if not callable(method):
-        return unavailable("map.get_all_landmarks is not available in this CARLA build.")
-    all_landmarks = method()
-    selected = all_landmarks[: max(max_count, 0)]
+def landmarks(
+    world: CarlaWorld,
+    *,
+    max_count: int,
+    landmark_type: str | None = None,
+    landmark_id: str | None = None,
+) -> dict[str, object]:
+    """Return bounded landmarks through one official map query variant."""
+    _validate_landmark_query(max_count, landmark_type, landmark_id)
+    method_name, arguments = _landmark_query(landmark_type, landmark_id)
+    values = list(cast("Any", call_required(world.get_map(), method_name, *arguments)))
+    selected = values[:max_count]
     return {
+        "landmark_type": landmark_type,
+        "landmark_id": landmark_id,
         "landmarks": [landmark_dict(landmark) for landmark in selected],
         "returned_landmarks": len(selected),
-        "truncated": len(all_landmarks) > len(selected),
+        "truncated": len(values) > max_count,
     }
+
+
+def _validate_landmark_query(
+    max_count: int,
+    landmark_type: str | None,
+    landmark_id: str | None,
+) -> None:
+    _validate_landmark_count(max_count)
+    if landmark_type is not None and landmark_id is not None:
+        msg = "landmark_type and landmark_id are mutually exclusive."
+        raise CarlaAdapterError(msg)
+    _validate_landmark_filter(landmark_type)
+    _validate_landmark_filter(landmark_id)
+
+
+def _validate_landmark_count(max_count: int) -> None:
+    valid = isinstance(max_count, int) and not isinstance(max_count, bool)
+    if not valid or not 1 <= max_count <= MAX_LANDMARKS:
+        msg = f"max_count must be in 1..{MAX_LANDMARKS}."
+        raise CarlaAdapterError(msg)
+
+
+def _validate_landmark_filter(value: str | None) -> None:
+    if value is None:
+        return
+    if not isinstance(value, str) or not value or len(value) > MAX_LANDMARK_FILTER_LENGTH:
+        msg = f"Landmark filters must be non-empty strings up to {MAX_LANDMARK_FILTER_LENGTH}."
+        raise CarlaAdapterError(msg)
+
+
+def _landmark_query(
+    landmark_type: str | None,
+    landmark_id: str | None,
+) -> tuple[str, tuple[str, ...]]:
+    if landmark_type is not None:
+        return "get_all_landmarks_of_type", (landmark_type,)
+    if landmark_id is not None:
+        return "get_all_landmarks_from_id", (landmark_id,)
+    return "get_all_landmarks", ()
 
 
 def lane_type(module: object, lane_type_name: str) -> object:
@@ -165,12 +214,26 @@ def waypoint_dict(waypoint_item: object) -> dict[str, object]:
 
 
 def landmark_dict(landmark: object) -> dict[str, object]:
-    """Return compact landmark metadata."""
+    """Return bounded official landmark scalar metadata."""
     return {
         "id": str(getattr(landmark, "id", "")),
         "name": str(getattr(landmark, "name", "")),
         "type": str(getattr(landmark, "type", "")),
+        "sub_type": optional_str_attr(landmark, "sub_type"),
         "road_id": int_attr(landmark, "road_id"),
         "distance": float_attr(landmark, "distance"),
+        "s": float_attr(landmark, "s"),
+        "t": float_attr(landmark, "t"),
+        "is_dynamic": bool(getattr(landmark, "is_dynamic", False)),
+        "orientation": optional_str_attr(landmark, "orientation"),
+        "z_offset": float_attr(landmark, "z_offset"),
+        "value": float_attr(landmark, "value"),
+        "unit": optional_str_attr(landmark, "unit"),
+        "height": float_attr(landmark, "height"),
+        "width": float_attr(landmark, "width"),
+        "text": optional_str_attr(landmark, "text"),
+        "h_offset": float_attr(landmark, "h_offset"),
+        "pitch": float_attr(landmark, "pitch"),
+        "roll": float_attr(landmark, "roll"),
         "transform": optional_transform_dict(getattr(landmark, "transform", None)),
     }

@@ -83,7 +83,17 @@ def capability_report(client: object, world: CarlaWorld) -> dict[str, object]:
         "client_version": safe_text_method(client, "get_client_version"),
         "server_version": safe_text_method(client, "get_server_version"),
         "world": capabilities(world, ("get_weather", "set_weather", "get_spectator")),
-        "map": capabilities(world_map, ("get_spawn_points", "get_waypoint", "get_topology")),
+        "map": capabilities(
+            world_map,
+            (
+                "get_spawn_points",
+                "get_waypoint",
+                "get_topology",
+                "get_all_landmarks",
+                "get_all_landmarks_of_type",
+                "get_all_landmarks_from_id",
+            ),
+        ),
         "recorder": capabilities(
             client,
             ("replay_file", "show_recorder_collisions", "show_recorder_actors_blocked"),
@@ -96,9 +106,11 @@ def capability_report(client: object, world: CarlaWorld) -> dict[str, object]:
                 "enable_environment_objects",
                 "load_map_layer",
                 "unload_map_layer",
+                "get_level_bbs",
             ),
         ),
         "opendrive": capabilities(client, ("generate_opendrive_world",)),
+        "actor_semantic_tags": hasattr(getattr(carla_module, "Actor", None), "semantic_tags"),
         "actor_physics": capabilities(
             getattr(carla_module, "Actor", None),
             (

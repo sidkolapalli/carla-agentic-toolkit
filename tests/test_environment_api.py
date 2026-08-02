@@ -25,10 +25,27 @@ class EnvironmentAdapter:
 
     calls: list[tuple[object, ...]] = field(default_factory=list)
 
-    def get_environment_objects(self, *, label: str, max_count: int) -> dict[str, object]:
-        """Return one environment object."""
-        self.calls.append(("list", label, max_count))
-        return {"label": label, "objects": [{"id": OBJECT_ID}], "truncated": False}
+    def get_environment_objects(
+        self,
+        *,
+        label: str,
+        max_count: int,
+        include_level_bounds: bool,
+    ) -> dict[str, object]:
+        """Return one environment object and optional semantic bound."""
+        self.calls.append(("list", label, max_count, include_level_bounds))
+        result: dict[str, object] = {
+            "label": label,
+            "objects": [{"id": OBJECT_ID}],
+            "truncated": False,
+        }
+        if include_level_bounds:
+            result["level_bounds"] = {
+                "label": label,
+                "bounding_boxes": [{"location": {}}],
+                "truncated": False,
+            }
+        return result
 
     def enable_environment_objects(
         self,
@@ -62,7 +79,7 @@ def test_facade_exposes_environment_workflows() -> None:
     adapter = EnvironmentAdapter()
     api = CarlaScriptApi(cast("CarlaAdapter", adapter), RunSnapshots())
 
-    listed = api.get_environment_objects("Buildings", max_count=10)
+    listed = api.get_environment_objects("Buildings", max_count=10, include_level_bounds=True)
     toggled = api.enable_environment_objects([OBJECT_ID], enabled=False)
     layer = api.set_map_layer("Props", loaded=False)
     generated = api.generate_opendrive_world(
@@ -77,7 +94,16 @@ def test_facade_exposes_environment_workflows() -> None:
         "layer": layer,
         "generated": generated,
     } == {
-        "listed": {"label": "Buildings", "objects": [{"id": OBJECT_ID}], "truncated": False},
+        "listed": {
+            "label": "Buildings",
+            "objects": [{"id": OBJECT_ID}],
+            "truncated": False,
+            "level_bounds": {
+                "label": "Buildings",
+                "bounding_boxes": [{"location": {}}],
+                "truncated": False,
+            },
+        },
         "toggled": {"object_ids": [OBJECT_ID], "enabled": False},
         "layer": {"layer": "Props", "loaded": False},
         "generated": {"current_map": "OpenDriveMap", "frame": 1},
@@ -147,6 +173,11 @@ class EnvironmentWorld:
         self.calls.append(("list", label))
         return [EnvironmentObject()]
 
+    def get_level_bbs(self, label: object) -> list[BoundingBox]:
+        """Return one labelled level bounding box."""
+        self.calls.append(("bounds", label))
+        return [EnvironmentObject().bounding_box]
+
     def enable_environment_objects(self, object_ids: set[int], enabled: object) -> None:
         """Record explicit object IDs."""
         assert isinstance(enabled, bool)
@@ -184,6 +215,11 @@ def test_runtime_queries_toggles_and_layers_by_dynamic_enum(
         label="Buildings",
         max_count=1,
     )
+    bounds = experiment_environment.get_level_bounding_boxes(
+        world,
+        label="Buildings",
+        max_count=1,
+    )
     toggled = experiment_environment.enable_environment_objects(
         world,
         object_ids=(OBJECT_ID,),
@@ -194,12 +230,14 @@ def test_runtime_queries_toggles_and_layers_by_dynamic_enum(
     objects = cast("list[dict[str, object]]", listed["objects"])
     assert {
         "object_id": objects[0]["id"],
+        "bound_count": len(cast("list[object]", bounds["bounding_boxes"])),
         "toggled": toggled,
         "layer": layer,
         "enabled_call": ("enable", {OBJECT_ID}, False) in world.calls,
         "layer_call": ("load", "props") in world.calls,
     } == {
         "object_id": OBJECT_ID,
+        "bound_count": 1,
         "toggled": {"object_ids": [OBJECT_ID], "enabled": False},
         "layer": {"layer": "Props", "loaded": True},
         "enabled_call": True,
@@ -214,6 +252,8 @@ def test_missing_environment_method_is_unsupported(
     monkeypatch.setattr(experiment_environment, "import_module", lambda _name: _carla_module())
     with pytest.raises(UnsupportedFeatureError, match="get_environment_objects"):
         experiment_environment.get_environment_objects(object(), label="Buildings", max_count=10)
+    with pytest.raises(UnsupportedFeatureError, match="get_level_bbs"):
+        experiment_environment.get_level_bounding_boxes(object(), label="Buildings", max_count=10)
 
 
 @dataclass

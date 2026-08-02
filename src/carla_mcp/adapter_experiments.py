@@ -123,14 +123,34 @@ class PythonCarlaExperimentMixin:
             self._world(self._client()), max_segments=max_segments
         )
 
-    def get_landmarks(self, *, max_count: int = 200) -> dict[str, object]:
-        """Return map landmarks when the CARLA map exposes them."""
-        return experiment_navigation.landmarks(self._world(self._client()), max_count=max_count)
+    def get_landmarks(
+        self,
+        *,
+        max_count: int = 200,
+        landmark_type: str | None = None,
+        landmark_id: str | None = None,
+    ) -> dict[str, object]:
+        """Return bounded map landmarks through official query variants."""
+        return experiment_navigation.landmarks(
+            self._world(self._client()),
+            max_count=max_count,
+            landmark_type=landmark_type,
+            landmark_id=landmark_id,
+        )
 
-    def get_environment_objects(self, *, label: str, max_count: int) -> dict[str, object]:
-        """Return bounded static environment objects."""
+    def get_environment_objects(
+        self,
+        *,
+        label: str,
+        max_count: int,
+        include_level_bounds: bool,
+    ) -> dict[str, object]:
+        """Return bounded static objects and optional semantic level bounds."""
         return experiment_environment.get_environment_objects(
-            self._world(self._client()), label=label, max_count=max_count
+            self._world(self._client()),
+            label=label,
+            max_count=max_count,
+            include_level_bounds=include_level_bounds,
         )
 
     def enable_environment_objects(

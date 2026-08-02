@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from types import SimpleNamespace
 from typing import Final
 
+from carla_mcp.actor_runtime import actor_snapshot
 from carla_mcp.models import (
     ActorSnapshot,
     DestroyResult,
@@ -47,6 +49,28 @@ def test_list_actors_publishes_actor_inventory_snapshot() -> None:
     assert result == {"actors": [actor.to_dict()]}
     assert adapter.last_filter == "vehicle.*"
     assert snapshots.read_snapshot("carla-snapshot://actors/current") == result
+
+
+def test_actor_snapshot_includes_bounded_semantic_tags() -> None:
+    """Runtime actor snapshots should expose bounded integer semantic tags."""
+    transform = Transform(
+        location=Location(x=1.0, y=2.0, z=0.0),
+        rotation=Rotation(pitch=0.0, yaw=90.0, roll=0.0),
+    )
+    candidate = SimpleNamespace(
+        id=ACTOR_ID,
+        type_id="vehicle.audi.a2",
+        attributes={},
+        semantic_tags=list(range(100)),
+        get_transform=lambda: transform,
+        get_velocity=lambda: Location(0.0, 0.0, 0.0),
+        destroy=lambda: True,
+    )
+
+    snapshot = actor_snapshot(candidate)
+
+    assert snapshot.semantic_tags == tuple(range(64))
+    assert snapshot.semantic_tags_truncated is True
 
 
 def test_destroy_actors_publishes_cleanup_results() -> None:

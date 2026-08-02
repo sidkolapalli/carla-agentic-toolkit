@@ -227,7 +227,7 @@ not an authorization boundary. Use `api.list_named_actors()` and
 | Actor physics | Physics/gravity toggles, impulse/force/torque, angular velocity, bounded vehicle physics |
 | Sensors and perception | Cameras, LIDAR, radar, IMU, GNSS, captures |
 | Vehicles and pedestrians | Vehicle controls, telemetry, walker movement |
-| Scene and navigation | Weather, environment objects, map layers, waypoints, routes, topology, bounded OpenDRIVE |
+| Scene and navigation | Weather, semantic tags/bounds, filtered landmarks, routes, map layers, bounded OpenDRIVE |
 | Recording and evidence | Record, replay, queries, captures, evidence manifests |
 
 ## How It Works

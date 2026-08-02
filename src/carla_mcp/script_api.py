@@ -472,20 +472,40 @@ class CarlaScriptApi:
         return self._snapshot("carla-snapshot://map/topology", payload)
 
     @_recover("get_landmarks_failed")
-    def get_landmarks(self, max_count: int = 200) -> JsonObject:
-        """Return map landmarks when supported by the loaded map."""
-        payload = self._adapter.get_landmarks(max_count=max_count)
-        return self._snapshot("carla-snapshot://map/landmarks", payload)
+    def get_landmarks(
+        self,
+        max_count: int = 200,
+        *,
+        landmark_type: str | None = None,
+        landmark_id: str | None = None,
+    ) -> JsonObject:
+        """Return landmarks, optionally filtered by type or OpenDRIVE ID."""
+        return self._snapshot(
+            "carla-snapshot://map/landmarks",
+            self._adapter.get_landmarks(
+                max_count=max_count,
+                landmark_type=landmark_type,
+                landmark_id=landmark_id,
+            ),
+        )
 
     @_recover("get_environment_objects_failed")
     def get_environment_objects(
         self,
         label: str = "Any",
         max_count: int = 200,
+        *,
+        include_level_bounds: bool = False,
     ) -> JsonObject:
-        """Return bounded static environment objects by semantic label."""
-        payload = self._adapter.get_environment_objects(label=label, max_count=max_count)
-        return self._snapshot(f"carla-snapshot://environment/{label}", payload)
+        """Return bounded objects and optional level bounds by semantic label."""
+        return self._snapshot(
+            f"carla-snapshot://environment/{label}",
+            self._adapter.get_environment_objects(
+                label=label,
+                max_count=max_count,
+                include_level_bounds=include_level_bounds,
+            ),
+        )
 
     @_recover("enable_environment_objects_failed")
     def enable_environment_objects(

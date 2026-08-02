@@ -188,8 +188,14 @@ class ExperimentAdapter(Protocol):
     def get_topology(self, *, max_segments: int) -> JsonObject:
         """Return a compact road topology graph."""
 
-    def get_landmarks(self, *, max_count: int) -> JsonObject:
-        """Return map landmarks."""
+    def get_landmarks(
+        self,
+        *,
+        max_count: int,
+        landmark_type: str | None,
+        landmark_id: str | None,
+    ) -> JsonObject:
+        """Return bounded map landmarks through official query variants."""
 
     def configure_actor_physics(
         self,
@@ -220,8 +226,14 @@ class ExperimentAdapter(Protocol):
     ) -> JsonObject:
         """Update supported vehicle physics fields."""
 
-    def get_environment_objects(self, *, label: str, max_count: int) -> JsonObject:
-        """Return bounded static environment objects."""
+    def get_environment_objects(
+        self,
+        *,
+        label: str,
+        max_count: int,
+        include_level_bounds: bool,
+    ) -> JsonObject:
+        """Return bounded static objects and optional semantic level bounds."""
 
     def enable_environment_objects(
         self,

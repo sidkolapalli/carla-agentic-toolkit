@@ -233,6 +233,8 @@ class ActorSnapshot:
     transform: Transform
     speed_mps: float | None
     traffic_light_state: str | None
+    semantic_tags: tuple[int, ...] = ()
+    semantic_tags_truncated: bool = False
 
     def to_dict(self) -> JsonObject:
         """Return a JSON-compatible representation."""
@@ -243,6 +245,8 @@ class ActorSnapshot:
             "transform": self.transform.to_dict(),
             "speed_mps": self.speed_mps,
             "traffic_light_state": self.traffic_light_state,
+            "semantic_tags": list(self.semantic_tags),
+            "semantic_tags_truncated": self.semantic_tags_truncated,
         }
 
 

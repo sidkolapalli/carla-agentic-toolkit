@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+from itertools import islice
 from typing import TYPE_CHECKING, cast
 
 from carla_mcp.errors import CarlaAdapterError
 from carla_mcp.models import ActorSnapshot, DestroyResult, Location, Rotation, Transform
+
+MAX_SEMANTIC_TAGS = 64
 
 if TYPE_CHECKING:
     from carla_mcp.carla_protocols import CarlaActor, CarlaVector, CarlaWorld
@@ -14,6 +17,9 @@ if TYPE_CHECKING:
 def actor_snapshot(candidate: object) -> ActorSnapshot:
     """Convert a CARLA actor into a stable snapshot."""
     actor = require_actor(candidate)
+    tags = tuple(
+        int(tag) for tag in islice(getattr(actor, "semantic_tags", ()), MAX_SEMANTIC_TAGS + 1)
+    )
     return ActorSnapshot(
         actor_id=int(actor.id),
         type_id=str(actor.type_id),
@@ -21,6 +27,8 @@ def actor_snapshot(candidate: object) -> ActorSnapshot:
         transform=actor_transform(actor),
         speed_mps=actor_speed_mps(actor),
         traffic_light_state=traffic_light_state(actor),
+        semantic_tags=tags[:MAX_SEMANTIC_TAGS],
+        semantic_tags_truncated=len(tags) > MAX_SEMANTIC_TAGS,
     )
 
 
