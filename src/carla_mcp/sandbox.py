@@ -236,7 +236,6 @@ def _runner_command(request: RunnerCommandRequest) -> list[str]:
     command.extend(("--read-write", str(request.output_dir)))
     for tcp_port in tcp_ports:
         command.extend(("--tcp-connect", str(tcp_port)))
-        command.extend(("--tcp-bind", str(tcp_port)))
     return command
 
 
@@ -316,8 +315,6 @@ def _read_only_paths() -> tuple[Path, ...]:
         Path("/usr"),
         Path("/lib"),
         Path("/lib64"),
-        Path("/dev"),
-        Path("/sys"),
     ]
     return tuple(path for path in candidates if path.exists())
 

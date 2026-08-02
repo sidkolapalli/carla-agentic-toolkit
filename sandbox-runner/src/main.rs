@@ -50,8 +50,6 @@ struct Args {
     read_write: Vec<PathBuf>,
     #[arg(long = "tcp-connect")]
     tcp_connect: Vec<u16>,
-    #[arg(long = "tcp-bind")]
-    tcp_bind: Vec<u16>,
 }
 
 fn main() {
@@ -263,9 +261,6 @@ fn apply_landlock(args: &Args) -> Result<Value> {
     if !args.tcp_connect.is_empty() {
         ruleset = ruleset.handle_access(AccessNet::ConnectTcp)?;
     }
-    if !args.tcp_bind.is_empty() {
-        ruleset = ruleset.handle_access(AccessNet::BindTcp)?;
-    }
     let mut created = ruleset
         .create()?
         .add_rules(path_beneath_rules(
@@ -280,12 +275,6 @@ fn apply_landlock(args: &Args) -> Result<Value> {
         created =
             created.add_rules(args.tcp_connect.iter().copied().map(|port| {
                 Ok::<NetPort, anyhow::Error>(NetPort::new(port, AccessNet::ConnectTcp))
-            }))?;
-    }
-    if !args.tcp_bind.is_empty() {
-        created =
-            created.add_rules(args.tcp_bind.iter().copied().map(|port| {
-                Ok::<NetPort, anyhow::Error>(NetPort::new(port, AccessNet::BindTcp))
             }))?;
     }
     let restriction = created.restrict_self()?;
@@ -305,7 +294,6 @@ fn apply_landlock(args: &Args) -> Result<Value> {
     Ok(json!({
         "landlock": landlock,
         "ruleset_enforced": enforced,
-        "tcp_connect_ports": args.tcp_connect,
-        "tcp_bind_ports": args.tcp_bind
+        "tcp_connect_ports": args.tcp_connect
     }))
 }

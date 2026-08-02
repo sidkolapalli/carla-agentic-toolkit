@@ -2,18 +2,17 @@
 
 from __future__ import annotations
 
+import json
+import socket
 import subprocess
 import sys
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
 from carla_mcp import sandbox
 from carla_mcp.script_runner import run_script_file
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
 
 
 @pytest.mark.parametrize(
@@ -201,6 +200,8 @@ def test_execute_script_passes_carla_ports_to_rust_runner(
         "output_dir_arguments": commands[0].count(resolved_output_dir),
         "has_output_dir_option": "--output-dir" in commands[0],
         "has_tcp_rule": "--tcp-connect" in commands[0],
+        "has_tcp_bind": "--tcp-bind" in commands[0],
+        "grants_dev_or_sys": bool({"/dev", "/sys"} & set(commands[0])),
         "recorder_dir": commands[0][commands[0].index("--recorder-dir") + 1],
         "allowed_ports": {"2000", "2001", "2002", "8050"} <= set(commands[0]),
     } == {
@@ -210,6 +211,8 @@ def test_execute_script_passes_carla_ports_to_rust_runner(
         "output_dir_arguments": 2,
         "has_output_dir_option": True,
         "has_tcp_rule": True,
+        "has_tcp_bind": False,
+        "grants_dev_or_sys": False,
         "recorder_dir": "E:/CARLA_0.9.16/recordings",
         "allowed_ports": True,
     }
@@ -264,6 +267,144 @@ def test_genuine_script_timeout_still_kills_the_child() -> None:
     assert outcome.error_type == "script_timeout"
     assert outcome.sandbox is not None
     assert outcome.sandbox["timed_out"] is True
+
+
+@pytest.mark.skipif(sys.platform != "linux", reason="requires the Linux sandbox runner")
+def test_real_landlock_blocks_read_outside_allowlist(tmp_path: Path) -> None:
+    """The real runner should permit an allowed read and deny an unlisted sibling."""
+    project_root = Path(__file__).resolve().parents[1]
+    runner = project_root / "sandbox-runner" / "target" / "debug" / "carla-mcp-sandbox"
+    work_dir = tmp_path / "work"
+    output_dir = tmp_path / "output"
+    blocked_file = tmp_path / "blocked.txt"
+    work_dir.mkdir()
+    output_dir.mkdir()
+    blocked_file.write_text("blocked", encoding="utf-8")
+
+    def run_probe(path: Path) -> dict[str, object]:
+        probe = work_dir / "probe.py"
+        probe.write_text(
+            "#!/usr/bin/python3\n"
+            f"open({str(path)!r}, encoding='utf-8').read()\n"
+            "print('{\"ok\":true,\"result\":null,\"stdout\":\"\",\"resources\":{}}')\n",
+            encoding="utf-8",
+        )
+        probe.chmod(0o755)
+        command = [
+            str(runner),
+            "--python",
+            str(probe),
+            "--module",
+            "ignored",
+            "--script",
+            str(probe),
+            "--work-dir",
+            str(work_dir),
+            "--output-dir",
+            str(output_dir),
+            "--read-only",
+            str(project_root),
+            "--read-only",
+            "/usr",
+            "--read-only",
+            "/lib",
+            "--read-write",
+            str(work_dir),
+            "--read-write",
+            str(output_dir),
+        ]
+        completed = subprocess.run(  # noqa: S603 - fixed local runner and probe
+            command,
+            check=False,
+            text=True,
+            capture_output=True,
+        )
+        return cast("dict[str, object]", json.loads(completed.stdout))
+
+    allowed = run_probe(project_root / "README.md")
+    blocked = run_probe(blocked_file)
+
+    assert {
+        "allowed": allowed.get("ok"),
+        "blocked_type": blocked.get("error_type"),
+        "permission_denied": "PermissionError" in str(blocked.get("error")),
+    } == {
+        "allowed": True,
+        "blocked_type": "python_runner_failed",
+        "permission_denied": True,
+    }
+
+
+@pytest.mark.skipif(sys.platform != "linux", reason="requires the Linux sandbox runner")
+def test_real_landlock_allows_requested_port_and_blocks_unlisted_port(tmp_path: Path) -> None:
+    """Network rules should grant connect only to explicitly listed ports."""
+    project_root = Path(__file__).resolve().parents[1]
+    runner = project_root / "sandbox-runner" / "target" / "debug" / "carla-mcp-sandbox"
+    work_dir = tmp_path / "work"
+    output_dir = tmp_path / "output"
+    work_dir.mkdir()
+    output_dir.mkdir()
+
+    def run_probe(port: int, allowed_port: int) -> dict[str, object]:
+        probe = work_dir / "network_probe.py"
+        probe.write_text(
+            "#!/usr/bin/python3\n"
+            "import socket\n"
+            f"socket.create_connection(('127.0.0.1', {port}), 1).close()\n"
+            "print('{\"ok\":true,\"result\":null,\"stdout\":\"\",\"resources\":{}}')\n",
+            encoding="utf-8",
+        )
+        probe.chmod(0o755)
+        command = [
+            str(runner),
+            "--python",
+            str(probe),
+            "--module",
+            "ignored",
+            "--script",
+            str(probe),
+            "--work-dir",
+            str(work_dir),
+            "--output-dir",
+            str(output_dir),
+            "--read-only",
+            "/usr",
+            "--read-only",
+            "/lib",
+            "--read-write",
+            str(work_dir),
+            "--read-write",
+            str(output_dir),
+            "--tcp-connect",
+            str(allowed_port),
+        ]
+        completed = subprocess.run(  # noqa: S603 - fixed local runner and probe
+            command,
+            check=False,
+            text=True,
+            capture_output=True,
+        )
+        return cast("dict[str, object]", json.loads(completed.stdout))
+
+    with socket.socket() as allowed_listener, socket.socket() as blocked_listener:
+        allowed_listener.bind(("127.0.0.1", 0))
+        blocked_listener.bind(("127.0.0.1", 0))
+        allowed_listener.listen()
+        blocked_listener.listen()
+        allowed_port = int(allowed_listener.getsockname()[1])
+        blocked_port = int(blocked_listener.getsockname()[1])
+        allowed = run_probe(allowed_port, allowed_port)
+        blocked = run_probe(blocked_port, allowed_port)
+
+    assert {
+        "allowed": allowed.get("ok"),
+        "blocked_type": blocked.get("error_type"),
+        "permission_denied": "PermissionError" in str(blocked.get("error")),
+    } == {
+        "allowed": True,
+        "blocked_type": "python_runner_failed",
+        "permission_denied": True,
+    }
 
 
 def test_execute_script_does_not_grant_proc_read_access(
