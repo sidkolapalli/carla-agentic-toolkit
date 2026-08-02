@@ -7,10 +7,24 @@ import threading
 from typing import cast
 
 from mcp.server import MCPServer
-from mcp.types import CallToolResult, TextContent, ToolAnnotations
+from mcp.types import (
+    AudioContent,
+    CallToolResult,
+    EmbeddedResource,
+    ImageContent,
+    ResourceLink,
+    TextContent,
+    ToolAnnotations,
+)
 
 from carla_mcp import __version__
-from carla_mcp.sandbox import execute_script
+from carla_mcp.output_content import (
+    OutputContentError,
+    PublishedCapture,
+    published_captures,
+    read_capture_resource,
+)
+from carla_mcp.sandbox import ScriptOutcome, execute_script, output_dir_path
 
 _execution_lock = threading.Lock()
 
@@ -19,6 +33,7 @@ def build_server() -> MCPServer:
     """Build the MCP server with one script-execution tool."""
     mcp = MCPServer("carla-mcp", title="CARLA MCP", version=__version__)
     _register_script_tool(mcp)
+    _register_capture_resource(mcp)
     _register_prompts(mcp)
     return mcp
 
@@ -57,15 +72,74 @@ def _register_script_tool(mcp: MCPServer) -> None:
                 timeout_seconds=timeout_seconds,
                 traffic_manager_ports=traffic_manager_ports or (),
             )
-        payload = outcome.to_dict()
-        return cast(
-            "dict[str, object]",
-            CallToolResult(
-                content=[TextContent(type="text", text=json.dumps(payload))],
-                structured_content=payload,
-                is_error=not outcome.ok,
-            ),
+        return _tool_result(outcome)
+
+
+def _tool_result(outcome: ScriptOutcome) -> dict[str, object]:
+    """Build one structured result with optional native MCP image content."""
+    payload = outcome.to_dict()
+    captures = _optional_captures(outcome, payload)
+    return cast(
+        "dict[str, object]",
+        CallToolResult(
+            content=_result_content(payload, captures),
+            structured_content=payload,
+            is_error=payload["ok"] is not True,
+        ),
+    )
+
+
+def _optional_captures(
+    outcome: ScriptOutcome,
+    payload: dict[str, object],
+) -> tuple[PublishedCapture, ...]:
+    if not outcome.ok:
+        return ()
+    try:
+        return published_captures(
+            outcome.snapshots or {},
+            output_dir_path(),
+            text_bytes=len(json.dumps(payload).encode()),
         )
+    except OutputContentError as exc:
+        payload.update(ok=False, result=None, error=str(exc), error_type=exc.error_type)
+        return ()
+
+
+def _result_content(
+    payload: dict[str, object],
+    captures: tuple[PublishedCapture, ...],
+) -> list[TextContent | ImageContent | AudioContent | ResourceLink | EmbeddedResource]:
+    content: list[TextContent | ImageContent | AudioContent | ResourceLink | EmbeddedResource] = [
+        TextContent(type="text", text=json.dumps(payload))
+    ]
+    for capture in captures:
+        content.extend(
+            (
+                ImageContent(data=capture.data, mime_type=capture.mime_type),
+                ResourceLink(
+                    name=capture.name,
+                    uri=capture.resource_uri,
+                    mime_type=capture.mime_type,
+                    size=capture.size,
+                ),
+            )
+        )
+    return content
+
+
+def _register_capture_resource(mcp: MCPServer) -> None:
+    """Expose validated durable captures through one bounded resource template."""
+
+    @mcp.resource(
+        "carla-output://capture/{token}",
+        name="carla-capture",
+        description="A validated PNG or JPEG created under CARLA_MCP_OUTPUT_DIR.",
+        mime_type="application/octet-stream",
+    )
+    def read_capture(token: str) -> bytes:
+        """Read one opaque capture token."""
+        return read_capture_resource(token, output_dir_path())
 
 
 def _register_prompts(mcp: MCPServer) -> None:
@@ -78,6 +152,16 @@ def _register_prompts(mcp: MCPServer) -> None:
             "Write one execute_carla_script Python script that calls "
             "api.health_check(), api.get_world_state(), and returns a compact "
             "result dict with connection status, map, actor counts, and next action."
+        )
+
+    @mcp.prompt()
+    def capture_actor_view() -> str:
+        """Prompt for returning a visual frame from one CARLA actor."""
+        return (
+            "Use execute_carla_script. Resolve or list the target actor, attach an RGB "
+            "camera, call api.capture_sensor_frame(..., publish=True) below "
+            "CARLA_MCP_OUTPUT_DIR, "
+            "detach the sensor in finally, and summarize the returned image and metadata."
         )
 
     @mcp.prompt()

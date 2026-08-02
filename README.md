@@ -186,10 +186,24 @@ failures, and timeouts fail the complete MCP call with `isError: true` while
 retaining the structured diagnostics.
 
 Each result also contains inline `snapshots` keyed by `carla-snapshot://...`.
-They exist only for that script run; the server intentionally exposes no MCP
-Resources capability. Files under `CARLA_MCP_OUTPUT_DIR` may persist after the
-call. In v0.1 this is a breaking rename from the former `resources` field; no
+They exist only for that script run and are not advertised as live MCP
+Resources. Files under `CARLA_MCP_OUTPUT_DIR` may persist after the call. In
+v0.1 this is a breaking rename from the former `resources` field; no
 compatibility alias is emitted.
+
+A script can explicitly return a durable camera frame as native MCP image
+content:
+
+```python
+capture = api.capture_sensor_frame(sensor_id, "captures/front.png", publish=True)
+result = {"capture": capture}
+```
+
+Published PNG/JPEG captures include both `ImageContent` for vision-capable
+clients and a `carla-output://capture/...` Resource link for later reads. JSON
+text remains first for clients that ignore visual content. Publication is
+limited to four images, 512 KiB each, and a 1 MiB combined encoded result; paths
+must resolve below `CARLA_MCP_OUTPUT_DIR`.
 
 Actors can keep conversational names across calls:
 

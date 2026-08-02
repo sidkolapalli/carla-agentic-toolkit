@@ -17,7 +17,13 @@ def test_live_smoke_script_tags_and_cleans_only_its_actors() -> None:
     """The generated script should own cleanup through its unique role tag."""
     code = _mutation_script("carla-mcp-smoke-test")
 
-    assert "carla-mcp-smoke-test" in code
-    assert "finally:" in code
-    assert "api.destroy_actors(actor_ids)" in code
-    assert "api.set_weather(weather_before)" in code
+    assert all(
+        marker in code
+        for marker in (
+            "carla-mcp-smoke-test",
+            "finally:",
+            "api.destroy_actors(actor_ids)",
+            "api.set_weather(weather_before)",
+            "publish=True",
+        )
+    )

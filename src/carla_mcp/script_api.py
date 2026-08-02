@@ -319,13 +319,21 @@ class CarlaScriptApi:
         return payload
 
     @_recover("capture_sensor_frame_failed")
-    def capture_sensor_frame(self, sensor_id: int, output_path: str) -> JsonObject:
-        """Capture one sensor frame to disk."""
+    def capture_sensor_frame(
+        self,
+        sensor_id: int,
+        output_path: str,
+        *,
+        publish: bool = False,
+    ) -> JsonObject:
+        """Capture one sensor frame to disk and optionally publish it through MCP."""
         capture = self._adapter.capture_sensor_frame(
             sensor_id=sensor_id,
             output_path=Path(output_path),
         )
         payload = capture.to_dict()
+        if publish:
+            payload["publish"] = True
         self._snapshots.register_snapshot(
             f"carla-snapshot://captures/{capture.capture_id}", payload
         )
@@ -528,12 +536,18 @@ class CarlaScriptApi:
         self,
         output_path: str,
         attributes: dict[str, str] | None = None,
+        *,
+        publish: bool = False,
     ) -> JsonObject:
-        """Capture a temporary RGB camera frame from the spectator viewpoint."""
-        return self._adapter.save_screenshot(
+        """Capture a spectator RGB frame and optionally publish it through MCP."""
+        payload = self._adapter.save_screenshot(
             output_path=Path(output_path),
             attributes=attributes or {"image_size_x": "1280", "image_size_y": "720"},
         )
+        if publish:
+            payload["publish"] = True
+        capture_id = str(payload.get("capture_id", "screenshot"))
+        return self._snapshot(f"carla-snapshot://captures/{capture_id}", payload)
 
     @_recover("get_weather_failed")
     def get_weather(self) -> JsonObject:

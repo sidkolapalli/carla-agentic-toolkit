@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import threading
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Final, cast
 
@@ -270,23 +271,37 @@ def test_spawned_vehicles_are_distinct_from_adopted_vehicles(
     assert result.spawned_actor_ids == (SPAWNED_ACTOR_ID,)
 
 
-def test_controller_reports_only_actual_spawns_to_ownership() -> None:
+def test_controller_reports_only_actual_spawns_to_ownership(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Adopted pre-existing vehicles must not be marked as script-owned."""
     owned: list[int] = []
+    reported = threading.Event()
     request = TrafficControllerStartRequest(density=TrafficDensityRequest(vehicle_count=2))
-    service = InProcessTrafficControllerService(on_spawn=owned.extend)
 
-    service._record_step(  # noqa: SLF001 - characterize ownership boundary
-        TrafficControllerStep(
+    def step(*_args: object, **_kwargs: object) -> TrafficControllerStep:
+        reported.wait(0.01)
+        return TrafficControllerStep(
             request=request,
             vehicle_count=2,
             moving_vehicle_count=0,
             registered_actor_ids=frozenset({ACTOR_ID, SPAWNED_ACTOR_ID}),
             spawned_actor_ids=(SPAWNED_ACTOR_ID,),
         )
-    )
 
-    assert owned == [SPAWNED_ACTOR_ID]
+    def record(actor_ids: tuple[int, ...]) -> None:
+        owned.extend(actor_ids)
+        reported.set()
+
+    monkeypatch.setattr("carla_mcp.traffic_controller_service._client", lambda _request: object())
+    monkeypatch.setattr("carla_mcp.traffic_controller_service.maintain_traffic_once", step)
+    service = InProcessTrafficControllerService(on_spawn=record)
+    service.start(request)
+    assert reported.wait(1.0)
+    service.stop()
+
+    assert SPAWNED_ACTOR_ID in owned
+    assert ACTOR_ID not in owned
 
 
 def test_known_vehicles_are_not_registered_again(

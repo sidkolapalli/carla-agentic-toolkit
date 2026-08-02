@@ -13,6 +13,7 @@ from uuid import uuid4
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+from mcp.types import BlobResourceContents, ImageContent, ResourceLink
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -63,6 +64,19 @@ async def _run(args: argparse.Namespace) -> dict[str, object]:
             condition=[tool.name for tool in tools.tools] == ["execute_carla_script"],
         )
         mutation = await _call(session, _mutation_script(tag), args)
+        _require(
+            "capture did not return native MCP image content",
+            condition=mutation.pop("_image_content") is True,
+        )
+        resource_uri = mutation.pop("_image_resource_uri")
+        resource = await session.read_resource(str(resource_uri))
+        _require(
+            "capture resource could not be read through MCP",
+            condition=any(
+                isinstance(item, BlobResourceContents) and bool(item.blob)
+                for item in resource.contents
+            ),
+        )
         rejected = await _call(
             session,
             "import os\nresult = 1",
@@ -108,6 +122,8 @@ async def _run(args: argparse.Namespace) -> dict[str, object]:
         "health": mutation_result.get("health"),
         "movement": mutation_result.get("movement"),
         "capture": mutation_result.get("capture"),
+        "image_content": True,
+        "resource_read": True,
         "weather_restored": mutation_result.get("weather_restored"),
         "leftovers": mutation_result["leftovers"],
         "validator_rejected": True,
@@ -136,6 +152,11 @@ async def _call(
     payload = _mapping(response.structured_content, "tool result")
     _require(f"unexpected MCP isError: {payload}", condition=response.is_error is expect_error)
     _require(f"unexpected tool outcome: {payload}", condition=payload.get("ok") is not expect_error)
+    resources = [item for item in response.content if isinstance(item, ResourceLink)]
+    payload["_image_content"] = any(
+        isinstance(item, ImageContent) for item in response.content
+    ) and bool(resources)
+    payload["_image_resource_uri"] = str(resources[0].uri) if resources else None
     return payload
 
 
@@ -189,7 +210,9 @@ try:
         {{"image_size_x": "320", "image_size_y": "180"}},
     )
     sensor_ids.append(sensor["sensor_id"])
-    capture = api.capture_sensor_frame(sensor["sensor_id"], "live-mcp/" + tag + ".png")
+    capture = api.capture_sensor_frame(
+        sensor["sensor_id"], "live-mcp/" + tag + ".png", publish=True
+    )
     api.set_weather({{"cloudiness": 90.0}})
     weather_changed = api.get_weather()["weather"]["cloudiness"] == 90.0
 finally:

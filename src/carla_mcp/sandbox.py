@@ -116,7 +116,7 @@ def _execute_with_runner(
 ) -> ScriptOutcome:
     """Set up and launch one already-validated execution."""
     try:
-        output_dir = _output_dir()
+        output_dir = output_dir_path()
         output_dir.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="carla-mcp-script-") as tmp_name:
             work_dir = Path(tmp_name)
@@ -380,7 +380,7 @@ def _read_only_paths() -> tuple[Path, ...]:
     return tuple(path for path in candidates if path.exists())
 
 
-def _output_dir() -> Path:
+def output_dir_path() -> Path:
     """Return the persistent directory exposed for script outputs."""
     configured = os.environ.get("CARLA_MCP_OUTPUT_DIR")
     path = Path(configured).expanduser() if configured else Path.cwd() / "carla-mcp-output"

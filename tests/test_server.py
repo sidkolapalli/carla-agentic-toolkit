@@ -3,25 +3,50 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import threading
 import time
-from typing import TYPE_CHECKING
+from pathlib import Path
+from typing import TYPE_CHECKING, cast
 
 from mcp import Client
 from mcp.server import MCPServer
+from mcp.types import BlobResourceContents, ImageContent, ResourceLink, TextContent
 
 from carla_mcp import server as server_module
+from carla_mcp.output_content import capture_resource_uri
 from carla_mcp.sandbox import ScriptOutcome
 from carla_mcp.server import build_server
 
 if TYPE_CHECKING:
     import pytest
-    from mcp.types import CallToolResult, Implementation
+    from mcp.types import CallToolResult, Implementation, ReadResourceResult
 
 
 def _successful_script(*_args: object, **_kwargs: object) -> ScriptOutcome:
     """Return a successful sandbox result without launching a subprocess."""
     return ScriptOutcome(ok=True, result=1, stdout="", snapshots={})
+
+
+def _capture_script(path: str, *, publish: bool = True) -> object:
+    """Return a sandbox stub that reports one durable capture."""
+
+    def captured(*_args: object, **_kwargs: object) -> ScriptOutcome:
+        return ScriptOutcome(
+            ok=True,
+            result={"capture": path},
+            stdout="",
+            snapshots={
+                "carla-snapshot://captures/capture-1": {
+                    "capture_id": "capture-1",
+                    "path": path,
+                    "mime_type": "image/png",
+                    "publish": publish,
+                }
+            },
+        )
+
+    return captured
 
 
 def _failed_script(*_args: object, **_kwargs: object) -> ScriptOutcome:
@@ -35,12 +60,19 @@ def _failed_script(*_args: object, **_kwargs: object) -> ScriptOutcome:
     )
 
 
+async def _read_resource(server: MCPServer, uri: str) -> ReadResourceResult:
+    """Read one resource through the negotiated in-memory MCP transport."""
+    async with Client(server) as client:
+        return await client.read_resource(uri)
+
+
 async def _call_script_tool(
     server: MCPServer,
+    arguments: dict[str, object] | None = None,
 ) -> tuple[str, Implementation | None, CallToolResult]:
     """Call the server through the modern in-memory MCP transport."""
     async with Client(server) as client:
-        result = await client.call_tool("execute_carla_script", {"code": "result = 1"})
+        result = await client.call_tool("execute_carla_script", arguments or {"code": "result = 1"})
         return client.protocol_version, client.server_info, result
 
 
@@ -60,11 +92,44 @@ def test_build_server_exposes_only_script_execution_tool() -> None:
     assert tuple(tool.name for tool in tools) == ("execute_carla_script",)
 
 
-def test_server_intentionally_exposes_no_mcp_resources() -> None:
-    """Inline run snapshots must not advertise the MCP Resources capability."""
-    resources = asyncio.run(build_server().list_resources())
+def test_server_exposes_only_a_bounded_capture_resource_template() -> None:
+    """Durable captures should be resources without exposing live simulator state."""
+    server = build_server()
+
+    resources = asyncio.run(server.list_resources())
+    templates = asyncio.run(server.list_resource_templates())
 
     assert resources == []
+    assert [str(template.uri_template) for template in templates] == [
+        "carla-output://capture/{token}"
+    ]
+
+
+def test_capture_resource_template_returns_bounded_binary_content(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Resource links emitted by the tool should be readable through MCP."""
+    image = b"\x89PNG\r\n\x1a\nimage"
+    (tmp_path / "front.png").write_bytes(image)
+    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(tmp_path))
+    uri = capture_resource_uri(Path("front.png"))
+
+    result = asyncio.run(_read_resource(build_server(), uri))
+    content = cast("BlobResourceContents", result.contents[0])
+
+    assert base64.b64decode(content.blob) == image
+
+
+def test_server_prompts_cover_diagnosis_capture_and_reproducibility() -> None:
+    """User-selected MCP prompts should teach the three common workflow shapes."""
+    prompts = asyncio.run(build_server().list_prompts())
+
+    assert [prompt.name for prompt in prompts] == [
+        "diagnose_carla",
+        "capture_actor_view",
+        "setup_reproducible_session",
+    ]
 
 
 def test_server_supports_latest_mcp_protocol(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -88,6 +153,68 @@ def test_server_supports_latest_mcp_protocol(monkeypatch: pytest.MonkeyPatch) ->
         "is_error": False,
         "result": 1,
     }
+
+
+def test_server_can_return_capture_as_image_and_resource_link(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """An opt-in capture should use native MCP visual and resource content."""
+    capture = tmp_path / "front.png"
+    capture.write_bytes(b"\x89PNG\r\n\x1a\nimage")
+    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(tmp_path))
+    monkeypatch.setattr(server_module, "execute_script", _capture_script("front.png"))
+
+    _, _, result = asyncio.run(_call_script_tool(build_server()))
+
+    image = cast("ImageContent", result.content[1])
+    resource = cast("ResourceLink", result.content[2])
+    assert {
+        "is_error": result.is_error,
+        "content_types": [type(item) for item in result.content],
+        "mime_type": image.mime_type,
+        "resource_scheme": str(resource.uri).startswith("carla-output://capture/"),
+    } == {
+        "is_error": False,
+        "content_types": [TextContent, ImageContent, ResourceLink],
+        "mime_type": "image/png",
+        "resource_scheme": True,
+    }
+
+
+def test_server_keeps_json_only_fallback_when_images_are_not_requested(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Clients that do not request visual content should retain the old result shape."""
+    (tmp_path / "front.png").write_bytes(b"\x89PNG\r\n\x1a\nimage")
+    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(tmp_path))
+    monkeypatch.setattr(
+        server_module,
+        "execute_script",
+        _capture_script("front.png", publish=False),
+    )
+
+    _, _, result = asyncio.run(_call_script_tool(build_server()))
+
+    assert [type(item) for item in result.content] == [TextContent]
+    assert result.is_error is False
+
+
+def test_server_rejects_capture_path_outside_output_directory(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Image publication errors should be structured MCP tool failures."""
+    secret = tmp_path.parent / "secret.png"
+    secret.write_bytes(b"\x89PNG\r\n\x1a\nsecret")
+    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(tmp_path))
+    monkeypatch.setattr(server_module, "execute_script", _capture_script("../secret.png"))
+
+    _, _, result = asyncio.run(_call_script_tool(build_server()))
+
+    assert result.is_error is True
+    assert result.structured_content["error_type"] == "image_path_rejected"
 
 
 def test_server_serializes_concurrent_script_executions(

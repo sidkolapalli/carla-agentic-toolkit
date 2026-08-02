@@ -91,6 +91,25 @@ def test_capture_sensor_frame_returns_capture_info_and_snapshot(tmp_path: Path) 
     assert snapshots.read_snapshot(f"carla-snapshot://captures/{CAPTURE_ID}") == result
 
 
+def test_capture_can_be_marked_for_native_mcp_image_content(tmp_path: Path) -> None:
+    """Scripts should explicitly opt a durable capture into MCP publication."""
+    snapshots = RunSnapshots()
+    output_path = tmp_path / "published.png"
+    adapter = SensorAdapter(
+        sensor=build_sensor_info(transform=build_transform()),
+        capture=build_capture_info(output_path),
+    )
+
+    result = build_api(adapter, snapshots).capture_sensor_frame(
+        SENSOR_ID,
+        str(output_path),
+        publish=True,
+    )
+
+    assert result["publish"] is True
+    assert snapshots.read_snapshot(f"carla-snapshot://captures/{CAPTURE_ID}")["publish"] is True
+
+
 def build_transform() -> Transform:
     """Create a camera transform for tests."""
     return Transform(
