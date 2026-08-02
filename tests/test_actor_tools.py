@@ -18,7 +18,7 @@ from carla_mcp.models import (
     WorldSettings,
     WorldState,
 )
-from carla_mcp.session import CarlaSession
+from carla_mcp.snapshots import RunSnapshots
 from carla_mcp.tools.actors import list_blueprints, spawn_actor_batch
 
 BLUEPRINT_ID: Final = "vehicle.tesla.model3"
@@ -95,9 +95,9 @@ class ActorAdapter:
         return self.spawn_results[: len(requests)]
 
 
-def test_list_blueprints_returns_sorted_blueprint_summaries_and_resource() -> None:
-    """Blueprint listing should be deterministic and publish a filtered resource."""
-    session = CarlaSession()
+def test_list_blueprints_returns_sorted_blueprint_summaries_and_snapshot() -> None:
+    """Blueprint listing should be deterministic and publish a filtered snapshot."""
+    snapshots = RunSnapshots()
     adapter = ActorAdapter(
         blueprints=(
             BlueprintInfo(
@@ -120,19 +120,19 @@ def test_list_blueprints_returns_sorted_blueprint_summaries_and_resource() -> No
         spawn_results=(),
     )
 
-    result = list_blueprints(adapter=adapter, session=session, filter_pattern="*")
+    result = list_blueprints(adapter=adapter, snapshots=snapshots, filter_pattern="*")
 
     assert result.is_error is False
     assert result.structured_content["blueprints"] == [
         adapter.blueprints[0].to_dict(),
         adapter.blueprints[1].to_dict(),
     ]
-    assert session.read_resource("carla://blueprints/*") == result.structured_content
+    assert snapshots.read_snapshot("carla-snapshot://blueprints/*") == result.structured_content
 
 
-def test_spawn_actor_batch_returns_structured_results_and_resource() -> None:
+def test_spawn_actor_batch_returns_structured_results_and_snapshot() -> None:
     """Batch spawn should publish structured actor creation results."""
-    session = CarlaSession()
+    snapshots = RunSnapshots()
     spawn_request = SpawnRequest(
         blueprint_id=BLUEPRINT_ID,
         transform=Transform(
@@ -152,11 +152,11 @@ def test_spawn_actor_batch_returns_structured_results_and_resource() -> None:
         ),
     )
 
-    result = spawn_actor_batch(adapter=adapter, session=session, requests=(spawn_request,))
+    result = spawn_actor_batch(adapter=adapter, snapshots=snapshots, requests=(spawn_request,))
 
     assert result.is_error is False
     assert result.structured_content == {"results": [adapter.spawn_results[0].to_dict()]}
-    assert session.read_resource("carla://actors") == result.structured_content
+    assert snapshots.read_snapshot("carla-snapshot://actors") == result.structured_content
 
 
 def _world_settings() -> WorldSettings:

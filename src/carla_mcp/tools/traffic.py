@@ -15,7 +15,7 @@ if TYPE_CHECKING:
         TrafficPopulationRequest,
         TrafficPopulationResult,
     )
-    from carla_mcp.session import CarlaSession
+    from carla_mcp.snapshots import RunSnapshots
 
 
 class TrafficAdapter(Protocol):
@@ -45,7 +45,7 @@ class TrafficAdapter(Protocol):
 
 def populate_traffic(
     adapter: TrafficAdapter,
-    session: CarlaSession,
+    snapshots: RunSnapshots,
     *,
     request: TrafficPopulationRequest,
 ) -> ToolResult:
@@ -55,14 +55,14 @@ def populate_traffic(
     except CarlaAdapterError as exc:
         return _adapter_error("populate_traffic_failed", exc)
     payload = population.to_dict()
-    session.register_resource("carla://traffic/population", payload)
-    session.register_resource("carla://world/current", population.world_state.to_dict())
+    snapshots.register_snapshot("carla-snapshot://traffic/population", payload)
+    snapshots.register_snapshot("carla-snapshot://world/current", population.world_state.to_dict())
     return ToolResult.ok(payload)
 
 
 def set_autopilot(
     adapter: TrafficAdapter,
-    session: CarlaSession,
+    snapshots: RunSnapshots,
     *,
     request: AutopilotRequest,
 ) -> ToolResult:
@@ -72,14 +72,14 @@ def set_autopilot(
     except CarlaAdapterError as exc:
         return _adapter_error("set_autopilot_failed", exc)
     payload = result.to_dict()
-    session.register_resource("carla://traffic/autopilot", payload)
-    session.register_resource("carla://world/current", result.world_state.to_dict())
+    snapshots.register_snapshot("carla-snapshot://traffic/autopilot", payload)
+    snapshots.register_snapshot("carla-snapshot://world/current", result.world_state.to_dict())
     return ToolResult.ok(payload)
 
 
 def configure_traffic_manager(
     adapter: TrafficAdapter,
-    session: CarlaSession,
+    snapshots: RunSnapshots,
     *,
     request: TrafficManagerRequest,
 ) -> ToolResult:
@@ -89,7 +89,7 @@ def configure_traffic_manager(
     except CarlaAdapterError as exc:
         return _adapter_error("configure_traffic_manager_failed", exc)
     payload = settings.to_dict()
-    session.register_resource("carla://traffic/manager", payload)
+    snapshots.register_snapshot("carla-snapshot://traffic/manager", payload)
     return ToolResult.ok(payload)
 
 

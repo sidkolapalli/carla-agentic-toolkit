@@ -16,7 +16,7 @@ from typing import cast
 
 from carla_mcp.adapter import PythonCarlaAdapter
 from carla_mcp.script_api import CarlaScriptApi
-from carla_mcp.session import CarlaSession
+from carla_mcp.snapshots import RunSnapshots
 
 RESULT_NAME = "result"
 API_NAME = "api"
@@ -98,9 +98,9 @@ def run_script_file(
     rejection = _validate_script(code)
     if rejection is not None:
         return _error("script_rejected", rejection, stdout="")
-    session = CarlaSession()
+    snapshots = RunSnapshots()
     adapter = PythonCarlaAdapter(host=host, port=port, timeout=timeout_seconds)
-    api = CarlaScriptApi(adapter=adapter, session=session)
+    api = CarlaScriptApi(adapter=adapter, snapshots=snapshots)
     stream = io.StringIO()
     try:
         with contextlib.redirect_stdout(stream):
@@ -120,7 +120,7 @@ def run_script_file(
         "stdout": stream.getvalue(),
         "error": None,
         "error_type": None,
-        "resources": _resources(session),
+        "snapshots": _snapshots(snapshots),
     }
 
 
@@ -181,9 +181,9 @@ def _forbidden_name_violation(node: ast.AST) -> str | None:
     return None
 
 
-def _resources(session: CarlaSession) -> dict[str, object]:
-    """Return session resources created by the script."""
-    return {uri: session.read_resource(uri) for uri in session.resource_uris()}
+def _snapshots(snapshots: RunSnapshots) -> dict[str, object]:
+    """Return run-local snapshots created by the script."""
+    return {uri: snapshots.read_snapshot(uri) for uri in snapshots.snapshot_uris()}
 
 
 def _error(error_type: str, message: str, *, stdout: str) -> dict[str, object]:
@@ -194,7 +194,7 @@ def _error(error_type: str, message: str, *, stdout: str) -> dict[str, object]:
         "stdout": stdout,
         "error": message,
         "error_type": error_type,
-        "resources": {},
+        "snapshots": {},
     }
 
 

@@ -218,11 +218,11 @@ def test_execute_script_passes_carla_ports_to_rust_runner(
     }
 
 
-def test_execute_script_preserves_resources_from_runner(
+def test_execute_script_preserves_snapshots_from_runner(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    """The MCP layer should surface resources created during script execution."""
+    """The MCP layer should surface snapshots created during script execution."""
     runner = tmp_path / "carla-mcp-sandbox"
     runner.write_text("#!/bin/sh\n", encoding="utf-8")
     runner.chmod(0o755)
@@ -233,7 +233,7 @@ def test_execute_script_preserves_resources_from_runner(
             returncode=0,
             stdout=(
                 '{"ok": true, "result": null, "stdout": "", '
-                '"resources": {"carla://world/current": {"frame": 1}}}'
+                '"snapshots": {"carla-snapshot://world/current": {"frame": 1}}}'
             ),
             stderr="",
         )
@@ -243,8 +243,10 @@ def test_execute_script_preserves_resources_from_runner(
 
     outcome = sandbox.execute_script("result = None")
 
-    assert outcome.resources == {"carla://world/current": {"frame": 1}}
-    assert outcome.to_dict()["resources"] == {"carla://world/current": {"frame": 1}}
+    payload = outcome.to_dict()
+    assert outcome.snapshots == {"carla-snapshot://world/current": {"frame": 1}}
+    assert payload["snapshots"] == {"carla-snapshot://world/current": {"frame": 1}}
+    assert "resources" not in payload
 
 
 @pytest.mark.skipif(sys.platform != "linux", reason="requires the Linux sandbox runner")
@@ -286,7 +288,7 @@ def test_real_landlock_blocks_read_outside_allowlist(tmp_path: Path) -> None:
         probe.write_text(
             "#!/usr/bin/python3\n"
             f"open({str(path)!r}, encoding='utf-8').read()\n"
-            "print('{\"ok\":true,\"result\":null,\"stdout\":\"\",\"resources\":{}}')\n",
+            "print('{\"ok\":true,\"result\":null,\"stdout\":\"\",\"snapshots\":{}}')\n",
             encoding="utf-8",
         )
         probe.chmod(0o755)
@@ -351,7 +353,7 @@ def test_real_landlock_allows_requested_port_and_blocks_unlisted_port(tmp_path: 
             "#!/usr/bin/python3\n"
             "import socket\n"
             f"socket.create_connection(('127.0.0.1', {port}), 1).close()\n"
-            "print('{\"ok\":true,\"result\":null,\"stdout\":\"\",\"resources\":{}}')\n",
+            "print('{\"ok\":true,\"result\":null,\"stdout\":\"\",\"snapshots\":{}}')\n",
             encoding="utf-8",
         )
         probe.chmod(0o755)

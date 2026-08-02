@@ -12,7 +12,7 @@ from carla_mcp.models import (
     Rotation,
     Transform,
 )
-from carla_mcp.session import CarlaSession
+from carla_mcp.snapshots import RunSnapshots
 from carla_mcp.tools.actor_management import destroy_actors, list_actors
 
 ACTOR_ID: Final = 101
@@ -36,31 +36,31 @@ class ActorManagementAdapter:
         return self.destroy_results[: len(actor_ids)]
 
 
-def test_list_actors_publishes_actor_inventory_resource() -> None:
-    """Actor inspection should return stable snapshots and publish a resource."""
-    session = CarlaSession()
+def test_list_actors_publishes_actor_inventory_snapshot() -> None:
+    """Actor inspection should return stable snapshots and publish a snapshot."""
+    snapshots = RunSnapshots()
     actor = _actor_snapshot()
     adapter = ActorManagementAdapter(actors=(actor,), destroy_results=())
 
-    result = list_actors(adapter=adapter, session=session, filter_pattern="vehicle.*")
+    result = list_actors(adapter=adapter, snapshots=snapshots, filter_pattern="vehicle.*")
 
     assert result.is_error is False
     assert result.structured_content == {"actors": [actor.to_dict()]}
     assert adapter.last_filter == "vehicle.*"
-    assert session.read_resource("carla://actors/current") == result.structured_content
+    assert snapshots.read_snapshot("carla-snapshot://actors/current") == result.structured_content
 
 
 def test_destroy_actors_publishes_cleanup_results() -> None:
     """Actor cleanup should report per-actor destroy outcomes."""
-    session = CarlaSession()
+    snapshots = RunSnapshots()
     destroy_result = DestroyResult(actor_id=ACTOR_ID, destroyed=True, error=None)
     adapter = ActorManagementAdapter(actors=(), destroy_results=(destroy_result,))
 
-    result = destroy_actors(adapter=adapter, session=session, actor_ids=(ACTOR_ID,))
+    result = destroy_actors(adapter=adapter, snapshots=snapshots, actor_ids=(ACTOR_ID,))
 
     assert result.is_error is False
     assert result.structured_content == {"results": [destroy_result.to_dict()]}
-    assert session.read_resource("carla://actors/destroyed") == result.structured_content
+    assert snapshots.read_snapshot("carla-snapshot://actors/destroyed") == result.structured_content
 
 
 def _actor_snapshot() -> ActorSnapshot:

@@ -15,7 +15,7 @@ from carla_mcp.models import (
 )
 
 if TYPE_CHECKING:
-    from carla_mcp.session import CarlaSession
+    from carla_mcp.snapshots import RunSnapshots
 
 
 class TrafficControllerService(Protocol):
@@ -39,50 +39,52 @@ class TrafficControllerService(Protocol):
 
 def start_traffic_controller(
     service: TrafficControllerService,
-    session: CarlaSession,
+    snapshots: RunSnapshots,
     request: TrafficControllerStartRequest,
 ) -> ToolResult:
     """Start the persistent traffic controller and publish status."""
     try:
-        return _status_result(service.start(request), session)
+        return _status_result(service.start(request), snapshots)
     except CarlaAdapterError as exc:
         return _controller_error("start_traffic_controller_failed", exc)
 
 
-def stop_traffic_controller(service: TrafficControllerService, session: CarlaSession) -> ToolResult:
+def stop_traffic_controller(
+    service: TrafficControllerService, snapshots: RunSnapshots
+) -> ToolResult:
     """Stop the persistent traffic controller and publish status."""
     try:
-        return _status_result(service.stop(), session)
+        return _status_result(service.stop(), snapshots)
     except CarlaAdapterError as exc:
         return _controller_error("stop_traffic_controller_failed", exc)
 
 
 def traffic_controller_status(
     service: TrafficControllerService,
-    session: CarlaSession,
+    snapshots: RunSnapshots,
 ) -> ToolResult:
     """Read the persistent traffic controller status."""
     try:
-        return _status_result(service.get_status(), session)
+        return _status_result(service.get_status(), snapshots)
     except CarlaAdapterError as exc:
         return _controller_error("traffic_controller_status_failed", exc)
 
 
 def set_traffic_density(
     service: TrafficControllerService,
-    session: CarlaSession,
+    snapshots: RunSnapshots,
     request: TrafficDensityRequest,
 ) -> ToolResult:
     """Converge traffic to a requested vehicle density."""
     try:
-        return _status_result(service.set_density(request), session)
+        return _status_result(service.set_density(request), snapshots)
     except CarlaAdapterError as exc:
         return _controller_error("set_traffic_density_failed", exc)
 
 
 def set_vehicle_behavior(
     service: TrafficControllerService,
-    session: CarlaSession,
+    snapshots: RunSnapshots,
     request: VehicleBehaviorRequest,
 ) -> ToolResult:
     """Apply a named behavior profile to explicit actors."""
@@ -91,14 +93,14 @@ def set_vehicle_behavior(
     except CarlaAdapterError as exc:
         return _controller_error("set_vehicle_behavior_failed", exc)
     payload = result.to_dict()
-    session.register_resource("carla://traffic/behaviors", payload)
+    snapshots.register_snapshot("carla-snapshot://traffic/behaviors", payload)
     return ToolResult.ok(payload)
 
 
-def _status_result(status: TrafficControllerStatus, session: CarlaSession) -> ToolResult:
+def _status_result(status: TrafficControllerStatus, snapshots: RunSnapshots) -> ToolResult:
     """Publish and return a controller status payload."""
     payload = status.to_dict()
-    session.register_resource("carla://traffic/controller", payload)
+    snapshots.register_snapshot("carla-snapshot://traffic/controller", payload)
     return ToolResult.ok(payload)
 
 

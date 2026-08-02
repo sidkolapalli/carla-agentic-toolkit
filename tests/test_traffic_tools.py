@@ -16,7 +16,7 @@ from carla_mcp.models import (
     WorldSettings,
     WorldState,
 )
-from carla_mcp.session import CarlaSession
+from carla_mcp.snapshots import RunSnapshots
 from carla_mcp.tools.traffic import configure_traffic_manager, populate_traffic, set_autopilot
 
 TRAFFIC_MANAGER_PORT: Final = 8000
@@ -109,9 +109,9 @@ class TrafficAdapter:
         return self.configured_settings
 
 
-def test_populate_traffic_spawns_autopilot_vehicles_and_publishes_resource() -> None:
-    """Populating traffic should return actor IDs and publish the traffic resource."""
-    session = CarlaSession()
+def test_populate_traffic_spawns_autopilot_vehicles_and_publishes_snapshot() -> None:
+    """Populating traffic should return actor IDs and publish the traffic snapshot."""
+    snapshots = RunSnapshots()
     adapter = TrafficAdapter(
         population=TrafficPopulationResult(
             requested_vehicle_count=TRAFFIC_VEHICLE_COUNT,
@@ -136,7 +136,7 @@ def test_populate_traffic_spawns_autopilot_vehicles_and_publishes_resource() -> 
 
     result = populate_traffic(
         adapter=adapter,
-        session=session,
+        snapshots=snapshots,
         request=TrafficPopulationRequest(
             vehicle_count=TRAFFIC_VEHICLE_COUNT,
             traffic_manager_port=TRAFFIC_MANAGER_PORT,
@@ -150,17 +150,19 @@ def test_populate_traffic_spawns_autopilot_vehicles_and_publishes_resource() -> 
     assert result.is_error is False
     assert result.structured_content["actor_ids"] == list(SPAWNED_ACTOR_IDS)
     assert result.structured_content["spawned_vehicle_count"] == TRAFFIC_VEHICLE_COUNT
-    assert session.read_resource("carla://traffic/population") == result.structured_content
+    assert (
+        snapshots.read_snapshot("carla-snapshot://traffic/population") == result.structured_content
+    )
 
 
-def test_set_autopilot_returns_changed_actor_ids_and_publishes_resource() -> None:
+def test_set_autopilot_returns_changed_actor_ids_and_publishes_snapshot() -> None:
     """Autopilot toggling should target explicit actors through Traffic Manager."""
-    session = CarlaSession()
+    snapshots = RunSnapshots()
     adapter = TrafficAdapter(population=_empty_population())
 
     result = set_autopilot(
         adapter=adapter,
-        session=session,
+        snapshots=snapshots,
         request=AutopilotRequest(
             actor_ids=SPAWNED_ACTOR_IDS,
             enabled=True,
@@ -171,17 +173,19 @@ def test_set_autopilot_returns_changed_actor_ids_and_publishes_resource() -> Non
     assert result.is_error is False
     assert adapter.autopilot_calls == [(SPAWNED_ACTOR_IDS, True, TRAFFIC_MANAGER_PORT)]
     assert result.structured_content["actor_ids"] == list(SPAWNED_ACTOR_IDS)
-    assert session.read_resource("carla://traffic/autopilot") == result.structured_content
+    assert (
+        snapshots.read_snapshot("carla-snapshot://traffic/autopilot") == result.structured_content
+    )
 
 
-def test_configure_traffic_manager_returns_settings_and_publishes_resource() -> None:
+def test_configure_traffic_manager_returns_settings_and_publishes_snapshot() -> None:
     """Traffic Manager configuration should expose the applied behavior settings."""
-    session = CarlaSession()
+    snapshots = RunSnapshots()
     adapter = TrafficAdapter(population=_empty_population())
 
     result = configure_traffic_manager(
         adapter=adapter,
-        session=session,
+        snapshots=snapshots,
         request=TrafficManagerRequest(
             traffic_manager_port=TRAFFIC_MANAGER_PORT,
             global_distance_to_leading_vehicle=3.0,
@@ -194,7 +198,7 @@ def test_configure_traffic_manager_returns_settings_and_publishes_resource() -> 
     assert result.is_error is False
     assert adapter.configured_settings is not None
     assert result.structured_content == adapter.configured_settings.to_dict()
-    assert session.read_resource("carla://traffic/manager") == result.structured_content
+    assert snapshots.read_snapshot("carla-snapshot://traffic/manager") == result.structured_content
 
 
 def _empty_population() -> TrafficPopulationResult:

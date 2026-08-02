@@ -8,27 +8,27 @@ from carla_mcp.adapter import ActorAdapter, CarlaAdapterError
 from carla_mcp.models import SpawnRequest, ToolResult
 
 if TYPE_CHECKING:
-    from carla_mcp.session import CarlaSession
+    from carla_mcp.snapshots import RunSnapshots
 
 
 def list_blueprints(
     adapter: ActorAdapter,
-    session: CarlaSession,
+    snapshots: RunSnapshots,
     filter_pattern: str,
 ) -> ToolResult:
-    """List CARLA blueprints and publish a filtered blueprint resource."""
+    """List CARLA blueprints and publish a filtered blueprint snapshot."""
     try:
         blueprints = adapter.list_blueprints(filter_pattern)
     except CarlaAdapterError as exc:
         return _adapter_error("list_blueprints_failed", exc)
     payload = {"blueprints": [blueprint.to_dict() for blueprint in blueprints]}
-    session.register_resource(f"carla://blueprints/{filter_pattern}", payload)
+    snapshots.register_snapshot(f"carla-snapshot://blueprints/{filter_pattern}", payload)
     return ToolResult.ok(payload)
 
 
 def spawn_actor_batch(
     adapter: ActorAdapter,
-    session: CarlaSession,
+    snapshots: RunSnapshots,
     requests: tuple[SpawnRequest, ...],
 ) -> ToolResult:
     """Spawn a batch of CARLA actors and publish actor results."""
@@ -37,7 +37,7 @@ def spawn_actor_batch(
     except CarlaAdapterError as exc:
         return _adapter_error("spawn_actor_batch_failed", exc)
     payload = {"results": [result.to_dict() for result in results]}
-    session.register_resource("carla://actors", payload)
+    snapshots.register_snapshot("carla-snapshot://actors", payload)
     return ToolResult.ok(payload)
 
 

@@ -10,35 +10,35 @@ from carla_mcp.models import RecordingInfo, ToolResult
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from carla_mcp.session import CarlaSession
+    from carla_mcp.snapshots import RunSnapshots
 
 
 def record_episode(
     adapter: RecorderAdapter,
-    session: CarlaSession,
+    snapshots: RunSnapshots,
     output_path: Path,
 ) -> ToolResult:
-    """Start CARLA recording and publish the recording resource."""
+    """Start CARLA recording and publish the recording snapshot."""
     try:
         recording = adapter.record_episode(output_path)
     except CarlaAdapterError as exc:
         return _adapter_error("record_episode_failed", exc)
-    return _recording_result(recording, session)
+    return _recording_result(recording, snapshots)
 
 
-def stop_recording(adapter: RecorderAdapter, session: CarlaSession) -> ToolResult:
-    """Stop CARLA recording and update the recording resource."""
+def stop_recording(adapter: RecorderAdapter, snapshots: RunSnapshots) -> ToolResult:
+    """Stop CARLA recording and update the recording snapshot."""
     try:
         recording = adapter.stop_recording()
     except CarlaAdapterError as exc:
         return _adapter_error("stop_recording_failed", exc)
-    return _recording_result(recording, session)
+    return _recording_result(recording, snapshots)
 
 
-def _recording_result(recording: RecordingInfo, session: CarlaSession) -> ToolResult:
-    """Publish a recording resource result."""
+def _recording_result(recording: RecordingInfo, snapshots: RunSnapshots) -> ToolResult:
+    """Publish a recording snapshot result."""
     payload = recording.to_dict()
-    session.register_resource(f"carla://recordings/{recording.recording_id}", payload)
+    snapshots.register_snapshot(f"carla-snapshot://recordings/{recording.recording_id}", payload)
     return ToolResult.ok(payload)
 
 

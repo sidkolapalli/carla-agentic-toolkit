@@ -1,4 +1,4 @@
-"""Behavior specs for CARLA MCP session resource handling."""
+"""Behavior specs for inline run snapshot handling."""
 
 from __future__ import annotations
 
@@ -6,34 +6,34 @@ from typing import TYPE_CHECKING, cast
 
 import pytest
 
-from carla_mcp.session import CarlaSession
+from carla_mcp.snapshots import RunSnapshots
 
 if TYPE_CHECKING:
     from carla_mcp.models import JsonObject
 
 
-def test_session_registers_read_only_resource_payloads() -> None:
-    """A registered resource should be retrievable without exposing mutation."""
-    session = CarlaSession()
+def test_run_snapshots_copy_registered_payloads() -> None:
+    """A registered snapshot should be retrievable without exposing mutation."""
+    snapshots = RunSnapshots()
     payload: JsonObject = {"connected": True, "actor_counts": {"vehicles": 1}}
 
-    session.register_resource("carla://session/status", payload)
+    snapshots.register_snapshot("carla-snapshot://session/status", payload)
     payload["connected"] = False
-    fetched = session.read_resource("carla://session/status")
+    fetched = snapshots.read_snapshot("carla-snapshot://session/status")
     _nested_object(fetched, "actor_counts")["vehicles"] = 99
 
-    assert session.read_resource("carla://session/status") == {
+    assert snapshots.read_snapshot("carla-snapshot://session/status") == {
         "connected": True,
         "actor_counts": {"vehicles": 1},
     }
 
 
-def test_session_rejects_unknown_resources() -> None:
-    """Unknown resources should fail explicitly."""
-    session = CarlaSession()
+def test_run_snapshots_reject_unknown_identifiers() -> None:
+    """Unknown snapshots should fail explicitly."""
+    snapshots = RunSnapshots()
 
     with pytest.raises(KeyError):
-        session.read_resource("carla://missing")
+        snapshots.read_snapshot("carla-snapshot://missing")
 
 
 def _nested_object(payload: JsonObject, key: str) -> JsonObject:

@@ -3,6 +3,9 @@
 > **Status:** Historical design research, not current API documentation. The
 > implemented release supersedes the separate-tool proposals below with the
 > sandboxed `execute_carla_script` tool described in the [README](../README.md).
+> References to MCP Resources below describe the rejected historical proposal;
+> the current server exposes no Resources capability and returns run-local
+> `snapshots` inline.
 
 This note maps the official Model Context Protocol shape to a CARLA MCP server.
 It explains what the server should expose as MCP Tools, Resources, and Prompts,

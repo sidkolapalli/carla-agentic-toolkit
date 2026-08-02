@@ -8,10 +8,10 @@ from carla_mcp.adapter import CarlaAdapterError, HealthAdapter
 from carla_mcp.models import ToolResult
 
 if TYPE_CHECKING:
-    from carla_mcp.session import CarlaSession
+    from carla_mcp.snapshots import RunSnapshots
 
 
-def health_check(adapter: HealthAdapter, session: CarlaSession) -> ToolResult:
+def health_check(adapter: HealthAdapter, snapshots: RunSnapshots) -> ToolResult:
     """Check CARLA server health and publish session status."""
     try:
         report = adapter.health_check()
@@ -28,5 +28,5 @@ def health_check(adapter: HealthAdapter, session: CarlaSession) -> ToolResult:
             message="CARLA health check failed.",
         )
     payload = report.to_dict()
-    session.register_resource("carla://session/status", payload)
+    snapshots.register_snapshot("carla-snapshot://session/status", payload)
     return ToolResult.ok(payload)

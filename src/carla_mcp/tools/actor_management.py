@@ -8,7 +8,7 @@ from carla_mcp.errors import CarlaAdapterError
 from carla_mcp.models import ActorSnapshot, DestroyResult, ToolResult
 
 if TYPE_CHECKING:
-    from carla_mcp.session import CarlaSession
+    from carla_mcp.snapshots import RunSnapshots
 
 
 class ActorManagementAdapter(Protocol):
@@ -23,22 +23,22 @@ class ActorManagementAdapter(Protocol):
 
 def list_actors(
     adapter: ActorManagementAdapter,
-    session: CarlaSession,
+    snapshots: RunSnapshots,
     filter_pattern: str,
 ) -> ToolResult:
-    """List CARLA actors and publish the actor inventory resource."""
+    """List CARLA actors and publish the actor inventory snapshot."""
     try:
         actors = adapter.list_actors(filter_pattern)
     except CarlaAdapterError as exc:
         return _adapter_error("list_actors_failed", exc)
     payload = {"actors": [actor.to_dict() for actor in actors]}
-    session.register_resource("carla://actors/current", payload)
+    snapshots.register_snapshot("carla-snapshot://actors/current", payload)
     return ToolResult.ok(payload)
 
 
 def destroy_actors(
     adapter: ActorManagementAdapter,
-    session: CarlaSession,
+    snapshots: RunSnapshots,
     actor_ids: tuple[int, ...],
 ) -> ToolResult:
     """Destroy CARLA actors by ID and publish cleanup results."""
@@ -47,7 +47,7 @@ def destroy_actors(
     except CarlaAdapterError as exc:
         return _adapter_error("destroy_actors_failed", exc)
     payload = {"results": [result.to_dict() for result in results]}
-    session.register_resource("carla://actors/destroyed", payload)
+    snapshots.register_snapshot("carla-snapshot://actors/destroyed", payload)
     return ToolResult.ok(payload)
 
 

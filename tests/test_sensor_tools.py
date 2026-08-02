@@ -14,7 +14,7 @@ from carla_mcp.models import (
     SensorInfo,
     Transform,
 )
-from carla_mcp.session import CarlaSession
+from carla_mcp.snapshots import RunSnapshots
 from carla_mcp.tools.sensors import attach_camera, capture_sensor_frame
 
 CAMERA_BLUEPRINT_ID: Final = "sensor.camera.rgb"
@@ -55,9 +55,9 @@ class SensorAdapter:
         )
 
 
-def test_attach_camera_returns_sensor_info_and_resource() -> None:
-    """Attaching a camera should publish a stable sensor resource."""
-    session = CarlaSession()
+def test_attach_camera_returns_sensor_info_and_snapshot() -> None:
+    """Attaching a camera should publish a stable sensor snapshot."""
+    snapshots = RunSnapshots()
     transform = build_transform()
     adapter = SensorAdapter(
         sensor=build_sensor_info(transform=transform),
@@ -66,7 +66,7 @@ def test_attach_camera_returns_sensor_info_and_resource() -> None:
 
     result = attach_camera(
         adapter=adapter,
-        session=session,
+        snapshots=snapshots,
         request=CameraAttachRequest(
             blueprint_id=CAMERA_BLUEPRINT_ID,
             transform=transform,
@@ -77,12 +77,15 @@ def test_attach_camera_returns_sensor_info_and_resource() -> None:
 
     assert result.is_error is False
     assert result.structured_content["sensor_id"] == SENSOR_ID
-    assert session.read_resource(f"carla://sensors/{SENSOR_ID}") == result.structured_content
+    assert (
+        snapshots.read_snapshot(f"carla-snapshot://sensors/{SENSOR_ID}")
+        == result.structured_content
+    )
 
 
-def test_capture_sensor_frame_returns_capture_info_and_resource(tmp_path: Path) -> None:
-    """Capturing a sensor frame should publish a capture resource."""
-    session = CarlaSession()
+def test_capture_sensor_frame_returns_capture_info_and_snapshot(tmp_path: Path) -> None:
+    """Capturing a sensor frame should publish a capture snapshot."""
+    snapshots = RunSnapshots()
     output_path = tmp_path / "front-camera.png"
     adapter = SensorAdapter(
         sensor=build_sensor_info(transform=build_transform()),
@@ -91,14 +94,17 @@ def test_capture_sensor_frame_returns_capture_info_and_resource(tmp_path: Path) 
 
     result = capture_sensor_frame(
         adapter=adapter,
-        session=session,
+        snapshots=snapshots,
         sensor_id=SENSOR_ID,
         output_path=output_path,
     )
 
     assert result.is_error is False
     assert result.structured_content == adapter.capture.with_path(output_path).to_dict()
-    assert session.read_resource(f"carla://captures/{CAPTURE_ID}") == result.structured_content
+    assert (
+        snapshots.read_snapshot(f"carla-snapshot://captures/{CAPTURE_ID}")
+        == result.structured_content
+    )
 
 
 def build_transform() -> Transform:

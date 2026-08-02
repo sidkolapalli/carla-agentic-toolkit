@@ -185,6 +185,12 @@ Recoverable CARLA operation failures return a script value with `ok: false`,
 failures, and timeouts fail the complete MCP call with `isError: true` while
 retaining the structured diagnostics.
 
+Each result also contains inline `snapshots` keyed by `carla-snapshot://...`.
+They exist only for that script run; the server intentionally exposes no MCP
+Resources capability. Files under `CARLA_MCP_OUTPUT_DIR` may persist after the
+call. In v0.1 this is a breaking rename from the former `resources` field; no
+compatibility alias is emitted.
+
 ## Capabilities
 
 | Control surface | Examples |

@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, cast
 from carla_mcp.errors import CarlaAdapterError
 from carla_mcp.models import Location, SensorInfo, Transform
 from carla_mcp.script_api import CarlaScriptApi
-from carla_mcp.session import CarlaSession
+from carla_mcp.snapshots import RunSnapshots
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -128,8 +128,8 @@ class FailingHealthAdapter(ScriptAdapter):
 
 def test_describe_api_publishes_runtime_catalog() -> None:
     """The one-tool model should expose runtime API discovery."""
-    session = CarlaSession()
-    api = build_api(adapter=ScriptAdapter(), session=session)
+    snapshots = RunSnapshots()
+    api = build_api(adapter=ScriptAdapter(), snapshots=snapshots)
 
     catalog = api.describe_api()
     methods = cast("dict[str, object]", catalog["methods"])
@@ -139,27 +139,27 @@ def test_describe_api_publishes_runtime_catalog() -> None:
         ("attach_sensor", "apply_vehicle_control", "list_capabilities"),
     )
     assert_catalog_hides_private_state(methods)
-    assert session.read_resource("carla://api") == catalog
+    assert snapshots.read_snapshot("carla-snapshot://api") == catalog
 
 
-def test_attach_event_sensor_maps_kind_and_publishes_resource() -> None:
+def test_attach_event_sensor_maps_kind_and_publishes_snapshot() -> None:
     """Event sensors should use official CARLA sensor blueprints."""
-    session = CarlaSession()
+    snapshots = RunSnapshots()
     adapter = ScriptAdapter()
-    api = build_api(adapter=adapter, session=session)
+    api = build_api(adapter=adapter, snapshots=snapshots)
 
     sensor = api.attach_event_sensor("collision", parent_id=PARENT_ID)
 
     assert sensor["blueprint_id"] == "sensor.other.collision"
     assert adapter.calls[0][1]["parent_actor_id"] == PARENT_ID
-    assert session.read_resource(f"carla://sensors/{SENSOR_ID}") == sensor
+    assert snapshots.read_snapshot(f"carla-snapshot://sensors/{SENSOR_ID}") == sensor
 
 
-def test_generate_route_parses_locations_and_publishes_resource() -> None:
-    """Routes should accept JSON locations and publish a route resource."""
-    session = CarlaSession()
+def test_generate_route_parses_locations_and_publishes_snapshot() -> None:
+    """Routes should accept JSON locations and publish a route snapshot."""
+    snapshots = RunSnapshots()
     adapter = ScriptAdapter()
-    api = build_api(adapter=adapter, session=session)
+    api = build_api(adapter=adapter, snapshots=snapshots)
 
     route = api.generate_route(
         start={"x": 1.0, "y": 2.0, "z": 0.0},
@@ -170,13 +170,13 @@ def test_generate_route_parses_locations_and_publishes_resource() -> None:
 
     assert route["waypoint_count"] == 1
     assert adapter.calls[0][1]["step_meters"] == ROUTE_STEP_METERS
-    assert session.read_resource("carla://route/latest") == route
+    assert snapshots.read_snapshot("carla-snapshot://route/latest") == route
 
 
 def test_apply_vehicle_control_passes_direct_control_kwargs() -> None:
     """Direct control should keep the kwargs shape expected by CARLA VehicleControl."""
     adapter = ScriptAdapter()
-    api = build_api(adapter=adapter, session=CarlaSession())
+    api = build_api(adapter=adapter, snapshots=RunSnapshots())
 
     result = api.apply_vehicle_control(ACTOR_ID, throttle=0.4, steer=-0.1, brake=0.0)
 
@@ -186,7 +186,7 @@ def test_apply_vehicle_control_passes_direct_control_kwargs() -> None:
 
 def test_recoverable_tool_failure_keeps_an_explicit_error_marker() -> None:
     """Scripts should be able to inspect and recover from CARLA operation failures."""
-    api = build_api(adapter=FailingHealthAdapter(), session=CarlaSession())
+    api = build_api(adapter=FailingHealthAdapter(), snapshots=RunSnapshots())
 
     result = api.health_check()
 
@@ -202,9 +202,9 @@ def test_recoverable_tool_failure_keeps_an_explicit_error_marker() -> None:
     }
 
 
-def build_api(adapter: ScriptAdapter, session: CarlaSession) -> CarlaScriptApi:
+def build_api(adapter: ScriptAdapter, snapshots: RunSnapshots) -> CarlaScriptApi:
     """Build a script API with a partial fake adapter for behavior specs."""
-    return CarlaScriptApi(adapter=cast("CarlaAdapter", adapter), session=session)
+    return CarlaScriptApi(adapter=cast("CarlaAdapter", adapter), snapshots=snapshots)
 
 
 def assert_catalog_has_methods(methods: dict[str, object], names: tuple[str, ...]) -> None:

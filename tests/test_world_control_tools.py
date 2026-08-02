@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Final
 
 from carla_mcp.models import ActorCounts, HealthReport, WorldSettings, WorldState
-from carla_mcp.session import CarlaSession
+from carla_mcp.snapshots import RunSnapshots
 from carla_mcp.tools.world import load_world, set_sync_mode, tick
 
 LOADED_MAP: Final = "Town01"
@@ -61,45 +61,45 @@ class ControlAdapter:
         return NEXT_FRAME
 
 
-def test_load_world_returns_new_world_state_and_updates_resource() -> None:
-    """Loading a map should publish the resulting current-world resource."""
-    session = CarlaSession()
+def test_load_world_returns_new_world_state_and_updates_snapshot() -> None:
+    """Loading a map should publish the resulting current-world snapshot."""
+    snapshots = RunSnapshots()
     adapter = ControlAdapter(world=build_world_state())
 
-    result = load_world(adapter=adapter, session=session, map_name=LOADED_MAP)
+    result = load_world(adapter=adapter, snapshots=snapshots, map_name=LOADED_MAP)
 
     assert result.is_error is False
     assert result.structured_content == adapter.world.to_dict()
-    assert session.read_resource("carla://world/current") == adapter.world.to_dict()
+    assert snapshots.read_snapshot("carla-snapshot://world/current") == adapter.world.to_dict()
 
 
 def test_set_sync_mode_returns_updated_timing_settings() -> None:
     """Sync configuration should publish the updated world timing state."""
-    session = CarlaSession()
+    snapshots = RunSnapshots()
     adapter = ControlAdapter(world=build_world_state())
 
     result = set_sync_mode(
         adapter=adapter,
-        session=session,
+        snapshots=snapshots,
         enabled=True,
         fixed_delta_seconds=SYNC_DELTA_SECONDS,
     )
 
     assert result.is_error is False
     assert result.structured_content == adapter.world.to_dict()
-    assert session.read_resource("carla://world/current") == adapter.world.to_dict()
+    assert snapshots.read_snapshot("carla-snapshot://world/current") == adapter.world.to_dict()
 
 
-def test_tick_advances_one_frame_and_updates_tick_resource() -> None:
+def test_tick_advances_one_frame_and_updates_tick_snapshot() -> None:
     """A tick should return the frame advanced by CARLA."""
-    session = CarlaSession()
+    snapshots = RunSnapshots()
     adapter = ControlAdapter(world=build_world_state())
 
-    result = tick(adapter=adapter, session=session)
+    result = tick(adapter=adapter, snapshots=snapshots)
 
     assert result.is_error is False
     assert result.structured_content == {"frame": NEXT_FRAME}
-    assert session.read_resource("carla://session/last-tick") == {"frame": NEXT_FRAME}
+    assert snapshots.read_snapshot("carla-snapshot://session/last-tick") == {"frame": NEXT_FRAME}
 
 
 def build_world_state() -> WorldState:

@@ -29,7 +29,7 @@ class ScriptOutcome:
     ok: bool
     result: object
     stdout: str
-    resources: dict[str, object] | None = None
+    snapshots: dict[str, object] | None = None
     error: str | None = None
     error_type: str | None = None
     sandbox: dict[str, object] | None = None
@@ -40,7 +40,7 @@ class ScriptOutcome:
             "ok": self.ok,
             "result": self.result,
             "stdout": self.stdout,
-            "resources": self.resources or {},
+            "snapshots": self.snapshots or {},
             "error": self.error,
             "error_type": self.error_type,
             "sandbox": self.sandbox or {},
@@ -196,7 +196,7 @@ def _failure(error_type: str, error: str, runner: Path | None = None) -> ScriptO
         ok=False,
         result=None,
         stdout="",
-        resources={},
+        snapshots={},
         error=error,
         error_type=error_type,
         sandbox={"runner": str(runner) if runner is not None else None},
@@ -251,7 +251,7 @@ def _decode_runner_output(
             ok=False,
             result=None,
             stdout=completed.stdout,
-            resources={},
+            snapshots={},
             error=completed.stderr or "Rust sandbox runner did not return JSON.",
             error_type="sandbox_protocol_error",
             sandbox={"runner": str(runner), "exit_code": completed.returncode},
@@ -261,7 +261,7 @@ def _decode_runner_output(
             ok=False,
             result=None,
             stdout="",
-            resources={},
+            snapshots={},
             error="Rust sandbox runner returned a non-object JSON payload.",
             error_type="sandbox_protocol_error",
             sandbox={"runner": str(runner), "exit_code": completed.returncode},
@@ -270,7 +270,7 @@ def _decode_runner_output(
         ok=bool(payload.get("ok")),
         result=payload.get("result"),
         stdout=str(payload.get("stdout", "")),
-        resources=_object_mapping(payload.get("resources")),
+        snapshots=_object_mapping(payload.get("snapshots")),
         error=_optional_string(payload.get("error")),
         error_type=_optional_string(payload.get("error_type")),
         sandbox={

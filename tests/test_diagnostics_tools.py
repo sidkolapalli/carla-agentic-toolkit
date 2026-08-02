@@ -9,7 +9,7 @@ import pytest
 
 from carla_mcp.adapter import CarlaAdapterError
 from carla_mcp.models import ActorCounts, HealthReport, WorldSettings, WorldState
-from carla_mcp.session import CarlaSession
+from carla_mcp.snapshots import RunSnapshots
 from carla_mcp.tools.diagnostics import health_check
 from carla_mcp.tools.world import get_world_state, list_worlds
 
@@ -98,27 +98,27 @@ def build_health_report(*, connected: bool = True) -> HealthReport:
 
 def test_health_check_reports_connected_carla_session_as_structured_content() -> None:
     """A healthy CARLA server should produce a model-readable health payload."""
-    session = CarlaSession()
+    snapshots = RunSnapshots()
     health_report = build_health_report()
     adapter = FakeAdapter(health=health_report, world=build_world_state())
 
-    result = health_check(adapter=adapter, session=session)
+    result = health_check(adapter=adapter, snapshots=snapshots)
 
     assert result.is_error is False
     assert result.structured_content == health_report.to_dict()
-    assert session.read_resource("carla://session/status") == health_report.to_dict()
+    assert snapshots.read_snapshot("carla-snapshot://session/status") == health_report.to_dict()
 
 
 def test_health_check_returns_tool_error_when_carla_connection_fails() -> None:
     """A failed CARLA connection should be a tool execution error, not a crash."""
-    session = CarlaSession()
+    snapshots = RunSnapshots()
     adapter = FakeAdapter(
         health=build_health_report(connected=False),
         world=build_world_state(),
         fail_health=True,
     )
 
-    result = health_check(adapter=adapter, session=session)
+    result = health_check(adapter=adapter, snapshots=snapshots)
 
     assert {
         "is_error": result.is_error,
@@ -134,36 +134,36 @@ def test_health_check_returns_tool_error_when_carla_connection_fails() -> None:
         "retryable": True,
     }
     with pytest.raises(KeyError):
-        session.read_resource("carla://session/status")
+        snapshots.read_snapshot("carla-snapshot://session/status")
 
 
-def test_get_world_state_exposes_current_world_as_resource() -> None:
-    """A world-state read should update the read-only current-world resource."""
-    session = CarlaSession()
+def test_get_world_state_exposes_current_world_as_snapshot() -> None:
+    """A world-state read should update the read-only current-world snapshot."""
+    snapshots = RunSnapshots()
     world_state = build_world_state()
     adapter = FakeAdapter(health=build_health_report(), world=world_state)
 
-    result = get_world_state(adapter=adapter, session=session)
+    result = get_world_state(adapter=adapter, snapshots=snapshots)
 
     assert result.is_error is False
     assert result.structured_content == world_state.to_dict()
-    assert session.read_resource("carla://world/current") == world_state.to_dict()
+    assert snapshots.read_snapshot("carla-snapshot://world/current") == world_state.to_dict()
 
 
-def test_list_worlds_sorts_maps_and_exposes_worlds_resource() -> None:
-    """Available maps should be deterministic for both tool and resource reads."""
-    session = CarlaSession()
+def test_list_worlds_sorts_maps_and_exposes_worlds_snapshot() -> None:
+    """Available maps should be deterministic for both tool and snapshot reads."""
+    snapshots = RunSnapshots()
     adapter = FakeAdapter(
         health=build_health_report(),
         world=build_world_state(),
         maps=("Town10HD_Opt", "Town01", "Town02"),
     )
 
-    result = list_worlds(adapter=adapter, session=session)
+    result = list_worlds(adapter=adapter, snapshots=snapshots)
 
     assert result.is_error is False
     assert result.structured_content["worlds"] == ["Town01", "Town02", "Town10HD_Opt"]
-    assert session.read_resource("carla://worlds")["worlds"] == [
+    assert snapshots.read_snapshot("carla-snapshot://worlds")["worlds"] == [
         "Town01",
         "Town02",
         "Town10HD_Opt",

@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 def _successful_script(*_args: object, **_kwargs: object) -> ScriptOutcome:
     """Return a successful sandbox result without launching a subprocess."""
-    return ScriptOutcome(ok=True, result=1, stdout="", resources={})
+    return ScriptOutcome(ok=True, result=1, stdout="", snapshots={})
 
 
 def _failed_script(*_args: object, **_kwargs: object) -> ScriptOutcome:
@@ -58,6 +58,13 @@ def test_build_server_exposes_only_script_execution_tool() -> None:
     tools = asyncio.run(server.list_tools())
 
     assert tuple(tool.name for tool in tools) == ("execute_carla_script",)
+
+
+def test_server_intentionally_exposes_no_mcp_resources() -> None:
+    """Inline run snapshots must not advertise the MCP Resources capability."""
+    resources = asyncio.run(build_server().list_resources())
+
+    assert resources == []
 
 
 def test_server_supports_latest_mcp_protocol(monkeypatch: pytest.MonkeyPatch) -> None:

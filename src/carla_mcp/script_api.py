@@ -3,7 +3,7 @@
 This object is the single code API a code-execution MCP client composes against.
 Each method mirrors a discrete CARLA tool and returns the same JSON-compatible
 structured content, so scripts and direct tool calls share behavior and publish
-the same session resources.
+the same run-local snapshots.
 """
 
 from __future__ import annotations
@@ -47,35 +47,35 @@ if TYPE_CHECKING:
 
     from carla_mcp.adapter import CarlaAdapter
     from carla_mcp.models import JsonObject
-    from carla_mcp.session import CarlaSession
+    from carla_mcp.snapshots import RunSnapshots
 
 
 class CarlaScriptApi:
     """High-level CARLA operations callable from a sandboxed script."""
 
-    def __init__(self, adapter: CarlaAdapter, session: CarlaSession) -> None:
-        """Bind the API to a CARLA adapter and session."""
+    def __init__(self, adapter: CarlaAdapter, snapshots: RunSnapshots) -> None:
+        """Bind the API to a CARLA adapter and run-local snapshots."""
         self._adapter = adapter
-        self._session = session
+        self._snapshots = snapshots
         self._traffic_controller = InProcessTrafficControllerService()
 
     def health_check(self) -> JsonObject:
         """Return CARLA connection health."""
-        return health_check(adapter=self._adapter, session=self._session).structured_content
+        return health_check(adapter=self._adapter, snapshots=self._snapshots).structured_content
 
     def get_world_state(self) -> JsonObject:
         """Return the current CARLA world state."""
-        return get_world_state(adapter=self._adapter, session=self._session).structured_content
+        return get_world_state(adapter=self._adapter, snapshots=self._snapshots).structured_content
 
     def list_worlds(self) -> JsonObject:
         """Return available CARLA maps."""
-        return list_worlds(adapter=self._adapter, session=self._session).structured_content
+        return list_worlds(adapter=self._adapter, snapshots=self._snapshots).structured_content
 
     def load_world(self, map_name: str) -> JsonObject:
         """Load a CARLA map by name."""
         return load_world(
             adapter=self._adapter,
-            session=self._session,
+            snapshots=self._snapshots,
             map_name=map_name,
         ).structured_content
 
@@ -88,14 +88,14 @@ class CarlaScriptApi:
         """Configure synchronous mode and fixed timestep."""
         return set_sync_mode(
             adapter=self._adapter,
-            session=self._session,
+            snapshots=self._snapshots,
             enabled=enabled,
             fixed_delta_seconds=fixed_delta_seconds,
         ).structured_content
 
     def tick(self) -> JsonObject:
         """Advance the simulation by one frame."""
-        return tick(adapter=self._adapter, session=self._session).structured_content
+        return tick(adapter=self._adapter, snapshots=self._snapshots).structured_content
 
     def tick_n(self, count: int) -> JsonObject:
         """Advance the simulation by several frames inside the sandbox."""
@@ -106,7 +106,7 @@ class CarlaScriptApi:
         """List actor blueprints matching a wildcard filter."""
         return list_blueprints(
             adapter=self._adapter,
-            session=self._session,
+            snapshots=self._snapshots,
             filter_pattern=filter_pattern,
         ).structured_content
 
@@ -114,7 +114,7 @@ class CarlaScriptApi:
         """Spawn actors from JSON-compatible spawn requests."""
         return spawn_actor_batch(
             adapter=self._adapter,
-            session=self._session,
+            snapshots=self._snapshots,
             requests=parse_spawn_requests(requests),
         ).structured_content
 
@@ -122,7 +122,7 @@ class CarlaScriptApi:
         """List current actors matching a wildcard filter."""
         return list_actors(
             adapter=self._adapter,
-            session=self._session,
+            snapshots=self._snapshots,
             filter_pattern=filter_pattern,
         ).structured_content
 
@@ -130,7 +130,7 @@ class CarlaScriptApi:
         """Destroy explicit actors by ID."""
         return destroy_actors(
             adapter=self._adapter,
-            session=self._session,
+            snapshots=self._snapshots,
             actor_ids=tuple(actor_ids),
         ).structured_content
 
@@ -138,7 +138,7 @@ class CarlaScriptApi:
         """Spawn Traffic Manager-controlled vehicles."""
         return populate_traffic(
             adapter=self._adapter,
-            session=self._session,
+            snapshots=self._snapshots,
             request=parse_traffic_population_request(request),
         ).structured_content
 
@@ -146,7 +146,7 @@ class CarlaScriptApi:
         """Toggle Traffic Manager autopilot for existing vehicles."""
         return set_autopilot(
             adapter=self._adapter,
-            session=self._session,
+            snapshots=self._snapshots,
             request=parse_autopilot_request(request),
         ).structured_content
 
@@ -154,7 +154,7 @@ class CarlaScriptApi:
         """Configure global Traffic Manager behavior."""
         return configure_traffic_manager(
             adapter=self._adapter,
-            session=self._session,
+            snapshots=self._snapshots,
             request=parse_traffic_manager_request(request),
         ).structured_content
 
@@ -162,7 +162,7 @@ class CarlaScriptApi:
         """Start an in-script persistent Traffic Manager controller."""
         return start_traffic_controller(
             service=self._traffic_controller,
-            session=self._session,
+            snapshots=self._snapshots,
             request=parse_traffic_controller_start_request(
                 request,
                 host=self._adapter.host,
@@ -175,21 +175,21 @@ class CarlaScriptApi:
         """Stop the in-script Traffic Manager controller."""
         return stop_traffic_controller(
             service=self._traffic_controller,
-            session=self._session,
+            snapshots=self._snapshots,
         ).structured_content
 
     def traffic_controller_status(self) -> JsonObject:
         """Return in-script Traffic Manager controller status."""
         return traffic_controller_status(
             service=self._traffic_controller,
-            session=self._session,
+            snapshots=self._snapshots,
         ).structured_content
 
     def set_traffic_density(self, request: dict[str, object]) -> JsonObject:
         """Converge in-script traffic to a requested density."""
         return set_traffic_density(
             service=self._traffic_controller,
-            session=self._session,
+            snapshots=self._snapshots,
             request=parse_traffic_density_request(request),
         ).structured_content
 
@@ -197,7 +197,7 @@ class CarlaScriptApi:
         """Apply a behavior profile to explicit vehicle actors."""
         return set_vehicle_behavior(
             service=self._traffic_controller,
-            session=self._session,
+            snapshots=self._snapshots,
             request=parse_vehicle_behavior_request(request),
         ).structured_content
 
@@ -205,7 +205,7 @@ class CarlaScriptApi:
         """Attach a camera sensor."""
         return attach_camera(
             adapter=self._adapter,
-            session=self._session,
+            snapshots=self._snapshots,
             request=parse_camera_attach_request(request),
         ).structured_content
 
@@ -213,7 +213,7 @@ class CarlaScriptApi:
         """Capture one sensor frame to disk."""
         return capture_sensor_frame(
             adapter=self._adapter,
-            session=self._session,
+            snapshots=self._snapshots,
             sensor_id=sensor_id,
             output_path=Path(output_path),
         ).structured_content
@@ -233,7 +233,7 @@ class CarlaScriptApi:
             parent_actor_id=parent_id,
         )
         payload = sensor.to_dict()
-        self._session.register_resource(f"carla://sensors/{sensor.sensor_id}", payload)
+        self._snapshots.register_snapshot(f"carla-snapshot://sensors/{sensor.sensor_id}", payload)
         return payload
 
     def read_sensor_stream(
@@ -248,7 +248,7 @@ class CarlaScriptApi:
             frame_count=frames,
             output_dir=Path(output_dir) if output_dir is not None else None,
         )
-        self._session.register_resource(f"carla://sensors/{sensor_id}/stream", payload)
+        self._snapshots.register_snapshot(f"carla-snapshot://sensors/{sensor_id}/stream", payload)
         return payload
 
     def attach_event_sensor(
@@ -268,13 +268,13 @@ class CarlaScriptApi:
     def detach_sensor(self, sensor_id: int) -> JsonObject:
         """Stop and destroy a sensor actor."""
         payload = self._adapter.detach_sensor(sensor_id)
-        self._session.register_resource(f"carla://sensors/{sensor_id}/detached", payload)
+        self._snapshots.register_snapshot(f"carla-snapshot://sensors/{sensor_id}/detached", payload)
         return payload
 
     def get_spawn_points(self) -> JsonObject:
         """Return legal vehicle spawn transforms from the current map."""
         payload = self._adapter.get_spawn_points()
-        self._session.register_resource("carla://map/spawn-points", payload)
+        self._snapshots.register_snapshot("carla-snapshot://map/spawn-points", payload)
         return payload
 
     def get_waypoint(
@@ -305,19 +305,19 @@ class CarlaScriptApi:
             step_meters=step_meters,
             max_steps=max_steps,
         )
-        self._session.register_resource("carla://route/latest", payload)
+        self._snapshots.register_snapshot("carla-snapshot://route/latest", payload)
         return payload
 
     def get_topology(self, max_segments: int = 200) -> JsonObject:
         """Return a compact road topology graph."""
         payload = self._adapter.get_topology(max_segments=max_segments)
-        self._session.register_resource("carla://map/topology", payload)
+        self._snapshots.register_snapshot("carla-snapshot://map/topology", payload)
         return payload
 
     def get_landmarks(self, max_count: int = 200) -> JsonObject:
         """Return map landmarks when supported by the loaded map."""
         payload = self._adapter.get_landmarks(max_count=max_count)
-        self._session.register_resource("carla://map/landmarks", payload)
+        self._snapshots.register_snapshot("carla-snapshot://map/landmarks", payload)
         return payload
 
     def apply_vehicle_control(self, actor_id: int, **control: object) -> JsonObject:
@@ -327,7 +327,7 @@ class CarlaScriptApi:
     def get_vehicle_telemetry(self, actor_id: int) -> JsonObject:
         """Return transform, speed, control, and traffic-light telemetry."""
         payload = self._adapter.get_vehicle_telemetry(actor_id)
-        self._session.register_resource(f"carla://actors/{actor_id}/telemetry", payload)
+        self._snapshots.register_snapshot(f"carla-snapshot://actors/{actor_id}/telemetry", payload)
         return payload
 
     def set_actor_transform(self, actor_id: int, transform: dict[str, object]) -> JsonObject:
@@ -356,7 +356,7 @@ class CarlaScriptApi:
     ) -> JsonObject:
         """Spawn pedestrians and AI walker controllers."""
         payload = self._adapter.spawn_walkers(count=count, speed=speed, seed=seed)
-        self._session.register_resource("carla://walkers/latest", payload)
+        self._snapshots.register_snapshot("carla-snapshot://walkers/latest", payload)
         return payload
 
     def set_walker_destination(
@@ -461,7 +461,7 @@ class CarlaScriptApi:
     def reload_world(self, *, reset_settings: bool = False) -> JsonObject:
         """Reload the current world for a clean scenario reset."""
         payload = self._adapter.reload_world(reset_settings=reset_settings)
-        self._session.register_resource("carla://world/current", payload)
+        self._snapshots.register_snapshot("carla-snapshot://world/current", payload)
         return payload
 
     def apply_batch(self, commands: list[dict[str, object]]) -> JsonObject:
@@ -480,25 +480,25 @@ class CarlaScriptApi:
             if _is_script_method(self, name)
         }
         payload = {"methods": methods}
-        self._session.register_resource("carla://api", payload)
+        self._snapshots.register_snapshot("carla-snapshot://api", payload)
         return payload
 
     def record_episode(self, output_path: str) -> JsonObject:
         """Start the CARLA recorder at a path."""
         return record_episode(
             adapter=self._adapter,
-            session=self._session,
+            snapshots=self._snapshots,
             output_path=Path(output_path),
         ).structured_content
 
     def stop_recording(self) -> JsonObject:
         """Stop the active CARLA recorder."""
-        return stop_recording(adapter=self._adapter, session=self._session).structured_content
+        return stop_recording(adapter=self._adapter, snapshots=self._snapshots).structured_content
 
     def export_evidence_packet(self, output_dir: str) -> JsonObject:
-        """Export a compact evidence manifest from script-created resources."""
+        """Export a compact evidence manifest from script-created snapshots."""
         return export_evidence_packet(
-            session=self._session,
+            snapshots=self._snapshots,
             output_dir=Path(output_dir),
         ).structured_content
 
