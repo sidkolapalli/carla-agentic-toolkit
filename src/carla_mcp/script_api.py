@@ -130,6 +130,7 @@ class CarlaScriptApi:
             self._ownership.clear()
         return self._snapshot("carla-snapshot://world/current", payload)
 
+    # Connection and world lifecycle.
     @_recover("carla_connection_error", endpoint=True)
     def health_check(self) -> JsonObject:
         """Return CARLA connection health."""
@@ -183,6 +184,7 @@ class CarlaScriptApi:
             )
         return {"frames": frames, "count": len(frames)}
 
+    # Actor discovery, creation, naming, and cleanup.
     @_recover("list_blueprints_failed")
     def list_blueprints(self, filter_pattern: str = "*") -> JsonObject:
         """List actor blueprints matching a wildcard filter."""
@@ -247,6 +249,7 @@ class CarlaScriptApi:
         )
         return result
 
+    # Traffic Manager workflows.
     @_recover("populate_traffic_failed")
     def populate_traffic(self, request: dict[str, object]) -> JsonObject:
         """Spawn Traffic Manager-controlled vehicles."""
@@ -347,6 +350,7 @@ class CarlaScriptApi:
     def _track_owned(self, actor_ids: Iterable[int]) -> None:
         track_owned(self._adapter, self._ownership, actor_ids)
 
+    # Sensors and durable captures.
     @_recover("attach_camera_failed")
     def attach_camera(self, request: dict[str, object]) -> JsonObject:
         """Attach a camera sensor."""
@@ -427,6 +431,7 @@ class CarlaScriptApi:
             self._ownership.discard((sensor_id,))
         return self._snapshot(f"carla-snapshot://sensors/{sensor_id}/detached", payload)
 
+    # Navigation and map semantics.
     @_recover("get_spawn_points_failed")
     def get_spawn_points(self) -> JsonObject:
         """Return legal vehicle spawn transforms from the current map."""
@@ -540,6 +545,7 @@ class CarlaScriptApi:
         )
         return self._replaced_world(payload)
 
+    # Actor and vehicle physics.
     @_recover("configure_actor_physics_failed")
     def configure_actor_physics(
         self,
@@ -585,6 +591,7 @@ class CarlaScriptApi:
         payload = self._adapter.update_vehicle_physics(actor_id=actor_id, changes=changes)
         return self._snapshot(f"carla-snapshot://actors/{actor_id}/physics", payload)
 
+    # Direct vehicle and walker control.
     @_recover("apply_vehicle_control_failed")
     def apply_vehicle_control(self, actor_id: int, **control: object) -> JsonObject:
         """Apply direct throttle, steer, brake, and gear control to a vehicle."""
@@ -655,6 +662,7 @@ class CarlaScriptApi:
             speed=speed,
         )
 
+    # Visible scene, spectator, and weather control.
     @_recover("freeze_traffic_lights_failed")
     def freeze_traffic_lights(self, *, enabled: bool) -> JsonObject:
         """Freeze or unfreeze all traffic lights."""
@@ -669,6 +677,13 @@ class CarlaScriptApi:
     def set_spectator(self, transform: dict[str, object]) -> JsonObject:
         """Move the spectator viewpoint."""
         return self._adapter.set_spectator(parse_transform(transform))
+
+    @_recover("watch_actor_failed")
+    def watch_actor(self, actor_id: int, seconds: float = 8.0) -> JsonObject:
+        """Show an actor through a bounded simulator-tick chase camera."""
+        return self._adapter.watch_actor(
+            actor_id=actor_id, seconds=seconds, distance=8.0, height=4.0
+        )
 
     @_recover("save_screenshot_failed")
     def save_screenshot(
@@ -698,6 +713,7 @@ class CarlaScriptApi:
         """Set weather parameters when supported by this CARLA build."""
         return self._adapter.set_weather(parameters)
 
+    # Replay, batch operations, and run cleanup.
     @_recover("replay_recording_failed")
     def replay_recording(
         self,
@@ -772,6 +788,7 @@ class CarlaScriptApi:
         payload = {"methods": method_catalog(self)}
         return self._snapshot("carla-snapshot://api", payload)
 
+    # Recording, evidence, and bounded pacing.
     @_recover("record_episode_failed")
     def record_episode(self, output_path: str) -> JsonObject:
         """Start the CARLA recorder at a path."""

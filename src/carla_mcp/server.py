@@ -173,6 +173,22 @@ def _register_prompts(mcp: MCPServer) -> None:
             "with api.tick_n(), and returns before/after frame information."
         )
 
+    @mcp.prompt()
+    def run_visual_showcase() -> str:
+        """Prompt for the self-cleaning split-screen promotional demo."""
+        return (
+            "Use one execute_carla_script call to create an 8-second visual CARLA demo. "
+            "Save the current weather. Spawn one red Tesla Model 3 at the first free "
+            "spawn point with role_name carla-mcp-hero-demo. Apply rainy golden-hour "
+            "weather and vehicle lights, enable Traffic Manager autopilot at 8 m/s, "
+            "and call api.watch_actor(actor_id, seconds=8.0) for a smooth yaw-relative "
+            "chase view that restores the spectator. Attach an RGB camera and publish "
+            "a frame to demos/hero.png. Return "
+            "map, speed before/after, capture metadata, restored-state checks, and "
+            "leftovers. In finally, detach sensors, destroy only actors created by this "
+            "script, and restore both weather and spectator transform."
+        )
+
 
 def main() -> None:
     """Run the CARLA MCP server."""

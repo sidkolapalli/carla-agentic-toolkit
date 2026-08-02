@@ -294,6 +294,16 @@ class ExperimentAdapter(Protocol):
     def set_spectator(self, transform: Transform) -> JsonObject:
         """Move the spectator camera."""
 
+    def watch_actor(
+        self,
+        *,
+        actor_id: int,
+        seconds: float,
+        distance: float,
+        height: float,
+    ) -> JsonObject:
+        """Follow one actor with a bounded simulator-tick chase camera."""
+
     def save_screenshot(self, *, output_path: Path, attributes: dict[str, str]) -> JsonObject:
         """Capture a temporary RGB camera frame from the spectator viewpoint."""
 

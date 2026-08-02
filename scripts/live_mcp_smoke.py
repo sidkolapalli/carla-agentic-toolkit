@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import base64
 import json
 import os
 import sys
@@ -25,7 +26,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     """Run the live smoke test and emit one JSON report."""
     args = _parse_args(argv)
     try:
-        report = asyncio.run(_run(args))
+        report = asyncio.run(run_live_smoke(args))
     except (OSError, RuntimeError, TypeError) as error:
         report = {"ok": False, "error": str(error)}
     sys.stdout.write(json.dumps(report, sort_keys=True) + "\n")
@@ -46,7 +47,12 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     return args
 
 
-async def _run(args: argparse.Namespace) -> dict[str, object]:
+async def run_live_smoke(
+    args: argparse.Namespace,
+    *,
+    save_image: Path | None = None,
+    drive_seconds: float = 1.0,
+) -> dict[str, object]:
     """Exercise live CARLA through one MCP stdio server."""
     tag = f"carla-mcp-smoke-{uuid4().hex}"
     server = StdioServerParameters(
@@ -63,11 +69,12 @@ async def _run(args: argparse.Namespace) -> dict[str, object]:
             "tool mismatch",
             condition=[tool.name for tool in tools.tools] == ["execute_carla_script"],
         )
-        mutation = await _call(session, _mutation_script(tag), args)
+        mutation = await _call(session, _mutation_script(tag, drive_seconds=drive_seconds), args)
         _require(
             "capture did not return native MCP image content",
             condition=mutation.pop("_image_content") is True,
         )
+        image_data = mutation.pop("_image_data")
         resource_uri = mutation.pop("_image_resource_uri")
         resource = await session.read_resource(str(resource_uri))
         _require(
@@ -92,6 +99,12 @@ async def _run(args: argparse.Namespace) -> dict[str, object]:
             expect_error=True,
         )
     mutation_result = _mapping(mutation["result"], "mutation result")
+    landlock = _mapping(
+        _mapping(mutation.get("sandbox"), "sandbox metadata").get("landlock"),
+        "Landlock metadata",
+    )
+    if save_image is not None:
+        _save_image(image_data, save_image)
     movement = _mapping(mutation_result.get("movement"), "movement result")
     _mapping(mutation_result.get("capture"), "capture result")
     before_speed = movement.get("before_mps")
@@ -106,6 +119,9 @@ async def _run(args: argparse.Namespace) -> dict[str, object]:
     )
     _require("weather change failed", condition=mutation_result.get("weather_changed") is True)
     _require("weather restore failed", condition=mutation_result.get("weather_restored") is True)
+    _require(
+        "spectator restore failed", condition=mutation_result.get("spectator_restored") is True
+    )
     _require("live smoke left actors behind", condition=mutation_result.get("leftovers") == [])
     _require(
         "validator probe was not rejected",
@@ -124,7 +140,10 @@ async def _run(args: argparse.Namespace) -> dict[str, object]:
         "capture": mutation_result.get("capture"),
         "image_content": True,
         "resource_read": True,
+        "saved_image": str(save_image) if save_image is not None else None,
+        "landlock_enforced": landlock.get("ruleset_enforced") is True,
         "weather_restored": mutation_result.get("weather_restored"),
+        "spectator_restored": mutation_result.get("spectator_restored"),
         "leftovers": mutation_result["leftovers"],
         "validator_rejected": True,
         "timeout_cleaned": _mapping(timed_out.get("sandbox"), "timeout sandbox").get("timed_out"),
@@ -152,12 +171,21 @@ async def _call(
     payload = _mapping(response.structured_content, "tool result")
     _require(f"unexpected MCP isError: {payload}", condition=response.is_error is expect_error)
     _require(f"unexpected tool outcome: {payload}", condition=payload.get("ok") is not expect_error)
+    images = [item for item in response.content if isinstance(item, ImageContent)]
     resources = [item for item in response.content if isinstance(item, ResourceLink)]
-    payload["_image_content"] = any(
-        isinstance(item, ImageContent) for item in response.content
-    ) and bool(resources)
+    payload["_image_content"] = bool(images) and bool(resources)
+    payload["_image_data"] = images[0].data if images else None
     payload["_image_resource_uri"] = str(resources[0].uri) if resources else None
     return payload
+
+
+def _save_image(data: object, path: Path) -> None:
+    """Persist one MCP base64 image for promotional reuse."""
+    if not isinstance(data, str):
+        message = "MCP image content was not base64 text."
+        raise TypeError(message)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(base64.b64decode(data, validate=True))
 
 
 def _launcher(*, windows: bool) -> Path:
@@ -167,7 +195,7 @@ def _launcher(*, windows: bool) -> Path:
     return Path(sys.executable).with_name(name + suffix)
 
 
-def _mutation_script(tag: str) -> str:
+def _mutation_script(tag: str, *, drive_seconds: float = 1.0) -> str:
     """Return one self-cleaning live mutation script for a unique actor tag."""
     quoted_tag = json.dumps(tag)
     return f"""
@@ -175,6 +203,7 @@ tag = {quoted_tag}
 health = api.health_check()
 capabilities = api.list_capabilities()
 weather_before = api.get_weather()["weather"]
+spectator_restored = True
 actor_ids = []
 sensor_ids = []
 capture = None
@@ -188,7 +217,7 @@ try:
         spawned = api.spawn_actor_batch([{{
             "blueprint_id": "vehicle.tesla.model3",
             "transform": point,
-            "attributes": {{"role_name": tag}},
+            "attributes": {{"role_name": tag, "color": "255,0,0"}},
         }}])["results"][0]
         if spawned["actor_id"] is not None:
             actor_id = spawned["actor_id"]
@@ -196,25 +225,39 @@ try:
             break
     assert actor_id is not None, "no free spawn point"
     before_speed = api.get_vehicle_telemetry(actor_id)["speed_mps"]
-    api.apply_vehicle_control(actor_id, throttle=0.6)
-    api.set_target_velocity(actor_id, {{"x": 8.0, "y": 0.0, "z": 0.0}})
-    api.wait(1.0)
+    api.set_weather({{
+        "cloudiness": 50.0,
+        "precipitation": 15.0,
+        "wetness": 35.0,
+        "sun_altitude_angle": 45.0,
+    }})
+    weather_changed = api.get_weather()["weather"]["cloudiness"] == 50.0
+    api.set_vehicle_lights(actor_id, "Position|LowBeam")
+    api.set_autopilot({{
+        "actor_ids": [actor_id],
+        "enabled": True,
+        "traffic_manager_port": 8000,
+    }})
+    api.tune_traffic_vehicle(actor_id, {{
+        "desired_speed": 8.0,
+        "auto_lane_change": False,
+    }})
+    watch = api.watch_actor(actor_id, seconds={drive_seconds})
+    spectator_restored = watch["spectator_restored"]
     after_speed = api.get_vehicle_telemetry(actor_id)["speed_mps"]
     sensor = api.attach_sensor(
         "rgb",
         actor_id,
         {{
-            "location": {{"x": 1.5, "y": 0.0, "z": 2.4}},
-            "rotation": {{"pitch": 0.0, "yaw": 0.0, "roll": 0.0}},
+            "location": {{"x": -6.0, "y": 0.0, "z": 3.0}},
+            "rotation": {{"pitch": -10.0, "yaw": 0.0, "roll": 0.0}},
         }},
-        {{"image_size_x": "320", "image_size_y": "180"}},
+        {{"image_size_x": "640", "image_size_y": "360"}},
     )
     sensor_ids.append(sensor["sensor_id"])
     capture = api.capture_sensor_frame(
         sensor["sensor_id"], "live-mcp/" + tag + ".png", publish=True
     )
-    api.set_weather({{"cloudiness": 90.0}})
-    weather_changed = api.get_weather()["weather"]["cloudiness"] == 90.0
 finally:
     for sensor_id in sensor_ids:
         api.detach_sensor(sensor_id)
@@ -230,6 +273,7 @@ result = {{
     "capture": capture,
     "weather_changed": weather_changed,
     "weather_restored": api.get_weather()["weather"]["cloudiness"] == weather_before["cloudiness"],
+    "spectator_restored": spectator_restored,
     "leftovers": leftovers,
 }}
 """

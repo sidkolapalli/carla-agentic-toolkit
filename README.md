@@ -70,6 +70,28 @@ recordings, and evidence.
 
 ## Demo
 
+### Live split-screen showcase
+
+Put your MCP client beside the CARLA window and ask for a complete experiment in
+plain English. The promotional workflow spawns and follows a Tesla, changes the
+weather, measures acceleration, returns a native MCP image, restores simulator
+state, and leaves zero actors behind.
+
+[![A red Tesla followed through a rainy Town10HD experiment](docs/assets/hero-frame.png)](docs/demo-storyboard.md)
+
+Rehearse the exact workflow and regenerate the hero frame plus its
+**[Rich terminal report](docs/assets/hero-report.svg)**:
+
+```bash
+uv run python -m scripts.hero_demo --confirm-live
+```
+
+Use the **[55-second recording storyboard](docs/demo-storyboard.md)** for the
+copy-paste prompt, split-screen layout, shot list, and publishing checklist.
+Ready-to-edit **[LinkedIn launch copy](docs/linkedin-post.md)** is included.
+
+### Sandbox walkthrough
+
 <!-- markdownlint-disable MD033 -->
 <p align="center">
   <img
@@ -84,15 +106,13 @@ recordings, and evidence.
 </p>
 <!-- markdownlint-enable MD033 -->
 
-Reproduce the demo locally:
-
 ```bash
 uv run python scripts/sandbox_demo.py
 ```
 
-It executes real scripts, confirms Landlock enforcement, rejects access outside
-the curated API, cleans per-run scratch space, and verifies that durable
-evidence remains available.
+This no-simulator demo confirms Landlock enforcement, rejects access outside the
+curated API, cleans per-run scratch space, and verifies that durable evidence
+remains available.
 
 ## Quick Start
 

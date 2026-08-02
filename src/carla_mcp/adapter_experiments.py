@@ -336,6 +336,23 @@ class PythonCarlaExperimentMixin:
         """Move the spectator camera."""
         return experiment_scene.set_spectator(self._world(self._client()), transform)
 
+    def watch_actor(
+        self,
+        *,
+        actor_id: int,
+        seconds: float,
+        distance: float,
+        height: float,
+    ) -> dict[str, object]:
+        """Follow one actor with a smooth simulator-tick chase camera."""
+        return experiment_scene.watch_actor(
+            self._world(self._client()),
+            actor_id=actor_id,
+            seconds=seconds,
+            distance=distance,
+            height=height,
+        )
+
     def save_screenshot(
         self,
         *,

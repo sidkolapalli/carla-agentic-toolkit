@@ -121,14 +121,15 @@ def test_capture_resource_template_returns_bounded_binary_content(
     assert base64.b64decode(content.blob) == image
 
 
-def test_server_prompts_cover_diagnosis_capture_and_reproducibility() -> None:
-    """User-selected MCP prompts should teach the three common workflow shapes."""
+def test_server_prompts_cover_diagnosis_capture_reproducibility_and_demo() -> None:
+    """User-selected MCP prompts should teach the common workflow shapes."""
     prompts = asyncio.run(build_server().list_prompts())
 
     assert [prompt.name for prompt in prompts] == [
         "diagnose_carla",
         "capture_actor_view",
         "setup_reproducible_session",
+        "run_visual_showcase",
     ]
 
 

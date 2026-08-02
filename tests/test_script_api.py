@@ -108,6 +108,16 @@ class ScriptAdapter:
         """Return fake live capability probes."""
         return {"client_version": "0.9.16", "map": {"get_waypoint": True}}
 
+    def set_spectator(self, transform: Transform) -> dict[str, object]:
+        """Return the current and previous fake spectator transforms."""
+        return {
+            "spectator": transform.to_dict(),
+            "previous_spectator": {
+                "location": {"x": 1.0, "y": 2.0, "z": 3.0},
+                "rotation": {"pitch": -15.0, "yaw": 90.0, "roll": 0.0},
+            },
+        }
+
     def save_screenshot(
         self,
         *,
@@ -154,6 +164,21 @@ def test_describe_api_publishes_runtime_catalog() -> None:
     )
     assert_catalog_hides_private_state(methods)
     assert snapshots.read_snapshot("carla-snapshot://api") == catalog
+
+
+def test_set_spectator_returns_restorable_camera_state() -> None:
+    """Visual workflows should receive the previous operator camera transform."""
+    api = build_api(adapter=ScriptAdapter(), snapshots=RunSnapshots())
+
+    result = api.set_spectator(
+        {
+            "location": {"x": 4.0, "y": 5.0, "z": 6.0},
+            "rotation": {"pitch": -10.0, "yaw": 0.0, "roll": 0.0},
+        }
+    )
+
+    previous = cast("dict[str, object]", result["previous_spectator"])
+    assert previous["location"] == {"x": 1.0, "y": 2.0, "z": 3.0}
 
 
 def test_attach_event_sensor_maps_kind_and_publishes_snapshot() -> None:
