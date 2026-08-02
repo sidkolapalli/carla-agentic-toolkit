@@ -29,7 +29,8 @@ The proof points to keep visible are:
 5. Hide notifications, tokens, usernames, unrelated terminals, and browser tabs.
 6. Rehearse once with the deterministic runner below. Rich saves the real inline
    frame as `docs/assets/hero-frame.png` and a polished terminal capture as
-   `docs/assets/hero-report.svg`.
+   `docs/assets/hero-report.svg`. The repository's real split-screen recording
+   is `docs/assets/hero-demo.gif`, which loops automatically on GitHub.
 
 Linux:
 
@@ -114,7 +115,8 @@ not only cinematic control.
 - Upload the video directly to LinkedIn instead of linking to a video host.
 - Export H.264 MP4, 1080p, 30 fps, under 60 seconds, with burned-in captions.
 - Use the captured `hero-frame.png` as the post thumbnail.
-- Do not commit the MP4 to Git; keep only the small representative image.
+- Do not commit the MP4 to Git; keep only `hero-demo.gif` and the representative
+  `hero-frame.png`.
 - In GitHub **Settings → Social preview**, upload a 1280×640 crop based on the
   hero frame and project title.
 - Add alt text: “An MCP client controlling a CARLA Tesla in a sandboxed,

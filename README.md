@@ -77,8 +77,9 @@ plain English. The promotional workflow spawns and follows a Tesla, changes the
 weather, measures acceleration, returns a native MCP image, restores simulator
 state, and leaves zero actors behind.
 
-[![A red Tesla followed through a rainy Town10HD experiment](docs/assets/hero-frame.png)](docs/demo-storyboard.md)
+[![Autoplaying split-screen CARLA MCP demo](docs/assets/hero-demo.gif)](docs/demo-storyboard.md)
 
+The recording above is a real CARLA run and loops automatically on GitHub.
 Rehearse the exact workflow and regenerate the hero frame plus its
 **[Rich terminal report](docs/assets/hero-report.svg)**:
 
