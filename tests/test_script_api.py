@@ -118,6 +118,20 @@ class ScriptAdapter:
         return {"path": str(output_path), "attributes": attributes}
 
 
+class FailingControlAdapter(ScriptAdapter):
+    """Adapter that fails a formerly direct facade operation."""
+
+    def apply_vehicle_control(
+        self,
+        *,
+        actor_id: int,
+        control: dict[str, object],
+    ) -> dict[str, object]:
+        """Fail like a recoverable CARLA control operation."""
+        del actor_id, control
+        raise CarlaAdapterError(CONNECTION_REFUSED)
+
+
 class FailingHealthAdapter(ScriptAdapter):
     """Adapter that reports a recoverable CARLA operation failure."""
 
@@ -184,6 +198,21 @@ def test_apply_vehicle_control_passes_direct_control_kwargs() -> None:
     assert adapter.calls[0][1]["actor_id"] == ACTOR_ID
 
 
+def test_direct_adapter_failure_uses_recoverable_operation_shape() -> None:
+    """Every CARLA facade path should expose the same recoverable error contract."""
+    api = build_api(adapter=FailingControlAdapter(), snapshots=RunSnapshots())
+
+    result = api.apply_vehicle_control(ACTOR_ID, throttle=0.4)
+
+    assert result == {
+        "ok": False,
+        "error_type": "apply_vehicle_control_failed",
+        "message": CONNECTION_REFUSED,
+        "retryable": True,
+        "error": CONNECTION_REFUSED,
+    }
+
+
 def test_recoverable_tool_failure_keeps_an_explicit_error_marker() -> None:
     """Scripts should be able to inspect and recover from CARLA operation failures."""
     api = build_api(adapter=FailingHealthAdapter(), snapshots=RunSnapshots())
@@ -197,8 +226,7 @@ def test_recoverable_tool_failure_keeps_an_explicit_error_marker() -> None:
         "host": "127.0.0.1",
         "port": 2000,
         "retryable": True,
-        "suggested_next_tools": ["diagnose_environment", "health_check"],
-        "error": "CARLA health check failed.",
+        "error": CONNECTION_REFUSED,
     }
 
 

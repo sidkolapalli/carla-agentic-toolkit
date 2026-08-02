@@ -115,28 +115,6 @@ class WorldState:
 
 
 @dataclass(frozen=True, slots=True)
-class ToolResult:
-    """Internal tool result that maps cleanly to MCP structured content."""
-
-    structured_content: JsonObject
-    is_error: bool = False
-    message: str | None = None
-
-    @classmethod
-    def ok(cls, structured_content: JsonObject, message: str | None = None) -> ToolResult:
-        """Create a successful tool result."""
-        return cls(structured_content=structured_content, is_error=False, message=message)
-
-    @classmethod
-    def error(cls, structured_content: JsonObject, message: str | None = None) -> ToolResult:
-        """Create a recoverable operation error with an explicit script marker."""
-        payload = {"ok": False, **structured_content}
-        if message is not None:
-            payload["error"] = message
-        return cls(structured_content=payload, is_error=True, message=message)
-
-
-@dataclass(frozen=True, slots=True)
 class BlueprintAttribute:
     """Summary of a CARLA blueprint attribute."""
 

@@ -45,8 +45,8 @@ layers it actually needs:
 
 1. Stable models or protocol boundaries
 2. The CARLA adapter/runtime implementation
-3. The tool implementation and `CarlaScriptApi` wrapper
-4. A small mock-backed behavior test
+3. The single `CarlaScriptApi` facade path and snapshot policy
+4. A small mock-backed facade behavior test
 5. User-facing documentation when the public contract changes
 
 Security boundaries require tests. In particular, changes to script validation,

@@ -1,8 +1,8 @@
-"""Behavior specs for CARLA traffic MCP tools."""
+"""Behavior specs for CARLA traffic script facade operations."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Final
 
 from carla_mcp.models import (
@@ -17,7 +17,7 @@ from carla_mcp.models import (
     WorldState,
 )
 from carla_mcp.snapshots import RunSnapshots
-from carla_mcp.tools.traffic import configure_traffic_manager, populate_traffic, set_autopilot
+from tests.api_helpers import build_api
 
 TRAFFIC_MANAGER_PORT: Final = 8000
 TRAFFIC_VEHICLE_COUNT: Final = 3
@@ -134,25 +134,19 @@ def test_populate_traffic_spawns_autopilot_vehicles_and_publishes_snapshot() -> 
         )
     )
 
-    result = populate_traffic(
-        adapter=adapter,
-        snapshots=snapshots,
-        request=TrafficPopulationRequest(
-            vehicle_count=TRAFFIC_VEHICLE_COUNT,
-            traffic_manager_port=TRAFFIC_MANAGER_PORT,
-            seed=42,
-            safe_filter=True,
-            global_distance_to_leading_vehicle=2.5,
-            global_percentage_speed_difference=10.0,
-        ),
+    request = TrafficPopulationRequest(
+        vehicle_count=TRAFFIC_VEHICLE_COUNT,
+        traffic_manager_port=TRAFFIC_MANAGER_PORT,
+        seed=42,
+        safe_filter=True,
+        global_distance_to_leading_vehicle=2.5,
+        global_percentage_speed_difference=10.0,
     )
+    result = build_api(adapter, snapshots).populate_traffic(asdict(request))
 
-    assert result.is_error is False
-    assert result.structured_content["actor_ids"] == list(SPAWNED_ACTOR_IDS)
-    assert result.structured_content["spawned_vehicle_count"] == TRAFFIC_VEHICLE_COUNT
-    assert (
-        snapshots.read_snapshot("carla-snapshot://traffic/population") == result.structured_content
-    )
+    assert result["actor_ids"] == list(SPAWNED_ACTOR_IDS)
+    assert result["spawned_vehicle_count"] == TRAFFIC_VEHICLE_COUNT
+    assert snapshots.read_snapshot("carla-snapshot://traffic/population") == result
 
 
 def test_set_autopilot_returns_changed_actor_ids_and_publishes_snapshot() -> None:
@@ -160,22 +154,17 @@ def test_set_autopilot_returns_changed_actor_ids_and_publishes_snapshot() -> Non
     snapshots = RunSnapshots()
     adapter = TrafficAdapter(population=_empty_population())
 
-    result = set_autopilot(
-        adapter=adapter,
-        snapshots=snapshots,
-        request=AutopilotRequest(
-            actor_ids=SPAWNED_ACTOR_IDS,
-            enabled=True,
-            traffic_manager_port=TRAFFIC_MANAGER_PORT,
-        ),
+    request = AutopilotRequest(
+        actor_ids=SPAWNED_ACTOR_IDS,
+        enabled=True,
+        traffic_manager_port=TRAFFIC_MANAGER_PORT,
     )
+    payload = {**asdict(request), "actor_ids": list(request.actor_ids)}
+    result = build_api(adapter, snapshots).set_autopilot(payload)
 
-    assert result.is_error is False
     assert adapter.autopilot_calls == [(SPAWNED_ACTOR_IDS, True, TRAFFIC_MANAGER_PORT)]
-    assert result.structured_content["actor_ids"] == list(SPAWNED_ACTOR_IDS)
-    assert (
-        snapshots.read_snapshot("carla-snapshot://traffic/autopilot") == result.structured_content
-    )
+    assert result["actor_ids"] == list(SPAWNED_ACTOR_IDS)
+    assert snapshots.read_snapshot("carla-snapshot://traffic/autopilot") == result
 
 
 def test_configure_traffic_manager_returns_settings_and_publishes_snapshot() -> None:
@@ -183,22 +172,18 @@ def test_configure_traffic_manager_returns_settings_and_publishes_snapshot() -> 
     snapshots = RunSnapshots()
     adapter = TrafficAdapter(population=_empty_population())
 
-    result = configure_traffic_manager(
-        adapter=adapter,
-        snapshots=snapshots,
-        request=TrafficManagerRequest(
-            traffic_manager_port=TRAFFIC_MANAGER_PORT,
-            global_distance_to_leading_vehicle=3.0,
-            global_percentage_speed_difference=5.0,
-            seed=11,
-            synchronous_mode=False,
-        ),
+    request = TrafficManagerRequest(
+        traffic_manager_port=TRAFFIC_MANAGER_PORT,
+        global_distance_to_leading_vehicle=3.0,
+        global_percentage_speed_difference=5.0,
+        seed=11,
+        synchronous_mode=False,
     )
+    result = build_api(adapter, snapshots).configure_traffic_manager(asdict(request))
 
-    assert result.is_error is False
     assert adapter.configured_settings is not None
-    assert result.structured_content == adapter.configured_settings.to_dict()
-    assert snapshots.read_snapshot("carla-snapshot://traffic/manager") == result.structured_content
+    assert result == adapter.configured_settings.to_dict()
+    assert snapshots.read_snapshot("carla-snapshot://traffic/manager") == result
 
 
 def _empty_population() -> TrafficPopulationResult:

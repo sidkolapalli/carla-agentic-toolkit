@@ -1,4 +1,4 @@
-"""Behavior specs for recorder and evidence MCP tools."""
+"""Behavior specs for recorder and evidence script facade operations."""
 
 from __future__ import annotations
 
@@ -13,8 +13,7 @@ from carla_mcp.adapter import PythonCarlaAdapter
 from carla_mcp.errors import CarlaAdapterError
 from carla_mcp.models import RecordingInfo
 from carla_mcp.snapshots import RunSnapshots
-from carla_mcp.tools.evidence import export_evidence_packet
-from carla_mcp.tools.recorder import record_episode, stop_recording
+from tests.api_helpers import build_api
 
 RECORDING_ID: Final = "recording-001"
 REQUESTED_RECORDING: Final = "live-mcp/episode.log"
@@ -104,14 +103,10 @@ def test_record_episode_registers_recording_snapshot(tmp_path: Path) -> None:
     adapter = RecorderAdapter()
     output_path = tmp_path / "episode.log"
 
-    result = record_episode(adapter=adapter, snapshots=snapshots, output_path=output_path)
+    result = build_api(adapter, snapshots).record_episode(str(output_path))
 
-    assert result.is_error is False
-    assert result.structured_content["active"] is True
-    assert (
-        snapshots.read_snapshot(f"carla-snapshot://recordings/{RECORDING_ID}")
-        == result.structured_content
-    )
+    assert result["active"] is True
+    assert snapshots.read_snapshot(f"carla-snapshot://recordings/{RECORDING_ID}") == result
 
 
 def test_stop_recording_updates_recording_snapshot(tmp_path: Path) -> None:
@@ -119,14 +114,10 @@ def test_stop_recording_updates_recording_snapshot(tmp_path: Path) -> None:
     snapshots = RunSnapshots()
     adapter = RecorderAdapter(started_recording=tmp_path / "episode.log")
 
-    result = stop_recording(adapter=adapter, snapshots=snapshots)
+    result = build_api(adapter, snapshots).stop_recording()
 
-    assert result.is_error is False
-    assert result.structured_content["active"] is False
-    assert (
-        snapshots.read_snapshot(f"carla-snapshot://recordings/{RECORDING_ID}")
-        == result.structured_content
-    )
+    assert result["active"] is False
+    assert snapshots.read_snapshot(f"carla-snapshot://recordings/{RECORDING_ID}") == result
 
 
 def test_export_evidence_packet_writes_manifest_and_snapshot(tmp_path: Path) -> None:
@@ -135,14 +126,13 @@ def test_export_evidence_packet_writes_manifest_and_snapshot(tmp_path: Path) -> 
     snapshots.register_snapshot("carla-snapshot://session/status", {"connected": True})
     snapshots.register_snapshot("carla-snapshot://world/current", {"current_map": "Town10HD_Opt"})
 
-    result = export_evidence_packet(snapshots=snapshots, output_dir=tmp_path)
+    result = build_api(RecorderAdapter(), snapshots).export_evidence_packet(str(tmp_path))
 
-    manifest_path = Path(str(result.structured_content["manifest_path"]))
+    manifest_path = Path(str(result["manifest_path"]))
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    assert result.is_error is False
     assert manifest["snapshots"] == [
         "carla-snapshot://session/status",
         "carla-snapshot://world/current",
     ]
-    snapshot_uri = str(result.structured_content["snapshot_uri"])
-    assert snapshots.read_snapshot(snapshot_uri) == result.structured_content
+    snapshot_uri = str(result["snapshot_uri"])
+    assert snapshots.read_snapshot(snapshot_uri) == result

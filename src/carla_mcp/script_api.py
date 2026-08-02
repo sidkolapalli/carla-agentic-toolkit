@@ -1,18 +1,20 @@
 """Curated CARLA API exposed to sandboxed agent scripts.
 
-This object is the single code API a code-execution MCP client composes against.
-Each method mirrors a discrete CARLA tool and returns the same JSON-compatible
-structured content, so scripts and direct tool calls share behavior and publish
-the same run-local snapshots.
+This facade is the sole application path between agent scripts and the CARLA
+adapter/runtime. CARLA-backed methods share one recoverable-error policy and
+publish successful values as run-local snapshots.
 """
 
 from __future__ import annotations
 
+import json
 import time
+from functools import wraps
 from inspect import signature
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
+from carla_mcp.errors import CarlaAdapterError
 from carla_mcp.tool_inputs import (
     parse_autopilot_request,
     parse_camera_attach_request,
@@ -25,21 +27,6 @@ from carla_mcp.tool_inputs import (
     parse_transform,
     parse_vehicle_behavior_request,
 )
-from carla_mcp.tools.actor_management import destroy_actors, list_actors
-from carla_mcp.tools.actors import list_blueprints, spawn_actor_batch
-from carla_mcp.tools.diagnostics import health_check
-from carla_mcp.tools.evidence import export_evidence_packet
-from carla_mcp.tools.recorder import record_episode, stop_recording
-from carla_mcp.tools.sensors import attach_camera, capture_sensor_frame
-from carla_mcp.tools.traffic import configure_traffic_manager, populate_traffic, set_autopilot
-from carla_mcp.tools.traffic_controller import (
-    set_traffic_density,
-    set_vehicle_behavior,
-    start_traffic_controller,
-    stop_traffic_controller,
-    traffic_controller_status,
-)
-from carla_mcp.tools.world import get_world_state, list_worlds, load_world, set_sync_mode, tick
 from carla_mcp.traffic_controller_service import InProcessTrafficControllerService
 
 if TYPE_CHECKING:
@@ -48,6 +35,28 @@ if TYPE_CHECKING:
     from carla_mcp.adapter import CarlaAdapter
     from carla_mcp.models import JsonObject
     from carla_mcp.snapshots import RunSnapshots
+
+
+def _recover(
+    error_type: str,
+    *,
+    endpoint: bool = False,
+) -> Callable[[Callable[..., JsonObject]], Callable[..., JsonObject]]:
+    """Route one facade method through the recoverable operation policy."""
+
+    def decorate(method: Callable[..., JsonObject]) -> Callable[..., JsonObject]:
+        @wraps(method)
+        def recovered(self: CarlaScriptApi, *args: object, **kwargs: object) -> JsonObject:
+            details = {"host": self._adapter.host, "port": self._adapter.port} if endpoint else {}
+            return self._operation(
+                error_type,
+                lambda: method(self, *args, **kwargs),
+                **details,
+            )
+
+        return recovered
+
+    return decorate
 
 
 class CarlaScriptApi:
@@ -59,26 +68,54 @@ class CarlaScriptApi:
         self._snapshots = snapshots
         self._traffic_controller = InProcessTrafficControllerService()
 
+    def _operation(
+        self,
+        error_type: str,
+        operation: Callable[[], JsonObject],
+        **details: object,
+    ) -> JsonObject:
+        """Return a CARLA value or one uniform recoverable failure."""
+        try:
+            return operation()
+        except CarlaAdapterError as exc:
+            return {
+                "ok": False,
+                "error_type": error_type,
+                "message": str(exc),
+                "retryable": True,
+                "error": str(exc),
+                **details,
+            }
+
+    @_recover("carla_connection_error", endpoint=True)
     def health_check(self) -> JsonObject:
         """Return CARLA connection health."""
-        return health_check(adapter=self._adapter, snapshots=self._snapshots).structured_content
+        payload = self._adapter.health_check().to_dict()
+        self._snapshots.register_snapshot("carla-snapshot://session/status", payload)
+        return payload
 
+    @_recover("world_state_failed")
     def get_world_state(self) -> JsonObject:
         """Return the current CARLA world state."""
-        return get_world_state(adapter=self._adapter, snapshots=self._snapshots).structured_content
+        payload = self._adapter.get_world_state().to_dict()
+        self._snapshots.register_snapshot("carla-snapshot://world/current", payload)
+        return payload
 
+    @_recover("list_worlds_failed")
     def list_worlds(self) -> JsonObject:
         """Return available CARLA maps."""
-        return list_worlds(adapter=self._adapter, snapshots=self._snapshots).structured_content
+        payload = {"worlds": sorted(self._adapter.list_worlds())}
+        self._snapshots.register_snapshot("carla-snapshot://worlds", payload)
+        return payload
 
+    @_recover("load_world_failed")
     def load_world(self, map_name: str) -> JsonObject:
         """Load a CARLA map by name."""
-        return load_world(
-            adapter=self._adapter,
-            snapshots=self._snapshots,
-            map_name=map_name,
-        ).structured_content
+        payload = self._adapter.load_world(map_name).to_dict()
+        self._snapshots.register_snapshot("carla-snapshot://world/current", payload)
+        return payload
 
+    @_recover("set_sync_mode_failed")
     def set_sync_mode(
         self,
         *,
@@ -86,138 +123,160 @@ class CarlaScriptApi:
         fixed_delta_seconds: float | None = 0.05,
     ) -> JsonObject:
         """Configure synchronous mode and fixed timestep."""
-        return set_sync_mode(
-            adapter=self._adapter,
-            snapshots=self._snapshots,
+        payload = self._adapter.set_sync_mode(
             enabled=enabled,
             fixed_delta_seconds=fixed_delta_seconds,
-        ).structured_content
+        ).to_dict()
+        self._snapshots.register_snapshot("carla-snapshot://world/current", payload)
+        return payload
 
+    @_recover("tick_failed")
     def tick(self) -> JsonObject:
         """Advance the simulation by one frame."""
-        return tick(adapter=self._adapter, snapshots=self._snapshots).structured_content
+        payload = {"frame": self._adapter.tick()}
+        self._snapshots.register_snapshot("carla-snapshot://session/last-tick", payload)
+        return payload
 
+    @_recover("tick_failed")
     def tick_n(self, count: int) -> JsonObject:
         """Advance the simulation by several frames inside the sandbox."""
-        frames = [self.tick().get("frame") for _ in range(max(count, 0))]
+        frames = [self._adapter.tick() for _ in range(max(count, 0))]
+        if frames:
+            self._snapshots.register_snapshot(
+                "carla-snapshot://session/last-tick", {"frame": frames[-1]}
+            )
         return {"frames": frames, "count": len(frames)}
 
+    @_recover("list_blueprints_failed")
     def list_blueprints(self, filter_pattern: str = "*") -> JsonObject:
         """List actor blueprints matching a wildcard filter."""
-        return list_blueprints(
-            adapter=self._adapter,
-            snapshots=self._snapshots,
-            filter_pattern=filter_pattern,
-        ).structured_content
+        payload = {
+            "blueprints": [item.to_dict() for item in self._adapter.list_blueprints(filter_pattern)]
+        }
+        self._snapshots.register_snapshot(f"carla-snapshot://blueprints/{filter_pattern}", payload)
+        return payload
 
+    @_recover("spawn_actor_batch_failed")
     def spawn_actor_batch(self, requests: list[dict[str, object]]) -> JsonObject:
         """Spawn actors from JSON-compatible spawn requests."""
-        return spawn_actor_batch(
-            adapter=self._adapter,
-            snapshots=self._snapshots,
-            requests=parse_spawn_requests(requests),
-        ).structured_content
+        results = self._adapter.spawn_actor_batch(parse_spawn_requests(requests))
+        payload = {"results": [item.to_dict() for item in results]}
+        self._snapshots.register_snapshot("carla-snapshot://actors", payload)
+        return payload
 
+    @_recover("list_actors_failed")
     def list_actors(self, filter_pattern: str = "*") -> JsonObject:
         """List current actors matching a wildcard filter."""
-        return list_actors(
-            adapter=self._adapter,
-            snapshots=self._snapshots,
-            filter_pattern=filter_pattern,
-        ).structured_content
+        payload = {"actors": [item.to_dict() for item in self._adapter.list_actors(filter_pattern)]}
+        self._snapshots.register_snapshot("carla-snapshot://actors/current", payload)
+        return payload
 
+    @_recover("destroy_actors_failed")
     def destroy_actors(self, actor_ids: list[int]) -> JsonObject:
         """Destroy explicit actors by ID."""
-        return destroy_actors(
-            adapter=self._adapter,
-            snapshots=self._snapshots,
-            actor_ids=tuple(actor_ids),
-        ).structured_content
+        payload = {
+            "results": [item.to_dict() for item in self._adapter.destroy_actors(tuple(actor_ids))]
+        }
+        self._snapshots.register_snapshot("carla-snapshot://actors/destroyed", payload)
+        return payload
 
+    @_recover("populate_traffic_failed")
     def populate_traffic(self, request: dict[str, object]) -> JsonObject:
         """Spawn Traffic Manager-controlled vehicles."""
-        return populate_traffic(
-            adapter=self._adapter,
-            snapshots=self._snapshots,
-            request=parse_traffic_population_request(request),
-        ).structured_content
+        population = self._adapter.populate_traffic(
+            request=parse_traffic_population_request(request)
+        )
+        payload = population.to_dict()
+        self._snapshots.register_snapshot("carla-snapshot://traffic/population", payload)
+        self._snapshots.register_snapshot(
+            "carla-snapshot://world/current", population.world_state.to_dict()
+        )
+        return payload
 
+    @_recover("set_autopilot_failed")
     def set_autopilot(self, request: dict[str, object]) -> JsonObject:
         """Toggle Traffic Manager autopilot for existing vehicles."""
-        return set_autopilot(
-            adapter=self._adapter,
-            snapshots=self._snapshots,
-            request=parse_autopilot_request(request),
-        ).structured_content
+        result = self._adapter.set_autopilot(request=parse_autopilot_request(request))
+        payload = result.to_dict()
+        self._snapshots.register_snapshot("carla-snapshot://traffic/autopilot", payload)
+        self._snapshots.register_snapshot(
+            "carla-snapshot://world/current", result.world_state.to_dict()
+        )
+        return payload
 
+    @_recover("configure_traffic_manager_failed")
     def configure_traffic_manager(self, request: dict[str, object]) -> JsonObject:
         """Configure global Traffic Manager behavior."""
-        return configure_traffic_manager(
-            adapter=self._adapter,
-            snapshots=self._snapshots,
-            request=parse_traffic_manager_request(request),
-        ).structured_content
+        payload = self._adapter.configure_traffic_manager(
+            request=parse_traffic_manager_request(request)
+        ).to_dict()
+        self._snapshots.register_snapshot("carla-snapshot://traffic/manager", payload)
+        return payload
 
+    @_recover("start_traffic_controller_failed")
     def start_traffic_controller(self, request: dict[str, object]) -> JsonObject:
         """Start an in-script persistent Traffic Manager controller."""
-        return start_traffic_controller(
-            service=self._traffic_controller,
-            snapshots=self._snapshots,
-            request=parse_traffic_controller_start_request(
+        status = self._traffic_controller.start(
+            parse_traffic_controller_start_request(
                 request,
                 host=self._adapter.host,
                 port=self._adapter.port,
                 timeout_seconds=self._adapter.timeout,
-            ),
-        ).structured_content
+            )
+        )
+        return self._controller_status_payload(status.to_dict())
 
+    @_recover("stop_traffic_controller_failed")
     def stop_traffic_controller(self) -> JsonObject:
         """Stop the in-script Traffic Manager controller."""
-        return stop_traffic_controller(
-            service=self._traffic_controller,
-            snapshots=self._snapshots,
-        ).structured_content
+        return self._controller_status_payload(self._traffic_controller.stop().to_dict())
 
+    @_recover("traffic_controller_status_failed")
     def traffic_controller_status(self) -> JsonObject:
         """Return in-script Traffic Manager controller status."""
-        return traffic_controller_status(
-            service=self._traffic_controller,
-            snapshots=self._snapshots,
-        ).structured_content
+        return self._controller_status_payload(self._traffic_controller.get_status().to_dict())
 
+    @_recover("set_traffic_density_failed")
     def set_traffic_density(self, request: dict[str, object]) -> JsonObject:
         """Converge in-script traffic to a requested density."""
-        return set_traffic_density(
-            service=self._traffic_controller,
-            snapshots=self._snapshots,
-            request=parse_traffic_density_request(request),
-        ).structured_content
+        status = self._traffic_controller.set_density(parse_traffic_density_request(request))
+        return self._controller_status_payload(status.to_dict())
 
+    @_recover("set_vehicle_behavior_failed")
     def set_vehicle_behavior(self, request: dict[str, object]) -> JsonObject:
         """Apply a behavior profile to explicit vehicle actors."""
-        return set_vehicle_behavior(
-            service=self._traffic_controller,
-            snapshots=self._snapshots,
-            request=parse_vehicle_behavior_request(request),
-        ).structured_content
+        payload = self._traffic_controller.set_vehicle_behavior(
+            parse_vehicle_behavior_request(request)
+        ).to_dict()
+        self._snapshots.register_snapshot("carla-snapshot://traffic/behaviors", payload)
+        return payload
 
+    def _controller_status_payload(self, payload: JsonObject) -> JsonObject:
+        self._snapshots.register_snapshot("carla-snapshot://traffic/controller", payload)
+        return payload
+
+    @_recover("attach_camera_failed")
     def attach_camera(self, request: dict[str, object]) -> JsonObject:
         """Attach a camera sensor."""
-        return attach_camera(
-            adapter=self._adapter,
-            snapshots=self._snapshots,
-            request=parse_camera_attach_request(request),
-        ).structured_content
+        sensor = self._adapter.attach_camera(request=parse_camera_attach_request(request))
+        payload = sensor.to_dict()
+        self._snapshots.register_snapshot(f"carla-snapshot://sensors/{sensor.sensor_id}", payload)
+        return payload
 
+    @_recover("capture_sensor_frame_failed")
     def capture_sensor_frame(self, sensor_id: int, output_path: str) -> JsonObject:
         """Capture one sensor frame to disk."""
-        return capture_sensor_frame(
-            adapter=self._adapter,
-            snapshots=self._snapshots,
+        capture = self._adapter.capture_sensor_frame(
             sensor_id=sensor_id,
             output_path=Path(output_path),
-        ).structured_content
+        )
+        payload = capture.to_dict()
+        self._snapshots.register_snapshot(
+            f"carla-snapshot://captures/{capture.capture_id}", payload
+        )
+        return payload
 
+    @_recover("attach_sensor_failed")
     def attach_sensor(
         self,
         kind: str,
@@ -236,6 +295,7 @@ class CarlaScriptApi:
         self._snapshots.register_snapshot(f"carla-snapshot://sensors/{sensor.sensor_id}", payload)
         return payload
 
+    @_recover("read_sensor_stream_failed")
     def read_sensor_stream(
         self,
         sensor_id: int,
@@ -265,18 +325,21 @@ class CarlaScriptApi:
             attributes=attributes,
         )
 
+    @_recover("detach_sensor_failed")
     def detach_sensor(self, sensor_id: int) -> JsonObject:
         """Stop and destroy a sensor actor."""
         payload = self._adapter.detach_sensor(sensor_id)
         self._snapshots.register_snapshot(f"carla-snapshot://sensors/{sensor_id}/detached", payload)
         return payload
 
+    @_recover("get_spawn_points_failed")
     def get_spawn_points(self) -> JsonObject:
         """Return legal vehicle spawn transforms from the current map."""
         payload = self._adapter.get_spawn_points()
         self._snapshots.register_snapshot("carla-snapshot://map/spawn-points", payload)
         return payload
 
+    @_recover("get_waypoint_failed")
     def get_waypoint(
         self,
         location: dict[str, object],
@@ -291,6 +354,7 @@ class CarlaScriptApi:
             project_to_road=project_to_road,
         )
 
+    @_recover("generate_route_failed")
     def generate_route(
         self,
         start: dict[str, object],
@@ -308,28 +372,33 @@ class CarlaScriptApi:
         self._snapshots.register_snapshot("carla-snapshot://route/latest", payload)
         return payload
 
+    @_recover("get_topology_failed")
     def get_topology(self, max_segments: int = 200) -> JsonObject:
         """Return a compact road topology graph."""
         payload = self._adapter.get_topology(max_segments=max_segments)
         self._snapshots.register_snapshot("carla-snapshot://map/topology", payload)
         return payload
 
+    @_recover("get_landmarks_failed")
     def get_landmarks(self, max_count: int = 200) -> JsonObject:
         """Return map landmarks when supported by the loaded map."""
         payload = self._adapter.get_landmarks(max_count=max_count)
         self._snapshots.register_snapshot("carla-snapshot://map/landmarks", payload)
         return payload
 
+    @_recover("apply_vehicle_control_failed")
     def apply_vehicle_control(self, actor_id: int, **control: object) -> JsonObject:
         """Apply direct throttle, steer, brake, and gear control to a vehicle."""
         return self._adapter.apply_vehicle_control(actor_id=actor_id, control=dict(control))
 
+    @_recover("get_vehicle_telemetry_failed")
     def get_vehicle_telemetry(self, actor_id: int) -> JsonObject:
         """Return transform, speed, control, and traffic-light telemetry."""
         payload = self._adapter.get_vehicle_telemetry(actor_id)
         self._snapshots.register_snapshot(f"carla-snapshot://actors/{actor_id}/telemetry", payload)
         return payload
 
+    @_recover("set_actor_transform_failed")
     def set_actor_transform(self, actor_id: int, transform: dict[str, object]) -> JsonObject:
         """Teleport an actor to a scenario start transform."""
         return self._adapter.set_actor_transform(
@@ -337,10 +406,12 @@ class CarlaScriptApi:
             transform=parse_transform(transform),
         )
 
+    @_recover("set_vehicle_lights_failed")
     def set_vehicle_lights(self, actor_id: int, state: str | int) -> JsonObject:
         """Set vehicle light state by integer mask or pipe-separated names."""
         return self._adapter.set_vehicle_lights(actor_id=actor_id, state=state)
 
+    @_recover("set_target_velocity_failed")
     def set_target_velocity(self, actor_id: int, velocity: dict[str, object]) -> JsonObject:
         """Set an actor target velocity vector."""
         return self._adapter.set_target_velocity(
@@ -348,6 +419,7 @@ class CarlaScriptApi:
             velocity=parse_location(velocity),
         )
 
+    @_recover("spawn_walkers_failed")
     def spawn_walkers(
         self,
         count: int,
@@ -359,6 +431,7 @@ class CarlaScriptApi:
         self._snapshots.register_snapshot("carla-snapshot://walkers/latest", payload)
         return payload
 
+    @_recover("set_walker_destination_failed")
     def set_walker_destination(
         self,
         controller_id: int,
@@ -370,6 +443,7 @@ class CarlaScriptApi:
             location=parse_location(location),
         )
 
+    @_recover("apply_walker_control_failed")
     def apply_walker_control(
         self,
         actor_id: int,
@@ -383,18 +457,22 @@ class CarlaScriptApi:
             speed=speed,
         )
 
+    @_recover("freeze_traffic_lights_failed")
     def freeze_traffic_lights(self, *, enabled: bool) -> JsonObject:
         """Freeze or unfreeze all traffic lights."""
         return self._adapter.freeze_traffic_lights(enabled=enabled)
 
+    @_recover("set_traffic_light_state_failed")
     def set_traffic_light_state(self, actor_id: int, state: str) -> JsonObject:
         """Set one traffic light state, such as Red, Yellow, or Green."""
         return self._adapter.set_traffic_light_state(actor_id=actor_id, state=state)
 
+    @_recover("set_spectator_failed")
     def set_spectator(self, transform: dict[str, object]) -> JsonObject:
         """Move the spectator viewpoint."""
         return self._adapter.set_spectator(parse_transform(transform))
 
+    @_recover("save_screenshot_failed")
     def save_screenshot(
         self,
         output_path: str,
@@ -406,14 +484,17 @@ class CarlaScriptApi:
             attributes=attributes or {"image_size_x": "1280", "image_size_y": "720"},
         )
 
+    @_recover("get_weather_failed")
     def get_weather(self) -> JsonObject:
         """Return weather parameters when supported."""
         return self._adapter.get_weather()
 
+    @_recover("set_weather_failed")
     def set_weather(self, parameters: dict[str, float]) -> JsonObject:
         """Set weather parameters when supported by this CARLA build."""
         return self._adapter.set_weather(parameters)
 
+    @_recover("replay_recording_failed")
     def replay_recording(
         self,
         path: str,
@@ -432,6 +513,7 @@ class CarlaScriptApi:
             replay_sensors=replay_sensors,
         )
 
+    @_recover("query_recording_collisions_failed")
     def query_recording_collisions(
         self,
         path: str,
@@ -445,6 +527,7 @@ class CarlaScriptApi:
             other_type=other_type,
         )
 
+    @_recover("query_recording_actors_blocked_failed")
     def query_recording_actors_blocked(
         self,
         path: str,
@@ -458,16 +541,19 @@ class CarlaScriptApi:
             min_distance=min_distance,
         )
 
+    @_recover("reload_world_failed")
     def reload_world(self, *, reset_settings: bool = False) -> JsonObject:
         """Reload the current world for a clean scenario reset."""
         payload = self._adapter.reload_world(reset_settings=reset_settings)
         self._snapshots.register_snapshot("carla-snapshot://world/current", payload)
         return payload
 
+    @_recover("apply_batch_failed")
     def apply_batch(self, commands: list[dict[str, object]]) -> JsonObject:
         """Apply supported bulk CARLA commands, such as destroy_actor."""
         return self._adapter.apply_batch(commands)
 
+    @_recover("list_capabilities_failed")
     def list_capabilities(self) -> JsonObject:
         """Return live CARLA version and feature probes."""
         return self._adapter.list_capabilities()
@@ -483,24 +569,43 @@ class CarlaScriptApi:
         self._snapshots.register_snapshot("carla-snapshot://api", payload)
         return payload
 
+    @_recover("record_episode_failed")
     def record_episode(self, output_path: str) -> JsonObject:
         """Start the CARLA recorder at a path."""
-        return record_episode(
-            adapter=self._adapter,
-            snapshots=self._snapshots,
-            output_path=Path(output_path),
-        ).structured_content
+        recording = self._adapter.record_episode(Path(output_path))
+        payload = recording.to_dict()
+        self._snapshots.register_snapshot(
+            f"carla-snapshot://recordings/{recording.recording_id}", payload
+        )
+        return payload
 
+    @_recover("stop_recording_failed")
     def stop_recording(self) -> JsonObject:
         """Stop the active CARLA recorder."""
-        return stop_recording(adapter=self._adapter, snapshots=self._snapshots).structured_content
+        recording = self._adapter.stop_recording()
+        payload = recording.to_dict()
+        self._snapshots.register_snapshot(
+            f"carla-snapshot://recordings/{recording.recording_id}", payload
+        )
+        return payload
 
     def export_evidence_packet(self, output_dir: str) -> JsonObject:
         """Export a compact evidence manifest from script-created snapshots."""
-        return export_evidence_packet(
-            snapshots=self._snapshots,
-            output_dir=Path(output_dir),
-        ).structured_content
+        directory = Path(output_dir)
+        directory.mkdir(parents=True, exist_ok=True)
+        snapshot_uris = self._snapshots.snapshot_uris()
+        packet_id = "evidence-001"
+        manifest_path = directory / f"{packet_id}.json"
+        manifest = {"packet_id": packet_id, "snapshots": list(snapshot_uris)}
+        manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+        payload = {
+            "packet_id": packet_id,
+            "manifest_path": str(manifest_path),
+            "snapshot_uri": f"carla-snapshot://evidence/{packet_id}",
+            "snapshots": list(snapshot_uris),
+        }
+        self._snapshots.register_snapshot(str(payload["snapshot_uri"]), payload)
+        return payload
 
     def wait(self, seconds: float) -> JsonObject:
         """Sleep inside the sandbox while CARLA async mode advances."""

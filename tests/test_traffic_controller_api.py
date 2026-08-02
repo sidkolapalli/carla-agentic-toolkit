@@ -1,9 +1,10 @@
-"""Behavior specs for persistent CARLA traffic controller tools."""
+"""Behavior specs for persistent CARLA traffic controller facade operations."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Final
+from dataclasses import asdict, dataclass
+from types import SimpleNamespace
+from typing import TYPE_CHECKING, Final
 
 from carla_mcp.models import (
     TrafficControllerStartRequest,
@@ -13,13 +14,10 @@ from carla_mcp.models import (
     VehicleBehaviorResult,
 )
 from carla_mcp.snapshots import RunSnapshots
-from carla_mcp.tools.traffic_controller import (
-    set_traffic_density,
-    set_vehicle_behavior,
-    start_traffic_controller,
-    stop_traffic_controller,
-    traffic_controller_status,
-)
+from tests.api_helpers import build_api
+
+if TYPE_CHECKING:
+    from carla_mcp.script_api import CarlaScriptApi
 
 ACTOR_ID: Final = 91
 TARGET_DENSITY: Final = 18
@@ -76,14 +74,11 @@ def test_start_traffic_controller_publishes_controller_status() -> None:
         density=TrafficDensityRequest(vehicle_count=TARGET_DENSITY, seed=7)
     )
 
-    result = start_traffic_controller(service=service, snapshots=snapshots, request=request)
+    result = _api(service, snapshots).start_traffic_controller(asdict(request.density))
 
-    assert result.is_error is False
     assert service.started_with == request
-    assert result.structured_content["active"] is True
-    assert (
-        snapshots.read_snapshot("carla-snapshot://traffic/controller") == result.structured_content
-    )
+    assert result["active"] is True
+    assert snapshots.read_snapshot("carla-snapshot://traffic/controller") == result
 
 
 def test_stop_traffic_controller_publishes_inactive_status() -> None:
@@ -91,14 +86,11 @@ def test_stop_traffic_controller_publishes_inactive_status() -> None:
     snapshots = RunSnapshots()
     service = TrafficControllerService(status=_status(active=True, vehicle_count=TARGET_DENSITY))
 
-    result = stop_traffic_controller(service=service, snapshots=snapshots)
+    result = _api(service, snapshots).stop_traffic_controller()
 
-    assert result.is_error is False
     assert service.stopped is True
-    assert result.structured_content["active"] is False
-    assert (
-        snapshots.read_snapshot("carla-snapshot://traffic/controller") == result.structured_content
-    )
+    assert result["active"] is False
+    assert snapshots.read_snapshot("carla-snapshot://traffic/controller") == result
 
 
 def test_traffic_controller_status_reads_without_mutation() -> None:
@@ -106,13 +98,10 @@ def test_traffic_controller_status_reads_without_mutation() -> None:
     snapshots = RunSnapshots()
     service = TrafficControllerService(status=_status(active=True, vehicle_count=TARGET_DENSITY))
 
-    result = traffic_controller_status(service=service, snapshots=snapshots)
+    result = _api(service, snapshots).traffic_controller_status()
 
-    assert result.is_error is False
-    assert result.structured_content["vehicle_count"] == TARGET_DENSITY
-    assert (
-        snapshots.read_snapshot("carla-snapshot://traffic/controller") == result.structured_content
-    )
+    assert result["vehicle_count"] == TARGET_DENSITY
+    assert snapshots.read_snapshot("carla-snapshot://traffic/controller") == result
 
 
 def test_set_traffic_density_converges_target_vehicle_count() -> None:
@@ -121,11 +110,10 @@ def test_set_traffic_density_converges_target_vehicle_count() -> None:
     service = TrafficControllerService(status=_status(active=True, vehicle_count=10))
     request = TrafficDensityRequest(vehicle_count=TARGET_DENSITY, reset_existing=True)
 
-    result = set_traffic_density(service=service, snapshots=snapshots, request=request)
+    result = _api(service, snapshots).set_traffic_density(asdict(request))
 
-    assert result.is_error is False
     assert service.density_request == request
-    assert result.structured_content["target_vehicle_count"] == TARGET_DENSITY
+    assert result["target_vehicle_count"] == TARGET_DENSITY
 
 
 def test_set_vehicle_behavior_applies_profile_to_explicit_actors() -> None:
@@ -134,19 +122,22 @@ def test_set_vehicle_behavior_applies_profile_to_explicit_actors() -> None:
     service = TrafficControllerService(status=_status(active=True, vehicle_count=10))
     request = VehicleBehaviorRequest(actor_ids=(ACTOR_ID,), profile="aggressive")
 
-    result = set_vehicle_behavior(service=service, snapshots=snapshots, request=request)
+    payload = {**asdict(request), "actor_ids": list(request.actor_ids)}
+    result = _api(service, snapshots).set_vehicle_behavior(payload)
 
-    assert result.is_error is False
     assert service.behavior_request == request
-    assert result.structured_content == {
+    assert result == {
         "actor_ids": [ACTOR_ID],
         "profile": "aggressive",
         "applied_settings": {"speed_difference": -10.0},
         "failed_applications": [],
     }
-    assert (
-        snapshots.read_snapshot("carla-snapshot://traffic/behaviors") == result.structured_content
-    )
+    assert snapshots.read_snapshot("carla-snapshot://traffic/behaviors") == result
+
+
+def _api(service: TrafficControllerService, snapshots: RunSnapshots) -> CarlaScriptApi:
+    adapter = SimpleNamespace(host="127.0.0.1", port=2000, timeout=10.0)
+    return build_api(adapter, snapshots, service)
 
 
 def _status(*, active: bool, vehicle_count: int) -> TrafficControllerStatus:

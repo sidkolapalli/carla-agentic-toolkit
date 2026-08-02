@@ -1,4 +1,4 @@
-"""Behavior specs for CARLA actor inspection and cleanup tools."""
+"""Behavior specs for CARLA actor inspection and cleanup facade operations."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from carla_mcp.models import (
     Transform,
 )
 from carla_mcp.snapshots import RunSnapshots
-from carla_mcp.tools.actor_management import destroy_actors, list_actors
+from tests.api_helpers import build_api
 
 ACTOR_ID: Final = 101
 
@@ -42,12 +42,11 @@ def test_list_actors_publishes_actor_inventory_snapshot() -> None:
     actor = _actor_snapshot()
     adapter = ActorManagementAdapter(actors=(actor,), destroy_results=())
 
-    result = list_actors(adapter=adapter, snapshots=snapshots, filter_pattern="vehicle.*")
+    result = build_api(adapter, snapshots).list_actors("vehicle.*")
 
-    assert result.is_error is False
-    assert result.structured_content == {"actors": [actor.to_dict()]}
+    assert result == {"actors": [actor.to_dict()]}
     assert adapter.last_filter == "vehicle.*"
-    assert snapshots.read_snapshot("carla-snapshot://actors/current") == result.structured_content
+    assert snapshots.read_snapshot("carla-snapshot://actors/current") == result
 
 
 def test_destroy_actors_publishes_cleanup_results() -> None:
@@ -56,11 +55,10 @@ def test_destroy_actors_publishes_cleanup_results() -> None:
     destroy_result = DestroyResult(actor_id=ACTOR_ID, destroyed=True, error=None)
     adapter = ActorManagementAdapter(actors=(), destroy_results=(destroy_result,))
 
-    result = destroy_actors(adapter=adapter, snapshots=snapshots, actor_ids=(ACTOR_ID,))
+    result = build_api(adapter, snapshots).destroy_actors([ACTOR_ID])
 
-    assert result.is_error is False
-    assert result.structured_content == {"results": [destroy_result.to_dict()]}
-    assert snapshots.read_snapshot("carla-snapshot://actors/destroyed") == result.structured_content
+    assert result == {"results": [destroy_result.to_dict()]}
+    assert snapshots.read_snapshot("carla-snapshot://actors/destroyed") == result
 
 
 def _actor_snapshot() -> ActorSnapshot:

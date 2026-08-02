@@ -1,4 +1,4 @@
-"""Behavior specs for CARLA actor MCP tools."""
+"""Behavior specs for CARLA actor script facade operations."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from carla_mcp.models import (
     WorldState,
 )
 from carla_mcp.snapshots import RunSnapshots
-from carla_mcp.tools.actors import list_blueprints, spawn_actor_batch
+from tests.api_helpers import build_api
 
 BLUEPRINT_ID: Final = "vehicle.tesla.model3"
 SPAWNED_ACTOR_ID: Final = 17
@@ -120,14 +120,13 @@ def test_list_blueprints_returns_sorted_blueprint_summaries_and_snapshot() -> No
         spawn_results=(),
     )
 
-    result = list_blueprints(adapter=adapter, snapshots=snapshots, filter_pattern="*")
+    result = build_api(adapter, snapshots).list_blueprints("*")
 
-    assert result.is_error is False
-    assert result.structured_content["blueprints"] == [
+    assert result["blueprints"] == [
         adapter.blueprints[0].to_dict(),
         adapter.blueprints[1].to_dict(),
     ]
-    assert snapshots.read_snapshot("carla-snapshot://blueprints/*") == result.structured_content
+    assert snapshots.read_snapshot("carla-snapshot://blueprints/*") == result
 
 
 def test_spawn_actor_batch_returns_structured_results_and_snapshot() -> None:
@@ -152,11 +151,10 @@ def test_spawn_actor_batch_returns_structured_results_and_snapshot() -> None:
         ),
     )
 
-    result = spawn_actor_batch(adapter=adapter, snapshots=snapshots, requests=(spawn_request,))
+    result = build_api(adapter, snapshots).spawn_actor_batch([spawn_request.to_dict()])
 
-    assert result.is_error is False
-    assert result.structured_content == {"results": [adapter.spawn_results[0].to_dict()]}
-    assert snapshots.read_snapshot("carla-snapshot://actors") == result.structured_content
+    assert result == {"results": [adapter.spawn_results[0].to_dict()]}
+    assert snapshots.read_snapshot("carla-snapshot://actors") == result
 
 
 def _world_settings() -> WorldSettings:

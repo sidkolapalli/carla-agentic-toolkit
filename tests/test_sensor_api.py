@@ -1,8 +1,8 @@
-"""Behavior specs for CARLA sensor MCP tools."""
+"""Behavior specs for CARLA sensor script facade operations."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Final
 
@@ -15,7 +15,7 @@ from carla_mcp.models import (
     Transform,
 )
 from carla_mcp.snapshots import RunSnapshots
-from carla_mcp.tools.sensors import attach_camera, capture_sensor_frame
+from tests.api_helpers import build_api
 
 CAMERA_BLUEPRINT_ID: Final = "sensor.camera.rgb"
 SENSOR_ID: Final = 77
@@ -64,23 +64,16 @@ def test_attach_camera_returns_sensor_info_and_snapshot() -> None:
         capture=build_capture_info(Path("frame.png")),
     )
 
-    result = attach_camera(
-        adapter=adapter,
-        snapshots=snapshots,
-        request=CameraAttachRequest(
-            blueprint_id=CAMERA_BLUEPRINT_ID,
-            transform=transform,
-            attributes={"image_size_x": "800", "image_size_y": "600"},
-            parent_actor_id=17,
-        ),
+    request = CameraAttachRequest(
+        blueprint_id=CAMERA_BLUEPRINT_ID,
+        transform=transform,
+        attributes={"image_size_x": "800", "image_size_y": "600"},
+        parent_actor_id=17,
     )
+    result = build_api(adapter, snapshots).attach_camera(asdict(request))
 
-    assert result.is_error is False
-    assert result.structured_content["sensor_id"] == SENSOR_ID
-    assert (
-        snapshots.read_snapshot(f"carla-snapshot://sensors/{SENSOR_ID}")
-        == result.structured_content
-    )
+    assert result["sensor_id"] == SENSOR_ID
+    assert snapshots.read_snapshot(f"carla-snapshot://sensors/{SENSOR_ID}") == result
 
 
 def test_capture_sensor_frame_returns_capture_info_and_snapshot(tmp_path: Path) -> None:
@@ -92,19 +85,10 @@ def test_capture_sensor_frame_returns_capture_info_and_snapshot(tmp_path: Path) 
         capture=build_capture_info(output_path),
     )
 
-    result = capture_sensor_frame(
-        adapter=adapter,
-        snapshots=snapshots,
-        sensor_id=SENSOR_ID,
-        output_path=output_path,
-    )
+    result = build_api(adapter, snapshots).capture_sensor_frame(SENSOR_ID, str(output_path))
 
-    assert result.is_error is False
-    assert result.structured_content == adapter.capture.with_path(output_path).to_dict()
-    assert (
-        snapshots.read_snapshot(f"carla-snapshot://captures/{CAPTURE_ID}")
-        == result.structured_content
-    )
+    assert result == adapter.capture.with_path(output_path).to_dict()
+    assert snapshots.read_snapshot(f"carla-snapshot://captures/{CAPTURE_ID}") == result
 
 
 def build_transform() -> Transform:

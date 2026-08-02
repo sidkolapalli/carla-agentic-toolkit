@@ -29,11 +29,19 @@ from carla_mcp.carla_protocols import (
     CarlaImage,
     CarlaSensor,
     CarlaWorld,
-    ObjectFactory,
 )
 from carla_mcp.errors import CarlaAdapterError
+from carla_mcp.experiment_common import (
+    actor_counts,
+    carla_transform,
+    frame,
+    map_name,
+    require_sensor,
+    sensor_actor,
+    world_settings,
+    world_state,
+)
 from carla_mcp.models import (
-    ActorCounts,
     ActorSnapshot,
     AutopilotRequest,
     BlueprintAttribute,
@@ -42,9 +50,7 @@ from carla_mcp.models import (
     CaptureInfo,
     DestroyResult,
     HealthReport,
-    Location,
     RecordingInfo,
-    Rotation,
     SensorInfo,
     SpawnRequest,
     SpawnResult,
@@ -53,7 +59,6 @@ from carla_mcp.models import (
     TrafficPopulationRequest,
     TrafficPopulationResult,
     Transform,
-    WorldSettings,
     WorldState,
 )
 from carla_mcp.traffic_runtime import (
@@ -113,9 +118,9 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
             connected=True,
             client_version=_safe_call(client, "get_client_version"),
             server_version=_safe_call(client, "get_server_version"),
-            current_map=_map_name(world),
-            settings=_world_settings(world),
-            actor_counts=_actor_counts(world),
+            current_map=map_name(world),
+            settings=world_settings(world),
+            actor_counts=actor_counts(world),
             warnings=(),
         )
 
@@ -123,10 +128,10 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
         """Return readable state for the current CARLA world."""
         world = self._world(self._client())
         return WorldState(
-            current_map=_map_name(world),
-            settings=_world_settings(world),
-            actor_counts=_actor_counts(world),
-            frame=_frame(world),
+            current_map=map_name(world),
+            settings=world_settings(world),
+            actor_counts=actor_counts(world),
+            frame=frame(world),
             warnings=(),
         )
 
@@ -146,7 +151,7 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
             world = client.load_world(map_name)
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
             raise CarlaAdapterError(str(exc)) from exc
-        return _world_state(world)
+        return world_state(world)
 
     def set_sync_mode(self, *, enabled: bool, fixed_delta_seconds: float | None) -> WorldState:
         """Configure synchronous mode and fixed timestep."""
@@ -158,7 +163,7 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
             world.apply_settings(settings)
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
             raise CarlaAdapterError(str(exc)) from exc
-        return _world_state(world)
+        return world_state(world)
 
     def tick(self) -> int:
         """Advance the CARLA world by one frame."""
@@ -241,7 +246,7 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
                 safe_filter=request.safe_filter,
                 synchronous_mode=settings.synchronous_mode,
             ),
-            world_state=_world_state(world),
+            world_state=world_state(world),
         )
 
     def set_autopilot(
@@ -271,7 +276,7 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
                 seed=None,
                 safe_filter=None,
             ),
-            world_state=_world_state(world),
+            world_state=world_state(world),
         )
 
     def configure_traffic_manager(
@@ -340,7 +345,7 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
 
     def capture_sensor_frame(self, *, sensor_id: int, output_path: Path) -> CaptureInfo:
         """Capture one sensor frame to disk."""
-        sensor = _sensor_actor(self._world(self._client()), sensor_id)
+        sensor = sensor_actor(self._world(self._client()), sensor_id)
         image = _capture_image(sensor)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         image.save_to_disk(str(output_path))
@@ -419,55 +424,6 @@ def _safe_call(target: object, method_name: str) -> str | None:
     return str(value)
 
 
-def _map_name(world: CarlaWorld) -> str | None:
-    """Return the current CARLA map name when available."""
-    try:
-        carla_map = world.get_map()
-        return str(carla_map.name)
-    except (AttributeError, RuntimeError, TypeError, ValueError):
-        return None
-
-
-def _world_settings(world: CarlaWorld) -> WorldSettings:
-    """Convert CARLA world settings into a stable model."""
-    settings = world.get_settings()
-    return WorldSettings(
-        synchronous_mode=bool(settings.synchronous_mode),
-        fixed_delta_seconds=settings.fixed_delta_seconds,
-        no_rendering_mode=bool(settings.no_rendering_mode),
-    )
-
-
-def _world_state(world: CarlaWorld) -> WorldState:
-    """Convert a CARLA world into a stable state model."""
-    return WorldState(
-        current_map=_map_name(world),
-        settings=_world_settings(world),
-        actor_counts=_actor_counts(world),
-        frame=_frame(world),
-        warnings=(),
-    )
-
-
-def _actor_counts(world: CarlaWorld) -> ActorCounts:
-    """Count common CARLA actor categories."""
-    actors = world.get_actors()
-    return ActorCounts(
-        vehicles=len(actors.filter("vehicle.*")),
-        walkers=len(actors.filter("walker.*")),
-        sensors=len(actors.filter("sensor.*")),
-        traffic=len(actors.filter("traffic.*")),
-    )
-
-
-def _frame(world: CarlaWorld) -> int | None:
-    """Return the latest CARLA frame ID when available."""
-    try:
-        return int(world.get_snapshot().frame)
-    except (AttributeError, RuntimeError, TypeError, ValueError):
-        return None
-
-
 def _blueprint_info(blueprint: CarlaBlueprint) -> BlueprintInfo:
     """Convert a CARLA blueprint into a stable summary."""
     return BlueprintInfo(
@@ -503,7 +459,7 @@ def _spawn_actor(world: CarlaWorld, index: int, request: SpawnRequest) -> SpawnR
     """Spawn one actor and convert CARLA failures into a structured result."""
     try:
         blueprint = _configured_blueprint(world, request)
-        actor = world.spawn_actor(blueprint, _carla_transform(request.transform))
+        actor = world.spawn_actor(blueprint, carla_transform(request.transform))
     except (AttributeError, RuntimeError, TypeError, ValueError, CarlaAdapterError) as exc:
         return SpawnResult(request_index=index, actor_id=None, error=str(exc))
     return SpawnResult(request_index=index, actor_id=int(actor.id), error=None)
@@ -528,28 +484,10 @@ def _spawn_sensor(
 ) -> CarlaSensor:
     """Spawn a sensor actor."""
     try:
-        actor = world.spawn_actor(blueprint, _carla_transform(transform), parent)
+        actor = world.spawn_actor(blueprint, carla_transform(transform), parent)
     except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
         raise CarlaAdapterError(str(exc)) from exc
-    return _require_sensor(actor)
-
-
-def _sensor_actor(world: CarlaWorld, sensor_id: int) -> CarlaSensor:
-    """Return a sensor actor by ID."""
-    actor = world.get_actors().find(sensor_id)
-    if actor is None:
-        msg = f"Sensor {sensor_id} was not found."
-        raise CarlaAdapterError(msg)
-    return _require_sensor(actor)
-
-
-def _require_sensor(candidate: object) -> CarlaSensor:
-    """Validate a dynamic CARLA sensor actor."""
-    missing_api = not all(hasattr(candidate, name) for name in ("id", "listen", "stop"))
-    if missing_api:
-        msg = "CARLA actor does not expose the expected sensor API."
-        raise CarlaAdapterError(msg)
-    return cast("CarlaSensor", candidate)
+    return require_sensor(actor)
 
 
 def _capture_image(sensor: CarlaSensor) -> CarlaImage:
@@ -588,33 +526,3 @@ def _configured_blueprint(world: CarlaWorld, request: SpawnRequest) -> CarlaBlue
     for attribute_id, value in request.attributes.items():
         blueprint.set_attribute(attribute_id, value)
     return blueprint
-
-
-def _carla_transform(transform: Transform) -> object:
-    """Build a CARLA Transform object from a typed transform."""
-    module = import_module("carla")
-    location = _carla_location(module, transform.location)
-    rotation = _carla_rotation(module, transform.rotation)
-    transform_factory = _object_factory(module, "Transform")
-    return transform_factory(location, rotation)
-
-
-def _carla_location(module: object, location: Location) -> object:
-    """Build a CARLA Location object."""
-    location_factory = _object_factory(module, "Location")
-    return location_factory(x=location.x, y=location.y, z=location.z)
-
-
-def _carla_rotation(module: object, rotation: Rotation) -> object:
-    """Build a CARLA Rotation object."""
-    rotation_factory = _object_factory(module, "Rotation")
-    return rotation_factory(pitch=rotation.pitch, yaw=rotation.yaw, roll=rotation.roll)
-
-
-def _object_factory(module: object, name: str) -> ObjectFactory:
-    """Return a named CARLA object factory."""
-    factory = getattr(module, name, None)
-    if callable(factory):
-        return cast("ObjectFactory", factory)
-    msg = f"CARLA module does not expose {name}."
-    raise CarlaAdapterError(msg)

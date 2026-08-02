@@ -1,4 +1,4 @@
-"""Behavior specs for CARLA diagnostic MCP tools."""
+"""Behavior specs for CARLA diagnostic script facade operations."""
 
 from __future__ import annotations
 
@@ -10,8 +10,7 @@ import pytest
 from carla_mcp.adapter import CarlaAdapterError
 from carla_mcp.models import ActorCounts, HealthReport, WorldSettings, WorldState
 from carla_mcp.snapshots import RunSnapshots
-from carla_mcp.tools.diagnostics import health_check
-from carla_mcp.tools.world import get_world_state, list_worlds
+from tests.api_helpers import build_api
 
 DEFAULT_MAPS: Final = ("Town10HD_Opt", "Town01")
 EXPECTED_FRAME: Final = 42
@@ -80,7 +79,7 @@ def build_world_state() -> WorldState:
 
 
 def build_health_report(*, connected: bool = True) -> HealthReport:
-    """Create a health report matching the documented first tool contract."""
+    """Create a health report matching the documented facade contract."""
     return HealthReport(
         connected=connected,
         client_version="0.10.0",
@@ -102,15 +101,14 @@ def test_health_check_reports_connected_carla_session_as_structured_content() ->
     health_report = build_health_report()
     adapter = FakeAdapter(health=health_report, world=build_world_state())
 
-    result = health_check(adapter=adapter, snapshots=snapshots)
+    result = build_api(adapter, snapshots).health_check()
 
-    assert result.is_error is False
-    assert result.structured_content == health_report.to_dict()
+    assert result == health_report.to_dict()
     assert snapshots.read_snapshot("carla-snapshot://session/status") == health_report.to_dict()
 
 
 def test_health_check_returns_tool_error_when_carla_connection_fails() -> None:
-    """A failed CARLA connection should be a tool execution error, not a crash."""
+    """A failed CARLA connection should be a recoverable operation error, not a crash."""
     snapshots = RunSnapshots()
     adapter = FakeAdapter(
         health=build_health_report(connected=False),
@@ -118,14 +116,14 @@ def test_health_check_returns_tool_error_when_carla_connection_fails() -> None:
         fail_health=True,
     )
 
-    result = health_check(adapter=adapter, snapshots=snapshots)
+    result = build_api(adapter, snapshots).health_check()
 
     assert {
-        "is_error": result.is_error,
-        "error_type": result.structured_content["error_type"],
-        "host": result.structured_content["host"],
-        "port": result.structured_content["port"],
-        "retryable": result.structured_content["retryable"],
+        "is_error": result["ok"] is False,
+        "error_type": result["error_type"],
+        "host": result["host"],
+        "port": result["port"],
+        "retryable": result["retryable"],
     } == {
         "is_error": True,
         "error_type": "carla_connection_error",
@@ -143,15 +141,14 @@ def test_get_world_state_exposes_current_world_as_snapshot() -> None:
     world_state = build_world_state()
     adapter = FakeAdapter(health=build_health_report(), world=world_state)
 
-    result = get_world_state(adapter=adapter, snapshots=snapshots)
+    result = build_api(adapter, snapshots).get_world_state()
 
-    assert result.is_error is False
-    assert result.structured_content == world_state.to_dict()
+    assert result == world_state.to_dict()
     assert snapshots.read_snapshot("carla-snapshot://world/current") == world_state.to_dict()
 
 
 def test_list_worlds_sorts_maps_and_exposes_worlds_snapshot() -> None:
-    """Available maps should be deterministic for both tool and snapshot reads."""
+    """Available maps should be deterministic for facade results and snapshots."""
     snapshots = RunSnapshots()
     adapter = FakeAdapter(
         health=build_health_report(),
@@ -159,10 +156,9 @@ def test_list_worlds_sorts_maps_and_exposes_worlds_snapshot() -> None:
         maps=("Town10HD_Opt", "Town01", "Town02"),
     )
 
-    result = list_worlds(adapter=adapter, snapshots=snapshots)
+    result = build_api(adapter, snapshots).list_worlds()
 
-    assert result.is_error is False
-    assert result.structured_content["worlds"] == ["Town01", "Town02", "Town10HD_Opt"]
+    assert result["worlds"] == ["Town01", "Town02", "Town10HD_Opt"]
     assert snapshots.read_snapshot("carla-snapshot://worlds")["worlds"] == [
         "Town01",
         "Town02",

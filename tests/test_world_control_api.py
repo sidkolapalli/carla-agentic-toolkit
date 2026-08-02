@@ -1,4 +1,4 @@
-"""Behavior specs for CARLA world-control MCP tools."""
+"""Behavior specs for CARLA world-control script facade operations."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Final
 
 from carla_mcp.models import ActorCounts, HealthReport, WorldSettings, WorldState
 from carla_mcp.snapshots import RunSnapshots
-from carla_mcp.tools.world import load_world, set_sync_mode, tick
+from tests.api_helpers import build_api
 
 LOADED_MAP: Final = "Town01"
 NEXT_FRAME: Final = 43
@@ -66,10 +66,9 @@ def test_load_world_returns_new_world_state_and_updates_snapshot() -> None:
     snapshots = RunSnapshots()
     adapter = ControlAdapter(world=build_world_state())
 
-    result = load_world(adapter=adapter, snapshots=snapshots, map_name=LOADED_MAP)
+    result = build_api(adapter, snapshots).load_world(LOADED_MAP)
 
-    assert result.is_error is False
-    assert result.structured_content == adapter.world.to_dict()
+    assert result == adapter.world.to_dict()
     assert snapshots.read_snapshot("carla-snapshot://world/current") == adapter.world.to_dict()
 
 
@@ -78,15 +77,12 @@ def test_set_sync_mode_returns_updated_timing_settings() -> None:
     snapshots = RunSnapshots()
     adapter = ControlAdapter(world=build_world_state())
 
-    result = set_sync_mode(
-        adapter=adapter,
-        snapshots=snapshots,
+    result = build_api(adapter, snapshots).set_sync_mode(
         enabled=True,
         fixed_delta_seconds=SYNC_DELTA_SECONDS,
     )
 
-    assert result.is_error is False
-    assert result.structured_content == adapter.world.to_dict()
+    assert result == adapter.world.to_dict()
     assert snapshots.read_snapshot("carla-snapshot://world/current") == adapter.world.to_dict()
 
 
@@ -95,10 +91,9 @@ def test_tick_advances_one_frame_and_updates_tick_snapshot() -> None:
     snapshots = RunSnapshots()
     adapter = ControlAdapter(world=build_world_state())
 
-    result = tick(adapter=adapter, snapshots=snapshots)
+    result = build_api(adapter, snapshots).tick()
 
-    assert result.is_error is False
-    assert result.structured_content == {"frame": NEXT_FRAME}
+    assert result == {"frame": NEXT_FRAME}
     assert snapshots.read_snapshot("carla-snapshot://session/last-tick") == {"frame": NEXT_FRAME}
 
 

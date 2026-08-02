@@ -7,21 +7,26 @@ from importlib import import_module
 from typing import TYPE_CHECKING, Any, cast
 
 from carla_mcp.errors import CarlaAdapterError
-from carla_mcp.models import ActorCounts, Location, Rotation, Transform, WorldSettings
+from carla_mcp.models import ActorCounts, Location, Rotation, Transform, WorldSettings, WorldState
 
 if TYPE_CHECKING:
     from carla_mcp.carla_protocols import CarlaSensor, CarlaWorld, ObjectFactory
 
 
+def world_state(world: CarlaWorld) -> WorldState:
+    """Convert a CARLA world into the authoritative state model."""
+    return WorldState(
+        current_map=map_name(world),
+        settings=world_settings(world),
+        actor_counts=actor_counts(world),
+        frame=frame(world),
+        warnings=(),
+    )
+
+
 def world_state_payload(world: CarlaWorld) -> dict[str, object]:
     """Return a JSON-compatible current-world payload."""
-    return {
-        "current_map": map_name(world),
-        "settings": world_settings(world).to_dict(),
-        "actor_counts": actor_counts(world).to_dict(),
-        "frame": frame(world),
-        "warnings": [],
-    }
+    return world_state(world).to_dict()
 
 
 def map_name(world: CarlaWorld) -> str | None:
