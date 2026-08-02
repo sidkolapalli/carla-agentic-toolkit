@@ -156,10 +156,6 @@ The Windows launcher uses `wsl.exe --exec` directly. It never runs
 agent-authored code with Windows Python and never falls back to an unsandboxed
 path.
 
-> [!NOTE]
-> For pre-merge testing, check out `feat/windows-support` in both the WSL and
-> Windows clones. After the branch merges, use `main` instead.
-
 First prepare the Linux runtime inside WSL2:
 
 ```powershell
@@ -194,7 +190,7 @@ fi
 git ls-remote https://github.com/sidkolapalli/carla-mcp.git HEAD
 git clone https://github.com/sidkolapalli/carla-mcp.git
 cd carla-mcp
-git switch feat/windows-support
+git switch main
 uv sync --locked --python 3.12
 # Replace 0.9.16 if your simulator uses another version.
 uv pip install --python .venv "carla==0.9.16"
@@ -216,7 +212,7 @@ On Windows, prepare a second checkout for the small launcher:
 New-Item -ItemType Directory -Force "$HOME\src" | Out-Null
 git clone https://github.com/sidkolapalli/carla-mcp.git "$HOME\src\carla-mcp"
 Set-Location "$HOME\src\carla-mcp"
-git switch feat/windows-support
+git switch main
 uv sync --locked --python 3.12
 
 $env:CARLA_MCP_WSL_DISTRO = "Ubuntu-24.04"
