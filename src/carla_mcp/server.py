@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import threading
 from typing import cast
 
 from mcp.server import MCPServer
@@ -10,6 +11,8 @@ from mcp.types import CallToolResult, TextContent, ToolAnnotations
 
 from carla_mcp import __version__
 from carla_mcp.sandbox import execute_script
+
+_execution_lock = threading.Lock()
 
 
 def build_server() -> MCPServer:
@@ -46,13 +49,14 @@ def _register_script_tool(mcp: MCPServer) -> None:
         script receives an injected `api` object and should assign its final
         JSON-compatible summary to `result`.
         """
-        outcome = execute_script(
-            code,
-            host=host,
-            port=port,
-            timeout_seconds=timeout_seconds,
-            traffic_manager_ports=traffic_manager_ports or (),
-        )
+        with _execution_lock:
+            outcome = execute_script(
+                code,
+                host=host,
+                port=port,
+                timeout_seconds=timeout_seconds,
+                traffic_manager_ports=traffic_manager_ports or (),
+            )
         payload = outcome.to_dict()
         return cast(
             "dict[str, object]",

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import threading
+import time
 from typing import TYPE_CHECKING
 
 from mcp import Client
@@ -79,6 +81,38 @@ def test_server_supports_latest_mcp_protocol(monkeypatch: pytest.MonkeyPatch) ->
         "is_error": False,
         "result": 1,
     }
+
+
+def test_server_serializes_concurrent_script_executions(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Concurrent tool calls must not overlap against shared simulator state."""
+    active = 0
+    maximum_active = 0
+    state_lock = threading.Lock()
+
+    def controlled_script(*_args: object, **_kwargs: object) -> ScriptOutcome:
+        nonlocal active, maximum_active
+        with state_lock:
+            active += 1
+            maximum_active = max(maximum_active, active)
+        time.sleep(0.05)
+        with state_lock:
+            active -= 1
+        return _successful_script()
+
+    async def call_concurrently() -> None:
+        server = build_server()
+        await asyncio.gather(
+            server.call_tool("execute_carla_script", {"code": "result = 1"}),
+            server.call_tool("execute_carla_script", {"code": "result = 2"}),
+        )
+
+    monkeypatch.setattr(server_module, "execute_script", controlled_script)
+
+    asyncio.run(call_concurrently())
+
+    assert maximum_active == 1
 
 
 def test_server_marks_failed_script_as_mcp_tool_error(monkeypatch: pytest.MonkeyPatch) -> None:

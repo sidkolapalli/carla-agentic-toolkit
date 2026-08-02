@@ -247,6 +247,9 @@ assumptions, and private vulnerability reporting process.
 
 - Source checkout only; the Python wheel does not yet bundle the Rust runner.
 - Local stdio only; there is no authenticated remote transport.
+- One MCP server serializes complete script executions against shared simulator
+  state. `timeout_seconds` starts after queueing and covers sandbox execution,
+  not time spent waiting for that lock.
 - Windows support uses WSL2; there is no weaker native Windows sandbox fallback.
 - Traffic controller state lasts for one script process. Keep that script alive
   with `api.wait()` or use the live sidecar.
