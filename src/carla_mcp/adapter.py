@@ -58,6 +58,7 @@ from carla_mcp.models import (
     TrafficManagerSettings,
     TrafficPopulationRequest,
     TrafficPopulationResult,
+    TrafficVehiclePathRequest,
     Transform,
     WorldState,
 )
@@ -70,6 +71,7 @@ from carla_mcp.traffic_runtime import (
 from carla_mcp.traffic_runtime import (
     configure_traffic_manager as configure_traffic_manager_runtime,
 )
+from carla_mcp.traffic_tuning import set_traffic_vehicle_path, tune_traffic_vehicle
 
 __all__ = [
     "ActorAdapter",
@@ -287,6 +289,29 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
         """Configure Traffic Manager behavior settings."""
         traffic_manager_instance = traffic_manager(self._client(), request.traffic_manager_port)
         return configure_traffic_manager_runtime(traffic_manager_instance, request)
+
+    def tune_traffic_vehicle(
+        self,
+        *,
+        actor_id: int,
+        traffic_manager_port: int,
+        settings: dict[str, object],
+    ) -> dict[str, object]:
+        """Apply validated per-vehicle Traffic Manager settings."""
+        return tune_traffic_vehicle(
+            self._client(),
+            actor_id=actor_id,
+            traffic_manager_port=traffic_manager_port,
+            settings=settings,
+        )
+
+    def set_traffic_vehicle_path(
+        self,
+        *,
+        request: TrafficVehiclePathRequest,
+    ) -> dict[str, object]:
+        """Upload one bounded path or route for a Traffic Manager vehicle."""
+        return set_traffic_vehicle_path(self._client(), request)
 
     def record_episode(self, output_path: Path) -> RecordingInfo:
         """Start recording an episode at the simulator-side path."""

@@ -114,6 +114,21 @@ def capability_report(client: object, world: CarlaWorld) -> dict[str, object]:
             getattr(carla_module, "Vehicle", None),
             ("get_physics_control", "apply_physics_control"),
         ),
+        "traffic_manager_vehicle": capabilities(
+            getattr(carla_module, "TrafficManager", None),
+            (
+                "auto_lane_change",
+                "force_lane_change",
+                "set_desired_speed",
+                "distance_to_leading_vehicle",
+                "ignore_lights_percentage",
+                "ignore_signs_percentage",
+                "ignore_vehicles_percentage",
+                "ignore_walkers_percentage",
+                "set_path",
+                "set_route",
+            ),
+        ),
     }
 
 

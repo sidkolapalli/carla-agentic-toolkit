@@ -223,7 +223,7 @@ not an authorization boundary. Use `api.list_named_actors()` and
 | Control surface | Examples |
 | --- | --- |
 | Diagnostics and world | Connection health, maps, settings, deterministic ticks |
-| Actors and traffic | Spawning, autopilot, density, behavior profiles |
+| Actors and traffic | Spawning, autopilot, density, behavior profiles, per-vehicle TM routes/tuning |
 | Actor physics | Physics/gravity toggles, impulse/force/torque, angular velocity, bounded vehicle physics |
 | Sensors and perception | Cameras, LIDAR, radar, IMU, GNSS, captures |
 | Vehicles and pedestrians | Vehicle controls, telemetry, walker movement |

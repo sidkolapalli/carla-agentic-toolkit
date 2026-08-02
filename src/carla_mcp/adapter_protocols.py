@@ -25,6 +25,7 @@ if TYPE_CHECKING:
         TrafficManagerSettings,
         TrafficPopulationRequest,
         TrafficPopulationResult,
+        TrafficVehiclePathRequest,
         Transform,
         WorldState,
     )
@@ -119,6 +120,22 @@ class TrafficAdapter(Protocol):
         request: TrafficManagerRequest,
     ) -> TrafficManagerSettings:
         """Configure Traffic Manager behavior settings."""
+
+    def tune_traffic_vehicle(
+        self,
+        *,
+        actor_id: int,
+        traffic_manager_port: int,
+        settings: dict[str, object],
+    ) -> JsonObject:
+        """Apply validated per-vehicle Traffic Manager settings."""
+
+    def set_traffic_vehicle_path(
+        self,
+        *,
+        request: TrafficVehiclePathRequest,
+    ) -> JsonObject:
+        """Upload one bounded path or route for a vehicle."""
 
 
 class ExperimentAdapter(Protocol):

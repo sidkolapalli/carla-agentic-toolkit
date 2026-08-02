@@ -14,6 +14,7 @@ from carla_mcp.models import (
     TrafficDensityRequest,
     TrafficManagerRequest,
     TrafficPopulationRequest,
+    TrafficVehiclePathRequest,
     Transform,
     VehicleBehaviorRequest,
 )
@@ -157,6 +158,27 @@ def parse_vehicle_behavior_request(payload: dict[str, object]) -> VehicleBehavio
         actor_ids=tuple(_int_value(actor_id, "actor_ids") for actor_id in actor_ids),
         profile=_string_field(payload, "profile"),
         traffic_manager_port=_int_field_or_default(payload, "traffic_manager_port", default=8000),
+    )
+
+
+def parse_traffic_vehicle_path_request(
+    actor_id: int,
+    payload: dict[str, object],
+) -> TrafficVehiclePathRequest:
+    """Parse one per-vehicle Traffic Manager path request."""
+    path_values = payload.get("path", [])
+    route_values = payload.get("route", [])
+    if not isinstance(path_values, list) or not isinstance(route_values, list):
+        msg = "path and route must be lists."
+        raise TypeError(msg)
+    path = tuple(_location(_mapping_value(item, "path")) for item in path_values)
+    route = tuple(_string_value(item, "route") for item in route_values)
+    return TrafficVehiclePathRequest(
+        actor_id=actor_id,
+        traffic_manager_port=_int_field_or_default(payload, "traffic_manager_port", default=8000),
+        path=path,
+        route=route,
+        empty_buffer=_bool_field_or_default(payload, "empty_buffer", default=True),
     )
 
 
@@ -311,6 +333,14 @@ def _int_value(value: object, context: str) -> int:
     if isinstance(value, int):
         return value
     msg = f"{context} values must be integers."
+    raise TypeError(msg)
+
+
+def _mapping_value(value: object, context: str) -> Mapping[str, object]:
+    """Read one object value outside a keyed payload."""
+    if isinstance(value, dict):
+        return cast("Mapping[str, object]", value)
+    msg = f"{context} values must be objects."
     raise TypeError(msg)
 
 

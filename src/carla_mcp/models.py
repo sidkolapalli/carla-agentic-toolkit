@@ -309,6 +309,17 @@ class TrafficManagerRequest:
 
 
 @dataclass(frozen=True, slots=True)
+class TrafficVehiclePathRequest:
+    """One bounded path or route upload for a Traffic Manager vehicle."""
+
+    actor_id: int
+    traffic_manager_port: int
+    path: tuple[Location, ...]
+    route: tuple[str, ...]
+    empty_buffer: bool
+
+
+@dataclass(frozen=True, slots=True)
 class VehicleBehaviorRequest:
     """Request to apply a named Traffic Manager behavior profile."""
 

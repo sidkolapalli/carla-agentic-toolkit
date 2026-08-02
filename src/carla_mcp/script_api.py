@@ -38,6 +38,7 @@ from carla_mcp.tool_inputs import (
     parse_traffic_density_request,
     parse_traffic_manager_request,
     parse_traffic_population_request,
+    parse_traffic_vehicle_path_request,
     parse_transform,
     parse_vehicle_behavior_request,
     sensor_blueprint,
@@ -278,6 +279,30 @@ class CarlaScriptApi:
             request=parse_traffic_manager_request(request)
         ).to_dict()
         return self._snapshot("carla-snapshot://traffic/manager", payload)
+
+    @_recover("tune_traffic_vehicle_failed")
+    def tune_traffic_vehicle(
+        self,
+        actor_id: int,
+        settings: dict[str, object],
+        traffic_manager_port: int = 8000,
+    ) -> JsonObject:
+        """Set auto_lane_change, force_lane_change, speed, distance, or ignore percentages."""
+        return self._adapter.tune_traffic_vehicle(
+            actor_id=actor_id,
+            traffic_manager_port=traffic_manager_port,
+            settings=settings,
+        )
+
+    @_recover("set_traffic_vehicle_path_failed")
+    def set_traffic_vehicle_path(
+        self,
+        actor_id: int,
+        request: dict[str, object],
+    ) -> JsonObject:
+        """Upload request.path locations or request.route option strings for one vehicle."""
+        parsed = parse_traffic_vehicle_path_request(actor_id, request)
+        return self._adapter.set_traffic_vehicle_path(request=parsed)
 
     @_recover("start_traffic_controller_failed")
     def start_traffic_controller(self, request: dict[str, object]) -> JsonObject:
