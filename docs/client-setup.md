@@ -1,9 +1,8 @@
 # Client Setup
 
-CARLA MCP runs locally through stdio. Linux clients launch it directly; Windows
-11 clients use `carla-mcp-windows` to launch the entire server and its existing
-Rust/Landlock sandbox inside WSL2. There is no remote endpoint or standalone
-wheel yet.
+CARLA MCP runs locally through stdio. Clients can launch its Docker image,
+Linux clients can run it directly, and Windows 11 clients can use
+`carla-mcp-windows` to run from source inside WSL2. There is no remote endpoint.
 
 ## Prerequisites
 
@@ -21,9 +20,10 @@ Before starting, install or confirm:
 
 - Git and access to this private repository. Authenticate Git separately inside
   WSL because Windows credentials are not inherited automatically.
-- Python 3.12, [uv](https://docs.astral.sh/uv/), a Rust toolchain, and a C/C++
-  linker (`build-essential` on Ubuntu). Pin Python 3.12: newer Linux releases
-  may otherwise select Python 3.14, which CARLA 0.9.16 does not support.
+- Docker for the packaged path; or Python 3.12,
+  [uv](https://docs.astral.sh/uv/), Rust, and a C/C++ linker (`build-essential`
+  on Ubuntu) for the source path. Pin Python 3.12: newer Linux releases may
+  otherwise select Python 3.14, which CARLA 0.9.16 does not support.
 - Linux kernel 6.15 or newer, which provides the Landlock ABI V7 required by the
   sandbox. On Windows this kernel must be supplied by WSL2.
 - A reachable CARLA server and the same CARLA Python API version in the MCP
@@ -38,7 +38,67 @@ RTX 2070 with at least 8 GB VRAM recommended. Download CARLA from its
 [official release page](https://carla.readthedocs.io/en/0.9.16/download/), not
 from this repository.
 
-## 1. Prepare the Server
+## Docker MCP server
+
+The image contains the MCP server, CARLA Python API, and compiled Rust sandbox.
+It deliberately does not contain the CARLA simulator: keep CARLA native so its
+GPU-rendered window remains visible and recordable.
+
+Build the image with the Python API version matching the simulator, create its
+durable output volume, and run the real sandbox preflight:
+
+```bash
+docker build --build-arg CARLA_VERSION=0.9.16 -t carla-mcp .
+docker volume create carla-mcp-output
+
+docker run --rm --read-only --security-opt=no-new-privileges \
+  --tmpfs /tmp:rw,nosuid,nodev,size=64m \
+  --mount source=carla-mcp-output,target=/output \
+  carla-mcp carla-mcp-preflight
+```
+
+Do not continue unless preflight reports `"ok": true` and
+`"ruleset_enforced": true`. The container fails closed when the host kernel or
+container runtime cannot enforce Landlock ABI V7. A Linux 6.15+ kernel and a
+runtime that permits the `landlock_*` syscalls are required.
+
+Use this as the MCP stdio process. `-i` is required; do not add `-t`:
+
+```bash
+docker run --rm -i --read-only --security-opt=no-new-privileges \
+  --tmpfs /tmp:rw,nosuid,nodev,size=64m \
+  --add-host=host.docker.internal:host-gateway \
+  --mount source=carla-mcp-output,target=/output carla-mcp
+```
+
+For Claude Code:
+
+```bash
+claude mcp add --scope local --transport stdio carla -- \
+  docker run --rm -i --read-only --security-opt=no-new-privileges \
+  --tmpfs /tmp:rw,nosuid,nodev,size=64m \
+  --add-host=host.docker.internal:host-gateway \
+  --mount source=carla-mcp-output,target=/output carla-mcp
+```
+
+For Codex:
+
+```bash
+codex mcp add carla -- \
+  docker run --rm -i --read-only --security-opt=no-new-privileges \
+  --tmpfs /tmp:rw,nosuid,nodev,size=64m \
+  --add-host=host.docker.internal:host-gateway \
+  --mount source=carla-mcp-output,target=/output carla-mcp
+```
+
+In prompts, tell the agent to connect to CARLA at
+`host.docker.internal:<rpc-port>`; for example,
+`host.docker.internal:3000`. The sandbox permits that RPC port, its next two
+streaming ports, Traffic Manager port 8000, and any additional Traffic Manager
+ports explicitly supplied to the tool. Output persists in the
+`carla-mcp-output` Docker volume.
+
+## 1. Prepare the Server from source
 
 ```bash
 git clone https://github.com/sidkolapalli/carla-mcp.git

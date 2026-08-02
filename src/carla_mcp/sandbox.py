@@ -376,6 +376,11 @@ def _read_only_paths() -> tuple[Path, ...]:
         Path("/usr"),
         Path("/lib"),
         Path("/lib64"),
+        Path("/etc/nsswitch.conf"),
+        Path("/etc/host.conf"),
+        Path("/etc/hosts"),
+        Path("/etc/resolv.conf"),
+        Path("/etc/gai.conf"),
     ]
     return tuple(path for path in candidates if path.exists())
 

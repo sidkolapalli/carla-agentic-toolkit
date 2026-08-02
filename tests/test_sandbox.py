@@ -193,6 +193,17 @@ def test_execute_script_passes_carla_ports_to_rust_runner(
     )
 
     resolved_output_dir = str(output_dir.resolve())
+    resolver_paths = {
+        str(path)
+        for path in (
+            Path("/etc/nsswitch.conf"),
+            Path("/etc/host.conf"),
+            Path("/etc/hosts"),
+            Path("/etc/resolv.conf"),
+            Path("/etc/gai.conf"),
+        )
+        if path.exists()
+    }
     assert {
         "ok": outcome.ok,
         "result": outcome.result,
@@ -202,6 +213,8 @@ def test_execute_script_passes_carla_ports_to_rust_runner(
         "has_tcp_rule": "--tcp-connect" in commands[0],
         "has_tcp_bind": "--tcp-bind" in commands[0],
         "grants_dev_or_sys": bool({"/dev", "/sys"} & set(commands[0])),
+        "grants_resolver_files": resolver_paths <= set(commands[0]),
+        "grants_etc": "/etc" in commands[0],
         "recorder_dir": commands[0][commands[0].index("--recorder-dir") + 1],
         "allowed_ports": {"2000", "2001", "2002", "8050"} <= set(commands[0]),
     } == {
@@ -213,6 +226,8 @@ def test_execute_script_passes_carla_ports_to_rust_runner(
         "has_tcp_rule": True,
         "has_tcp_bind": False,
         "grants_dev_or_sys": False,
+        "grants_resolver_files": True,
+        "grants_etc": False,
         "recorder_dir": "E:/CARLA_0.9.16/recordings",
         "allowed_ports": True,
     }

@@ -77,10 +77,10 @@ plain English. The promotional workflow spawns and follows a Tesla, changes the
 weather, measures acceleration, returns a native MCP image, restores simulator
 state, and leaves zero actors behind.
 
-[![Autoplaying split-screen CARLA MCP demo](docs/assets/hero-demo.gif)](docs/demo-storyboard.md)
+[![A red Tesla followed through a rainy Town10HD experiment](docs/assets/hero-frame.png)](docs/demo-storyboard.md)
 
-The recording above is a real CARLA run and loops automatically on GitHub.
-Rehearse the exact workflow and regenerate the hero frame plus its
+Connect the packaged Docker MCP server to your preferred agent, then rehearse
+the exact workflow and regenerate the hero frame plus its
 **[Rich terminal report](docs/assets/hero-report.svg)**:
 
 ```bash
@@ -120,13 +120,41 @@ remains available.
 ### Requirements
 
 - Linux with Landlock ABI V7, or Windows 11 with a WSL2 kernel that provides it
-- Python 3.12, [uv](https://docs.astral.sh/uv/), and a Rust toolchain
+- Docker, or Python 3.12 plus [uv](https://docs.astral.sh/uv/) and Rust
 - A CARLA Python API version matching a reachable CARLA server
 
 New to CARLA or WSL2? Read the **[prerequisites and platform
 layout](docs/client-setup.md#prerequisites)** before continuing.
 
-### 1. Prepare the Toolkit
+### Docker: packaged MCP server
+
+CARLA stays native so its GPU-rendered window remains visible. Docker packages
+only the MCP server, matching CARLA Python API, and Rust/Landlock sandbox:
+
+```bash
+docker build --build-arg CARLA_VERSION=0.9.16 -t carla-mcp .
+docker volume create carla-mcp-output
+
+docker run --rm --read-only --security-opt=no-new-privileges \
+  --tmpfs /tmp:rw,nosuid,nodev,size=64m \
+  --mount source=carla-mcp-output,target=/output \
+  carla-mcp carla-mcp-preflight
+```
+
+The preflight must report `"ruleset_enforced": true`. Then configure an MCP
+client to run this stdio command:
+
+```bash
+docker run --rm -i --read-only --security-opt=no-new-privileges \
+  --tmpfs /tmp:rw,nosuid,nodev,size=64m \
+  --add-host=host.docker.internal:host-gateway \
+  --mount source=carla-mcp-output,target=/output carla-mcp
+```
+
+Tell the agent to use `host.docker.internal` and your CARLA RPC port in tool
+calls. See the **[Docker client configurations](docs/client-setup.md#docker-mcp-server)**.
+
+### 1. Prepare the Toolkit from source
 
 ```bash
 git clone https://github.com/sidkolapalli/carla-mcp.git

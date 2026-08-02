@@ -41,3 +41,6 @@ jobs:
 
       - name: Build Python distributions
         run: uv build
+
+      - name: Build MCP Docker image
+        run: docker build --build-arg CARLA_VERSION=0.9.16 -t carla-mcp:ci .
