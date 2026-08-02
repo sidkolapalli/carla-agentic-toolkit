@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import subprocess
 import sys
@@ -17,6 +18,8 @@ if TYPE_CHECKING:
 DEFAULT_TIMEOUT_SECONDS = 30.0
 DEFAULT_TRAFFIC_MANAGER_PORT = 8000
 MAX_TCP_PORT = 65535
+MAX_CARLA_BASE_PORT = MAX_TCP_PORT - 2
+MAX_TIMEOUT_SECONDS = 3600.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,6 +48,16 @@ class ScriptOutcome:
 
 
 @dataclass(frozen=True, slots=True)
+class ExecutionRequest:
+    """Validated public execution values."""
+
+    host: str
+    port: int
+    timeout_seconds: float
+    traffic_manager_ports: Sequence[int]
+
+
+@dataclass(frozen=True, slots=True)
 class RunnerCommandRequest:
     """Inputs needed to build a Rust sandbox command."""
 
@@ -68,47 +81,126 @@ def execute_script(
     traffic_manager_ports: Sequence[int] = (),
 ) -> ScriptOutcome:
     """Run a CARLA script in the Rust sandbox process."""
+    request = ExecutionRequest(host, port, timeout_seconds, traffic_manager_ports)
+    invalid = _validate_execution(request)
+    if invalid is not None:
+        return _failure("invalid_request", invalid)
     runner = _sandbox_runner()
     if runner is None:
-        return ScriptOutcome(
-            ok=False,
-            result=None,
-            stdout="",
-            resources={},
-            error=(
-                "Rust sandbox runner is not built. "
-                "Run `cargo build --release` in sandbox-runner."
-            ),
-            error_type="sandbox_runner_missing",
-            sandbox={"runner": None},
+        return _failure(
+            "sandbox_runner_missing",
+            "Rust sandbox runner is not built. Run `cargo build --release` in sandbox-runner.",
         )
-    output_dir = _output_dir()
-    output_dir.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="carla-mcp-script-") as tmp_name:
-        work_dir = Path(tmp_name)
-        script_path = work_dir / "script.py"
-        script_path.write_text(code, encoding="utf-8")
-        command = _runner_command(
-            RunnerCommandRequest(
-                runner=runner,
-                script_path=script_path,
-                work_dir=work_dir,
-                output_dir=output_dir,
-                host=host,
-                port=port,
-                timeout_seconds=timeout_seconds,
-                traffic_manager_ports=traffic_manager_ports,
-                recorder_dir=os.environ.get("CARLA_MCP_RECORDER_DIR"),
+    return _execute_with_runner(
+        code,
+        runner=runner,
+        request=request,
+    )
+
+
+def _execute_with_runner(
+    code: str,
+    *,
+    runner: Path,
+    request: ExecutionRequest,
+) -> ScriptOutcome:
+    """Set up and launch one already-validated execution."""
+    try:
+        output_dir = _output_dir()
+        output_dir.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="carla-mcp-script-") as tmp_name:
+            work_dir = Path(tmp_name)
+            script_path = work_dir / "script.py"
+            script_path.write_text(code, encoding="utf-8")
+            command = _runner_command(
+                RunnerCommandRequest(
+                    runner=runner,
+                    script_path=script_path,
+                    work_dir=work_dir,
+                    output_dir=output_dir,
+                    host=request.host,
+                    port=request.port,
+                    timeout_seconds=request.timeout_seconds,
+                    traffic_manager_ports=request.traffic_manager_ports,
+                    recorder_dir=os.environ.get("CARLA_MCP_RECORDER_DIR"),
+                )
             )
-        )
-        completed = subprocess.run(
-            command,
-            check=False,
-            text=True,
-            capture_output=True,
-            timeout=timeout_seconds + 5.0,
-        )
+            try:
+                completed = subprocess.run(
+                    command,
+                    check=False,
+                    text=True,
+                    capture_output=True,
+                    timeout=request.timeout_seconds + 5.0,
+                )
+            except subprocess.TimeoutExpired:
+                return _failure(
+                    "sandbox_watchdog_error",
+                    "Sandbox wrapper exceeded its cleanup deadline.",
+                    runner,
+                )
+            except OSError as exc:
+                return _failure("sandbox_launcher_error", str(exc), runner)
+    except OSError as exc:
+        return _failure("sandbox_setup_error", str(exc), runner)
     return _decode_runner_output(completed, runner)
+
+
+def _validate_execution(request: ExecutionRequest) -> str | None:
+    """Return the first invalid public execution value."""
+    for error in (
+        _host_error(request.host),
+        _port_error(request.port),
+        _timeout_error(request.timeout_seconds),
+        _traffic_ports_error(request.traffic_manager_ports),
+    ):
+        if error is not None:
+            return error
+    return None
+
+
+def _host_error(host: object) -> str | None:
+    if not isinstance(host, str) or not host.strip():
+        return "host must be a non-empty string."
+    return None
+
+
+def _port_error(port: object) -> str | None:
+    if isinstance(port, bool) or not isinstance(port, int):
+        return f"port must be an integer in 1..{MAX_CARLA_BASE_PORT}."
+    if not 1 <= port <= MAX_CARLA_BASE_PORT:
+        return f"port must be an integer in 1..{MAX_CARLA_BASE_PORT}."
+    return None
+
+
+def _timeout_error(timeout_seconds: object) -> str | None:
+    if isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, int | float):
+        return f"timeout_seconds must be finite and in (0, {MAX_TIMEOUT_SECONDS:g}]."
+    if not math.isfinite(timeout_seconds) or not 0 < timeout_seconds <= MAX_TIMEOUT_SECONDS:
+        return f"timeout_seconds must be finite and in (0, {MAX_TIMEOUT_SECONDS:g}]."
+    return None
+
+
+def _traffic_ports_error(traffic_manager_ports: Sequence[object]) -> str | None:
+    for port in traffic_manager_ports:
+        if isinstance(port, bool) or not isinstance(port, int):
+            return f"traffic_manager_ports must contain integers in 1..{MAX_TCP_PORT}."
+        if not 1 <= port <= MAX_TCP_PORT:
+            return f"traffic_manager_ports must contain integers in 1..{MAX_TCP_PORT}."
+    return None
+
+
+def _failure(error_type: str, error: str, runner: Path | None = None) -> ScriptOutcome:
+    """Return one normalized launcher failure."""
+    return ScriptOutcome(
+        ok=False,
+        result=None,
+        stdout="",
+        resources={},
+        error=error,
+        error_type=error_type,
+        sandbox={"runner": str(runner) if runner is not None else None},
+    )
 
 
 def _runner_command(request: RunnerCommandRequest) -> list[str]:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -16,6 +16,44 @@ if TYPE_CHECKING:
 
 
 
+@pytest.mark.parametrize(
+    "execution_input",
+    [
+        {"host": " "},
+        {"host": None},
+        {"port": True},
+        {"port": 1.5},
+        {"port": 0},
+        {"port": 65534},
+        {"timeout_seconds": True},
+        {"timeout_seconds": 0},
+        {"timeout_seconds": -1},
+        {"timeout_seconds": float("inf")},
+        {"timeout_seconds": float("nan")},
+        {"timeout_seconds": 3601},
+        {"traffic_manager_ports": (False,)},
+        {"traffic_manager_ports": (0,)},
+        {"traffic_manager_ports": (1.5,)},
+        {"traffic_manager_ports": (65536,)},
+    ],
+)
+def test_execute_script_rejects_invalid_input_before_side_effects(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    execution_input: dict[str, Any],
+) -> None:
+    """Every public execution bound should fail before output setup or launch."""
+    output_dir = tmp_path / "outputs"
+    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(output_dir))
+
+    outcome = sandbox.execute_script("result = 1", **execution_input)
+
+    assert {"error_type": outcome.error_type, "output_created": output_dir.exists()} == {
+        "error_type": "invalid_request",
+        "output_created": False,
+    }
+
+
 def test_execute_script_reports_missing_rust_runner(monkeypatch: pytest.MonkeyPatch) -> None:
     """Scripts should fail closed when the Rust sandbox binary is unavailable."""
     monkeypatch.setenv("CARLA_MCP_SANDBOX", "/missing/carla-mcp-sandbox")
@@ -24,6 +62,74 @@ def test_execute_script_reports_missing_rust_runner(monkeypatch: pytest.MonkeyPa
 
     assert outcome.ok is False
     assert outcome.error_type == "sandbox_runner_missing"
+
+
+@pytest.mark.parametrize(
+    ("exception", "error_type"),
+    [
+        (subprocess.TimeoutExpired(["runner"], 1), "sandbox_watchdog_error"),
+        (PermissionError("denied"), "sandbox_launcher_error"),
+    ],
+)
+def test_execute_script_normalizes_launcher_failures(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    exception: Exception,
+    error_type: str,
+) -> None:
+    """Expected outer watchdog and spawn failures should not escape the MCP server."""
+    runner = tmp_path / "carla-mcp-sandbox"
+    runner.write_text("runner", encoding="utf-8")
+    monkeypatch.setenv("CARLA_MCP_SANDBOX", str(runner))
+    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(tmp_path / "outputs"))
+
+    def fail(*_args: object, **_kwargs: object) -> None:
+        raise exception
+
+    monkeypatch.setattr(sandbox.subprocess, "run", fail)
+
+    outcome = sandbox.execute_script("result = 1", timeout_seconds=1)
+
+    assert outcome.error_type == error_type
+    assert outcome.sandbox == {"runner": str(runner)}
+
+
+def test_execute_script_normalizes_output_directory_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Output setup errors should become structured outcomes."""
+    runner = tmp_path / "carla-mcp-sandbox"
+    runner.write_text("runner", encoding="utf-8")
+    output_file = tmp_path / "not-a-directory"
+    output_file.write_text("file", encoding="utf-8")
+    monkeypatch.setenv("CARLA_MCP_SANDBOX", str(runner))
+    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(output_file))
+
+    outcome = sandbox.execute_script("result = 1")
+
+    assert outcome.error_type == "sandbox_setup_error"
+
+
+def test_execute_script_normalizes_temporary_directory_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Temporary-script setup failures should become structured outcomes."""
+    runner = tmp_path / "carla-mcp-sandbox"
+    runner.write_text("runner", encoding="utf-8")
+    monkeypatch.setenv("CARLA_MCP_SANDBOX", str(runner))
+    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(tmp_path / "outputs"))
+
+    def fail(*_args: object, **_kwargs: object) -> None:
+        message = "temporary directory unavailable"
+        raise OSError(message)
+
+    monkeypatch.setattr(sandbox.tempfile, "TemporaryDirectory", fail)
+
+    outcome = sandbox.execute_script("result = 1")
+
+    assert outcome.error_type == "sandbox_setup_error"
 
 
 def test_execute_script_supports_shallow_system_python(

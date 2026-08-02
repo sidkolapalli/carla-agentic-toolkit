@@ -348,6 +348,11 @@ authentication, deployment, and a packaged sandbox runner.
   PowerShell prompt, then reopen the client.
 - **CARLA API is not importable:** install the API version matching the simulator
   into the checkout's `.venv`, then rerun the import preflight.
+- **`invalid_request`:** execution inputs are rejected before filesystem or
+  process setup. `host` must be non-empty; the base RPC port is `1..65533` so
+  CARLA's two adjacent ports remain valid; Traffic Manager ports are
+  `1..65535`; and `timeout_seconds` is finite and in `(0, 3600]`. Hostnames are
+  resolved by CARLA, while Landlock limits ports rather than destination hosts.
 - **`carla_connection_error`:** start CARLA and verify the reported host and RPC
   port plus the adjacent streaming/secondary ports and Traffic Manager port. The
   Rust watchdog allows two seconds beyond CARLA's client deadline so this error
