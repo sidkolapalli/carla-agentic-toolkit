@@ -8,9 +8,17 @@ import os
 import subprocess
 import sys
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
+
+from carla_mcp.adapter import PythonCarlaAdapter
+from carla_mcp.ownership import (
+    OWNERSHIP_FILENAME,
+    RunOwnership,
+    cleanup_owned_actors,
+    cleanup_report,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -33,6 +41,7 @@ class ScriptOutcome:
     error: str | None = None
     error_type: str | None = None
     sandbox: dict[str, object] | None = None
+    cleanup: dict[str, object] | None = None
 
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-compatible representation."""
@@ -44,6 +53,7 @@ class ScriptOutcome:
             "error": self.error,
             "error_type": self.error_type,
             "sandbox": self.sandbox or {},
+            "cleanup": self.cleanup or cleanup_report(),
         }
 
 
@@ -141,9 +151,16 @@ def _execute_with_runner(
                 )
             except OSError as exc:
                 return _failure("sandbox_launcher_error", str(exc), runner)
+            outcome = _decode_runner_output(completed, runner)
+            if outcome.ok:
+                return outcome
+            return _cleanup_failed_execution(
+                outcome,
+                ownership_path=work_dir / OWNERSHIP_FILENAME,
+                request=request,
+            )
     except OSError as exc:
         return _failure("sandbox_setup_error", str(exc), runner)
-    return _decode_runner_output(completed, runner)
 
 
 def _validate_execution(request: ExecutionRequest) -> str | None:
@@ -200,6 +217,7 @@ def _failure(error_type: str, error: str, runner: Path | None = None) -> ScriptO
         error=error,
         error_type=error_type,
         sandbox={"runner": str(runner) if runner is not None else None},
+        cleanup=cleanup_report(),
     )
 
 
@@ -223,6 +241,8 @@ def _runner_command(request: RunnerCommandRequest) -> list[str]:
         str(request.port),
         "--timeout-seconds",
         str(request.timeout_seconds),
+        "--ownership-file",
+        str(request.work_dir / OWNERSHIP_FILENAME),
         "--work-dir",
         str(request.work_dir),
         "--output-dir",
@@ -255,6 +275,7 @@ def _decode_runner_output(
             error=completed.stderr or "Rust sandbox runner did not return JSON.",
             error_type="sandbox_protocol_error",
             sandbox={"runner": str(runner), "exit_code": completed.returncode},
+            cleanup=cleanup_report(),
         )
     if not isinstance(payload, dict):
         return ScriptOutcome(
@@ -265,6 +286,7 @@ def _decode_runner_output(
             error="Rust sandbox runner returned a non-object JSON payload.",
             error_type="sandbox_protocol_error",
             sandbox={"runner": str(runner), "exit_code": completed.returncode},
+            cleanup=cleanup_report(),
         )
     return ScriptOutcome(
         ok=bool(payload.get("ok")),
@@ -282,7 +304,46 @@ def _decode_runner_output(
             "child_signal": payload.get("signal"),
             "stderr": completed.stderr,
         },
+        cleanup=_object_mapping(payload.get("cleanup")),
     )
+
+
+def _cleanup_failed_execution(
+    outcome: ScriptOutcome,
+    *,
+    ownership_path: Path,
+    request: ExecutionRequest,
+) -> ScriptOutcome:
+    """Cleanup a failed run while its ownership journal still exists."""
+    try:
+        adapter = PythonCarlaAdapter(host=request.host, port=request.port, timeout=5.0)
+        report = cleanup_owned_actors(adapter, RunOwnership(ownership_path))
+    except (OSError, RuntimeError, TypeError, ValueError) as exc:
+        failure: dict[str, object] = {"actor_id": None, "error": str(exc)}
+        report = cleanup_report(failures=(failure,))
+    if not any(report.values()):
+        return outcome
+    previous = outcome.cleanup or cleanup_report()
+    combined = {
+        "attempted_actor_ids": [
+            *_list_value(previous, "attempted_actor_ids"),
+            *_list_value(report, "attempted_actor_ids"),
+        ],
+        "destroyed_actor_ids": [
+            *_list_value(previous, "destroyed_actor_ids"),
+            *_list_value(report, "destroyed_actor_ids"),
+        ],
+        "failures": [
+            *_list_value(previous, "failures"),
+            *_list_value(report, "failures"),
+        ],
+    }
+    return replace(outcome, cleanup=combined)
+
+
+def _list_value(payload: dict[str, object], key: str) -> list[object]:
+    value = payload.get(key)
+    return cast("list[object]", value) if isinstance(value, list) else []
 
 
 def _optional_string(value: object) -> str | None:

@@ -10,7 +10,11 @@ from carla_mcp.models import (
     TrafficDensityRequest,
     TrafficPopulationRequest,
 )
-from carla_mcp.traffic_controller_service import maintain_traffic_once
+from carla_mcp.traffic_controller_service import (
+    InProcessTrafficControllerService,
+    TrafficControllerStep,
+    maintain_traffic_once,
+)
 
 if TYPE_CHECKING:
     import pytest
@@ -18,6 +22,7 @@ if TYPE_CHECKING:
     from carla_mcp.carla_protocols import CarlaClient
 
 ACTOR_ID: Final = 342
+SPAWNED_ACTOR_ID: Final = 343
 
 
 @dataclass
@@ -224,13 +229,64 @@ def test_existing_vehicles_are_registered_with_traffic_manager(
         "events": events,
         "vehicle_count": result.vehicle_count,
         "registered_actor_ids": result.registered_actor_ids,
+        "spawned_actor_ids": result.spawned_actor_ids,
     } == {
         "autopilot_calls": [(True, 9000)],
         "destroyed": False,
         "events": ["configure", "tick"],
         "vehicle_count": 1,
         "registered_actor_ids": frozenset({ACTOR_ID}),
+        "spawned_actor_ids": (),
     }
+
+
+def test_spawned_vehicles_are_distinct_from_adopted_vehicles(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Only actual controller spawns should enter failure-cleanup ownership."""
+    events: list[str] = []
+    actor = VehicleActor(destroyed=True)
+    client = Client(world=World(actor=actor, events=events))
+    monkeypatch.setattr(
+        "carla_mcp.traffic_controller_service.traffic_manager",
+        lambda _client, _port: TrafficManager(),
+    )
+    monkeypatch.setattr(
+        "carla_mcp.traffic_controller_service.configure_traffic_manager",
+        lambda _manager, _request: None,
+    )
+    monkeypatch.setattr(
+        "carla_mcp.traffic_controller_service.populate_traffic_actors",
+        lambda **_kwargs: ([SPAWNED_ACTOR_ID], []),
+    )
+
+    result = maintain_traffic_once(
+        cast("CarlaClient", client),
+        TrafficControllerStartRequest(density=TrafficDensityRequest(vehicle_count=1)),
+        {},
+    )
+
+    assert result.registered_actor_ids == frozenset({SPAWNED_ACTOR_ID})
+    assert result.spawned_actor_ids == (SPAWNED_ACTOR_ID,)
+
+
+def test_controller_reports_only_actual_spawns_to_ownership() -> None:
+    """Adopted pre-existing vehicles must not be marked as script-owned."""
+    owned: list[int] = []
+    request = TrafficControllerStartRequest(density=TrafficDensityRequest(vehicle_count=2))
+    service = InProcessTrafficControllerService(on_spawn=owned.extend)
+
+    service._record_step(  # noqa: SLF001 - characterize ownership boundary
+        TrafficControllerStep(
+            request=request,
+            vehicle_count=2,
+            moving_vehicle_count=0,
+            registered_actor_ids=frozenset({ACTOR_ID, SPAWNED_ACTOR_ID}),
+            spawned_actor_ids=(SPAWNED_ACTOR_ID,),
+        )
+    )
+
+    assert owned == [SPAWNED_ACTOR_ID]
 
 
 def test_known_vehicles_are_not_registered_again(

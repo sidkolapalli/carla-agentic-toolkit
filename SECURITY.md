@@ -75,6 +75,14 @@ capture limit. Exceeding it discards the captured payload and returns
 `output_too_large`; genuine deadline overruns return `script_timeout` with
 bounded partial output.
 
+Actor IDs created through the curated API are written incrementally to the
+per-run work directory. After an uncaught exception or killed timeout, the
+parent reads that journal before deleting the directory and asks CARLA to
+destroy only those IDs, in reverse creation order. Cleanup is best effort: its
+structured report preserves the original failure classification and records any
+CARLA connection or destroy failure. Successful scripts retain actors unless
+they explicitly clean them.
+
 Landlock has no byte quota, and `RLIMIT_FSIZE` would terminate the child with
 `SIGXFSZ` before it could reliably serialize the required dedicated error.
 Therefore individual output-file and aggregate persistent-directory limits are

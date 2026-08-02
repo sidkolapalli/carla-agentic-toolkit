@@ -269,6 +269,10 @@ assumptions, and private vulnerability reporting process.
 - One MCP server serializes complete script executions against shared simulator
   state. `timeout_seconds` starts after queueing and covers sandbox execution,
   not time spent waiting for that lock.
+- Actors created through the curated API are journaled per execution. Uncaught
+  exceptions and timeouts trigger best-effort CARLA-side cleanup without touching
+  pre-existing actors. Successful runs keep their actors unless the script calls
+  `api.cleanup_owned_actors()` or explicit destroy methods.
 - Windows support uses WSL2; there is no weaker native Windows sandbox fallback.
 - Traffic controller state lasts for one script process. Keep that script alive
   with `api.wait()` or use the live sidecar.

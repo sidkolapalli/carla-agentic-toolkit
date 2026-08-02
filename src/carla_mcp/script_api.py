@@ -15,7 +15,15 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 from carla_mcp.actor_registry import ActorRegistry, actor_registry_path
-from carla_mcp.errors import ActorRegistryError, CarlaAdapterError
+from carla_mcp.errors import ActorRegistryError, CarlaAdapterError, OwnershipError
+from carla_mcp.ownership import (
+    RunOwnership,
+    cleanup_owned_actors,
+    payload_actor_ids,
+    release_batch_destroyed,
+    release_destroyed,
+    track_owned,
+)
 from carla_mcp.tool_inputs import (
     parse_autopilot_request,
     parse_camera_attach_request,
@@ -27,11 +35,13 @@ from carla_mcp.tool_inputs import (
     parse_traffic_population_request,
     parse_transform,
     parse_vehicle_behavior_request,
+    sensor_blueprint,
+    zero_transform,
 )
 from carla_mcp.traffic_controller_service import InProcessTrafficControllerService
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterable
 
     from carla_mcp.adapter import CarlaAdapter
     from carla_mcp.models import JsonObject
@@ -68,12 +78,14 @@ class CarlaScriptApi:
         adapter: CarlaAdapter,
         snapshots: RunSnapshots,
         actor_registry: ActorRegistry | None = None,
+        ownership: RunOwnership | None = None,
     ) -> None:
         """Bind the API to a CARLA adapter and run-local snapshots."""
         self._adapter = adapter
         self._snapshots = snapshots
         self._actor_registry = actor_registry
-        self._traffic_controller = InProcessTrafficControllerService()
+        self._ownership = ownership
+        self._traffic_controller = InProcessTrafficControllerService(on_spawn=self._track_owned)
 
     def _operation(
         self,
@@ -84,7 +96,7 @@ class CarlaScriptApi:
         """Return a CARLA value or one uniform recoverable failure."""
         try:
             return operation()
-        except (ActorRegistryError, CarlaAdapterError) as exc:
+        except (ActorRegistryError, CarlaAdapterError, OwnershipError) as exc:
             return {
                 "ok": False,
                 "error_type": error_type,
@@ -94,12 +106,15 @@ class CarlaScriptApi:
                 **details,
             }
 
+    def _snapshot(self, uri: str, payload: JsonObject) -> JsonObject:
+        self._snapshots.register_snapshot(uri, payload)
+        return payload
+
     @_recover("carla_connection_error", endpoint=True)
     def health_check(self) -> JsonObject:
         """Return CARLA connection health."""
         payload = self._adapter.health_check().to_dict()
-        self._snapshots.register_snapshot("carla-snapshot://session/status", payload)
-        return payload
+        return self._snapshot("carla-snapshot://session/status", payload)
 
     @_recover("world_state_failed")
     def get_world_state(self) -> JsonObject:
@@ -112,13 +127,14 @@ class CarlaScriptApi:
     def list_worlds(self) -> JsonObject:
         """Return available CARLA maps."""
         payload = {"worlds": sorted(self._adapter.list_worlds())}
-        self._snapshots.register_snapshot("carla-snapshot://worlds", payload)
-        return payload
+        return self._snapshot("carla-snapshot://worlds", payload)
 
     @_recover("load_world_failed")
     def load_world(self, map_name: str) -> JsonObject:
         """Load a CARLA map by name."""
         payload = self._adapter.load_world(map_name).to_dict()
+        if self._ownership is not None:
+            self._ownership.clear()
         self._snapshots.register_snapshot("carla-snapshot://world/current", payload)
         return payload
 
@@ -141,8 +157,7 @@ class CarlaScriptApi:
     def tick(self) -> JsonObject:
         """Advance the simulation by one frame."""
         payload = {"frame": self._adapter.tick()}
-        self._snapshots.register_snapshot("carla-snapshot://session/last-tick", payload)
-        return payload
+        return self._snapshot("carla-snapshot://session/last-tick", payload)
 
     @_recover("tick_failed")
     def tick_n(self, count: int) -> JsonObject:
@@ -160,32 +175,29 @@ class CarlaScriptApi:
         payload = {
             "blueprints": [item.to_dict() for item in self._adapter.list_blueprints(filter_pattern)]
         }
-        self._snapshots.register_snapshot(f"carla-snapshot://blueprints/{filter_pattern}", payload)
-        return payload
+        return self._snapshot(f"carla-snapshot://blueprints/{filter_pattern}", payload)
 
     @_recover("spawn_actor_batch_failed")
     def spawn_actor_batch(self, requests: list[dict[str, object]]) -> JsonObject:
         """Spawn actors from JSON-compatible spawn requests."""
         results = self._adapter.spawn_actor_batch(parse_spawn_requests(requests))
+        self._track_owned(result.actor_id for result in results if result.actor_id is not None)
         payload = {"results": [item.to_dict() for item in results]}
-        self._snapshots.register_snapshot("carla-snapshot://actors", payload)
-        return payload
+        return self._snapshot("carla-snapshot://actors", payload)
 
     @_recover("list_actors_failed")
     def list_actors(self, filter_pattern: str = "*") -> JsonObject:
         """List current actors matching a wildcard filter."""
         payload = {"actors": [item.to_dict() for item in self._adapter.list_actors(filter_pattern)]}
-        self._snapshots.register_snapshot("carla-snapshot://actors/current", payload)
-        return payload
+        return self._snapshot("carla-snapshot://actors/current", payload)
 
     @_recover("destroy_actors_failed")
     def destroy_actors(self, actor_ids: list[int]) -> JsonObject:
         """Destroy explicit actors by ID."""
-        payload = {
-            "results": [item.to_dict() for item in self._adapter.destroy_actors(tuple(actor_ids))]
-        }
-        self._snapshots.register_snapshot("carla-snapshot://actors/destroyed", payload)
-        return payload
+        results = self._adapter.destroy_actors(tuple(actor_ids))
+        release_destroyed(self._ownership, results)
+        payload = {"results": [item.to_dict() for item in results]}
+        return self._snapshot("carla-snapshot://actors/destroyed", payload)
 
     @_recover("name_actor_failed")
     def name_actor(self, name: str, actor_id: int) -> JsonObject:
@@ -227,6 +239,7 @@ class CarlaScriptApi:
         population = self._adapter.populate_traffic(
             request=parse_traffic_population_request(request)
         )
+        self._track_owned(population.actor_ids)
         payload = population.to_dict()
         self._snapshots.register_snapshot("carla-snapshot://traffic/population", payload)
         self._snapshots.register_snapshot(
@@ -251,8 +264,7 @@ class CarlaScriptApi:
         payload = self._adapter.configure_traffic_manager(
             request=parse_traffic_manager_request(request)
         ).to_dict()
-        self._snapshots.register_snapshot("carla-snapshot://traffic/manager", payload)
-        return payload
+        return self._snapshot("carla-snapshot://traffic/manager", payload)
 
     @_recover("start_traffic_controller_failed")
     def start_traffic_controller(self, request: dict[str, object]) -> JsonObject:
@@ -289,17 +301,19 @@ class CarlaScriptApi:
         payload = self._traffic_controller.set_vehicle_behavior(
             parse_vehicle_behavior_request(request)
         ).to_dict()
-        self._snapshots.register_snapshot("carla-snapshot://traffic/behaviors", payload)
-        return payload
+        return self._snapshot("carla-snapshot://traffic/behaviors", payload)
 
     def _controller_status_payload(self, payload: JsonObject) -> JsonObject:
-        self._snapshots.register_snapshot("carla-snapshot://traffic/controller", payload)
-        return payload
+        return self._snapshot("carla-snapshot://traffic/controller", payload)
+
+    def _track_owned(self, actor_ids: Iterable[int]) -> None:
+        track_owned(self._adapter, self._ownership, actor_ids)
 
     @_recover("attach_camera_failed")
     def attach_camera(self, request: dict[str, object]) -> JsonObject:
         """Attach a camera sensor."""
         sensor = self._adapter.attach_camera(request=parse_camera_attach_request(request))
+        self._track_owned((sensor.sensor_id,))
         payload = sensor.to_dict()
         self._snapshots.register_snapshot(f"carla-snapshot://sensors/{sensor.sensor_id}", payload)
         return payload
@@ -327,11 +341,12 @@ class CarlaScriptApi:
     ) -> JsonObject:
         """Attach any supported CARLA sensor kind to an actor."""
         sensor = self._adapter.attach_sensor(
-            blueprint_id=_sensor_blueprint(kind),
+            blueprint_id=sensor_blueprint(kind),
             transform=parse_transform(transform),
             attributes=attributes or {},
             parent_actor_id=parent_id,
         )
+        self._track_owned((sensor.sensor_id,))
         payload = sensor.to_dict()
         self._snapshots.register_snapshot(f"carla-snapshot://sensors/{sensor.sensor_id}", payload)
         return payload
@@ -349,8 +364,7 @@ class CarlaScriptApi:
             frame_count=frames,
             output_dir=Path(output_dir) if output_dir is not None else None,
         )
-        self._snapshots.register_snapshot(f"carla-snapshot://sensors/{sensor_id}/stream", payload)
-        return payload
+        return self._snapshot(f"carla-snapshot://sensors/{sensor_id}/stream", payload)
 
     def attach_event_sensor(
         self,
@@ -362,7 +376,7 @@ class CarlaScriptApi:
         return self.attach_sensor(
             kind=kind,
             parent_id=parent_id,
-            transform=_zero_transform(),
+            transform=zero_transform(),
             attributes=attributes,
         )
 
@@ -370,15 +384,15 @@ class CarlaScriptApi:
     def detach_sensor(self, sensor_id: int) -> JsonObject:
         """Stop and destroy a sensor actor."""
         payload = self._adapter.detach_sensor(sensor_id)
-        self._snapshots.register_snapshot(f"carla-snapshot://sensors/{sensor_id}/detached", payload)
-        return payload
+        if payload.get("destroyed") is True and self._ownership is not None:
+            self._ownership.discard((sensor_id,))
+        return self._snapshot(f"carla-snapshot://sensors/{sensor_id}/detached", payload)
 
     @_recover("get_spawn_points_failed")
     def get_spawn_points(self) -> JsonObject:
         """Return legal vehicle spawn transforms from the current map."""
         payload = self._adapter.get_spawn_points()
-        self._snapshots.register_snapshot("carla-snapshot://map/spawn-points", payload)
-        return payload
+        return self._snapshot("carla-snapshot://map/spawn-points", payload)
 
     @_recover("get_waypoint_failed")
     def get_waypoint(
@@ -410,22 +424,19 @@ class CarlaScriptApi:
             step_meters=step_meters,
             max_steps=max_steps,
         )
-        self._snapshots.register_snapshot("carla-snapshot://route/latest", payload)
-        return payload
+        return self._snapshot("carla-snapshot://route/latest", payload)
 
     @_recover("get_topology_failed")
     def get_topology(self, max_segments: int = 200) -> JsonObject:
         """Return a compact road topology graph."""
         payload = self._adapter.get_topology(max_segments=max_segments)
-        self._snapshots.register_snapshot("carla-snapshot://map/topology", payload)
-        return payload
+        return self._snapshot("carla-snapshot://map/topology", payload)
 
     @_recover("get_landmarks_failed")
     def get_landmarks(self, max_count: int = 200) -> JsonObject:
         """Return map landmarks when supported by the loaded map."""
         payload = self._adapter.get_landmarks(max_count=max_count)
-        self._snapshots.register_snapshot("carla-snapshot://map/landmarks", payload)
-        return payload
+        return self._snapshot("carla-snapshot://map/landmarks", payload)
 
     @_recover("apply_vehicle_control_failed")
     def apply_vehicle_control(self, actor_id: int, **control: object) -> JsonObject:
@@ -436,8 +447,7 @@ class CarlaScriptApi:
     def get_vehicle_telemetry(self, actor_id: int) -> JsonObject:
         """Return transform, speed, control, and traffic-light telemetry."""
         payload = self._adapter.get_vehicle_telemetry(actor_id)
-        self._snapshots.register_snapshot(f"carla-snapshot://actors/{actor_id}/telemetry", payload)
-        return payload
+        return self._snapshot(f"carla-snapshot://actors/{actor_id}/telemetry", payload)
 
     @_recover("set_actor_transform_failed")
     def set_actor_transform(self, actor_id: int, transform: dict[str, object]) -> JsonObject:
@@ -469,8 +479,8 @@ class CarlaScriptApi:
     ) -> JsonObject:
         """Spawn pedestrians and AI walker controllers."""
         payload = self._adapter.spawn_walkers(count=count, speed=speed, seed=seed)
-        self._snapshots.register_snapshot("carla-snapshot://walkers/latest", payload)
-        return payload
+        self._track_owned(payload_actor_ids(payload, "walker_ids", "controller_ids"))
+        return self._snapshot("carla-snapshot://walkers/latest", payload)
 
     @_recover("set_walker_destination_failed")
     def set_walker_destination(
@@ -586,13 +596,22 @@ class CarlaScriptApi:
     def reload_world(self, *, reset_settings: bool = False) -> JsonObject:
         """Reload the current world for a clean scenario reset."""
         payload = self._adapter.reload_world(reset_settings=reset_settings)
+        if self._ownership is not None:
+            self._ownership.clear()
         self._snapshots.register_snapshot("carla-snapshot://world/current", payload)
         return payload
 
     @_recover("apply_batch_failed")
     def apply_batch(self, commands: list[dict[str, object]]) -> JsonObject:
         """Apply supported bulk CARLA commands, such as destroy_actor."""
-        return self._adapter.apply_batch(commands)
+        payload = self._adapter.apply_batch(commands)
+        release_batch_destroyed(self._ownership, payload)
+        return payload
+
+    @_recover("cleanup_owned_actors_failed")
+    def cleanup_owned_actors(self) -> JsonObject:
+        """Destroy every actor created by this script execution."""
+        return cleanup_owned_actors(self._adapter, self._ownership)
 
     @_recover("list_capabilities_failed")
     def list_capabilities(self) -> JsonObject:
@@ -607,8 +626,7 @@ class CarlaScriptApi:
             if _is_script_method(self, name)
         }
         payload = {"methods": methods}
-        self._snapshots.register_snapshot("carla-snapshot://api", payload)
-        return payload
+        return self._snapshot("carla-snapshot://api", payload)
 
     @_recover("record_episode_failed")
     def record_episode(self, output_path: str) -> JsonObject:
@@ -653,39 +671,6 @@ class CarlaScriptApi:
         bounded_seconds = min(max(seconds, 0.0), 60.0)
         time.sleep(bounded_seconds)
         return {"waited_seconds": bounded_seconds}
-
-
-_SENSOR_BLUEPRINTS = {
-    "rgb": "sensor.camera.rgb",
-    "camera.rgb": "sensor.camera.rgb",
-    "depth": "sensor.camera.depth",
-    "camera.depth": "sensor.camera.depth",
-    "semantic_segmentation": "sensor.camera.semantic_segmentation",
-    "instance_segmentation": "sensor.camera.instance_segmentation",
-    "lidar": "sensor.lidar.ray_cast",
-    "semantic_lidar": "sensor.lidar.ray_cast_semantic",
-    "radar": "sensor.other.radar",
-    "imu": "sensor.other.imu",
-    "gnss": "sensor.other.gnss",
-    "collision": "sensor.other.collision",
-    "lane_invasion": "sensor.other.lane_invasion",
-    "obstacle": "sensor.other.obstacle",
-}
-
-
-def _sensor_blueprint(kind: str) -> str:
-    """Resolve a friendly sensor kind to a CARLA blueprint id."""
-    if kind.startswith("sensor."):
-        return kind
-    return _SENSOR_BLUEPRINTS[kind]
-
-
-def _zero_transform() -> dict[str, object]:
-    """Return a zero-relative transform payload."""
-    return {
-        "location": {"x": 0.0, "y": 0.0, "z": 0.0},
-        "rotation": {"pitch": 0.0, "yaw": 0.0, "roll": 0.0},
-    }
 
 
 def _is_script_method(api: CarlaScriptApi, name: str) -> bool:

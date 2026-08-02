@@ -21,6 +21,38 @@ from carla_mcp.models import (
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+_SENSOR_BLUEPRINTS = {
+    "rgb": "sensor.camera.rgb",
+    "camera.rgb": "sensor.camera.rgb",
+    "depth": "sensor.camera.depth",
+    "camera.depth": "sensor.camera.depth",
+    "semantic_segmentation": "sensor.camera.semantic_segmentation",
+    "instance_segmentation": "sensor.camera.instance_segmentation",
+    "lidar": "sensor.lidar.ray_cast",
+    "semantic_lidar": "sensor.lidar.ray_cast_semantic",
+    "radar": "sensor.other.radar",
+    "imu": "sensor.other.imu",
+    "gnss": "sensor.other.gnss",
+    "collision": "sensor.other.collision",
+    "lane_invasion": "sensor.other.lane_invasion",
+    "obstacle": "sensor.other.obstacle",
+}
+
+
+def sensor_blueprint(kind: str) -> str:
+    """Resolve a friendly sensor kind or preserve a runtime blueprint ID."""
+    if kind.startswith("sensor."):
+        return kind
+    return _SENSOR_BLUEPRINTS[kind]
+
+
+def zero_transform() -> dict[str, object]:
+    """Return a zero-relative transform payload."""
+    return {
+        "location": {"x": 0.0, "y": 0.0, "z": 0.0},
+        "rotation": {"pitch": 0.0, "yaw": 0.0, "roll": 0.0},
+    }
+
 
 def parse_spawn_requests(payloads: list[dict[str, object]]) -> tuple[SpawnRequest, ...]:
     """Parse JSON-compatible spawn request payloads into typed requests."""

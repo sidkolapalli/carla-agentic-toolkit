@@ -29,7 +29,7 @@ from carla_mcp.traffic_runtime import (
 MOVING_SPEED_THRESHOLD_MPS = 0.5
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Callable, Mapping
 
     from carla_mcp.carla_protocols import (
         CarlaActor,
@@ -59,13 +59,18 @@ class TrafficControllerStep:
     vehicle_count: int
     moving_vehicle_count: int
     registered_actor_ids: frozenset[int]
+    spawned_actor_ids: tuple[int, ...] = ()
 
 
 class InProcessTrafficControllerService:
     """Persistent Traffic Manager controller held by the MCP server process."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        on_spawn: Callable[[tuple[int, ...]], None] | None = None,
+    ) -> None:
         """Create an inactive controller service."""
+        self._on_spawn = on_spawn
         self._lock = threading.RLock()
         self._stop_event = threading.Event()
         self._thread: threading.Thread | None = None
@@ -169,6 +174,8 @@ class InProcessTrafficControllerService:
 
     def _record_step(self, result: TrafficControllerStep) -> None:
         """Record the completed controller step."""
+        if result.spawned_actor_ids and self._on_spawn is not None:
+            self._on_spawn(result.spawned_actor_ids)
         with self._lock:
             self._state = replace(
                 self._state,
@@ -180,17 +187,6 @@ class InProcessTrafficControllerService:
             )
             self._registered_actor_ids = result.registered_actor_ids
             self._configured_density = result.request.density
-
-    def _record_counts(self, vehicle_count: int, moving_vehicle_count: int) -> None:
-        """Record live vehicle counts."""
-        with self._lock:
-            self._state = replace(
-                self._state,
-                active=True,
-                vehicle_count=vehicle_count,
-                moving_vehicle_count=moving_vehicle_count,
-                last_error=None,
-            )
 
     def _record_error(self, message: str) -> None:
         """Record the latest controller error."""
@@ -246,7 +242,7 @@ def maintain_traffic_once(
     traffic_manager_instance = traffic_manager(client, density_request.traffic_manager_port)
     if configure_manager:
         _configure_density_manager(traffic_manager_instance, density_request)
-    registered_actor_ids = _converge_density(
+    registered_actor_ids, spawned_actor_ids = _converge_density(
         world,
         traffic_manager_instance,
         density_request,
@@ -260,6 +256,7 @@ def maintain_traffic_once(
         vehicle_count=counts[0],
         moving_vehicle_count=counts[1],
         registered_actor_ids=registered_actor_ids,
+        spawned_actor_ids=spawned_actor_ids,
     )
 
 
@@ -285,8 +282,8 @@ def _converge_density(
     traffic_manager_instance: CarlaTrafficManager,
     request: TrafficDensityRequest,
     registered_actor_ids: frozenset[int],
-) -> frozenset[int]:
-    """Converge current vehicles to the requested density."""
+) -> tuple[frozenset[int], tuple[int, ...]]:
+    """Converge current vehicles and return managed plus newly spawned IDs."""
     vehicles = _vehicle_actors(world)
     _trim_vehicles(vehicles, request.vehicle_count)
     vehicles = _vehicle_actors(world)
@@ -303,7 +300,8 @@ def _converge_density(
         current_count,
     )
     newly_registered_ids = frozenset(actor.id for actor in unregistered_vehicles)
-    return known_ids | newly_registered_ids | frozenset(spawned_ids)
+    managed_ids = known_ids | newly_registered_ids | frozenset(spawned_ids)
+    return managed_ids, spawned_ids
 
 
 def _spawn_missing_vehicles(

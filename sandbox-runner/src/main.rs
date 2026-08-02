@@ -41,6 +41,8 @@ struct Args {
     #[arg(long)]
     work_dir: PathBuf,
     #[arg(long)]
+    ownership_file: Option<PathBuf>,
+    #[arg(long)]
     output_dir: PathBuf,
     #[arg(long)]
     recorder_dir: Option<String>,
@@ -82,7 +84,11 @@ fn run() -> Result<Value> {
         .arg("--port")
         .arg(args.port.to_string())
         .arg("--timeout-seconds")
-        .arg(args.timeout_seconds.to_string())
+        .arg(args.timeout_seconds.to_string());
+    if let Some(ownership_file) = &args.ownership_file {
+        command.arg("--ownership-file").arg(ownership_file);
+    }
+    command
         .current_dir(&args.output_dir)
         .env_clear()
         .env("PATH", "/usr/bin:/bin:/home/linuxbrew/.linuxbrew/bin")

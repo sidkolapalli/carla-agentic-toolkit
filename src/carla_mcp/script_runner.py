@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import cast
 
 from carla_mcp.adapter import PythonCarlaAdapter
+from carla_mcp.ownership import RunOwnership, cleanup_owned_actors, cleanup_report
 from carla_mcp.script_api import CarlaScriptApi
 from carla_mcp.snapshots import RunSnapshots
 
@@ -82,6 +83,7 @@ def main() -> None:
         host=args.host,
         port=args.port,
         timeout_seconds=args.timeout_seconds,
+        ownership_path=args.ownership_file,
     )
     sys.stdout.write(json.dumps(outcome, sort_keys=True) + "\n")
 
@@ -92,6 +94,7 @@ def run_script_file(
     host: str,
     port: int,
     timeout_seconds: float,
+    ownership_path: Path | None = None,
 ) -> dict[str, object]:
     """Execute one script file with a curated CARLA API object."""
     code = script_path.read_text(encoding="utf-8")
@@ -100,7 +103,8 @@ def run_script_file(
         return _error("script_rejected", rejection, stdout="")
     snapshots = RunSnapshots()
     adapter = PythonCarlaAdapter(host=host, port=port, timeout=timeout_seconds)
-    api = CarlaScriptApi(adapter=adapter, snapshots=snapshots)
+    ownership = RunOwnership(ownership_path) if ownership_path is not None else None
+    api = CarlaScriptApi(adapter=adapter, snapshots=snapshots, ownership=ownership)
     stream = io.StringIO()
     try:
         with contextlib.redirect_stdout(stream):
@@ -113,7 +117,13 @@ def run_script_file(
                 },
             )
     except Exception as exc:
-        return _error(type(exc).__name__, str(exc), stdout=stream.getvalue())
+        cleanup = cleanup_owned_actors(adapter, ownership)
+        return _error(
+            type(exc).__name__,
+            str(exc),
+            stdout=stream.getvalue(),
+            cleanup=cleanup,
+        )
     return {
         "ok": True,
         "result": _jsonable(globals_after_run.get(RESULT_NAME)),
@@ -121,6 +131,7 @@ def run_script_file(
         "error": None,
         "error_type": None,
         "snapshots": _snapshots(snapshots),
+        "cleanup": cleanup_report(),
     }
 
 
@@ -131,6 +142,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", default=2000, type=int)
     parser.add_argument("--timeout-seconds", default=30.0, type=float)
+    parser.add_argument("--ownership-file", type=Path)
     return parser.parse_args()
 
 
@@ -186,7 +198,13 @@ def _snapshots(snapshots: RunSnapshots) -> dict[str, object]:
     return {uri: snapshots.read_snapshot(uri) for uri in snapshots.snapshot_uris()}
 
 
-def _error(error_type: str, message: str, *, stdout: str) -> dict[str, object]:
+def _error(
+    error_type: str,
+    message: str,
+    *,
+    stdout: str,
+    cleanup: dict[str, object] | None = None,
+) -> dict[str, object]:
     """Return a JSON-compatible error outcome."""
     return {
         "ok": False,
@@ -195,6 +213,7 @@ def _error(error_type: str, message: str, *, stdout: str) -> dict[str, object]:
         "error": message,
         "error_type": error_type,
         "snapshots": {},
+        "cleanup": cleanup or cleanup_report(),
     }
 
 

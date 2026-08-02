@@ -7,3 +7,7 @@ class CarlaAdapterError(RuntimeError):
 
 class ActorRegistryError(RuntimeError):
     """Raised when persistent actor-name state cannot satisfy an operation."""
+
+
+class OwnershipError(RuntimeError):
+    """Raised when an execution ownership journal cannot be updated."""
