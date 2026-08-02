@@ -191,6 +191,19 @@ Resources capability. Files under `CARLA_MCP_OUTPUT_DIR` may persist after the
 call. In v0.1 this is a breaking rename from the former `resources` field; no
 compatibility alias is emitted.
 
+Actors can keep conversational names across calls:
+
+```python
+api.name_actor("ego", actor_id)
+ego_id = api.resolve_actor("ego")["actor_id"]
+```
+
+Aliases are stored under `CARLA_MCP_OUTPUT_DIR`, isolated by CARLA host and
+port, and survive server restarts that reuse that directory. `resolve_actor()`
+checks the live simulator and removes stale aliases; names are a convenience,
+not an authorization boundary. Use `api.list_named_actors()` and
+`api.forget_actor()` to manage them.
+
 ## Capabilities
 
 | Control surface | Examples |

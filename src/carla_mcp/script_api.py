@@ -14,7 +14,8 @@ from inspect import signature
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-from carla_mcp.errors import CarlaAdapterError
+from carla_mcp.actor_registry import ActorRegistry, actor_registry_path
+from carla_mcp.errors import ActorRegistryError, CarlaAdapterError
 from carla_mcp.tool_inputs import (
     parse_autopilot_request,
     parse_camera_attach_request,
@@ -62,10 +63,16 @@ def _recover(
 class CarlaScriptApi:
     """High-level CARLA operations callable from a sandboxed script."""
 
-    def __init__(self, adapter: CarlaAdapter, snapshots: RunSnapshots) -> None:
+    def __init__(
+        self,
+        adapter: CarlaAdapter,
+        snapshots: RunSnapshots,
+        actor_registry: ActorRegistry | None = None,
+    ) -> None:
         """Bind the API to a CARLA adapter and run-local snapshots."""
         self._adapter = adapter
         self._snapshots = snapshots
+        self._actor_registry = actor_registry
         self._traffic_controller = InProcessTrafficControllerService()
 
     def _operation(
@@ -77,7 +84,7 @@ class CarlaScriptApi:
         """Return a CARLA value or one uniform recoverable failure."""
         try:
             return operation()
-        except CarlaAdapterError as exc:
+        except (ActorRegistryError, CarlaAdapterError) as exc:
             return {
                 "ok": False,
                 "error_type": error_type,
@@ -179,6 +186,40 @@ class CarlaScriptApi:
         }
         self._snapshots.register_snapshot("carla-snapshot://actors/destroyed", payload)
         return payload
+
+    @_recover("name_actor_failed")
+    def name_actor(self, name: str, actor_id: int) -> JsonObject:
+        """Assign a conversational name to one live CARLA actor."""
+        live_ids = {actor.actor_id for actor in self._adapter.list_actors("*")}
+        return self._named_actor_result(self._registry().name_actor(name, actor_id, live_ids))
+
+    @_recover("resolve_actor_failed")
+    def resolve_actor(self, name: str) -> JsonObject:
+        """Resolve a conversational actor name and verify that it is still live."""
+        live_ids = {actor.actor_id for actor in self._adapter.list_actors("*")}
+        return self._named_actor_result(self._registry().resolve_actor(name, live_ids))
+
+    @_recover("list_named_actors_failed")
+    def list_named_actors(self) -> JsonObject:
+        """List persistent actor names for this CARLA endpoint."""
+        return self._named_actor_result(self._registry().list_actors())
+
+    @_recover("forget_actor_failed")
+    def forget_actor(self, name: str) -> JsonObject:
+        """Forget one conversational actor name without destroying the actor."""
+        return self._named_actor_result(self._registry().forget_actor(name))
+
+    def _registry(self) -> ActorRegistry:
+        if self._actor_registry is None:
+            path = actor_registry_path(Path.cwd(), self._adapter.host, self._adapter.port)
+            self._actor_registry = ActorRegistry(path)
+        return self._actor_registry
+
+    def _named_actor_result(self, result: JsonObject) -> JsonObject:
+        self._snapshots.register_snapshot(
+            "carla-snapshot://actors/named", self._registry().list_actors()
+        )
+        return result
 
     @_recover("populate_traffic_failed")
     def populate_traffic(self, request: dict[str, object]) -> JsonObject:
