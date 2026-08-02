@@ -203,6 +203,29 @@ class ExperimentAdapter(Protocol):
     ) -> JsonObject:
         """Update supported vehicle physics fields."""
 
+    def get_environment_objects(self, *, label: str, max_count: int) -> JsonObject:
+        """Return bounded static environment objects."""
+
+    def enable_environment_objects(
+        self,
+        *,
+        object_ids: tuple[int, ...],
+        enabled: bool,
+    ) -> JsonObject:
+        """Enable or disable explicit environment object IDs."""
+
+    def set_map_layer(self, *, layer: str, loaded: bool) -> JsonObject:
+        """Load or unload one runtime map layer."""
+
+    def generate_opendrive_world(
+        self,
+        *,
+        opendrive: str,
+        parameters: dict[str, object],
+        reset_settings: bool,
+    ) -> JsonObject:
+        """Generate a world from bounded OpenDRIVE text."""
+
     def apply_vehicle_control(self, *, actor_id: int, control: dict[str, object]) -> JsonObject:
         """Apply direct vehicle control."""
 

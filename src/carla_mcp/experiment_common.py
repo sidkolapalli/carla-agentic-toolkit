@@ -6,7 +6,7 @@ import math
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, cast
 
-from carla_mcp.errors import CarlaAdapterError
+from carla_mcp.errors import CarlaAdapterError, UnsupportedFeatureError
 from carla_mcp.models import ActorCounts, Location, Rotation, Transform, WorldSettings, WorldState
 
 if TYPE_CHECKING:
@@ -158,9 +158,7 @@ def vector_length(vector: object) -> float:
     """Return vector magnitude."""
     carla_vector = cast("Any", vector)
     return math.sqrt(
-        float(carla_vector.x) ** 2
-        + float(carla_vector.y) ** 2
-        + float(carla_vector.z) ** 2
+        float(carla_vector.x) ** 2 + float(carla_vector.y) ** 2 + float(carla_vector.z) ** 2
     )
 
 
@@ -194,6 +192,27 @@ def safe_text_method(target: object, method_name: str) -> str | None:
     if value is None:
         return None
     return str(value)
+
+
+def call_required(target: object, method_name: str, *args: object) -> object:
+    """Call a runtime capability or report that the connected build lacks it."""
+    method = getattr(target, method_name, None)
+    if not callable(method):
+        message = f"Connected CARLA runtime does not support {method_name}."
+        raise UnsupportedFeatureError(message)
+    try:
+        return method(*args)
+    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+        raise CarlaAdapterError(str(exc)) from exc
+
+
+def required_attribute(target: object, name: str) -> object:
+    """Return a runtime attribute or a capability-specific error."""
+    value = getattr(target, name, None)
+    if value is None:
+        message = f"Connected CARLA runtime does not expose {name}."
+        raise UnsupportedFeatureError(message)
+    return value
 
 
 def safe_method_value(target: object, method_name: str) -> object | None:

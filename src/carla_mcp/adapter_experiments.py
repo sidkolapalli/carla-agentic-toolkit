@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from carla_mcp import (
     experiment_common,
+    experiment_environment,
     experiment_navigation,
     experiment_perception,
     experiment_physics,
@@ -125,6 +126,45 @@ class PythonCarlaExperimentMixin:
     def get_landmarks(self, *, max_count: int = 200) -> dict[str, object]:
         """Return map landmarks when the CARLA map exposes them."""
         return experiment_navigation.landmarks(self._world(self._client()), max_count=max_count)
+
+    def get_environment_objects(self, *, label: str, max_count: int) -> dict[str, object]:
+        """Return bounded static environment objects."""
+        return experiment_environment.get_environment_objects(
+            self._world(self._client()), label=label, max_count=max_count
+        )
+
+    def enable_environment_objects(
+        self,
+        *,
+        object_ids: tuple[int, ...],
+        enabled: bool,
+    ) -> dict[str, object]:
+        """Enable or disable explicit environment object IDs."""
+        return experiment_environment.enable_environment_objects(
+            self._world(self._client()), object_ids=object_ids, enabled=enabled
+        )
+
+    def set_map_layer(self, *, layer: str, loaded: bool) -> dict[str, object]:
+        """Load or unload one runtime map layer."""
+        return experiment_environment.set_map_layer(
+            self._world(self._client()), layer=layer, loaded=loaded
+        )
+
+    def generate_opendrive_world(
+        self,
+        *,
+        opendrive: str,
+        parameters: dict[str, object],
+        reset_settings: bool,
+    ) -> dict[str, object]:
+        """Generate a world from bounded OpenDRIVE text."""
+        world = experiment_environment.generate_opendrive_world(
+            self._client(),
+            opendrive=opendrive,
+            parameters=parameters,
+            reset_settings=reset_settings,
+        )
+        return experiment_common.world_state_payload(cast("CarlaWorld", world))
 
     def configure_actor_physics(
         self,

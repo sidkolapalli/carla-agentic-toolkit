@@ -7,7 +7,7 @@ from importlib import import_module
 from typing import Any, cast
 
 from carla_mcp.errors import CarlaAdapterError, UnsupportedFeatureError
-from carla_mcp.experiment_common import actor, object_factory, vector_dict
+from carla_mcp.experiment_common import actor, call_required, object_factory, vector_dict
 from carla_mcp.models import Location
 
 _PHYSICS_ACTIONS = {
@@ -46,9 +46,9 @@ def configure_actor_physics(
         raise CarlaAdapterError(message)
     target = actor(cast("Any", world), actor_id)
     if simulate_physics is not None:
-        _call(target, "set_simulate_physics", _bool(simulate_physics))
+        call_required(target, "set_simulate_physics", _bool(simulate_physics))
     if gravity is not None:
-        _call(target, "set_enable_gravity", _bool(gravity))
+        call_required(target, "set_enable_gravity", _bool(gravity))
     return {
         "actor_id": actor_id,
         "simulate_physics": simulate_physics,
@@ -71,13 +71,13 @@ def apply_actor_physics(
     module = import_module("carla")
     factory = object_factory(module, "Vector3D")
     carla_vector = factory(x=vector.x, y=vector.y, z=vector.z)
-    _call(actor(cast("Any", world), actor_id), method_name, carla_vector)
+    call_required(actor(cast("Any", world), actor_id), method_name, carla_vector)
     return {"actor_id": actor_id, "action": action, "vector": vector.to_dict()}
 
 
 def get_vehicle_physics(world: object, actor_id: int) -> dict[str, object]:
     """Return a bounded common subset of VehiclePhysicsControl."""
-    control = _call(actor(cast("Any", world), actor_id), "get_physics_control")
+    control = call_required(actor(cast("Any", world), actor_id), "get_physics_control")
     return _physics_payload(actor_id, control)
 
 
@@ -93,10 +93,10 @@ def update_vehicle_physics(
         message = f"Unsupported vehicle physics fields: {sorted(unknown)}."
         raise CarlaAdapterError(message)
     target = actor(cast("Any", world), actor_id)
-    control = _call(target, "get_physics_control")
+    control = call_required(target, "get_physics_control")
     for name, value in changes.items():
         _set_physics_field(control, name, value)
-    _call(target, "apply_physics_control", control)
+    call_required(target, "apply_physics_control", control)
     return _physics_payload(actor_id, control)
 
 
@@ -134,17 +134,6 @@ def _carla_location(value: object) -> object:
         z=_finite_float(value.get("z")),
     )
     return object_factory(import_module("carla"), "Location")(**location.to_dict())
-
-
-def _call(target: object, name: str, *args: object) -> object:
-    method = getattr(target, name, None)
-    if not callable(method):
-        message = f"Connected CARLA actor does not support {name}."
-        raise UnsupportedFeatureError(message)
-    try:
-        return method(*args)
-    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
-        raise CarlaAdapterError(str(exc)) from exc
 
 
 def _finite_float(value: object) -> float:

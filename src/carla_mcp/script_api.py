@@ -7,7 +7,6 @@ publish successful values as run-local snapshots.
 
 from __future__ import annotations
 
-import json
 import time
 from functools import wraps
 from pathlib import Path
@@ -21,6 +20,7 @@ from carla_mcp.errors import (
     OwnershipError,
     UnsupportedFeatureError,
 )
+from carla_mcp.evidence import export_evidence_packet as export_evidence
 from carla_mcp.ownership import (
     RunOwnership,
     cleanup_owned_actors,
@@ -124,6 +124,11 @@ class CarlaScriptApi:
         self._snapshots.register_snapshot(uri, payload)
         return payload
 
+    def _replaced_world(self, payload: JsonObject) -> JsonObject:
+        if self._ownership is not None:
+            self._ownership.clear()
+        return self._snapshot("carla-snapshot://world/current", payload)
+
     @_recover("carla_connection_error", endpoint=True)
     def health_check(self) -> JsonObject:
         """Return CARLA connection health."""
@@ -145,10 +150,7 @@ class CarlaScriptApi:
     @_recover("load_world_failed")
     def load_world(self, map_name: str) -> JsonObject:
         """Load a CARLA map by name."""
-        payload = self._adapter.load_world(map_name).to_dict()
-        if self._ownership is not None:
-            self._ownership.clear()
-        return self._snapshot("carla-snapshot://world/current", payload)
+        return self._replaced_world(self._adapter.load_world(map_name).to_dict())
 
     @_recover("set_sync_mode_failed")
     def set_sync_mode(
@@ -450,6 +452,49 @@ class CarlaScriptApi:
         payload = self._adapter.get_landmarks(max_count=max_count)
         return self._snapshot("carla-snapshot://map/landmarks", payload)
 
+    @_recover("get_environment_objects_failed")
+    def get_environment_objects(
+        self,
+        label: str = "Any",
+        max_count: int = 200,
+    ) -> JsonObject:
+        """Return bounded static environment objects by semantic label."""
+        payload = self._adapter.get_environment_objects(label=label, max_count=max_count)
+        return self._snapshot(f"carla-snapshot://environment/{label}", payload)
+
+    @_recover("enable_environment_objects_failed")
+    def enable_environment_objects(
+        self,
+        object_ids: list[int],
+        *,
+        enabled: bool,
+    ) -> JsonObject:
+        """Enable or disable explicit static environment object IDs."""
+        return self._adapter.enable_environment_objects(
+            object_ids=tuple(object_ids), enabled=enabled
+        )
+
+    @_recover("set_map_layer_failed")
+    def set_map_layer(self, layer: str, *, loaded: bool) -> JsonObject:
+        """Load or unload one runtime MapLayer by name."""
+        return self._adapter.set_map_layer(layer=layer, loaded=loaded)
+
+    @_recover("generate_opendrive_world_failed")
+    def generate_opendrive_world(
+        self,
+        opendrive: str,
+        parameters: dict[str, object] | None = None,
+        *,
+        reset_settings: bool = True,
+    ) -> JsonObject:
+        """Replace the world from bounded OpenDRIVE text and known parameters."""
+        payload = self._adapter.generate_opendrive_world(
+            opendrive=opendrive,
+            parameters=parameters or {},
+            reset_settings=reset_settings,
+        )
+        return self._replaced_world(payload)
+
     @_recover("configure_actor_physics_failed")
     def configure_actor_physics(
         self,
@@ -658,10 +703,7 @@ class CarlaScriptApi:
     @_recover("reload_world_failed")
     def reload_world(self, *, reset_settings: bool = False) -> JsonObject:
         """Reload the current world for a clean scenario reset."""
-        payload = self._adapter.reload_world(reset_settings=reset_settings)
-        if self._ownership is not None:
-            self._ownership.clear()
-        return self._snapshot("carla-snapshot://world/current", payload)
+        return self._replaced_world(self._adapter.reload_world(reset_settings=reset_settings))
 
     @_recover("apply_batch_failed")
     def apply_batch(self, commands: list[dict[str, object]]) -> JsonObject:
@@ -703,20 +745,7 @@ class CarlaScriptApi:
 
     def export_evidence_packet(self, output_dir: str) -> JsonObject:
         """Export a compact evidence manifest from script-created snapshots."""
-        directory = Path(output_dir)
-        directory.mkdir(parents=True, exist_ok=True)
-        snapshot_uris = self._snapshots.snapshot_uris()
-        packet_id = "evidence-001"
-        manifest_path = directory / f"{packet_id}.json"
-        manifest = {"packet_id": packet_id, "snapshots": list(snapshot_uris)}
-        manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-        payload: JsonObject = {
-            "packet_id": packet_id,
-            "manifest_path": str(manifest_path),
-            "snapshot_uri": f"carla-snapshot://evidence/{packet_id}",
-            "snapshots": list(snapshot_uris),
-        }
-        return self._snapshot(str(payload["snapshot_uri"]), payload)
+        return export_evidence(self._snapshots, output_dir)
 
     def wait(self, seconds: float) -> JsonObject:
         """Sleep inside the sandbox while CARLA async mode advances."""

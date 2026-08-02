@@ -227,7 +227,7 @@ not an authorization boundary. Use `api.list_named_actors()` and
 | Actor physics | Physics/gravity toggles, impulse/force/torque, angular velocity, bounded vehicle physics |
 | Sensors and perception | Cameras, LIDAR, radar, IMU, GNSS, captures |
 | Vehicles and pedestrians | Vehicle controls, telemetry, walker movement |
-| Scene and navigation | Weather, lights, waypoints, routes, topology |
+| Scene and navigation | Weather, environment objects, map layers, waypoints, routes, topology, bounded OpenDRIVE |
 | Recording and evidence | Record, replay, queries, captures, evidence manifests |
 
 ## How It Works
@@ -289,6 +289,10 @@ assumptions, and private vulnerability reporting process.
   pre-existing actors. Successful runs keep their actors unless the script calls
   `api.cleanup_owned_actors()` or explicit destroy methods.
 - Windows support uses WSL2; there is no weaker native Windows sandbox fallback.
+- Map-layer streaming and OpenDRIVE generation are destructive simulator operations.
+  CARLA builds or maps may expose these methods yet fail while streaming; use a
+  dedicated simulator and verify health afterward. Runtime capability probes
+  avoid version assumptions but cannot guarantee an engine operation will succeed.
 - Traffic controller state lasts for one script process. Keep that script alive
   with `api.wait()` or use the live sidecar.
 - Automated tests use mock CARLA adapters. Live simulator validation remains a

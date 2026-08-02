@@ -89,6 +89,16 @@ def capability_report(client: object, world: CarlaWorld) -> dict[str, object]:
             ("replay_file", "show_recorder_collisions", "show_recorder_actors_blocked"),
         ),
         "batch": capabilities(client, ("apply_batch_sync",)),
+        "environment": capabilities(
+            world,
+            (
+                "get_environment_objects",
+                "enable_environment_objects",
+                "load_map_layer",
+                "unload_map_layer",
+            ),
+        ),
+        "opendrive": capabilities(client, ("generate_opendrive_world",)),
         "actor_physics": capabilities(
             getattr(carla_module, "Actor", None),
             (
