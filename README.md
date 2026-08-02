@@ -224,6 +224,7 @@ not an authorization boundary. Use `api.list_named_actors()` and
 | --- | --- |
 | Diagnostics and world | Connection health, maps, settings, deterministic ticks |
 | Actors and traffic | Spawning, autopilot, density, behavior profiles |
+| Actor physics | Physics/gravity toggles, impulse/force/torque, angular velocity, bounded vehicle physics |
 | Sensors and perception | Cameras, LIDAR, radar, IMU, GNSS, captures |
 | Vehicles and pedestrians | Vehicle controls, telemetry, walker movement |
 | Scene and navigation | Weather, lights, waypoints, routes, topology |

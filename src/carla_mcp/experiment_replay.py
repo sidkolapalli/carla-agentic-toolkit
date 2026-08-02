@@ -76,8 +76,9 @@ def apply_batch(client: object, commands: list[dict[str, object]]) -> dict[str, 
 
 
 def capability_report(client: object, world: CarlaWorld) -> dict[str, object]:
-    """Probe available CARLA capabilities."""
+    """Probe available CARLA capabilities without version-string assumptions."""
     world_map = world.get_map()
+    carla_module = import_module("carla")
     return {
         "client_version": safe_text_method(client, "get_client_version"),
         "server_version": safe_text_method(client, "get_server_version"),
@@ -88,6 +89,21 @@ def capability_report(client: object, world: CarlaWorld) -> dict[str, object]:
             ("replay_file", "show_recorder_collisions", "show_recorder_actors_blocked"),
         ),
         "batch": capabilities(client, ("apply_batch_sync",)),
+        "actor_physics": capabilities(
+            getattr(carla_module, "Actor", None),
+            (
+                "set_simulate_physics",
+                "set_enable_gravity",
+                "add_impulse",
+                "add_force",
+                "add_torque",
+                "set_target_angular_velocity",
+            ),
+        ),
+        "vehicle_physics": capabilities(
+            getattr(carla_module, "Vehicle", None),
+            ("get_physics_control", "apply_physics_control"),
+        ),
     }
 
 

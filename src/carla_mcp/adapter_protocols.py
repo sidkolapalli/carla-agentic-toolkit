@@ -174,6 +174,35 @@ class ExperimentAdapter(Protocol):
     def get_landmarks(self, *, max_count: int) -> JsonObject:
         """Return map landmarks."""
 
+    def configure_actor_physics(
+        self,
+        *,
+        actor_id: int,
+        simulate_physics: bool | None,
+        gravity: bool | None,
+    ) -> JsonObject:
+        """Toggle actor physics and gravity when supported."""
+
+    def apply_actor_physics(
+        self,
+        *,
+        actor_id: int,
+        action: str,
+        vector: Location,
+    ) -> JsonObject:
+        """Apply one vector-based actor physics operation."""
+
+    def get_vehicle_physics(self, actor_id: int) -> JsonObject:
+        """Return a bounded vehicle physics payload."""
+
+    def update_vehicle_physics(
+        self,
+        *,
+        actor_id: int,
+        changes: dict[str, object],
+    ) -> JsonObject:
+        """Update supported vehicle physics fields."""
+
     def apply_vehicle_control(self, *, actor_id: int, control: dict[str, object]) -> JsonObject:
         """Apply direct vehicle control."""
 

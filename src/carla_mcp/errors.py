@@ -11,3 +11,7 @@ class ActorRegistryError(RuntimeError):
 
 class OwnershipError(RuntimeError):
     """Raised when an execution ownership journal cannot be updated."""
+
+
+class UnsupportedFeatureError(RuntimeError):
+    """Raised when the connected runtime lacks a requested capability."""

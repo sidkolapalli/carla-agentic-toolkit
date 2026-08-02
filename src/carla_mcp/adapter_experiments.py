@@ -8,6 +8,7 @@ from carla_mcp import (
     experiment_common,
     experiment_navigation,
     experiment_perception,
+    experiment_physics,
     experiment_replay,
     experiment_scene,
     experiment_vehicle,
@@ -124,6 +125,53 @@ class PythonCarlaExperimentMixin:
     def get_landmarks(self, *, max_count: int = 200) -> dict[str, object]:
         """Return map landmarks when the CARLA map exposes them."""
         return experiment_navigation.landmarks(self._world(self._client()), max_count=max_count)
+
+    def configure_actor_physics(
+        self,
+        *,
+        actor_id: int,
+        simulate_physics: bool | None,
+        gravity: bool | None,
+    ) -> dict[str, object]:
+        """Toggle actor physics and gravity when supported."""
+        return experiment_physics.configure_actor_physics(
+            self._world(self._client()),
+            actor_id=actor_id,
+            simulate_physics=simulate_physics,
+            gravity=gravity,
+        )
+
+    def apply_actor_physics(
+        self,
+        *,
+        actor_id: int,
+        action: str,
+        vector: Location,
+    ) -> dict[str, object]:
+        """Apply one vector-based actor physics operation."""
+        return experiment_physics.apply_actor_physics(
+            self._world(self._client()),
+            actor_id=actor_id,
+            action=action,
+            vector=vector,
+        )
+
+    def get_vehicle_physics(self, actor_id: int) -> dict[str, object]:
+        """Return bounded vehicle physics fields."""
+        return experiment_physics.get_vehicle_physics(self._world(self._client()), actor_id)
+
+    def update_vehicle_physics(
+        self,
+        *,
+        actor_id: int,
+        changes: dict[str, object],
+    ) -> dict[str, object]:
+        """Update supported vehicle physics fields."""
+        return experiment_physics.update_vehicle_physics(
+            self._world(self._client()),
+            actor_id=actor_id,
+            changes=changes,
+        )
 
     def apply_vehicle_control(
         self,
