@@ -14,7 +14,7 @@ from carla_mcp.script_api import CarlaScriptApi
 from carla_mcp.snapshots import RunSnapshots
 
 if TYPE_CHECKING:
-    from carla_mcp.adapter import CarlaAdapter
+    from carla_mcp.adapter import PythonCarlaAdapter
 
 ACTOR_ID = 71
 TM_PORT = 8000
@@ -55,7 +55,10 @@ class TrafficTuningAdapter:
 
 def test_facade_exposes_vehicle_tuning_and_routes() -> None:
     """Scripts should tune a vehicle and upload a route with JSON inputs."""
-    api = CarlaScriptApi(cast("CarlaAdapter", TrafficTuningAdapter()), RunSnapshots())
+    api = CarlaScriptApi(
+        cast("PythonCarlaAdapter", TrafficTuningAdapter()),
+        RunSnapshots(),
+    )
 
     tuned = api.tune_traffic_vehicle(
         ACTOR_ID,

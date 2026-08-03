@@ -10,7 +10,7 @@ import io
 import json
 import runpy
 import sys
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import cast
 
@@ -238,11 +238,9 @@ def _jsonable_mapping(value: Mapping[object, object]) -> dict[str, object]:
     return {str(key): _jsonable(item) for key, item in value.items()}
 
 
-def _jsonable_iterable(value: object) -> list[object]:
-    """Coerce a simple iterable container into a JSON-compatible list."""
-    if isinstance(value, list | tuple | set | frozenset):
-        return [_jsonable(item) for item in value]
-    return [repr(value)]
+def _jsonable_iterable(value: Iterable[object]) -> list[object]:
+    """Coerce an iterable into a JSON-compatible list."""
+    return [_jsonable(item) for item in value]
 
 
 if __name__ == "__main__":

@@ -18,8 +18,7 @@ repository is the MCP server that connects to it.
 
 Before starting, install or confirm:
 
-- Git and access to this private repository. Authenticate Git separately inside
-  WSL because Windows credentials are not inherited automatically.
+- Git.
 - Docker for the packaged path; or Python 3.12,
   [uv](https://docs.astral.sh/uv/), Rust, and a C/C++ linker (`build-essential`
   on Ubuntu) for the source path. Pin Python 3.12: newer Linux releases may
@@ -241,13 +240,6 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
 source "$HOME/.local/bin/env"
 source "$HOME/.cargo/env"
 
-# Reuse Git for Windows credentials when it is installed at this path.
-if test -x "/mnt/c/Program Files/Git/mingw64/bin/git-credential-manager.exe"; then
-  git config --global credential.helper \
-    "/mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe"
-fi
-# This must succeed before cloning the private repository.
-git ls-remote https://github.com/sidkolapalli/carla-mcp.git HEAD
 git clone https://github.com/sidkolapalli/carla-mcp.git
 cd carla-mcp
 git switch main

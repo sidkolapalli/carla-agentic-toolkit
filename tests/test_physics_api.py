@@ -16,7 +16,7 @@ from carla_mcp.snapshots import RunSnapshots
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from carla_mcp.adapter import CarlaAdapter
+    from carla_mcp.adapter import PythonCarlaAdapter
     from carla_mcp.carla_protocols import CarlaWorld
 
 ACTOR_ID = 51
@@ -76,7 +76,7 @@ class PhysicsAdapter:
 def test_facade_exposes_composable_physics_operations() -> None:
     """The script API should preserve JSON contracts across physics operations."""
     adapter = PhysicsAdapter()
-    api = CarlaScriptApi(cast("CarlaAdapter", adapter), RunSnapshots())
+    api = CarlaScriptApi(cast("PythonCarlaAdapter", adapter), RunSnapshots())
 
     configured = api.configure_actor_physics(
         ACTOR_ID,
@@ -166,7 +166,10 @@ def test_facade_returns_stable_unsupported_feature_error() -> None:
             message = "Connected CARLA actor does not support set_simulate_physics."
             raise UnsupportedFeatureError(message)
 
-    api = CarlaScriptApi(cast("CarlaAdapter", MissingPhysicsAdapter()), RunSnapshots())
+    api = CarlaScriptApi(
+        cast("PythonCarlaAdapter", MissingPhysicsAdapter()),
+        RunSnapshots(),
+    )
 
     result = api.configure_actor_physics(ACTOR_ID, simulate_physics=True)
 

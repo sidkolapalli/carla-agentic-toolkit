@@ -180,7 +180,7 @@ async def _call(
 
 
 def _save_image(data: object, path: Path) -> None:
-    """Persist one MCP base64 image for promotional reuse."""
+    """Persist one MCP base64 image."""
     if not isinstance(data, str):
         message = "MCP image content was not base64 text."
         raise TypeError(message)

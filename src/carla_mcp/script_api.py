@@ -49,7 +49,7 @@ from carla_mcp.traffic_controller_service import InProcessTrafficControllerServi
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
 
-    from carla_mcp.adapter import CarlaAdapter
+    from carla_mcp.adapter import PythonCarlaAdapter
     from carla_mcp.models import JsonObject
     from carla_mcp.snapshots import RunSnapshots
 
@@ -81,7 +81,7 @@ class CarlaScriptApi:
 
     def __init__(
         self,
-        adapter: CarlaAdapter,
+        adapter: PythonCarlaAdapter,
         snapshots: RunSnapshots,
         actor_registry: ActorRegistry | None = None,
         ownership: RunOwnership | None = None,

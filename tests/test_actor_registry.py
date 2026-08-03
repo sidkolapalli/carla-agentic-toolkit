@@ -15,7 +15,7 @@ from carla_mcp.snapshots import RunSnapshots
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from carla_mcp.adapter import CarlaAdapter
+    from carla_mcp.adapter import PythonCarlaAdapter
 
 ACTOR_ID: Final = 101
 
@@ -116,7 +116,7 @@ def test_registry_path_is_isolated_by_endpoint(tmp_path: Path) -> None:
 def _api(adapter: NamedActorAdapter, registry_path: Path) -> CarlaScriptApi:
     """Build the facade with one persistent registry file."""
     return CarlaScriptApi(
-        adapter=cast("CarlaAdapter", adapter),
+        adapter=cast("PythonCarlaAdapter", adapter),
         snapshots=RunSnapshots(),
         actor_registry=ActorRegistry(registry_path),
     )

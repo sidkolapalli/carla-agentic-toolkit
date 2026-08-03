@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
     from pathlib import Path
 
-    from carla_mcp.adapter import CarlaAdapter
+    from carla_mcp.adapter import PythonCarlaAdapter
     from carla_mcp.models import DestroyResult
 
 OWNERSHIP_FILENAME = "owned-actors.json"
@@ -71,7 +71,7 @@ class RunOwnership:
 
 
 def track_owned(
-    adapter: CarlaAdapter,
+    adapter: PythonCarlaAdapter,
     ownership: RunOwnership | None,
     actor_ids: Iterable[int],
 ) -> None:
@@ -87,7 +87,7 @@ def track_owned(
 
 
 def cleanup_owned_actors(
-    adapter: CarlaAdapter,
+    adapter: PythonCarlaAdapter,
     ownership: RunOwnership | None,
 ) -> dict[str, object]:
     """Best-effort destroy owned IDs in reverse creation order."""
@@ -100,7 +100,10 @@ def cleanup_owned_actors(
         return cleanup_report(failures=(failure,))
 
 
-def _cleanup_owned_actors(adapter: CarlaAdapter, ownership: RunOwnership) -> dict[str, object]:
+def _cleanup_owned_actors(
+    adapter: PythonCarlaAdapter,
+    ownership: RunOwnership,
+) -> dict[str, object]:
     attempted = tuple(reversed(ownership.actor_ids()))
     results = adapter.destroy_actors(attempted) if attempted else ()
     cleaned = _cleaned_ids(results)

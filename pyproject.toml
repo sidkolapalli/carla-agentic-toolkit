@@ -22,7 +22,6 @@ carla-mcp-preflight = "carla_mcp.preflight:main"
 dev = [
     "pytest>=8.0.0",
     "radon>=6.0.1",
-    "rich>=13.9,<15",
     "ruff>=0.8.0",
     "ty>=0.0.1a20",
 ]

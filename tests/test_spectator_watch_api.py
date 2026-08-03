@@ -120,7 +120,7 @@ def test_watch_actor_tracks_yaw_each_tick_and_restores_camera(
 
 
 def test_watch_actor_rejects_unbounded_duration() -> None:
-    """Promotional camera loops must remain bounded."""
+    """Camera loops must remain bounded."""
     with pytest.raises(CarlaAdapterError, match="seconds"):
         experiment_scene.watch_actor(
             cast("CarlaWorld", World()),

@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
     import pytest
 
-    from carla_mcp.adapter import CarlaAdapter
+    from carla_mcp.adapter import PythonCarlaAdapter
 
 ACTOR_ID = 101
 SENSOR_ID = 202
@@ -204,7 +204,7 @@ def test_parent_cleans_owned_actors_after_sandbox_timeout(
 
 def _api(adapter: OwnershipAdapter, ownership: RunOwnership) -> CarlaScriptApi:
     return CarlaScriptApi(
-        cast("CarlaAdapter", adapter),
+        cast("PythonCarlaAdapter", adapter),
         RunSnapshots(),
         ownership=ownership,
     )

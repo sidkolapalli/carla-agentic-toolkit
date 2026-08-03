@@ -13,7 +13,7 @@ from carla_mcp.script_api import CarlaScriptApi
 from carla_mcp.snapshots import RunSnapshots
 
 if TYPE_CHECKING:
-    from carla_mcp.adapter import CarlaAdapter
+    from carla_mcp.adapter import PythonCarlaAdapter
 
 OBJECT_ID = 9001
 VERTEX_DISTANCE = 3.0
@@ -77,7 +77,7 @@ class EnvironmentAdapter:
 def test_facade_exposes_environment_workflows() -> None:
     """The script facade should retain JSON-compatible environment contracts."""
     adapter = EnvironmentAdapter()
-    api = CarlaScriptApi(cast("CarlaAdapter", adapter), RunSnapshots())
+    api = CarlaScriptApi(cast("PythonCarlaAdapter", adapter), RunSnapshots())
 
     listed = api.get_environment_objects("Buildings", max_count=10, include_level_bounds=True)
     toggled = api.enable_environment_objects([OBJECT_ID], enabled=False)

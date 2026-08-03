@@ -10,17 +10,6 @@ from typing import cast
 
 from carla_mcp.actor_runtime import actor_snapshot, destroy_actor
 from carla_mcp.adapter_experiments import PythonCarlaExperimentMixin
-from carla_mcp.adapter_protocols import (
-    ActorAdapter,
-    ActorManagementAdapter,
-    CarlaAdapter,
-    ExperimentAdapter,
-    HealthAdapter,
-    RecorderAdapter,
-    SensorAdapter,
-    TrafficAdapter,
-    WorldAdapter,
-)
 from carla_mcp.carla_protocols import (
     CarlaBlueprint,
     CarlaBlueprintAttribute,
@@ -73,18 +62,7 @@ from carla_mcp.traffic_runtime import (
 )
 from carla_mcp.traffic_tuning import set_traffic_vehicle_path, tune_traffic_vehicle
 
-__all__ = [
-    "ActorAdapter",
-    "ActorManagementAdapter",
-    "CarlaAdapter",
-    "ExperimentAdapter",
-    "HealthAdapter",
-    "PythonCarlaAdapter",
-    "RecorderAdapter",
-    "SensorAdapter",
-    "TrafficAdapter",
-    "WorldAdapter",
-]
+__all__ = ["PythonCarlaAdapter"]
 
 
 class PythonCarlaAdapter(PythonCarlaExperimentMixin):

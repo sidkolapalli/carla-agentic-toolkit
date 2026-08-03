@@ -20,7 +20,8 @@ from carla_mcp.models import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Callable, Mapping
+    from typing import Any
 
 _SENSOR_BLUEPRINTS = {
     "rgb": "sensor.camera.rgb",
@@ -82,47 +83,35 @@ def parse_camera_attach_request(payload: dict[str, object]) -> CameraAttachReque
 
 def parse_traffic_population_request(payload: dict[str, object]) -> TrafficPopulationRequest:
     """Parse a JSON-compatible traffic population request."""
-    return TrafficPopulationRequest(
-        vehicle_count=_int_field_or_default(payload, "vehicle_count", default=30),
-        traffic_manager_port=_int_field_or_default(
-            payload,
-            "traffic_manager_port",
-            default=8000,
-        ),
-        seed=_int_field_or_default(payload, "seed", default=0),
-        safe_filter=_bool_field_or_default(payload, "safe_filter", default=True),
-        global_distance_to_leading_vehicle=_float_field_or_default(
-            payload,
-            "global_distance_to_leading_vehicle",
-            default=2.5,
-        ),
-        global_percentage_speed_difference=_float_field_or_default(
-            payload,
-            "global_percentage_speed_difference",
-            default=10.0,
-        ),
+    fields = _provided_fields(
+        payload,
+        {
+            "vehicle_count": _int_field,
+            "traffic_manager_port": _int_field,
+            "seed": _int_field,
+            "safe_filter": _bool_field,
+            "global_distance_to_leading_vehicle": _float_field,
+            "global_percentage_speed_difference": _float_field,
+        },
     )
+    return TrafficPopulationRequest(**cast("Any", fields))
 
 
 def parse_traffic_density_request(payload: dict[str, object]) -> TrafficDensityRequest:
     """Parse a JSON-compatible traffic density request."""
-    return TrafficDensityRequest(
-        vehicle_count=_int_field_or_default(payload, "vehicle_count", default=30),
-        traffic_manager_port=_int_field_or_default(payload, "traffic_manager_port", default=8000),
-        seed=_int_field_or_default(payload, "seed", default=0),
-        safe_filter=_bool_field_or_default(payload, "safe_filter", default=True),
-        reset_existing=_bool_field_or_default(payload, "reset_existing", default=False),
-        global_distance_to_leading_vehicle=_float_field_or_default(
-            payload,
-            "global_distance_to_leading_vehicle",
-            default=4.0,
-        ),
-        global_percentage_speed_difference=_float_field_or_default(
-            payload,
-            "global_percentage_speed_difference",
-            default=0.0,
-        ),
+    fields = _provided_fields(
+        payload,
+        {
+            "vehicle_count": _int_field,
+            "traffic_manager_port": _int_field,
+            "seed": _int_field,
+            "safe_filter": _bool_field,
+            "reset_existing": _bool_field,
+            "global_distance_to_leading_vehicle": _float_field,
+            "global_percentage_speed_difference": _float_field,
+        },
     )
+    return TrafficDensityRequest(**cast("Any", fields))
 
 
 def parse_traffic_controller_start_request(
@@ -144,20 +133,24 @@ def parse_traffic_controller_start_request(
 def parse_autopilot_request(payload: dict[str, object]) -> AutopilotRequest:
     """Parse a JSON-compatible autopilot request."""
     actor_ids = _list_field(payload, "actor_ids")
+    fields = _provided_fields(
+        payload,
+        {"enabled": _bool_field, "traffic_manager_port": _int_field},
+    )
     return AutopilotRequest(
         actor_ids=tuple(_int_value(actor_id, "actor_ids") for actor_id in actor_ids),
-        enabled=_bool_field_or_default(payload, "enabled", default=True),
-        traffic_manager_port=_int_field_or_default(payload, "traffic_manager_port", default=8000),
+        **cast("Any", fields),
     )
 
 
 def parse_vehicle_behavior_request(payload: dict[str, object]) -> VehicleBehaviorRequest:
     """Parse a JSON-compatible vehicle behavior request."""
     actor_ids = _list_field(payload, "actor_ids")
+    fields = _provided_fields(payload, {"traffic_manager_port": _int_field})
     return VehicleBehaviorRequest(
         actor_ids=tuple(_int_value(actor_id, "actor_ids") for actor_id in actor_ids),
         profile=_string_field(payload, "profile"),
-        traffic_manager_port=_int_field_or_default(payload, "traffic_manager_port", default=8000),
+        **cast("Any", fields),
     )
 
 
@@ -171,34 +164,31 @@ def parse_traffic_vehicle_path_request(
     if not isinstance(path_values, list) or not isinstance(route_values, list):
         msg = "path and route must be lists."
         raise TypeError(msg)
-    path = tuple(_location(_mapping_value(item, "path")) for item in path_values)
-    route = tuple(_string_value(item, "route") for item in route_values)
+    fields = _provided_fields(
+        payload,
+        {"traffic_manager_port": _int_field, "empty_buffer": _bool_field},
+    )
     return TrafficVehiclePathRequest(
         actor_id=actor_id,
-        traffic_manager_port=_int_field_or_default(payload, "traffic_manager_port", default=8000),
-        path=path,
-        route=route,
-        empty_buffer=_bool_field_or_default(payload, "empty_buffer", default=True),
+        path=tuple(_location(_mapping_value(item, "path")) for item in path_values),
+        route=tuple(_string_value(item, "route") for item in route_values),
+        **cast("Any", fields),
     )
 
 
 def parse_traffic_manager_request(payload: dict[str, object]) -> TrafficManagerRequest:
     """Parse a JSON-compatible Traffic Manager request."""
-    return TrafficManagerRequest(
-        traffic_manager_port=_int_field_or_default(payload, "traffic_manager_port", default=8000),
-        global_distance_to_leading_vehicle=_optional_float_field(
-            payload,
-            "global_distance_to_leading_vehicle",
-            default=None,
-        ),
-        global_percentage_speed_difference=_optional_float_field(
-            payload,
-            "global_percentage_speed_difference",
-            default=None,
-        ),
-        seed=_optional_int_field(payload, "seed"),
-        synchronous_mode=_optional_bool_field(payload, "synchronous_mode"),
+    fields = _provided_fields(
+        payload,
+        {
+            "traffic_manager_port": _int_field,
+            "global_distance_to_leading_vehicle": _float_field,
+            "global_percentage_speed_difference": _float_field,
+            "seed": _int_field,
+            "synchronous_mode": _bool_field,
+        },
     )
+    return TrafficManagerRequest(**cast("Any", fields))
 
 
 def _spawn_request(payload: Mapping[str, object]) -> SpawnRequest:
@@ -254,6 +244,24 @@ def _float_field(payload: Mapping[str, object], key: str) -> float:
     raise TypeError(msg)
 
 
+def _int_field(payload: Mapping[str, object], key: str) -> int:
+    """Read a required integer field."""
+    value = payload[key]
+    if isinstance(value, int):
+        return value
+    msg = f"{key} must be an integer."
+    raise TypeError(msg)
+
+
+def _bool_field(payload: Mapping[str, object], key: str) -> bool:
+    """Read a required boolean field."""
+    value = payload[key]
+    if isinstance(value, bool):
+        return value
+    msg = f"{key} must be a boolean."
+    raise TypeError(msg)
+
+
 def _optional_int_field(payload: Mapping[str, object], key: str) -> int | None:
     """Read an optional integer field."""
     value = payload.get(key)
@@ -263,60 +271,6 @@ def _optional_int_field(payload: Mapping[str, object], key: str) -> int | None:
         return value
     msg = f"{key} must be an integer or null."
     raise TypeError(msg)
-
-
-def _int_field_or_default(payload: Mapping[str, object], key: str, *, default: int) -> int:
-    """Read an optional integer field with a default."""
-    value = _optional_int_field(payload, key)
-    if value is None:
-        return default
-    return value
-
-
-def _optional_float_field(
-    payload: Mapping[str, object],
-    key: str,
-    *,
-    default: float | None,
-) -> float | None:
-    """Read an optional numeric field as a float."""
-    value = payload.get(key)
-    if value is None:
-        return default
-    if isinstance(value, int | float):
-        return float(value)
-    msg = f"{key} must be numeric or null."
-    raise TypeError(msg)
-
-
-def _float_field_or_default(payload: Mapping[str, object], key: str, *, default: float) -> float:
-    """Read an optional float field with a default."""
-    value = _optional_float_field(payload, key, default=None)
-    if value is None:
-        return default
-    return value
-
-
-def _optional_bool_field(
-    payload: Mapping[str, object],
-    key: str,
-) -> bool | None:
-    """Read an optional boolean field."""
-    value = payload.get(key)
-    if value is None:
-        return None
-    if isinstance(value, bool):
-        return value
-    msg = f"{key} must be a boolean or null."
-    raise TypeError(msg)
-
-
-def _bool_field_or_default(payload: Mapping[str, object], key: str, *, default: bool) -> bool:
-    """Read an optional boolean field with a default."""
-    value = _optional_bool_field(payload, key)
-    if value is None:
-        return default
-    return value
 
 
 def _list_field(payload: Mapping[str, object], key: str) -> list[object]:
@@ -368,3 +322,13 @@ def _string_value(value: object, context: str) -> str:
         return value
     msg = f"{context} values must be strings."
     raise TypeError(msg)
+
+
+def _provided_fields(
+    payload: Mapping[str, object],
+    parsers: Mapping[str, Callable[[Mapping[str, object], str], object]],
+) -> dict[str, object]:
+    """Parse only supplied non-null fields so model defaults stay authoritative."""
+    return {
+        key: parser(payload, key) for key, parser in parsers.items() if payload.get(key) is not None
+    }

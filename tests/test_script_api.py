@@ -13,7 +13,7 @@ from carla_mcp.snapshots import RunSnapshots
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from carla_mcp.adapter import CarlaAdapter
+    from carla_mcp.adapter import PythonCarlaAdapter
 
 
 SENSOR_ID = 101
@@ -257,7 +257,10 @@ def test_recoverable_tool_failure_keeps_an_explicit_error_marker() -> None:
 
 def build_api(adapter: ScriptAdapter, snapshots: RunSnapshots) -> CarlaScriptApi:
     """Build a script API with a partial fake adapter for behavior specs."""
-    return CarlaScriptApi(adapter=cast("CarlaAdapter", adapter), snapshots=snapshots)
+    return CarlaScriptApi(
+        adapter=cast("PythonCarlaAdapter", adapter),
+        snapshots=snapshots,
+    )
 
 
 def assert_catalog_has_methods(methods: dict[str, object], names: tuple[str, ...]) -> None:

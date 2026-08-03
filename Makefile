@@ -14,7 +14,8 @@ type:
 	uv run ty check .
 
 radon:
-	uv run python scripts/check_radon.py src tests
+	! uv run radon cc -n B -s src tests | grep .
+	! uv run radon mi -n B -m -s src tests | grep .
 
 rust-fmt:
 	cargo fmt --manifest-path sandbox-runner/Cargo.toml -- --check

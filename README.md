@@ -70,26 +70,15 @@ recordings, and evidence.
 
 ## Demo
 
-### Live split-screen showcase
+### Live workflow
 
-Put your MCP client beside the CARLA window and ask for a complete experiment in
-plain English. The promotional workflow spawns and follows a Tesla, changes the
-weather, measures acceleration, returns a native MCP image, restores simulator
-state, and leaves zero actors behind.
-
-[![A red Tesla followed through a rainy Town10HD experiment](docs/assets/hero-frame.png)](docs/demo-storyboard.md)
-
-Connect the packaged Docker MCP server to your preferred agent, then rehearse
-the exact workflow and regenerate the hero frame plus its
-**[Rich terminal report](docs/assets/hero-report.svg)**:
+A self-cleaning MCP smoke test exercises the complete public path: it spawns and
+follows a vehicle, changes the weather, measures acceleration, returns a native
+MCP image, restores simulator state, and verifies that no actors remain.
 
 ```bash
-uv run python -m scripts.hero_demo --confirm-live
+uv run python scripts/live_mcp_smoke.py --confirm-live --host 127.0.0.1 --port 2000
 ```
-
-Use the **[55-second recording storyboard](docs/demo-storyboard.md)** for the
-copy-paste prompt, split-screen layout, shot list, and publishing checklist.
-Ready-to-edit **[LinkedIn launch copy](docs/linkedin-post.md)** is included.
 
 ### Sandbox walkthrough
 
@@ -388,8 +377,6 @@ one JSON report. Never run it against a shared simulator without permission.
 | Guide | Contents |
 | --- | --- |
 | [Client setup](docs/client-setup.md) | Client configuration, preflight checks, and troubleshooting |
-| [CARLA support surface](docs/carla-support-surface.md) | Researched simulator operations and coverage |
-| [MCP migration review](docs/mcp-2026-07-28.md) | Protocol revision and compatibility decisions |
 | [Security policy](SECURITY.md) | Threat model and vulnerability reporting |
 | [Contributing guide](CONTRIBUTING.md) | Development workflow and contribution standards |
 | [Code of Conduct](CODE_OF_CONDUCT.md) | Community expectations |

@@ -13,7 +13,7 @@ from carla_mcp.script_api import CarlaScriptApi
 from carla_mcp.snapshots import RunSnapshots
 
 if TYPE_CHECKING:
-    from carla_mcp.adapter import CarlaAdapter
+    from carla_mcp.adapter import PythonCarlaAdapter
     from carla_mcp.carla_protocols import CarlaWorld
 
 LANDMARK_ID = "speed-30"
@@ -40,7 +40,7 @@ class LandmarkAdapter:
 
 def test_facade_exposes_landmark_filters() -> None:
     """Scripts should discover and call type-filtered landmark queries."""
-    api = CarlaScriptApi(cast("CarlaAdapter", LandmarkAdapter()), RunSnapshots())
+    api = CarlaScriptApi(cast("PythonCarlaAdapter", LandmarkAdapter()), RunSnapshots())
 
     result = api.get_landmarks(10, landmark_type="274")
     methods = cast("dict[str, object]", api.describe_api()["methods"])

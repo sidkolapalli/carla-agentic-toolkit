@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Final
 
 from carla_mcp.models import ActorCounts, HealthReport, WorldSettings, WorldState
@@ -41,23 +41,24 @@ class ControlAdapter:
 
     def load_world(self, map_name: str) -> WorldState:
         """Load a map and return the resulting world state."""
-        self.world = self.world.with_map(map_name)
+        self.world = replace(self.world, current_map=map_name)
         return self.world
 
     def set_sync_mode(self, *, enabled: bool, fixed_delta_seconds: float | None) -> WorldState:
         """Apply synchronous stepping settings."""
-        self.world = self.world.with_settings(
-            WorldSettings(
+        self.world = replace(
+            self.world,
+            settings=WorldSettings(
                 synchronous_mode=enabled,
                 fixed_delta_seconds=fixed_delta_seconds,
                 no_rendering_mode=False,
-            )
+            ),
         )
         return self.world
 
     def tick(self) -> int:
         """Advance the world by one frame."""
-        self.world = self.world.with_frame(NEXT_FRAME)
+        self.world = replace(self.world, frame=NEXT_FRAME)
         return NEXT_FRAME
 
 
@@ -109,4 +110,3 @@ def build_world_state() -> WorldState:
         actor_counts=ActorCounts(vehicles=0, walkers=0, sensors=0, traffic=0),
         frame=42,
     )
-

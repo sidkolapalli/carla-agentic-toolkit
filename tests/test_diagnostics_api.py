@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Final
 
 import pytest
@@ -46,16 +46,17 @@ class FakeAdapter:
 
     def load_world(self, map_name: str) -> WorldState:
         """Load a CARLA world by map name."""
-        return self.world.with_map(map_name)
+        return replace(self.world, current_map=map_name)
 
     def set_sync_mode(self, *, enabled: bool, fixed_delta_seconds: float | None) -> WorldState:
         """Configure synchronous world stepping."""
-        return self.world.with_settings(
-            WorldSettings(
+        return replace(
+            self.world,
+            settings=WorldSettings(
                 synchronous_mode=enabled,
                 fixed_delta_seconds=fixed_delta_seconds,
                 no_rendering_mode=self.world.settings.no_rendering_mode,
-            )
+            ),
         )
 
     def tick(self) -> int:

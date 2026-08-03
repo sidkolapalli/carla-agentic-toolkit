@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Final
 
@@ -87,7 +87,7 @@ def test_capture_sensor_frame_returns_capture_info_and_snapshot(tmp_path: Path) 
 
     result = build_api(adapter, snapshots).capture_sensor_frame(SENSOR_ID, str(output_path))
 
-    assert result == adapter.capture.with_path(output_path).to_dict()
+    assert result == replace(adapter.capture, path=output_path).to_dict()
     assert snapshots.read_snapshot(f"carla-snapshot://captures/{CAPTURE_ID}") == result
 
 
