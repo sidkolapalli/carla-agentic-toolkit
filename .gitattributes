@@ -1,0 +1,25 @@
+* text=auto
+
+# Source
+*.py text eol=lf
+*.rs text eol=lf
+*.toml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+Dockerfile text eol=lf
+Makefile text eol=lf
+
+# Shell
+*.sh text eol=lf
+
+# Config
+.gitattributes text eol=lf
+.gitignore text eol=lf
+
+# Binary
+*.gif binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
