@@ -31,7 +31,7 @@ Include the smallest script passed to `execute_carla_script` when relevant.
 
 - CARLA version/build:
 - MCP client and version:
-- CARLA MCP commit:
+- CARLA Agentic Toolkit commit:
 - Linux distribution and `uname -r`:
 - Python version:
 

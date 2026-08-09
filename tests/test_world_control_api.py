@@ -5,8 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Final
 
-from carla_mcp.models import ActorCounts, HealthReport, WorldSettings, WorldState
-from carla_mcp.snapshots import RunSnapshots
+from carla_agentic_toolkit.models import ActorCounts, HealthReport, WorldSettings, WorldState
+from carla_agentic_toolkit.snapshots import RunSnapshots
 from tests.api_helpers import build_api
 
 LOADED_MAP: Final = "Town01"

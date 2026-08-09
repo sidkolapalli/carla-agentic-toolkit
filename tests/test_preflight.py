@@ -18,14 +18,18 @@ IS_WSL2 = "microsoft" in platform.release().casefold() and "wsl2" in platform.re
 def test_preflight_proves_landlock_and_persistent_output(tmp_path: Path) -> None:
     """The public preflight should exercise the real sandbox without CARLA."""
     project_root = Path(__file__).resolve().parents[1]
-    runner = project_root / "sandbox-runner" / "target" / "debug" / "carla-mcp-sandbox"
+    runner = project_root / "sandbox-runner" / "target" / "debug" / "carla-agentic-toolkit-sandbox"
     output_dir = tmp_path / "outputs"
-    command_name = "carla-mcp-preflight.exe" if os.name == "nt" else "carla-mcp-preflight"
+    command_name = (
+        "carla-agentic-toolkit-preflight.exe"
+        if os.name == "nt"
+        else "carla-agentic-toolkit-preflight"
+    )
     preflight = Path(sys.executable).with_name(command_name)
     env = {
         **os.environ,
-        "CARLA_MCP_SANDBOX": str(runner),
-        "CARLA_MCP_OUTPUT_DIR": str(output_dir),
+        "CARLA_AGENTIC_TOOLKIT_SANDBOX": str(runner),
+        "CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR": str(output_dir),
     }
 
     completed = subprocess.run(
@@ -46,7 +50,7 @@ def test_preflight_proves_landlock_and_persistent_output(tmp_path: Path) -> None
         "wsl2": report["environment"]["wsl2"],
         "ruleset_enforced": report["sandbox"]["ruleset_enforced"],
         "evidence_persisted": report["output"]["evidence_persisted"],
-        "artifacts_cleaned": not (output_dir / ".carla-mcp-preflight").exists(),
+        "artifacts_cleaned": not (output_dir / ".carla-agentic-toolkit-preflight").exists(),
     } == {
         "exit_code": 0,
         "stderr": "",
@@ -66,11 +70,15 @@ def test_preflight_rejects_non_wsl2_when_windows_support_is_requested(
     """Windows readiness should fail before execution outside WSL2."""
     project_root = Path(__file__).resolve().parents[1]
     output_dir = tmp_path / "outputs"
-    command_name = "carla-mcp-preflight.exe" if os.name == "nt" else "carla-mcp-preflight"
+    command_name = (
+        "carla-agentic-toolkit-preflight.exe"
+        if os.name == "nt"
+        else "carla-agentic-toolkit-preflight"
+    )
     preflight = Path(sys.executable).with_name(command_name)
     env = {
         **os.environ,
-        "CARLA_MCP_OUTPUT_DIR": str(output_dir),
+        "CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR": str(output_dir),
     }
 
     completed = subprocess.run(

@@ -5,15 +5,15 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, cast
 
-from carla_mcp.errors import CarlaAdapterError
-from carla_mcp.models import Location, SensorInfo, Transform
-from carla_mcp.script_api import CarlaScriptApi
-from carla_mcp.snapshots import RunSnapshots
+from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.models import Location, SensorInfo, Transform
+from carla_agentic_toolkit.script_api import CarlaScriptApi
+from carla_agentic_toolkit.snapshots import RunSnapshots
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from carla_mcp.adapter import PythonCarlaAdapter
+    from carla_agentic_toolkit.adapter import PythonCarlaAdapter
 
 
 SENSOR_ID = 101

@@ -6,7 +6,7 @@ from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Final
 
-from carla_mcp.models import (
+from carla_agentic_toolkit.models import (
     CameraAttachRequest,
     CaptureInfo,
     Location,
@@ -14,7 +14,7 @@ from carla_mcp.models import (
     SensorInfo,
     Transform,
 )
-from carla_mcp.snapshots import RunSnapshots
+from carla_agentic_toolkit.snapshots import RunSnapshots
 from tests.api_helpers import build_api
 
 CAMERA_BLUEPRINT_ID: Final = "sensor.camera.rgb"

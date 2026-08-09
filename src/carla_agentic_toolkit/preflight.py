@@ -10,9 +10,9 @@ import shutil
 import sys
 from pathlib import Path
 
-from carla_mcp.sandbox import ScriptOutcome, execute_script
+from carla_agentic_toolkit.sandbox import ScriptOutcome, execute_script
 
-PREFLIGHT_OUTPUT_DIR = ".carla-mcp-preflight"
+PREFLIGHT_OUTPUT_DIR = ".carla-agentic-toolkit-preflight"
 PREFLIGHT_CODE = f'result = api.export_evidence_packet("{PREFLIGHT_OUTPUT_DIR}")'
 
 
@@ -28,7 +28,7 @@ def run(*, expect_wsl2: bool = False) -> tuple[int, dict[str, object]]:
             "error": "The Windows launcher requires a WSL2 distribution.",
             "error_type": "wsl2_required",
         }
-    output_dir = Path(os.environ["CARLA_MCP_OUTPUT_DIR"]).expanduser().resolve()
+    output_dir = Path(os.environ["CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR"]).expanduser().resolve()
     preflight_output_dir = output_dir / PREFLIGHT_OUTPUT_DIR
     outcome = execute_script(PREFLIGHT_CODE, timeout_seconds=5)
     try:

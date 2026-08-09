@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, cast
 
-from carla_mcp.errors import CarlaAdapterError
-from carla_mcp.experiment_common import (
+from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.experiment_common import (
     capabilities,
     int_attr,
     int_value,
@@ -18,7 +18,7 @@ from carla_mcp.experiment_common import (
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from carla_mcp.carla_protocols import CarlaWorld
+    from carla_agentic_toolkit.carla_protocols import CarlaWorld
 
 
 @dataclass(frozen=True, slots=True)

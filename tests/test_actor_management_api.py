@@ -6,15 +6,15 @@ from dataclasses import dataclass
 from types import SimpleNamespace
 from typing import Final
 
-from carla_mcp.actor_runtime import actor_snapshot
-from carla_mcp.models import (
+from carla_agentic_toolkit.actor_runtime import actor_snapshot
+from carla_agentic_toolkit.models import (
     ActorSnapshot,
     DestroyResult,
     Location,
     Rotation,
     Transform,
 )
-from carla_mcp.snapshots import RunSnapshots
+from carla_agentic_toolkit.snapshots import RunSnapshots
 from tests.api_helpers import build_api
 
 ACTOR_ID: Final = 101

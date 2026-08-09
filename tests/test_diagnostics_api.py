@@ -7,9 +7,9 @@ from typing import Final
 
 import pytest
 
-from carla_mcp.adapter import CarlaAdapterError
-from carla_mcp.models import ActorCounts, HealthReport, WorldSettings, WorldState
-from carla_mcp.snapshots import RunSnapshots
+from carla_agentic_toolkit.adapter import CarlaAdapterError
+from carla_agentic_toolkit.models import ActorCounts, HealthReport, WorldSettings, WorldState
+from carla_agentic_toolkit.snapshots import RunSnapshots
 from tests.api_helpers import build_api
 
 DEFAULT_MAPS: Final = ("Town10HD_Opt", "Town01")

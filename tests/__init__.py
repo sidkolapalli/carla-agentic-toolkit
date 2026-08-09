@@ -1,2 +1,1 @@
-"""Behavior specs for CARLA MCP."""
-
+"""Behavior specs for CARLA Agentic Toolkit."""

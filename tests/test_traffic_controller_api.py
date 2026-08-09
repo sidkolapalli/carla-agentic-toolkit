@@ -6,18 +6,18 @@ from dataclasses import asdict, dataclass
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Final
 
-from carla_mcp.models import (
+from carla_agentic_toolkit.models import (
     TrafficControllerStartRequest,
     TrafficControllerStatus,
     TrafficDensityRequest,
     VehicleBehaviorRequest,
     VehicleBehaviorResult,
 )
-from carla_mcp.snapshots import RunSnapshots
+from carla_agentic_toolkit.snapshots import RunSnapshots
 from tests.api_helpers import build_api
 
 if TYPE_CHECKING:
-    from carla_mcp.script_api import CarlaScriptApi
+    from carla_agentic_toolkit.script_api import CarlaScriptApi
 
 ACTOR_ID: Final = 91
 TARGET_DENSITY: Final = 18

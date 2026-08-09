@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Never
@@ -116,19 +117,30 @@ def _read_image(path: Path, output_dir: Path) -> tuple[bytes, str, Path]:
 
 
 def _read_bounded_image(path: Path) -> bytes:
+    """Read a validated image through a safe file descriptor.
+
+    Opening and reading from the same descriptor closes the TOCTOU window
+    between :func:`_resolved_capture` and the content read.
+    """
     try:
-        if path.stat().st_size > MAX_IMAGE_BYTES:
-            _raise("image_too_large", f"One image exceeds {MAX_IMAGE_BYTES} bytes.")
-        data = path.read_bytes()
-    except OutputContentError:
-        raise
+        # O_NOFOLLOW fails if the final path component is a symlink
+        # (Linux ≥ 2.1.126, macOS). On Windows this flag is ignored.
+        fd = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0))
     except OSError as exc:
         error_type = "image_read_error"
-        message = f"Capture could not be read: {exc}"
-        raise OutputContentError(error_type, message) from exc
-    if len(data) > MAX_IMAGE_BYTES:
-        _raise("image_too_large", f"One image exceeds {MAX_IMAGE_BYTES} bytes.")
-    return data
+        raise OutputContentError(error_type, f"Capture could not be opened: {exc}") from exc
+    try:
+        st = os.fstat(fd)
+        if st.st_size > MAX_IMAGE_BYTES:
+            error_type = "image_too_large"
+            raise OutputContentError(error_type, f"One image exceeds {MAX_IMAGE_BYTES} bytes.")
+        data = os.read(fd, st.st_size + 1)  # +1 to detect growth after fstat
+        if len(data) > MAX_IMAGE_BYTES:
+            error_type = "image_too_large"
+            raise OutputContentError(error_type, f"One image exceeds {MAX_IMAGE_BYTES} bytes.")
+        return data
+    finally:
+        os.close(fd)
 
 
 def _resolved_capture(path: Path, output_dir: Path) -> tuple[Path, Path]:

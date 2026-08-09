@@ -6,7 +6,7 @@ __pycache__/
 *.py[cod]
 .ruff_cache/
 dist/
-carla-mcp-output/
+carla-agentic-toolkit-output/
 target/
 .claude/settings.local.json
 

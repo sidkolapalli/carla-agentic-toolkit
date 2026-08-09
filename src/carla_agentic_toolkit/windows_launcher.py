@@ -29,36 +29,38 @@ class WslLaunchConfig:
     def from_environment(cls) -> WslLaunchConfig:
         """Load the launcher configuration from the process environment."""
         required = _required_environment(
-            "CARLA_MCP_WSL_DISTRO",
-            "CARLA_MCP_WSL_PROJECT",
-            "CARLA_MCP_WSL_UV",
+            "CARLA_AGENTIC_TOOLKIT_WSL_DISTRO",
+            "CARLA_AGENTIC_TOOLKIT_WSL_PROJECT",
+            "CARLA_AGENTIC_TOOLKIT_WSL_UV",
         )
         project_dir = _absolute_linux_path(
-            "CARLA_MCP_WSL_PROJECT",
-            required["CARLA_MCP_WSL_PROJECT"],
+            "CARLA_AGENTIC_TOOLKIT_WSL_PROJECT",
+            required["CARLA_AGENTIC_TOOLKIT_WSL_PROJECT"],
         )
-        uv = _absolute_linux_path("CARLA_MCP_WSL_UV", required["CARLA_MCP_WSL_UV"])
+        uv = _absolute_linux_path(
+            "CARLA_AGENTIC_TOOLKIT_WSL_UV", required["CARLA_AGENTIC_TOOLKIT_WSL_UV"]
+        )
         output_dir = _absolute_linux_path(
-            "CARLA_MCP_WSL_OUTPUT_DIR",
+            "CARLA_AGENTIC_TOOLKIT_WSL_OUTPUT_DIR",
             os.environ.get(
-                "CARLA_MCP_WSL_OUTPUT_DIR",
-                str(project_dir / "carla-mcp-output"),
+                "CARLA_AGENTIC_TOOLKIT_WSL_OUTPUT_DIR",
+                str(project_dir / "carla-agentic-toolkit-output"),
             ),
         )
         return cls(
-            wsl_command=os.environ.get("CARLA_MCP_WSL_COMMAND", "wsl.exe"),
-            distribution=required["CARLA_MCP_WSL_DISTRO"],
+            wsl_command=os.environ.get("CARLA_AGENTIC_TOOLKIT_WSL_COMMAND", "wsl.exe"),
+            distribution=required["CARLA_AGENTIC_TOOLKIT_WSL_DISTRO"],
             project_dir=project_dir,
             uv=uv,
             output_dir=output_dir,
-            recorder_dir=os.environ.get("CARLA_MCP_RECORDER_DIR"),
+            recorder_dir=os.environ.get("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR"),
         )
 
     def command(self, program: Sequence[str]) -> list[str]:
         """Return a direct-exec WSL command for a toolkit program."""
         project_dir = str(self.project_dir)
         recorder_environment = (
-            [f"CARLA_MCP_RECORDER_DIR={self.recorder_dir}"] if self.recorder_dir else []
+            [f"CARLA_AGENTIC_TOOLKIT_RECORDER_DIR={self.recorder_dir}"] if self.recorder_dir else []
         )
         return [
             self.wsl_command,
@@ -68,7 +70,7 @@ class WslLaunchConfig:
             project_dir,
             "--exec",
             "/usr/bin/env",
-            f"CARLA_MCP_OUTPUT_DIR={self.output_dir}",
+            f"CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR={self.output_dir}",
             *recorder_environment,
             str(self.uv),
             "--directory",
@@ -102,16 +104,22 @@ def run(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="verify WSL2 sandbox readiness")
     options = parser.parse_args(argv)
-    program = ("carla-mcp-preflight", "--expect-wsl2") if options.check else ("carla-mcp",)
+    program = (
+        ("carla-agentic-toolkit-preflight", "--expect-wsl2")
+        if options.check
+        else ("carla-agentic-toolkit",)
+    )
     try:
         config = WslLaunchConfig.from_environment()
     except ValueError as error:
-        sys.stderr.write(f"carla-mcp-windows: {error}\n")
+        sys.stderr.write(f"carla-agentic-toolkit-windows: {error}\n")
         return 2
     try:
         completed = subprocess.run(config.command(program), check=False)
     except FileNotFoundError:
-        sys.stderr.write(f"carla-mcp-windows: WSL command not found: {config.wsl_command}\n")
+        sys.stderr.write(
+            f"carla-agentic-toolkit-windows: WSL command not found: {config.wsl_command}\n"
+        )
         return 1
     return completed.returncode
 

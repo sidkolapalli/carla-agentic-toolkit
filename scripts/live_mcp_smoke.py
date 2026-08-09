@@ -37,7 +37,9 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     """Parse explicit live-test configuration."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--confirm-live", action="store_true")
-    parser.add_argument("--windows", action="store_true", help="launch through carla-mcp-windows")
+    parser.add_argument(
+        "--windows", action="store_true", help="launch through carla-agentic-toolkit-windows"
+    )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", default=2000, type=int)
     parser.add_argument("--timeout-seconds", default=20.0, type=float)
@@ -54,7 +56,7 @@ async def run_live_smoke(
     drive_seconds: float = 1.0,
 ) -> dict[str, object]:
     """Exercise live CARLA through one MCP stdio server."""
-    tag = f"carla-mcp-smoke-{uuid4().hex}"
+    tag = f"carla-agentic-toolkit-smoke-{uuid4().hex}"
     server = StdioServerParameters(
         command=str(_launcher(windows=args.windows)),
         env=dict(os.environ),
@@ -191,7 +193,7 @@ def _save_image(data: object, path: Path) -> None:
 def _launcher(*, windows: bool) -> Path:
     """Return the installed direct or Windows MCP console command."""
     suffix = ".exe" if os.name == "nt" else ""
-    name = "carla-mcp-windows" if windows else "carla-mcp"
+    name = "carla-agentic-toolkit-windows" if windows else "carla-agentic-toolkit"
     return Path(sys.executable).with_name(name + suffix)
 
 

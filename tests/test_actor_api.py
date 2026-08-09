@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Final
 
-from carla_mcp.models import (
+from carla_agentic_toolkit.models import (
     ActorCounts,
     BlueprintAttribute,
     BlueprintInfo,
@@ -18,7 +18,7 @@ from carla_mcp.models import (
     WorldSettings,
     WorldState,
 )
-from carla_mcp.snapshots import RunSnapshots
+from carla_agentic_toolkit.snapshots import RunSnapshots
 from tests.api_helpers import build_api
 
 BLUEPRINT_ID: Final = "vehicle.tesla.model3"

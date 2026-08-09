@@ -7,8 +7,8 @@ import time
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, cast
 
-from carla_mcp.errors import CarlaAdapterError
-from carla_mcp.experiment_common import (
+from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.experiment_common import (
     actor,
     call_required,
     carla_transform,
@@ -17,15 +17,15 @@ from carla_mcp.experiment_common import (
     typed_transform,
     unavailable,
 )
-from carla_mcp.experiment_navigation import enum_value
-from carla_mcp.models import Location, Rotation, Transform
+from carla_agentic_toolkit.experiment_navigation import enum_value
+from carla_agentic_toolkit.models import Location, Rotation, Transform
 
 MAX_WATCH_SECONDS = 30.0
 MAX_CHASE_DISTANCE = 30.0
 MAX_CHASE_HEIGHT = 15.0
 
 if TYPE_CHECKING:
-    from carla_mcp.carla_protocols import CarlaWorld
+    from carla_agentic_toolkit.carla_protocols import CarlaWorld
 
 
 def freeze_traffic_lights(world: CarlaWorld, *, enabled: bool) -> dict[str, object]:

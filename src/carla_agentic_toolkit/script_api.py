@@ -12,16 +12,16 @@ from functools import wraps
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from carla_mcp.actor_registry import ActorRegistry, actor_registry_path
-from carla_mcp.api_discovery import method_catalog
-from carla_mcp.errors import (
+from carla_agentic_toolkit.actor_registry import ActorRegistry, actor_registry_path
+from carla_agentic_toolkit.api_discovery import method_catalog
+from carla_agentic_toolkit.errors import (
     ActorRegistryError,
     CarlaAdapterError,
     OwnershipError,
     UnsupportedFeatureError,
 )
-from carla_mcp.evidence import export_evidence_packet as export_evidence
-from carla_mcp.ownership import (
+from carla_agentic_toolkit.evidence import export_evidence_packet as export_evidence
+from carla_agentic_toolkit.ownership import (
     RunOwnership,
     cleanup_owned_actors,
     payload_actor_ids,
@@ -29,7 +29,7 @@ from carla_mcp.ownership import (
     release_destroyed,
     track_owned,
 )
-from carla_mcp.tool_inputs import (
+from carla_agentic_toolkit.tool_inputs import (
     parse_autopilot_request,
     parse_camera_attach_request,
     parse_location,
@@ -44,14 +44,14 @@ from carla_mcp.tool_inputs import (
     sensor_blueprint,
     zero_transform,
 )
-from carla_mcp.traffic_controller_service import InProcessTrafficControllerService
+from carla_agentic_toolkit.traffic_controller_service import InProcessTrafficControllerService
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
 
-    from carla_mcp.adapter import PythonCarlaAdapter
-    from carla_mcp.models import JsonObject
-    from carla_mcp.snapshots import RunSnapshots
+    from carla_agentic_toolkit.adapter import PythonCarlaAdapter
+    from carla_agentic_toolkit.models import JsonObject
+    from carla_agentic_toolkit.snapshots import RunSnapshots
 
 
 def _recover(

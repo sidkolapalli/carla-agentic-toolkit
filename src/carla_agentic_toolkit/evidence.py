@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from carla_mcp.models import JsonObject
-    from carla_mcp.snapshots import RunSnapshots
+    from carla_agentic_toolkit.models import JsonObject
+    from carla_agentic_toolkit.snapshots import RunSnapshots
 
 
 def export_evidence_packet(snapshots: RunSnapshots, output_dir: str) -> JsonObject:

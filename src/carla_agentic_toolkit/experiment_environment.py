@@ -7,8 +7,8 @@ import re
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, cast
 
-from carla_mcp.errors import CarlaAdapterError, UnsupportedFeatureError
-from carla_mcp.experiment_common import (
+from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
+from carla_agentic_toolkit.experiment_common import (
     call_required,
     required_attribute,
     transform_dict,

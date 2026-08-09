@@ -72,12 +72,14 @@ async def _verify_mcp(launcher: Path) -> dict[str, object]:
             condition=landlock.get("ruleset_enforced") is True,
         )
 
-        project_dir = os.environ["CARLA_MCP_WSL_PROJECT"]
+        project_dir = os.environ["CARLA_AGENTIC_TOOLKIT_WSL_PROJECT"]
         _require(
             f"WSL project is not writable by its user: {project_dir}",
             condition=_wsl_test("-w", project_dir),
         )
-        probe_path = str(PurePosixPath(project_dir) / f".carla-mcp-landlock-probe-{uuid4().hex}")
+        probe_path = str(
+            PurePosixPath(project_dir) / f".carla-agentic-toolkit-landlock-probe-{uuid4().hex}"
+        )
         probe_code = f"result = api.export_evidence_packet({json.dumps(probe_path)})"
         blocked = await session.call_tool(
             "execute_carla_script",
@@ -105,7 +107,9 @@ async def _verify_mcp(launcher: Path) -> dict[str, object]:
 
 
 def _launcher() -> Path:
-    name = "carla-mcp-windows.exe" if os.name == "nt" else "carla-mcp-windows"
+    name = (
+        "carla-agentic-toolkit-windows.exe" if os.name == "nt" else "carla-agentic-toolkit-windows"
+    )
     return Path(sys.executable).with_name(name)
 
 
@@ -113,9 +117,9 @@ def _wsl_test(operator: str, path: str) -> bool:
     """Run one trusted filesystem predicate inside the selected WSL2 distribution."""
     completed = subprocess.run(
         [
-            os.environ.get("CARLA_MCP_WSL_COMMAND", "wsl.exe"),
+            os.environ.get("CARLA_AGENTIC_TOOLKIT_WSL_COMMAND", "wsl.exe"),
             "--distribution",
-            os.environ["CARLA_MCP_WSL_DISTRO"],
+            os.environ["CARLA_AGENTIC_TOOLKIT_WSL_DISTRO"],
             "--exec",
             "/usr/bin/test",
             operator,
@@ -135,9 +139,9 @@ def _remove_wsl_probe(path: str) -> None:
     """Remove only the unique probe path after an unexpected sandbox escape."""
     subprocess.run(
         [
-            os.environ.get("CARLA_MCP_WSL_COMMAND", "wsl.exe"),
+            os.environ.get("CARLA_AGENTIC_TOOLKIT_WSL_COMMAND", "wsl.exe"),
             "--distribution",
-            os.environ["CARLA_MCP_WSL_DISTRO"],
+            os.environ["CARLA_AGENTIC_TOOLKIT_WSL_DISTRO"],
             "--exec",
             "/usr/bin/rm",
             "-rf",

@@ -13,10 +13,10 @@ from mcp import Client
 from mcp.server import MCPServer
 from mcp.types import BlobResourceContents, ImageContent, ResourceLink, TextContent
 
-from carla_mcp import server as server_module
-from carla_mcp.output_content import capture_resource_uri
-from carla_mcp.sandbox import ScriptOutcome
-from carla_mcp.server import build_server
+from carla_agentic_toolkit import server as server_module
+from carla_agentic_toolkit.output_content import capture_resource_uri
+from carla_agentic_toolkit.sandbox import ScriptOutcome
+from carla_agentic_toolkit.server import build_server
 
 if TYPE_CHECKING:
     import pytest
@@ -112,7 +112,7 @@ def test_capture_resource_template_returns_bounded_binary_content(
     """Resource links emitted by the tool should be readable through MCP."""
     image = b"\x89PNG\r\n\x1a\nimage"
     (tmp_path / "front.png").write_bytes(image)
-    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(tmp_path))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR", str(tmp_path))
     uri = capture_resource_uri(Path("front.png"))
 
     result = asyncio.run(_read_resource(build_server(), uri))
@@ -149,7 +149,7 @@ def test_server_supports_latest_mcp_protocol(monkeypatch: pytest.MonkeyPatch) ->
         "result": result.structured_content["result"],
     } == {
         "protocol_version": "2026-07-28",
-        "server_name": "carla-mcp",
+        "server_name": "carla-agentic-toolkit",
         "server_version": "0.1.0",
         "is_error": False,
         "result": 1,
@@ -163,7 +163,7 @@ def test_server_can_return_capture_as_image_and_resource_link(
     """An opt-in capture should use native MCP visual and resource content."""
     capture = tmp_path / "front.png"
     capture.write_bytes(b"\x89PNG\r\n\x1a\nimage")
-    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(tmp_path))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR", str(tmp_path))
     monkeypatch.setattr(server_module, "execute_script", _capture_script("front.png"))
 
     _, _, result = asyncio.run(_call_script_tool(build_server()))
@@ -189,7 +189,7 @@ def test_server_keeps_json_only_fallback_when_images_are_not_requested(
 ) -> None:
     """Clients that do not request visual content should retain the old result shape."""
     (tmp_path / "front.png").write_bytes(b"\x89PNG\r\n\x1a\nimage")
-    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(tmp_path))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR", str(tmp_path))
     monkeypatch.setattr(
         server_module,
         "execute_script",
@@ -209,7 +209,7 @@ def test_server_rejects_capture_path_outside_output_directory(
     """Image publication errors should be structured MCP tool failures."""
     secret = tmp_path.parent / "secret.png"
     secret.write_bytes(b"\x89PNG\r\n\x1a\nsecret")
-    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(tmp_path))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR", str(tmp_path))
     monkeypatch.setattr(server_module, "execute_script", _capture_script("../secret.png"))
 
     _, _, result = asyncio.run(_call_script_tool(build_server()))

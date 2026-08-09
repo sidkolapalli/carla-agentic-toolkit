@@ -12,8 +12,8 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-from carla_mcp.adapter import PythonCarlaAdapter
-from carla_mcp.ownership import (
+from carla_agentic_toolkit.adapter import PythonCarlaAdapter
+from carla_agentic_toolkit.ownership import (
     OWNERSHIP_FILENAME,
     RunOwnership,
     cleanup_owned_actors,
@@ -118,7 +118,7 @@ def _execute_with_runner(
     try:
         output_dir = output_dir_path()
         output_dir.mkdir(parents=True, exist_ok=True)
-        with tempfile.TemporaryDirectory(prefix="carla-mcp-script-") as tmp_name:
+        with tempfile.TemporaryDirectory(prefix="carla-agentic-toolkit-script-") as tmp_name:
             work_dir = Path(tmp_name)
             script_path = work_dir / "script.py"
             script_path.write_text(code, encoding="utf-8")
@@ -132,7 +132,7 @@ def _execute_with_runner(
                     port=request.port,
                     timeout_seconds=request.timeout_seconds,
                     traffic_manager_ports=request.traffic_manager_ports,
-                    recorder_dir=os.environ.get("CARLA_MCP_RECORDER_DIR"),
+                    recorder_dir=os.environ.get("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR"),
                 )
             )
             try:
@@ -232,7 +232,7 @@ def _runner_command(request: RunnerCommandRequest) -> list[str]:
         "--python",
         sys.executable,
         "--module",
-        "carla_mcp.script_runner",
+        "carla_agentic_toolkit.script_runner",
         "--script",
         str(request.script_path),
         "--host",
@@ -387,20 +387,22 @@ def _read_only_paths() -> tuple[Path, ...]:
 
 def output_dir_path() -> Path:
     """Return the persistent directory exposed for script outputs."""
-    configured = os.environ.get("CARLA_MCP_OUTPUT_DIR")
-    path = Path(configured).expanduser() if configured else Path.cwd() / "carla-mcp-output"
+    configured = os.environ.get("CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR")
+    path = (
+        Path(configured).expanduser() if configured else Path.cwd() / "carla-agentic-toolkit-output"
+    )
     return path.resolve()
 
 
 def _sandbox_runner() -> Path | None:
     """Return the Rust sandbox runner path when available."""
-    env_path = os.environ.get("CARLA_MCP_SANDBOX")
+    env_path = os.environ.get("CARLA_AGENTIC_TOOLKIT_SANDBOX")
     if env_path:
         candidate = Path(env_path)
         return candidate if candidate.exists() else None
     project_root = Path(__file__).resolve().parents[2]
     candidates = (
-        project_root / "sandbox-runner" / "target" / "release" / "carla-mcp-sandbox",
-        project_root / "sandbox-runner" / "target" / "debug" / "carla-mcp-sandbox",
+        project_root / "sandbox-runner" / "target" / "release" / "carla-agentic-toolkit-sandbox",
+        project_root / "sandbox-runner" / "target" / "debug" / "carla-agentic-toolkit-sandbox",
     )
     return next((path for path in candidates if path.exists()), None)

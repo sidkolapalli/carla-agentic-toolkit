@@ -8,9 +8,9 @@ from dataclasses import dataclass, replace
 from importlib import import_module
 from typing import TYPE_CHECKING, cast
 
-from carla_mcp.behavior_profiles import BehaviorProfile, behavior_profile
-from carla_mcp.errors import CarlaAdapterError
-from carla_mcp.models import (
+from carla_agentic_toolkit.behavior_profiles import BehaviorProfile, behavior_profile
+from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.models import (
     DestroyResult,
     TrafficControllerStartRequest,
     TrafficControllerStatus,
@@ -20,7 +20,7 @@ from carla_mcp.models import (
     VehicleBehaviorRequest,
     VehicleBehaviorResult,
 )
-from carla_mcp.traffic_runtime import (
+from carla_agentic_toolkit.traffic_runtime import (
     configure_traffic_manager,
     populate_traffic_actors,
     traffic_manager,
@@ -31,7 +31,7 @@ MOVING_SPEED_THRESHOLD_MPS = 0.5
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
-    from carla_mcp.carla_protocols import (
+    from carla_agentic_toolkit.carla_protocols import (
         CarlaActor,
         CarlaClient,
         CarlaTrafficManager,
@@ -83,13 +83,15 @@ class InProcessTrafficControllerService:
         """Start the persistent controller."""
         self.stop()
         with self._lock:
-            self._stop_event = threading.Event()
+            stop_event = threading.Event()
+            self._stop_event = stop_event
             self._state = _RuntimeState(request=request, active=True)
             self._registered_actor_ids = frozenset()
             self._configured_density = None
             self._thread = threading.Thread(
                 target=self._run,
-                name="carla-mcp-traffic-controller",
+                args=(stop_event,),
+                name="carla-agentic-toolkit-traffic-controller",
                 daemon=True,
             )
             self._thread.start()
@@ -144,10 +146,10 @@ class InProcessTrafficControllerService:
             ),
         )
 
-    def _run(self) -> None:
+    def _run(self, stop_event: threading.Event) -> None:
         """Run the controller loop until stopped."""
         client: CarlaClient | None = None
-        while not self._stop_event.is_set():
+        while not stop_event.is_set():
             try:
                 client = client or _client(self._state.request)
                 self._control_once(client)
@@ -285,7 +287,7 @@ def _converge_density(
 ) -> tuple[frozenset[int], tuple[int, ...]]:
     """Converge current vehicles and return managed plus newly spawned IDs."""
     vehicles = _vehicle_actors(world)
-    _trim_vehicles(vehicles, request.vehicle_count)
+    _trim_vehicles(vehicles, request.vehicle_count, registered_actor_ids)
     vehicles = _vehicle_actors(world)
     current_count = min(len(vehicles), request.vehicle_count)
     managed_vehicles = vehicles[:current_count]
@@ -339,11 +341,25 @@ def _vehicle_actors(world: CarlaWorld) -> tuple[CarlaActor, ...]:
     return tuple(cast("CarlaActor", actor) for actor in world.get_actors().filter("vehicle.*"))
 
 
-def _trim_vehicles(vehicles: tuple[CarlaActor, ...], target_count: int) -> None:
-    """Destroy surplus vehicles above target density."""
+def _trim_vehicles(
+    vehicles: tuple[CarlaActor, ...],
+    target_count: int,
+    registered_actor_ids: frozenset[int],
+) -> None:
+    """Destroy surplus controller-owned vehicles above target density.
+
+    Without ``reset_existing=True``, only actors that were previously
+    registered by the density controller are eligible for removal.
+    Pre-existing or externally owned vehicles are left alone.
+    """
     if len(vehicles) <= target_count:
         return
-    surplus = sorted(vehicles, key=lambda actor: actor.id)[target_count:]
+    # Only destroy controller-registered vehicles (sorted by id for determinism).
+    owned = sorted(
+        (v for v in vehicles if v.id in registered_actor_ids),
+        key=lambda actor: actor.id,
+    )
+    surplus = owned[target_count:] if len(owned) > target_count else []
     _destroy_vehicles(tuple(surplus))
 
 

@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, cast
 
-from carla_mcp.errors import CarlaAdapterError
-from carla_mcp.models import (
+from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.models import (
     AutopilotRequest,
     SpawnResult,
     TrafficManagerRequest,
@@ -16,7 +17,7 @@ from carla_mcp.models import (
 )
 
 if TYPE_CHECKING:
-    from carla_mcp.carla_protocols import (
+    from carla_agentic_toolkit.carla_protocols import (
         CarlaActor,
         CarlaBlueprint,
         CarlaClient,
@@ -166,7 +167,10 @@ def _spawn_traffic_actor(
     spawn_point: object,
     index: int,
 ) -> SpawnResult:
-    """Spawn one traffic actor and enable autopilot."""
+    """Spawn one traffic actor and enable autopilot.
+
+    The actor is tracked before autopilot so a later failure does not leak it.
+    """
     configured_blueprint = _configured_traffic_blueprint(
         blueprint=blueprint,
         seed=context.seed,
@@ -176,8 +180,12 @@ def _spawn_traffic_actor(
         actor = context.world.try_spawn_actor(configured_blueprint, spawn_point)
         if actor is None:
             return _spawn_failure(index, "CARLA could not spawn actor at the selected spawn point.")
-        autopilot_enabled = True
-        actor.set_autopilot(autopilot_enabled, context.traffic_manager_instance.get_port())
+        try:
+            autopilot_enabled = True
+            actor.set_autopilot(autopilot_enabled, context.traffic_manager_instance.get_port())
+        except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+            _destroy_actor(actor)
+            return _spawn_failure(index, str(exc))
     except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
         return _spawn_failure(index, str(exc))
     return SpawnResult(request_index=index, actor_id=int(actor.id), error=None)
@@ -344,6 +352,14 @@ def _missing_spawn_point_results(vehicle_count: int, request_count: int) -> list
 def _spawn_failure(index: int, message: str) -> SpawnResult:
     """Create a failed spawn result."""
     return SpawnResult(request_index=index, actor_id=None, error=message)
+
+
+def _destroy_actor(actor: object) -> None:
+    """Destroy a CARLA actor, silently ignoring errors."""
+    destroy = getattr(actor, "destroy", None)
+    if callable(destroy):
+        with contextlib.suppress(AttributeError, RuntimeError, TypeError, ValueError):
+            destroy()
 
 
 def _successful_actor_ids(results: list[SpawnResult]) -> list[int]:

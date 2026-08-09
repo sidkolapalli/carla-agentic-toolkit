@@ -9,10 +9,10 @@ from typing import Final
 
 import pytest
 
-from carla_mcp.adapter import PythonCarlaAdapter
-from carla_mcp.errors import CarlaAdapterError
-from carla_mcp.models import RecordingInfo
-from carla_mcp.snapshots import RunSnapshots
+from carla_agentic_toolkit.adapter import PythonCarlaAdapter
+from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.models import RecordingInfo
+from carla_agentic_toolkit.snapshots import RunSnapshots
 from tests.api_helpers import build_api
 
 RECORDING_ID: Final = "recording-001"
@@ -74,7 +74,7 @@ def test_python_adapter_uses_server_recorder_dir_and_accepted_path(
     """Cross-host recording should use and report the simulator-side path."""
     client = RecorderClient(accepted_path=ACCEPTED_RECORDING)
     adapter = PythonCarlaAdapter()
-    monkeypatch.setenv("CARLA_MCP_RECORDER_DIR", "E:/CARLA_0.9.16")
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR", "E:/CARLA_0.9.16")
     monkeypatch.setattr(adapter, "_client", lambda: client)
 
     recording = adapter.record_episode(Path(REQUESTED_RECORDING))
@@ -136,3 +136,37 @@ def test_export_evidence_packet_writes_manifest_and_snapshot(tmp_path: Path) -> 
     ]
     snapshot_uri = str(result["snapshot_uri"])
     assert snapshots.read_snapshot(snapshot_uri) == result
+
+
+def test_server_recorder_rejects_escaped_relative_path() -> None:
+    """Record episode must reject relative paths that escape the recorder root."""
+    adapter = PythonCarlaAdapter()
+    client = RecorderClient(accepted_path="ok.log")
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(adapter, "_client", lambda: client)
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR", "/opt/carla/recordings")
+
+    with pytest.raises(CarlaAdapterError, match=r"'\.\.'"):
+        adapter.record_episode(Path("../outside.log"))
+
+
+def test_server_recorder_rejects_absolute_path() -> None:
+    """Record episode must reject absolute paths."""
+    adapter = PythonCarlaAdapter()
+    client = RecorderClient(accepted_path="ok.log")
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(adapter, "_client", lambda: client)
+
+    with pytest.raises(CarlaAdapterError, match="relative to the configured"):
+        adapter.record_episode(Path("/etc/passwd"))
+
+
+def test_server_recorder_rejects_empty_path() -> None:
+    """Record episode must reject NUL-containing paths."""
+    adapter = PythonCarlaAdapter()
+    client = RecorderClient(accepted_path="ok.log")
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(adapter, "_client", lambda: client)
+
+    with pytest.raises(CarlaAdapterError, match="NUL"):
+        adapter.record_episode(Path("test\x00.log"))

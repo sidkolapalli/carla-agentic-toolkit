@@ -6,14 +6,14 @@ import json
 import threading
 from typing import TYPE_CHECKING, cast
 
-from carla_mcp.errors import OwnershipError
+from carla_agentic_toolkit.errors import OwnershipError
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
     from pathlib import Path
 
-    from carla_mcp.adapter import PythonCarlaAdapter
-    from carla_mcp.models import DestroyResult
+    from carla_agentic_toolkit.adapter import PythonCarlaAdapter
+    from carla_agentic_toolkit.models import DestroyResult
 
 OWNERSHIP_FILENAME = "owned-actors.json"
 

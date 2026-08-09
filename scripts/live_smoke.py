@@ -11,9 +11,9 @@ import json
 import sys
 import time
 
-from carla_mcp.adapter import PythonCarlaAdapter
-from carla_mcp.models import TrafficControllerStartRequest, TrafficDensityRequest
-from carla_mcp.traffic_controller_service import InProcessTrafficControllerService
+from carla_agentic_toolkit.adapter import PythonCarlaAdapter
+from carla_agentic_toolkit.models import TrafficControllerStartRequest, TrafficDensityRequest
+from carla_agentic_toolkit.traffic_controller_service import InProcessTrafficControllerService
 
 
 def main() -> int:
@@ -62,7 +62,7 @@ def main() -> int:
 
 def _parse_args() -> argparse.Namespace:
     """Parse command-line arguments."""
-    parser = argparse.ArgumentParser(description="Run a live CARLA MCP smoke test.")
+    parser = argparse.ArgumentParser(description="Run a live CARLA Agentic Toolkit smoke test.")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", default=2000, type=int)
     parser.add_argument("--timeout-seconds", default=10.0, type=float)

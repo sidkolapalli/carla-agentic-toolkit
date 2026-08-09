@@ -7,17 +7,17 @@ from typing import TYPE_CHECKING, cast
 
 import pytest
 
-from carla_mcp import experiment_physics, experiment_replay
-from carla_mcp.errors import UnsupportedFeatureError
-from carla_mcp.models import Location
-from carla_mcp.script_api import CarlaScriptApi
-from carla_mcp.snapshots import RunSnapshots
+from carla_agentic_toolkit import experiment_physics, experiment_replay
+from carla_agentic_toolkit.errors import UnsupportedFeatureError
+from carla_agentic_toolkit.models import Location
+from carla_agentic_toolkit.script_api import CarlaScriptApi
+from carla_agentic_toolkit.snapshots import RunSnapshots
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from carla_mcp.adapter import PythonCarlaAdapter
-    from carla_mcp.carla_protocols import CarlaWorld
+    from carla_agentic_toolkit.adapter import PythonCarlaAdapter
+    from carla_agentic_toolkit.carla_protocols import CarlaWorld
 
 ACTOR_ID = 51
 VECTOR = {"x": 1.0, "y": 2.0, "z": 3.0}

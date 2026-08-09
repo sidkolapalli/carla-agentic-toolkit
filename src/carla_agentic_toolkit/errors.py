@@ -1,4 +1,4 @@
-"""Shared CARLA MCP exceptions."""
+"""Shared CARLA Agentic Toolkit exceptions."""
 
 
 class CarlaAdapterError(RuntimeError):

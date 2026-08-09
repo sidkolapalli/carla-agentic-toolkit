@@ -6,12 +6,12 @@ import threading
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Final, cast
 
-from carla_mcp.models import (
+from carla_agentic_toolkit.models import (
     TrafficControllerStartRequest,
     TrafficDensityRequest,
     TrafficPopulationRequest,
 )
-from carla_mcp.traffic_controller_service import (
+from carla_agentic_toolkit.traffic_controller_service import (
     InProcessTrafficControllerService,
     TrafficControllerStep,
     maintain_traffic_once,
@@ -20,7 +20,7 @@ from carla_mcp.traffic_controller_service import (
 if TYPE_CHECKING:
     import pytest
 
-    from carla_mcp.carla_protocols import CarlaClient
+    from carla_agentic_toolkit.carla_protocols import CarlaClient
 
 ACTOR_ID: Final = 342
 SPAWNED_ACTOR_ID: Final = 343
@@ -162,15 +162,15 @@ def test_reset_existing_vehicles_happens_before_traffic_manager_opens(
     client = Client(world=World(actor=actor, events=events))
 
     monkeypatch.setattr(
-        "carla_mcp.traffic_controller_service.traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_service.traffic_manager",
         TrafficManagerFactory(events),
     )
     monkeypatch.setattr(
-        "carla_mcp.traffic_controller_service.configure_traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_service.configure_traffic_manager",
         ConfigureManager(events),
     )
     monkeypatch.setattr(
-        "carla_mcp.traffic_controller_service.populate_traffic_actors",
+        "carla_agentic_toolkit.traffic_controller_service.populate_traffic_actors",
         PopulateTraffic(world=client.world, events=events),
     )
 
@@ -206,15 +206,15 @@ def test_existing_vehicles_are_registered_with_traffic_manager(
     client = Client(world=World(actor=actor, events=events))
 
     monkeypatch.setattr(
-        "carla_mcp.traffic_controller_service.traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_service.traffic_manager",
         lambda _client, _port: TrafficManager(port=9000),
     )
     monkeypatch.setattr(
-        "carla_mcp.traffic_controller_service.configure_traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_service.configure_traffic_manager",
         lambda _manager, _request: events.append("configure"),
     )
     monkeypatch.setattr(
-        "carla_mcp.traffic_controller_service.populate_traffic_actors",
+        "carla_agentic_toolkit.traffic_controller_service.populate_traffic_actors",
         lambda **_kwargs: events.append("populate"),
     )
 
@@ -249,15 +249,15 @@ def test_spawned_vehicles_are_distinct_from_adopted_vehicles(
     actor = VehicleActor(destroyed=True)
     client = Client(world=World(actor=actor, events=events))
     monkeypatch.setattr(
-        "carla_mcp.traffic_controller_service.traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_service.traffic_manager",
         lambda _client, _port: TrafficManager(),
     )
     monkeypatch.setattr(
-        "carla_mcp.traffic_controller_service.configure_traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_service.configure_traffic_manager",
         lambda _manager, _request: None,
     )
     monkeypatch.setattr(
-        "carla_mcp.traffic_controller_service.populate_traffic_actors",
+        "carla_agentic_toolkit.traffic_controller_service.populate_traffic_actors",
         lambda **_kwargs: ([SPAWNED_ACTOR_ID], []),
     )
 
@@ -293,8 +293,12 @@ def test_controller_reports_only_actual_spawns_to_ownership(
         owned.extend(actor_ids)
         reported.set()
 
-    monkeypatch.setattr("carla_mcp.traffic_controller_service._client", lambda _request: object())
-    monkeypatch.setattr("carla_mcp.traffic_controller_service.maintain_traffic_once", step)
+    monkeypatch.setattr(
+        "carla_agentic_toolkit.traffic_controller_service._client", lambda _request: object()
+    )
+    monkeypatch.setattr(
+        "carla_agentic_toolkit.traffic_controller_service.maintain_traffic_once", step
+    )
     service = InProcessTrafficControllerService(on_spawn=record)
     service.start(request)
     assert reported.wait(1.0)
@@ -313,11 +317,11 @@ def test_known_vehicles_are_not_registered_again(
     client = Client(world=World(actor=actor, events=events))
 
     monkeypatch.setattr(
-        "carla_mcp.traffic_controller_service.traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_service.traffic_manager",
         lambda _client, _port: TrafficManager(port=9000),
     )
     monkeypatch.setattr(
-        "carla_mcp.traffic_controller_service.configure_traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_service.configure_traffic_manager",
         lambda _manager, _request: events.append("configure"),
     )
 
@@ -341,11 +345,11 @@ def test_configured_manager_can_be_left_undisturbed(
     client = Client(world=World(actor=actor, events=events))
 
     monkeypatch.setattr(
-        "carla_mcp.traffic_controller_service.traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_service.traffic_manager",
         lambda _client, _port: TrafficManager(port=9000),
     )
     monkeypatch.setattr(
-        "carla_mcp.traffic_controller_service.configure_traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_service.configure_traffic_manager",
         lambda _manager, _request: events.append("configure"),
     )
 

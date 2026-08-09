@@ -7,12 +7,12 @@ import sys
 from pathlib import Path
 from typing import cast
 
-from carla_mcp.sandbox import execute_script
+from carla_agentic_toolkit.sandbox import execute_script
 
 
 def main() -> int:
     """Run three real sandbox checks and print a compact walkthrough."""
-    _write("CARLA MCP — sandbox walkthrough", "")
+    _write("CARLA Agentic Toolkit — sandbox walkthrough", "")
 
     basic = execute_script("result = {'message': 'hello from the sandbox'}", timeout_seconds=2)
     if not basic.ok:
@@ -43,9 +43,11 @@ def main() -> int:
     if not evidence.ok:
         return _failure("Evidence export failed", evidence.to_dict())
     result = cast("dict[str, object]", evidence.result)
-    output_dir = Path(
-        os.environ.get("CARLA_MCP_OUTPUT_DIR", "carla-mcp-output")
-    ).expanduser().resolve()
+    output_dir = (
+        Path(os.environ.get("CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR", "carla-agentic-toolkit-output"))
+        .expanduser()
+        .resolve()
+    )
     manifest = output_dir / str(result["manifest_path"])
     if not manifest.is_file():
         return _failure("Evidence manifest did not persist", {"path": str(manifest)})

@@ -17,21 +17,21 @@ from mcp.types import (
     ToolAnnotations,
 )
 
-from carla_mcp import __version__
-from carla_mcp.output_content import (
+from carla_agentic_toolkit import __version__
+from carla_agentic_toolkit.output_content import (
     OutputContentError,
     PublishedCapture,
     published_captures,
     read_capture_resource,
 )
-from carla_mcp.sandbox import ScriptOutcome, execute_script, output_dir_path
+from carla_agentic_toolkit.sandbox import ScriptOutcome, execute_script, output_dir_path
 
 _execution_lock = threading.Lock()
 
 
 def build_server() -> MCPServer:
     """Build the MCP server with one script-execution tool."""
-    mcp = MCPServer("carla-mcp", title="CARLA MCP", version=__version__)
+    mcp = MCPServer("carla-agentic-toolkit", title="CARLA Agentic Toolkit", version=__version__)
     _register_script_tool(mcp)
     _register_capture_resource(mcp)
     _register_prompts(mcp)
@@ -134,7 +134,7 @@ def _register_capture_resource(mcp: MCPServer) -> None:
     @mcp.resource(
         "carla-output://capture/{token}",
         name="carla-capture",
-        description="A validated PNG or JPEG created under CARLA_MCP_OUTPUT_DIR.",
+        description="A validated PNG or JPEG created under CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR.",
         mime_type="application/octet-stream",
     )
     def read_capture(token: str) -> bytes:
@@ -160,7 +160,7 @@ def _register_prompts(mcp: MCPServer) -> None:
         return (
             "Use execute_carla_script. Resolve or list the target actor, attach an RGB "
             "camera, call api.capture_sensor_frame(..., publish=True) below "
-            "CARLA_MCP_OUTPUT_DIR, "
+            "CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR, "
             "detach the sensor in finally, and summarize the returned image and metadata."
         )
 
@@ -179,7 +179,7 @@ def _register_prompts(mcp: MCPServer) -> None:
         return (
             "Use one execute_carla_script call to create an 8-second visual CARLA demo. "
             "Save the current weather. Spawn one red Tesla Model 3 at the first free "
-            "spawn point with role_name carla-mcp-showcase. Apply rainy golden-hour "
+            "spawn point with role_name carla-agentic-toolkit-showcase. Apply rainy golden-hour "
             "weather and vehicle lights, enable Traffic Manager autopilot at 8 m/s, "
             "and call api.watch_actor(actor_id, seconds=8.0) for a smooth yaw-relative "
             "chase view that restores the spectator. Attach an RGB camera and publish "
@@ -191,5 +191,5 @@ def _register_prompts(mcp: MCPServer) -> None:
 
 
 def main() -> None:
-    """Run the CARLA MCP server."""
+    """Run the CARLA Agentic Toolkit server."""
     build_server().run()

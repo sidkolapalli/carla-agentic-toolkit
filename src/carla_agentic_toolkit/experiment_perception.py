@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from queue import Empty, Queue
+import contextlib
+from queue import Empty, Full, Queue
 from typing import TYPE_CHECKING
 
-from carla_mcp.errors import CarlaAdapterError
-from carla_mcp.experiment_common import (
+from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.experiment_common import (
     float_attr,
     nested_id,
     optional_transform_dict,
@@ -16,7 +17,7 @@ from carla_mcp.experiment_common import (
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from carla_mcp.carla_protocols import CarlaSensor, CarlaWorld
+    from carla_agentic_toolkit.carla_protocols import CarlaSensor, CarlaWorld
 
 
 def read_sensor_stream(
@@ -51,13 +52,24 @@ def detach_sensor(world: CarlaWorld, sensor_id: int) -> dict[str, object]:
 
 
 def collect_sensor_frames(sensor: CarlaSensor, frame_count: int) -> list[object]:
-    """Collect a bounded number of sensor frames server-side."""
-    frames: Queue[object] = Queue(maxsize=max(frame_count, 1))
-    sensor.listen(frames.put)
+    """Collect a bounded number of sensor frames server-side.
+
+    Uses ``put_nowait`` so a fast producer cannot block the CARLA
+    callback thread and deadlock ``sensor.stop()`` at shutdown.
+    """
+    maxsize = max(frame_count, 1)
+    frames: Queue[object] = Queue(maxsize=maxsize)
+    sensor.listen(lambda frame: _put_nowait_drop(frames, frame))
     try:
         return [next_sensor_frame(frames) for _ in range(max(frame_count, 0))]
     finally:
         sensor.stop()
+
+
+def _put_nowait_drop(queue: Queue[object], item: object) -> None:
+    """Put on a queue without blocking; drop if full."""
+    with contextlib.suppress(Full):
+        queue.put_nowait(item)
 
 
 def next_sensor_frame(frames: Queue[object]) -> object:

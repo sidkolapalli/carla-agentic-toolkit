@@ -8,9 +8,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-from carla_mcp import sandbox, script_runner
-from carla_mcp.errors import OwnershipError
-from carla_mcp.models import (
+from carla_agentic_toolkit import sandbox, script_runner
+from carla_agentic_toolkit.errors import OwnershipError
+from carla_agentic_toolkit.models import (
     DestroyResult,
     Location,
     Rotation,
@@ -18,16 +18,16 @@ from carla_mcp.models import (
     SpawnResult,
     Transform,
 )
-from carla_mcp.ownership import OWNERSHIP_FILENAME, RunOwnership
-from carla_mcp.script_api import CarlaScriptApi
-from carla_mcp.snapshots import RunSnapshots
+from carla_agentic_toolkit.ownership import OWNERSHIP_FILENAME, RunOwnership
+from carla_agentic_toolkit.script_api import CarlaScriptApi
+from carla_agentic_toolkit.snapshots import RunSnapshots
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     import pytest
 
-    from carla_mcp.adapter import PythonCarlaAdapter
+    from carla_agentic_toolkit.adapter import PythonCarlaAdapter
 
 ACTOR_ID = 101
 SENSOR_ID = 202
@@ -169,7 +169,7 @@ def test_parent_cleans_owned_actors_after_sandbox_timeout(
     tmp_path: Path,
 ) -> None:
     """The parent should cleanup from the journal after the child is killed."""
-    runner = tmp_path / "carla-mcp-sandbox"
+    runner = tmp_path / "carla-agentic-toolkit-sandbox"
     runner.write_text("runner", encoding="utf-8")
     adapter = OwnershipAdapter()
 
@@ -186,8 +186,8 @@ def test_parent_cleans_owned_actors_after_sandbox_timeout(
         }
         return subprocess.CompletedProcess(command, 0, json.dumps(payload), "")
 
-    monkeypatch.setenv("CARLA_MCP_SANDBOX", str(runner))
-    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(tmp_path / "output"))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_SANDBOX", str(runner))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR", str(tmp_path / "output"))
     monkeypatch.setattr(sandbox.subprocess, "run", run_command)
     monkeypatch.setattr(sandbox, "PythonCarlaAdapter", lambda **_kwargs: adapter)
 

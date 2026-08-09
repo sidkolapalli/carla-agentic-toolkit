@@ -6,8 +6,8 @@ import math
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, cast
 
-from carla_mcp.errors import CarlaAdapterError
-from carla_mcp.experiment_common import (
+from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.experiment_common import (
     call_required,
     carla_location,
     float_attr,
@@ -23,8 +23,8 @@ MAX_LANDMARK_FILTER_LENGTH = 128
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from carla_mcp.carla_protocols import CarlaWorld
-    from carla_mcp.models import Location
+    from carla_agentic_toolkit.carla_protocols import CarlaWorld
+    from carla_agentic_toolkit.models import Location
 
 
 def spawn_points(world: CarlaWorld) -> dict[str, object]:

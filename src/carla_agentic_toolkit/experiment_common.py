@@ -6,11 +6,18 @@ import math
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, cast
 
-from carla_mcp.errors import CarlaAdapterError, UnsupportedFeatureError
-from carla_mcp.models import ActorCounts, Location, Rotation, Transform, WorldSettings, WorldState
+from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
+from carla_agentic_toolkit.models import (
+    ActorCounts,
+    Location,
+    Rotation,
+    Transform,
+    WorldSettings,
+    WorldState,
+)
 
 if TYPE_CHECKING:
-    from carla_mcp.carla_protocols import CarlaSensor, CarlaWorld, ObjectFactory
+    from carla_agentic_toolkit.carla_protocols import CarlaSensor, CarlaWorld, ObjectFactory
 
 
 def world_state(world: CarlaWorld) -> WorldState:
@@ -253,18 +260,18 @@ def is_public_scalar_field(key: str, value: object) -> bool:
 
 def float_value(value: object) -> float:
     """Parse a numeric value as float."""
-    if isinstance(value, int | float):
-        return float(value)
-    msg = "Expected a numeric value."
-    raise TypeError(msg)
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        msg = "Expected a numeric value."
+        raise TypeError(msg)
+    return float(value)
 
 
 def int_value(value: object) -> int:
     """Parse an integer value."""
-    if isinstance(value, int):
-        return value
-    msg = "Expected an integer value."
-    raise TypeError(msg)
+    if isinstance(value, bool) or not isinstance(value, int):
+        msg = "Expected an integer value."
+        raise TypeError(msg)
+    return value
 
 
 def bool_value(value: object) -> bool:

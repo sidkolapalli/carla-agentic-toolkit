@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Final
 
-from carla_mcp.models import (
+from carla_agentic_toolkit.models import (
     ActorCounts,
     AutopilotRequest,
     HealthReport,
@@ -16,7 +16,8 @@ from carla_mcp.models import (
     WorldSettings,
     WorldState,
 )
-from carla_mcp.snapshots import RunSnapshots
+from carla_agentic_toolkit.snapshots import RunSnapshots
+from carla_agentic_toolkit.traffic_runtime import _spawn_traffic_actor, _SpawnTrafficContext
 from tests.api_helpers import build_api
 
 TRAFFIC_MANAGER_PORT: Final = 8000
@@ -216,3 +217,55 @@ def _world_settings() -> WorldSettings:
         fixed_delta_seconds=None,
         no_rendering_mode=False,
     )
+
+
+def test_spawn_traffic_actor_cleans_up_on_autopilot_failure() -> None:
+    """When autopilot fails after spawn, the actor must be destroyed."""
+    destroyed_ids: list[int] = []
+    autopilot_error = "autopilot unavailable"
+
+    class BrokenAutopilotActor:
+        id = 999
+
+        def set_autopilot(self, _enabled: object, _port: int) -> None:
+            raise RuntimeError(autopilot_error)
+
+        def destroy(self) -> bool:
+            destroyed_ids.append(self.id)
+            return True
+
+    class FakeWorld:
+        @staticmethod
+        def try_spawn_actor(_blueprint: object, _point: object) -> BrokenAutopilotActor:
+            return BrokenAutopilotActor()
+
+    class FakeTM:
+        @staticmethod
+        def get_port() -> int:
+            return 8000
+
+    context = _SpawnTrafficContext(
+        world=FakeWorld(),  # type: ignore[arg-type]
+        traffic_manager_instance=FakeTM(),  # type: ignore[arg-type]
+        seed=0,
+    )
+
+    result = _spawn_traffic_actor(
+        context=context,
+        blueprint=_FakeBlueprint(),  # type: ignore[arg-type]
+        spawn_point=object(),
+        index=0,
+    )
+
+    assert result.error is not None
+    assert autopilot_error in str(result.error)
+    actor_id = 999
+    assert actor_id in destroyed_ids, "actor should be destroyed when autopilot fails"
+
+
+class _FakeBlueprint:
+    id = "vehicle.audi.a2"
+
+    @staticmethod
+    def has_attribute(_name: str) -> bool:
+        return False

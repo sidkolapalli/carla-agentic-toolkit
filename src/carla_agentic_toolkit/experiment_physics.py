@@ -6,9 +6,14 @@ import math
 from importlib import import_module
 from typing import Any, cast
 
-from carla_mcp.errors import CarlaAdapterError, UnsupportedFeatureError
-from carla_mcp.experiment_common import actor, call_required, object_factory, vector_dict
-from carla_mcp.models import Location
+from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
+from carla_agentic_toolkit.experiment_common import (
+    actor,
+    call_required,
+    object_factory,
+    vector_dict,
+)
+from carla_agentic_toolkit.models import Location
 
 _PHYSICS_ACTIONS = {
     "impulse": "add_impulse",

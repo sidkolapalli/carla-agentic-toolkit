@@ -1,4 +1,4 @@
-"""Typed public models for CARLA MCP tool results."""
+"""Typed public models for CARLA Agentic Toolkit tool results."""
 
 from __future__ import annotations
 

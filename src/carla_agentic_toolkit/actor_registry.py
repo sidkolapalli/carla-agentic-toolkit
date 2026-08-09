@@ -6,7 +6,7 @@ import hashlib
 import json
 from typing import TYPE_CHECKING, cast
 
-from carla_mcp.errors import ActorRegistryError
+from carla_agentic_toolkit.errors import ActorRegistryError
 
 if TYPE_CHECKING:
     from collections.abc import Collection

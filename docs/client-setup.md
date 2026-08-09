@@ -1,12 +1,12 @@
 # Client Setup
 
-CARLA MCP runs locally through stdio. Clients can launch its Docker image,
+CARLA Agentic Toolkit runs locally through stdio. Clients can launch its Docker image,
 Linux clients can run it directly, and Windows 11 clients can use
-`carla-mcp-windows` to run from source inside WSL2. There is no remote endpoint.
+`carla-agentic-toolkit-windows` to run from source inside WSL2. There is no remote endpoint.
 
 ## Prerequisites
 
-CARLA and CARLA MCP are separate programs. CARLA is the simulator; this
+CARLA and CARLA Agentic Toolkit are separate programs. CARLA is the simulator; this
 repository is the MCP server that connects to it.
 
 | Component | Linux | Windows 11 |
@@ -14,7 +14,7 @@ repository is the MCP server that connects to it.
 | CARLA simulator | Linux host or another reachable machine | Windows host or another reachable machine |
 | MCP server, CARLA Python API, and Rust sandbox | Linux | WSL2 |
 | MCP client | Linux | Windows |
-| `carla-mcp-windows` launcher | Not needed | Windows |
+| `carla-agentic-toolkit-windows` launcher | Not needed | Windows |
 
 Before starting, install or confirm:
 
@@ -47,13 +47,13 @@ Build the image with the Python API version matching the simulator, create its
 durable output volume, and run the real sandbox preflight:
 
 ```bash
-docker build --build-arg CARLA_VERSION=0.9.16 -t carla-mcp .
-docker volume create carla-mcp-output
+docker build --build-arg CARLA_VERSION=0.9.16 -t carla-agentic-toolkit .
+docker volume create carla-agentic-toolkit-output
 
 docker run --rm --read-only --security-opt=no-new-privileges \
   --tmpfs /tmp:rw,nosuid,nodev,size=64m \
-  --mount source=carla-mcp-output,target=/output \
-  carla-mcp carla-mcp-preflight
+  --mount source=carla-agentic-toolkit-output,target=/output \
+  carla-agentic-toolkit carla-agentic-toolkit-preflight
 ```
 
 Do not continue unless preflight reports `"ok": true` and
@@ -67,7 +67,7 @@ Use this as the MCP stdio process. `-i` is required; do not add `-t`:
 docker run --rm -i --read-only --security-opt=no-new-privileges \
   --tmpfs /tmp:rw,nosuid,nodev,size=64m \
   --add-host=host.docker.internal:host-gateway \
-  --mount source=carla-mcp-output,target=/output carla-mcp
+  --mount source=carla-agentic-toolkit-output,target=/output carla-agentic-toolkit
 ```
 
 For Claude Code:
@@ -77,7 +77,7 @@ claude mcp add --scope local --transport stdio carla -- \
   docker run --rm -i --read-only --security-opt=no-new-privileges \
   --tmpfs /tmp:rw,nosuid,nodev,size=64m \
   --add-host=host.docker.internal:host-gateway \
-  --mount source=carla-mcp-output,target=/output carla-mcp
+  --mount source=carla-agentic-toolkit-output,target=/output carla-agentic-toolkit
 ```
 
 For Codex:
@@ -87,7 +87,7 @@ codex mcp add carla -- \
   docker run --rm -i --read-only --security-opt=no-new-privileges \
   --tmpfs /tmp:rw,nosuid,nodev,size=64m \
   --add-host=host.docker.internal:host-gateway \
-  --mount source=carla-mcp-output,target=/output carla-mcp
+  --mount source=carla-agentic-toolkit-output,target=/output carla-agentic-toolkit
 ```
 
 In prompts, tell the agent to connect to CARLA at
@@ -95,22 +95,22 @@ In prompts, tell the agent to connect to CARLA at
 `host.docker.internal:3000`. The sandbox permits that RPC port, its next two
 streaming ports, Traffic Manager port 8000, and any additional Traffic Manager
 ports explicitly supplied to the tool. Output persists in the
-`carla-mcp-output` Docker volume.
+`carla-agentic-toolkit-output` Docker volume.
 
 ## 1. Prepare the Server from source
 
 ```bash
-git clone https://github.com/sidkolapalli/carla-mcp.git
-cd carla-mcp
+git clone https://github.com/sidkolapalli/carla-agentic-toolkit.git
+cd carla-agentic-toolkit
 uv sync --locked --python 3.12
 # Replace 0.9.16 if your simulator uses another version.
 uv pip install --python .venv "carla==0.9.16"
 cargo build --locked --manifest-path sandbox-runner/Cargo.toml --release
 
-export CARLA_MCP_HOME="$(pwd)"
-export CARLA_MCP_OUTPUT_DIR="$HOME/carla-mcp-output"
+export CARLA_AGENTIC_TOOLKIT_HOME="$(pwd)"
+export CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR="$HOME/carla-agentic-toolkit-output"
 export UV_BIN="$(command -v uv)"
-mkdir -p "$CARLA_MCP_OUTPUT_DIR"
+mkdir -p "$CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR"
 ```
 
 Use absolute paths in client configuration. Desktop and agent processes do not
@@ -119,12 +119,12 @@ always inherit the same `PATH` as an interactive shell.
 Confirm the CARLA package and sandbox before configuring a client:
 
 ```bash
-"$UV_BIN" --directory "$CARLA_MCP_HOME" run python -c \
+"$UV_BIN" --directory "$CARLA_AGENTIC_TOOLKIT_HOME" run python -c \
   'import carla; print(carla.__file__)'
 
-CARLA_MCP_OUTPUT_DIR="$CARLA_MCP_OUTPUT_DIR" \
-  "$UV_BIN" --directory "$CARLA_MCP_HOME" run python - <<'PY'
-from carla_mcp.sandbox import execute_script
+CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR="$CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR" \
+  "$UV_BIN" --directory "$CARLA_AGENTIC_TOOLKIT_HOME" run python - <<'PY'
+from carla_agentic_toolkit.sandbox import execute_script
 
 outcome = execute_script("result = 1", timeout_seconds=2)
 assert outcome.ok, outcome.to_dict()
@@ -138,8 +138,8 @@ The following command was validated with Claude Code 2.1.207:
 
 ```bash
 claude mcp add --scope local --transport stdio carla \
-  -e "CARLA_MCP_OUTPUT_DIR=$CARLA_MCP_OUTPUT_DIR" -- \
-  "$UV_BIN" --directory "$CARLA_MCP_HOME" run carla-mcp
+  -e "CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR=$CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR" -- \
+  "$UV_BIN" --directory "$CARLA_AGENTIC_TOOLKIT_HOME" run carla-agentic-toolkit
 
 claude mcp list
 ```
@@ -156,8 +156,8 @@ Inside Claude Code, run `/mcp` to inspect the connection and tools.
 The following command was validated with Codex CLI 0.145.0:
 
 ```bash
-codex mcp add carla --env "CARLA_MCP_OUTPUT_DIR=$CARLA_MCP_OUTPUT_DIR" -- \
-  "$UV_BIN" --directory "$CARLA_MCP_HOME" run carla-mcp
+codex mcp add carla --env "CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR=$CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR" -- \
+  "$UV_BIN" --directory "$CARLA_AGENTIC_TOOLKIT_HOME" run carla-agentic-toolkit
 
 codex mcp list
 ```
@@ -169,13 +169,13 @@ Codex's default 60-second tool timeout, so the full entry should look like:
 ```toml
 [mcp_servers.carla]
 command = "/absolute/path/to/uv"
-args = ["--directory", "/absolute/path/to/carla-mcp", "run", "carla-mcp"]
+args = ["--directory", "/absolute/path/to/carla-agentic-toolkit", "run", "carla-agentic-toolkit"]
 startup_timeout_sec = 30
 tool_timeout_sec = 120
 default_tools_approval_mode = "prompt"
 
 [mcp_servers.carla.env]
-CARLA_MCP_OUTPUT_DIR = "/absolute/path/to/carla-mcp-output"
+CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR = "/absolute/path/to/carla-agentic-toolkit-output"
 ```
 
 Use `/mcp` inside Codex to inspect the connected server.
@@ -193,12 +193,12 @@ profile:
       "command": "/absolute/path/to/uv",
       "args": [
         "--directory",
-        "/absolute/path/to/carla-mcp",
+        "/absolute/path/to/carla-agentic-toolkit",
         "run",
-        "carla-mcp"
+        "carla-agentic-toolkit"
       ],
       "env": {
-        "CARLA_MCP_OUTPUT_DIR": "/absolute/path/to/carla-mcp-output"
+        "CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR": "/absolute/path/to/carla-agentic-toolkit-output"
       }
     }
   }
@@ -206,7 +206,7 @@ profile:
 ```
 
 Use **MCP: List Servers** to start, stop, and inspect it. Do not enable VS Code's
-outer MCP sandbox by default: CARLA MCP already applies Landlock to scripts, and
+outer MCP sandbox by default: CARLA Agentic Toolkit already applies Landlock to scripts, and
 an additional parent sandbox can block the CARLA TCP connection.
 
 ## Windows 11 with WSL2
@@ -226,7 +226,7 @@ wsl --version
 
 The Rust runner hard-requires Landlock ABI V7, introduced with Linux 6.15.
 Older WSL2 kernels, including 6.6, fail closed because they cannot enforce the
-same filesystem and TCP rules. `carla-mcp-windows --check` reports the actual
+same filesystem and TCP rules. `carla-agentic-toolkit-windows --check` reports the actual
 kernel and is the definitive compatibility test.
 
 Then, inside that WSL2 distribution:
@@ -240,14 +240,14 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
 source "$HOME/.local/bin/env"
 source "$HOME/.cargo/env"
 
-git clone https://github.com/sidkolapalli/carla-mcp.git
-cd carla-mcp
+git clone https://github.com/sidkolapalli/carla-agentic-toolkit.git
+cd carla-agentic-toolkit
 git switch main
 uv sync --locked --python 3.12
 # Replace 0.9.16 if your simulator uses another version.
 uv pip install --python .venv "carla==0.9.16"
 cargo build --locked --manifest-path sandbox-runner/Cargo.toml --release
-mkdir -p "$HOME/carla-mcp-output"
+mkdir -p "$HOME/carla-agentic-toolkit-output"
 
 command -v uv
 pwd
@@ -262,19 +262,19 @@ On Windows, prepare a second checkout for the small launcher:
 
 ```powershell
 New-Item -ItemType Directory -Force "$HOME\src" | Out-Null
-git clone https://github.com/sidkolapalli/carla-mcp.git "$HOME\src\carla-mcp"
-Set-Location "$HOME\src\carla-mcp"
+git clone https://github.com/sidkolapalli/carla-agentic-toolkit.git "$HOME\src\carla-agentic-toolkit"
+Set-Location "$HOME\src\carla-agentic-toolkit"
 git switch main
 uv sync --locked --python 3.12
 
-$env:CARLA_MCP_WSL_DISTRO = "Ubuntu-24.04"
-$env:CARLA_MCP_WSL_PROJECT = "/home/user/carla-mcp"
-$env:CARLA_MCP_WSL_UV = "/home/user/.local/bin/uv"
-$env:CARLA_MCP_WSL_OUTPUT_DIR = "/home/user/carla-mcp-output"
+$env:CARLA_AGENTIC_TOOLKIT_WSL_DISTRO = "Ubuntu-24.04"
+$env:CARLA_AGENTIC_TOOLKIT_WSL_PROJECT = "/home/user/carla-agentic-toolkit"
+$env:CARLA_AGENTIC_TOOLKIT_WSL_UV = "/home/user/.local/bin/uv"
+$env:CARLA_AGENTIC_TOOLKIT_WSL_OUTPUT_DIR = "/home/user/carla-agentic-toolkit-output"
 # Optional: server-side directory when CARLA runs on Windows.
-$env:CARLA_MCP_RECORDER_DIR = "E:/CARLA_0.9.16/recordings"
+$env:CARLA_AGENTIC_TOOLKIT_RECORDER_DIR = "E:/CARLA_0.9.16/recordings"
 
-uv run carla-mcp-windows --check
+uv run carla-agentic-toolkit-windows --check
 uv run python scripts/windows_e2e.py
 ```
 
@@ -289,29 +289,29 @@ there and leaves no artifact. Neither command requires a running CARLA simulator
 Configure the Windows MCP client to run:
 
 ```text
-C:\absolute\path\to\uv.exe --directory C:\Users\you\src\carla-mcp run carla-mcp-windows
+C:\absolute\path\to\uv.exe --directory C:\Users\you\src\carla-agentic-toolkit run carla-agentic-toolkit-windows
 ```
 
 The client entry must set these environment variables:
 
 | Variable | Value |
 | --- | --- |
-| `CARLA_MCP_WSL_DISTRO` | Exact name reported by `wsl --list --verbose` |
-| `CARLA_MCP_WSL_PROJECT` | Absolute Linux path to the WSL checkout |
-| `CARLA_MCP_WSL_UV` | Absolute Linux path reported by `command -v uv` |
-| `CARLA_MCP_WSL_OUTPUT_DIR` | Absolute Linux path for durable output |
-| `CARLA_MCP_RECORDER_DIR` | Optional absolute recorder directory understood by the CARLA simulator host |
+| `CARLA_AGENTIC_TOOLKIT_WSL_DISTRO` | Exact name reported by `wsl --list --verbose` |
+| `CARLA_AGENTIC_TOOLKIT_WSL_PROJECT` | Absolute Linux path to the WSL checkout |
+| `CARLA_AGENTIC_TOOLKIT_WSL_UV` | Absolute Linux path reported by `command -v uv` |
+| `CARLA_AGENTIC_TOOLKIT_WSL_OUTPUT_DIR` | Absolute Linux path for durable output |
+| `CARLA_AGENTIC_TOOLKIT_RECORDER_DIR` | Optional absolute recorder directory understood by the CARLA simulator host |
 
 Use the Claude Code, Codex, or VS Code configuration shape above, replacing the
-program with `carla-mcp-windows` and adding the four required variables. Output is
+program with `carla-agentic-toolkit-windows` and adding the four required variables. Output is
 available from Windows under
-`\\wsl.localhost\<distribution>\home\<user>\carla-mcp-output`.
+`\\wsl.localhost\<distribution>\home\<user>\carla-agentic-toolkit-output`.
 
 CARLA opens recorder files on the simulator host, not in WSL. With
-`CARLA_MCP_RECORDER_DIR` set, a relative `record_episode("run.log")` request is
+`CARLA_AGENTIC_TOOLKIT_RECORDER_DIR` set, a relative `record_episode("run.log")` request is
 sent under that directory and success reports the exact path CARLA accepted.
 An empty CARLA response becomes `record_episode_failed`; no response claims the
-file was copied into `CARLA_MCP_WSL_OUTPUT_DIR`.
+file was copied into `CARLA_AGENTIC_TOOLKIT_WSL_OUTPUT_DIR`.
 
 If CARLA itself runs on Windows, WSL2 mirrored networking can use
 `127.0.0.1`. With WSL2's default NAT networking, get the Windows host address
@@ -323,7 +323,7 @@ ip route show default | awk '{print $3}'
 
 ### Verify in order
 
-1. Run `uv run carla-mcp-windows --check` from Windows. This proves WSL2,
+1. Run `uv run carla-agentic-toolkit-windows --check` from Windows. This proves WSL2,
    Landlock, the Rust runner, and persistent output without requiring CARLA.
 2. Run `uv run python scripts/windows_e2e.py`. This additionally proves MCP
    stdio and a real denied filesystem write, still without requiring CARLA.
@@ -346,7 +346,7 @@ ip route show default | awk '{print $3}'
    the example host with the address returned by the command above:
 
    ```bash
-   cd "$HOME/carla-mcp"
+   cd "$HOME/carla-agentic-toolkit"
    uv run python scripts/live_smoke.py --host 172.18.112.1 --port 3000 \
      --reset-existing --vehicle-count 4
    ```
@@ -359,7 +359,7 @@ Git Bash is required, prefix the command with `MSYS_NO_PATHCONV=1`.
 
 Start CARLA, then ask your client:
 
-> Use CARLA MCP to run a script that calls `api.health_check()` and return the
+> Use CARLA Agentic Toolkit to run a script that calls `api.health_check()` and return the
 > result without changing the simulation.
 
 The client normally requests approval because `execute_carla_script` is marked
@@ -389,7 +389,7 @@ authentication, deployment, and a packaged sandbox runner.
 - **`sandbox_runner_missing`:** rerun the release `cargo build` command above.
 - **`sandbox_error` / Landlock not fully enforced:** the kernel lacks a required
   Landlock feature. Execution intentionally fails closed; do not bypass it.
-- **`carla-mcp-windows --check` rejects the distribution:** confirm
+- **`carla-agentic-toolkit-windows --check` rejects the distribution:** confirm
   `wsl --list --verbose` reports version 2 and `wsl --version` reports a Linux
   6.15-or-newer kernel, then run `wsl --update`. Do not bypass a failed check.
 - **Windows cannot reach `wsl.exe`:** install or update WSL from an elevated
@@ -405,7 +405,7 @@ authentication, deployment, and a packaged sandbox runner.
   port plus the adjacent streaming/secondary ports and Traffic Manager port. The
   Rust watchdog allows two seconds beyond CARLA's client deadline so this error
   can be serialized; genuine script budget exhaustion remains `script_timeout`.
-- **`CARLA_MCP_WSL_PROJECT must be an absolute Linux path` in Git Bash:** use
+- **`CARLA_AGENTIC_TOOLKIT_WSL_PROJECT must be an absolute Linux path` in Git Bash:** use
   PowerShell or set `MSYS_NO_PATHCONV=1` so Git Bash does not rewrite `/home/...`
   as a Windows path.
 - **`CarlaUE4.exe` shows `Fatal error` immediately:** run `netsh interface ipv4
@@ -416,7 +416,7 @@ authentication, deployment, and a packaged sandbox runner.
 - **Codex reports a timeout:** raise `tool_timeout_sec`; keep it above the script's
   `timeout_seconds` plus the sandbox wrapper margin.
 - **Output is missing:** use relative paths in scripts and inspect
-  `CARLA_MCP_OUTPUT_DIR`.
+  `CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR`.
 
 ## Official References
 

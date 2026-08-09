@@ -20,7 +20,7 @@
 </p>
 
 <p>
-  <a href="https://github.com/sidkolapalli/carla-mcp/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/CI-GitHub_Actions-2088ff?style=flat-square&logo=githubactions&logoColor=white" alt="GitHub Actions CI"></a>
+  <a href="https://github.com/sidkolapalli/carla-agentic-toolkit/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/CI-GitHub_Actions-2088ff?style=flat-square&logo=githubactions&logoColor=white" alt="GitHub Actions CI"></a>
   <img src="https://img.shields.io/badge/MCP-2026--07--28-5856d6?style=flat-square" alt="MCP 2026-07-28">
   <img src="https://img.shields.io/badge/Python-3.12%2B-007aff?style=flat-square&logo=python&logoColor=white" alt="Python 3.12+">
   <img src="https://img.shields.io/badge/Sandbox-Rust%20%2B%20Landlock-ff9f0a?style=flat-square&logo=rust&logoColor=white" alt="Rust and Landlock sandbox">
@@ -82,19 +82,7 @@ uv run python scripts/live_mcp_smoke.py --confirm-live --host 127.0.0.1 --port 2
 
 ### Sandbox walkthrough
 
-<!-- markdownlint-disable MD033 -->
-<p align="center">
-  <img
-    src="docs/assets/demo.gif"
-    width="900"
-    alt="CARLA Agentic Toolkit rejecting unsafe access, enforcing Landlock, and preserving evidence"
-  >
-</p>
-
-<p align="center">
-  <em>A real sandbox walkthrough. No running CARLA server required.</em>
-</p>
-<!-- markdownlint-enable MD033 -->
+Run the real sandbox walkthrough without a CARLA server:
 
 ```bash
 uv run python scripts/sandbox_demo.py
@@ -121,13 +109,13 @@ CARLA stays native so its GPU-rendered window remains visible. Docker packages
 only the MCP server, matching CARLA Python API, and Rust/Landlock sandbox:
 
 ```bash
-docker build --build-arg CARLA_VERSION=0.9.16 -t carla-mcp .
-docker volume create carla-mcp-output
+docker build --build-arg CARLA_VERSION=0.9.16 -t carla-agentic-toolkit .
+docker volume create carla-agentic-toolkit-output
 
 docker run --rm --read-only --security-opt=no-new-privileges \
   --tmpfs /tmp:rw,nosuid,nodev,size=64m \
-  --mount source=carla-mcp-output,target=/output \
-  carla-mcp carla-mcp-preflight
+  --mount source=carla-agentic-toolkit-output,target=/output \
+  carla-agentic-toolkit carla-agentic-toolkit-preflight
 ```
 
 The preflight must report `"ruleset_enforced": true`. Then configure an MCP
@@ -137,7 +125,7 @@ client to run this stdio command:
 docker run --rm -i --read-only --security-opt=no-new-privileges \
   --tmpfs /tmp:rw,nosuid,nodev,size=64m \
   --add-host=host.docker.internal:host-gateway \
-  --mount source=carla-mcp-output,target=/output carla-mcp
+  --mount source=carla-agentic-toolkit-output,target=/output carla-agentic-toolkit
 ```
 
 Tell the agent to use `host.docker.internal` and your CARLA RPC port in tool
@@ -146,18 +134,18 @@ calls. See the **[Docker client configurations](docs/client-setup.md#docker-mcp-
 ### 1. Prepare the Toolkit from source
 
 ```bash
-git clone https://github.com/sidkolapalli/carla-mcp.git
-cd carla-mcp
+git clone https://github.com/sidkolapalli/carla-agentic-toolkit.git
+cd carla-agentic-toolkit
 uv sync --locked --python 3.12
 
 # Replace 0.9.16 if your simulator uses another version.
 uv pip install --python .venv "carla==0.9.16"
 cargo build --locked --manifest-path sandbox-runner/Cargo.toml --release
 
-export CARLA_MCP_HOME="$(pwd)"
-export CARLA_MCP_OUTPUT_DIR="$HOME/carla-mcp-output"
+export CARLA_AGENTIC_TOOLKIT_HOME="$(pwd)"
+export CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR="$HOME/carla-agentic-toolkit-output"
 export UV_BIN="$(command -v uv)"
-mkdir -p "$CARLA_MCP_OUTPUT_DIR"
+mkdir -p "$CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR"
 ```
 
 ### 2. Connect an MCP Client
@@ -166,8 +154,8 @@ mkdir -p "$CARLA_MCP_OUTPUT_DIR"
 
 ```bash
 claude mcp add --scope local --transport stdio carla \
-  -e "CARLA_MCP_OUTPUT_DIR=$CARLA_MCP_OUTPUT_DIR" -- \
-  "$UV_BIN" --directory "$CARLA_MCP_HOME" run carla-mcp
+  -e "CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR=$CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR" -- \
+  "$UV_BIN" --directory "$CARLA_AGENTIC_TOOLKIT_HOME" run carla-agentic-toolkit
 
 claude mcp list
 ```
@@ -175,8 +163,8 @@ claude mcp list
 #### OpenAI Codex
 
 ```bash
-codex mcp add carla --env "CARLA_MCP_OUTPUT_DIR=$CARLA_MCP_OUTPUT_DIR" -- \
-  "$UV_BIN" --directory "$CARLA_MCP_HOME" run carla-mcp
+codex mcp add carla --env "CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR=$CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR" -- \
+  "$UV_BIN" --directory "$CARLA_AGENTIC_TOOLKIT_HOME" run carla-agentic-toolkit
 
 codex mcp list
 ```
@@ -186,7 +174,7 @@ preflight checks, and troubleshooting, see the **[Client Setup
 Guide](docs/client-setup.md)**.
 
 Windows 11 users run the complete server and Rust/Landlock sandbox inside WSL2
-through `carla-mcp-windows`; follow the Windows setup in the client guide.
+through `carla-agentic-toolkit-windows`; follow the Windows setup in the client guide.
 
 ### 3. Send the First Request
 
@@ -225,7 +213,7 @@ retaining the structured diagnostics.
 
 Each result also contains inline `snapshots` keyed by `carla-snapshot://...`.
 They exist only for that script run and are not advertised as live MCP
-Resources. Files under `CARLA_MCP_OUTPUT_DIR` may persist after the call. In
+Resources. Files under `CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR` may persist after the call. In
 v0.1 this is a breaking rename from the former `resources` field; no
 compatibility alias is emitted.
 
@@ -241,7 +229,7 @@ Published PNG/JPEG captures include both `ImageContent` for vision-capable
 clients and a `carla-output://capture/...` Resource link for later reads. JSON
 text remains first for clients that ignore visual content. Publication is
 limited to four images, 512 KiB each, and a 1 MiB combined encoded result; paths
-must resolve below `CARLA_MCP_OUTPUT_DIR`.
+must resolve below `CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR`.
 
 Actors can keep conversational names across calls:
 
@@ -250,7 +238,7 @@ api.name_actor("ego", actor_id)
 ego_id = api.resolve_actor("ego")["actor_id"]
 ```
 
-Aliases are stored under `CARLA_MCP_OUTPUT_DIR`, isolated by CARLA host and
+Aliases are stored under `CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR`, isolated by CARLA host and
 port, and survive server restarts that reuse that directory. `resolve_actor()`
 checks the live simulator and removes stale aliases; names are a convenience,
 not an authorization boundary. Use `api.list_named_actors()` and
@@ -311,7 +299,7 @@ assumptions, and private vulnerability reporting process.
 | Claude Code on Linux | Supported through stdio |
 | OpenAI Codex CLI/IDE on Linux | Supported through stdio |
 | VS Code on Linux | Supported through stdio |
-| Windows 11 clients | Experimental through `carla-mcp-windows` and WSL2 |
+| Windows 11 clients | Experimental through `carla-agentic-toolkit-windows` and WSL2 |
 | macOS or WSL1 | Unsupported; the runner requires Linux Landlock |
 | Web or cloud agents | Unsupported; requires an authenticated HTTP deployment |
 
@@ -337,8 +325,8 @@ assumptions, and private vulnerability reporting process.
   manual gate.
 
 Relative capture and evidence paths such as `captures/front.png` are rooted in
-`CARLA_MCP_OUTPUT_DIR`. Recorder paths are opened by the CARLA simulator host;
-set `CARLA_MCP_RECORDER_DIR` to an absolute directory understood by that host.
+`CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR`. Recorder paths are opened by the CARLA simulator host;
+set `CARLA_AGENTIC_TOOLKIT_RECORDER_DIR` to an absolute directory understood by that host.
 The toolkit reports CARLA's accepted path and does not copy recorder files
 between hosts. Per-run scratch space is deleted after every script.
 
@@ -368,7 +356,7 @@ For an explicit, self-cleaning test through MCP stdio itself:
 uv run python scripts/live_mcp_smoke.py --confirm-live --host 127.0.0.1 --port 2000
 ```
 
-Add `--windows` to launch through `carla-mcp-windows`. The harness tags and
+Add `--windows` to launch through `carla-agentic-toolkit-windows`. The harness tags and
 removes only its own vehicle, detaches its camera, restores weather, and emits
 one JSON report. Never run it against a shared simulator without permission.
 

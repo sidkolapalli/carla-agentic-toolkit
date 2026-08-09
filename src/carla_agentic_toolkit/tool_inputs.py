@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from carla_mcp.models import (
+from carla_agentic_toolkit.models import (
     AutopilotRequest,
     CameraAttachRequest,
     Location,
@@ -236,21 +236,26 @@ def _string_field(payload: Mapping[str, object], key: str) -> str:
 
 
 def _float_field(payload: Mapping[str, object], key: str) -> float:
-    """Read a required numeric field as a float."""
+    """Read a required finite numeric field as a float.
+
+    Booleans are rejected because :class:`bool` is a subclass of :class:`int`
+    and model-authored ``true``/``false`` should not silently become ``1.0``/``0.0``.
+    """
     value = payload[key]
-    if isinstance(value, int | float):
-        return float(value)
-    msg = f"{key} must be numeric."
-    raise TypeError(msg)
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        msg = f"{key} must be a finite number."
+        raise TypeError(msg)
+    return float(value)
 
 
 def _int_field(payload: Mapping[str, object], key: str) -> int:
     """Read a required integer field."""
     value = payload[key]
-    if isinstance(value, int):
-        return value
-    msg = f"{key} must be an integer."
-    raise TypeError(msg)
+    # Reject bool because it is a subclass of int.
+    if isinstance(value, bool) or not isinstance(value, int):
+        msg = f"{key} must be an integer."
+        raise TypeError(msg)
+    return value
 
 
 def _bool_field(payload: Mapping[str, object], key: str) -> bool:
@@ -267,10 +272,10 @@ def _optional_int_field(payload: Mapping[str, object], key: str) -> int | None:
     value = payload.get(key)
     if value is None:
         return None
-    if isinstance(value, int):
-        return value
-    msg = f"{key} must be an integer or null."
-    raise TypeError(msg)
+    if isinstance(value, bool) or not isinstance(value, int):
+        msg = f"{key} must be an integer or null."
+        raise TypeError(msg)
+    return value
 
 
 def _list_field(payload: Mapping[str, object], key: str) -> list[object]:
@@ -284,10 +289,10 @@ def _list_field(payload: Mapping[str, object], key: str) -> list[object]:
 
 def _int_value(value: object, context: str) -> int:
     """Read an integer list value."""
-    if isinstance(value, int):
-        return value
-    msg = f"{context} values must be integers."
-    raise TypeError(msg)
+    if isinstance(value, bool) or not isinstance(value, int):
+        msg = f"{context} values must be integers."
+        raise TypeError(msg)
+    return value
 
 
 def _mapping_value(value: object, context: str) -> Mapping[str, object]:

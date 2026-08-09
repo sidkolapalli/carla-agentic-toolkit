@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for helping improve CARLA MCP.
+Thank you for helping improve CARLA Agentic Toolkit.
 
 ## Development Setup
 
@@ -8,8 +8,8 @@ The local gate requires Linux, Python 3.12+, uv, and Rust. CARLA itself is only
 required for manual live testing.
 
 ```bash
-git clone https://github.com/sidkolapalli/carla-mcp.git
-cd carla-mcp
+git clone https://github.com/sidkolapalli/carla-agentic-toolkit.git
+cd carla-agentic-toolkit
 uv sync --locked
 cargo build --locked --manifest-path sandbox-runner/Cargo.toml --release
 make check

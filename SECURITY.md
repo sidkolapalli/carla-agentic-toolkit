@@ -23,7 +23,7 @@ unrelated host data from the report.
 
 ## Security Scope
 
-CARLA MCP treats the Rust Landlock runner as a security boundary around
+CARLA Agentic Toolkit treats the Rust Landlock runner as a security boundary around
 model-authored Python. Reports involving sandbox escape, private API access,
 unexpected filesystem or network access, process escape, or unsafe fallback
 behavior are security issues. The AST validator is defense in depth, not a
@@ -48,10 +48,10 @@ path is added deliberately after a real runtime need is demonstrated.
 Write access is limited to:
 
 - one per-run temporary work directory, deleted after execution;
-- `CARLA_MCP_OUTPUT_DIR`, which persists for captures and evidence.
+- `CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR`, which persists for captures and evidence.
 
 CARLA recorder files are different: the simulator process opens them on the
-simulator host. `CARLA_MCP_RECORDER_DIR` names that server-side directory and
+simulator host. `CARLA_AGENTIC_TOOLKIT_RECORDER_DIR` names that server-side directory and
 does not grant the sandbox host filesystem access.
 
 ## Network Policy
@@ -84,7 +84,7 @@ CARLA connection or destroy failure. Successful scripts retain actors unless
 they explicitly clean them.
 
 Only captures explicitly marked `publish=True` are returned as MCP image
-content. The parent resolves each path below `CARLA_MCP_OUTPUT_DIR`, rejects
+content. The parent resolves each path below `CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR`, rejects
 escapes and invalid image signatures, and enforces count, per-file, and combined
 encoded-response limits. The same validation is applied when reading a durable
 `carla-output://capture/...` Resource link.
@@ -93,4 +93,4 @@ Landlock has no byte quota, and `RLIMIT_FSIZE` would terminate the child with
 `SIGXFSZ` before it could reliably serialize the required dedicated error.
 Therefore individual output-file and aggregate persistent-directory limits are
 not enforced in this release. Operators must apply filesystem quotas and clean
-`CARLA_MCP_OUTPUT_DIR` according to local retention policy.
+`CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR` according to local retention policy.

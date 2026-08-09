@@ -5,13 +5,13 @@ from __future__ import annotations
 from itertools import islice
 from typing import TYPE_CHECKING, cast
 
-from carla_mcp.errors import CarlaAdapterError
-from carla_mcp.models import ActorSnapshot, DestroyResult, Location, Rotation, Transform
+from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.models import ActorSnapshot, DestroyResult, Location, Rotation, Transform
 
 MAX_SEMANTIC_TAGS = 64
 
 if TYPE_CHECKING:
-    from carla_mcp.carla_protocols import CarlaActor, CarlaVector, CarlaWorld
+    from carla_agentic_toolkit.carla_protocols import CarlaActor, CarlaVector, CarlaWorld
 
 
 def actor_snapshot(candidate: object) -> ActorSnapshot:

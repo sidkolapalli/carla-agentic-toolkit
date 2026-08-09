@@ -7,14 +7,14 @@ from typing import TYPE_CHECKING, cast
 
 import pytest
 
-from carla_mcp import traffic_tuning
-from carla_mcp.errors import CarlaAdapterError, UnsupportedFeatureError
-from carla_mcp.models import Location, TrafficVehiclePathRequest
-from carla_mcp.script_api import CarlaScriptApi
-from carla_mcp.snapshots import RunSnapshots
+from carla_agentic_toolkit import traffic_tuning
+from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
+from carla_agentic_toolkit.models import Location, TrafficVehiclePathRequest
+from carla_agentic_toolkit.script_api import CarlaScriptApi
+from carla_agentic_toolkit.snapshots import RunSnapshots
 
 if TYPE_CHECKING:
-    from carla_mcp.adapter import PythonCarlaAdapter
+    from carla_agentic_toolkit.adapter import PythonCarlaAdapter
 
 ACTOR_ID = 71
 TM_PORT = 8000

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from carla_mcp.output_content import (
+from carla_agentic_toolkit.output_content import (
     OutputContentError,
     capture_resource_uri,
     published_captures,

@@ -5,8 +5,8 @@ from __future__ import annotations
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, cast
 
-from carla_mcp.errors import CarlaAdapterError
-from carla_mcp.experiment_common import (
+from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.experiment_common import (
     actor,
     bool_value,
     carla_location,
@@ -25,8 +25,8 @@ from carla_mcp.experiment_common import (
 )
 
 if TYPE_CHECKING:
-    from carla_mcp.carla_protocols import CarlaWorld
-    from carla_mcp.models import Location, Transform
+    from carla_agentic_toolkit.carla_protocols import CarlaWorld
+    from carla_agentic_toolkit.models import Location, Transform
 
 
 def apply_vehicle_control(

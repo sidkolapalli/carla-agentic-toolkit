@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from carla_mcp.script_api import CarlaScriptApi
+from carla_agentic_toolkit.script_api import CarlaScriptApi
 
 if TYPE_CHECKING:
-    from carla_mcp.adapter import PythonCarlaAdapter
-    from carla_mcp.snapshots import RunSnapshots
-    from carla_mcp.traffic_controller_service import InProcessTrafficControllerService
+    from carla_agentic_toolkit.adapter import PythonCarlaAdapter
+    from carla_agentic_toolkit.snapshots import RunSnapshots
+    from carla_agentic_toolkit.traffic_controller_service import InProcessTrafficControllerService
 
 
 def build_api(

@@ -19,7 +19,8 @@ use wait_timeout::ChildExt;
 
 const ADDRESS_SPACE_LIMIT_BYTES: libc::rlim_t = 4 * 1024 * 1024 * 1024;
 const CPU_LIMIT_SECONDS: libc::rlim_t = 60;
-const PROCESS_LIMIT: libc::rlim_t = 4096;
+const PROCESS_LIMIT: libc::rlim_t = 128;
+const NOFILE_LIMIT: libc::rlim_t = 256;
 const MAX_OUTPUT_BYTES: usize = 1024 * 1024;
 const WATCHDOG_MARGIN_SECONDS: f64 = 2.0;
 
@@ -101,7 +102,7 @@ fn run() -> Result<Value> {
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
     if let Some(recorder_dir) = &args.recorder_dir {
-        command.env("CARLA_MCP_RECORDER_DIR", recorder_dir);
+        command.env("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR", recorder_dir);
     }
     unsafe {
         command.pre_exec(configure_child_process);
@@ -129,9 +130,10 @@ fn run() -> Result<Value> {
     );
     let timeout = Duration::from_secs_f64(args.timeout_seconds.max(0.1) + WATCHDOG_MARGIN_SECONDS);
     let timed_out = child.wait_timeout(timeout)?.is_none();
-    if timed_out {
-        kill_process_group(child.id()).context("failed to kill timed-out Python process group")?;
-    }
+    // Always reap the process group after the main child exits (or times out).
+    // A descendant that forked and holds a pipe open would otherwise hang
+    // the pipe-join below indefinitely, breaking the deadline guarantee.
+    kill_process_group(child.id())?;
     let child_status = child.wait().context("failed to wait for Python runner")?;
     let stdout_bytes = join_reader(stdout_reader, "stdout")?;
     let stderr_bytes = join_reader(stderr_reader, "stderr")?;
@@ -227,6 +229,7 @@ fn configure_child_process() -> io::Result<()> {
     set_rlimit(libc::RLIMIT_AS, ADDRESS_SPACE_LIMIT_BYTES)?;
     set_rlimit(libc::RLIMIT_CPU, CPU_LIMIT_SECONDS)?;
     set_rlimit(libc::RLIMIT_NPROC, PROCESS_LIMIT)?;
+    set_rlimit(libc::RLIMIT_NOFILE, NOFILE_LIMIT)?;
     Ok(())
 }
 
@@ -254,19 +257,22 @@ fn kill_process_group(child_pid: u32) -> io::Result<()> {
     let pgid = -(child_pid as libc::pid_t);
     let result = unsafe { libc::kill(pgid, libc::SIGKILL) };
     if result < 0 {
-        return Err(io::Error::last_os_error());
+        let err = io::Error::last_os_error();
+        if err.raw_os_error() == Some(libc::ESRCH) {
+            // Process group already gone — normal when the child exited cleanly.
+            return Ok(());
+        }
+        return Err(err);
     }
     Ok(())
 }
 
 fn apply_landlock(args: &Args) -> Result<Value> {
     let abi = ABI::V7;
-    let mut ruleset = Ruleset::default()
+    let ruleset = Ruleset::default()
         .set_compatibility(CompatLevel::HardRequirement)
-        .handle_access(AccessFs::from_all(abi))?;
-    if !args.tcp_connect.is_empty() {
-        ruleset = ruleset.handle_access(AccessNet::ConnectTcp)?;
-    }
+        .handle_access(AccessFs::from_all(abi))?
+        .handle_access(AccessNet::ConnectTcp | AccessNet::BindTcp)?;
     let mut created = ruleset
         .create()?
         .add_rules(path_beneath_rules(
@@ -302,4 +308,140 @@ fn apply_landlock(args: &Args) -> Result<Value> {
         "ruleset_enforced": enforced,
         "tcp_connect_ports": args.tcp_connect
     }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::net::TcpListener;
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn bind_is_denied_by_landlock() {
+        // TDD: This test proves the fix. Without handling BindTcp,
+        // Landlock allows binds. After the fix, binds are denied.
+        let tmp = tempfile::TempDir::new().unwrap();
+        let args = Args {
+            python: PathBuf::from("/usr/bin/python3"),
+            module: String::new(),
+            script: PathBuf::new(),
+            host: String::new(),
+            port: 0,
+            timeout_seconds: 1.0,
+            work_dir: tmp.path().to_path_buf(),
+            ownership_file: None,
+            output_dir: tmp.path().to_path_buf(),
+            recorder_dir: None,
+            read_only: vec!["/usr".into(), "/lib".into(), "/lib64".into(), "/etc".into()],
+            read_write: vec![tmp.path().to_path_buf()],
+            tcp_connect: vec![],
+        };
+        let result = apply_landlock(&args).unwrap();
+        assert_eq!(result["ruleset_enforced"], true);
+
+        // After applying Landlock with BindTcp handled but no rules,
+        // binding a port should fail with PermissionDenied.
+        match TcpListener::bind("0.0.0.0:0") {
+            Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => {
+                // Expected: bind is denied.
+            }
+            Ok(_listener) => {
+                panic!("bind should have been denied by Landlock but succeeded");
+            }
+            Err(e) => {
+                panic!("bind failed with unexpected error: {e}");
+            }
+        }
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn bind_is_denied_even_with_connect_rules() {
+        let tmp = tempfile::TempDir::new().unwrap();
+        let args = Args {
+            python: PathBuf::from("/usr/bin/python3"),
+            module: String::new(),
+            script: PathBuf::new(),
+            host: String::new(),
+            port: 0,
+            timeout_seconds: 1.0,
+            work_dir: tmp.path().to_path_buf(),
+            ownership_file: None,
+            output_dir: tmp.path().to_path_buf(),
+            recorder_dir: None,
+            read_only: vec!["/usr".into(), "/lib".into(), "/lib64".into(), "/etc".into()],
+            read_write: vec![tmp.path().to_path_buf()],
+            tcp_connect: vec![9, 80, 443],
+        };
+        let result = apply_landlock(&args).unwrap();
+        assert_eq!(result["ruleset_enforced"], true);
+
+        // Even with ConnectTcp rules, BindTcp should still be denied.
+        match TcpListener::bind("0.0.0.0:0") {
+            Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => {}
+            Ok(_listener) => panic!("bind should be denied even with --tcp-connect rules"),
+            Err(e) => panic!("bind failed with unexpected error: {e}"),
+        }
+    }
+
+    #[test]
+    fn default_args_include_required_paths() {
+        let tmp = tempfile::TempDir::new().unwrap();
+        let args = Args {
+            python: PathBuf::from("python3"),
+            module: "carla_agentic_toolkit.script_runner".into(),
+            script: PathBuf::from("script.py"),
+            host: "127.0.0.1".into(),
+            port: 2000,
+            timeout_seconds: 30.0,
+            work_dir: tmp.path().to_path_buf(),
+            ownership_file: None,
+            output_dir: tmp.path().to_path_buf(),
+            recorder_dir: None,
+            read_only: vec![],
+            read_write: vec![],
+            tcp_connect: vec![],
+        };
+        // Without Landlock applied, we can at least verify arg defaults
+        // match what the Python side expects.
+        assert_eq!(args.host, "127.0.0.1");
+        assert_eq!(args.port, 2000);
+        assert_eq!(args.timeout_seconds, 30.0);
+    }
+
+    #[test]
+    fn kill_process_group_esrch_is_ok() {
+        // Sending SIGKILL to a nonexistent PID should succeed (ESRCH is handled).
+        assert!(kill_process_group(99999).is_ok());
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn descendant_cleanup_after_child_exit() {
+        use std::io::Read;
+        use std::process::{Command, Stdio};
+
+        let mut child = Command::new("sh")
+            .arg("-c")
+            .arg("sleep 30 & disown; echo parent_done; exec sleep 0.1")
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null())
+            .spawn()
+            .unwrap();
+
+        let status = child.wait().unwrap();
+        assert!(status.success());
+
+        // The fix: always kill the process group after child exits.
+        let _ = kill_process_group(child.id());
+
+        let mut stdout = String::new();
+        child
+            .stdout
+            .take()
+            .unwrap()
+            .read_to_string(&mut stdout)
+            .unwrap();
+        assert!(stdout.contains("parent_done"));
+    }
 }

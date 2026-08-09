@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast
 
-from carla_mcp import (
+from carla_agentic_toolkit import (
     experiment_common,
     experiment_environment,
     experiment_navigation,
@@ -15,13 +15,13 @@ from carla_mcp import (
     experiment_vehicle,
     experiment_walkers,
 )
-from carla_mcp.models import CameraAttachRequest, Location, SensorInfo, Transform
+from carla_agentic_toolkit.models import CameraAttachRequest, Location, SensorInfo, Transform
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from carla_mcp.carla_protocols import CarlaClient, CarlaWorld
-    from carla_mcp.models import CaptureInfo
+    from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaWorld
+    from carla_agentic_toolkit.models import CaptureInfo
 
 
 class PythonCarlaExperimentMixin:

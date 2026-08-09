@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, cast
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from carla_mcp.models import JsonObject
+    from carla_agentic_toolkit.models import JsonObject
 
 
 def method_catalog(api: object) -> JsonObject:

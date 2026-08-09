@@ -1,6 +1,5 @@
-"""CARLA MCP server package."""
+"""CARLA Agentic Toolkit server package."""
 
 __all__ = ["__version__"]
 
 __version__ = "0.1.0"
-

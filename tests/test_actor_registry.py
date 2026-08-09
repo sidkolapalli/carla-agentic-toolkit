@@ -7,15 +7,15 @@ from typing import TYPE_CHECKING, Final, cast
 
 import pytest
 
-from carla_mcp.actor_registry import ActorRegistry, actor_registry_path
-from carla_mcp.models import ActorSnapshot, Location, Rotation, Transform
-from carla_mcp.script_api import CarlaScriptApi
-from carla_mcp.snapshots import RunSnapshots
+from carla_agentic_toolkit.actor_registry import ActorRegistry, actor_registry_path
+from carla_agentic_toolkit.models import ActorSnapshot, Location, Rotation, Transform
+from carla_agentic_toolkit.script_api import CarlaScriptApi
+from carla_agentic_toolkit.snapshots import RunSnapshots
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from carla_mcp.adapter import PythonCarlaAdapter
+    from carla_agentic_toolkit.adapter import PythonCarlaAdapter
 
 ACTOR_ID: Final = 101
 

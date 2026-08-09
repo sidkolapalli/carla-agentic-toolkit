@@ -7,12 +7,12 @@ from typing import TYPE_CHECKING, cast
 
 import pytest
 
-from carla_mcp import experiment_scene
-from carla_mcp.errors import CarlaAdapterError
-from carla_mcp.models import Location, Rotation, Transform
+from carla_agentic_toolkit import experiment_scene
+from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.models import Location, Rotation, Transform
 
 if TYPE_CHECKING:
-    from carla_mcp.carla_protocols import CarlaWorld
+    from carla_agentic_toolkit.carla_protocols import CarlaWorld
 
 ACTOR_ID = 42
 

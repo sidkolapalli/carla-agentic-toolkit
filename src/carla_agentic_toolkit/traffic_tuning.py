@@ -6,14 +6,14 @@ import math
 from importlib import import_module
 from typing import TYPE_CHECKING, cast
 
-from carla_mcp.errors import CarlaAdapterError, UnsupportedFeatureError
-from carla_mcp.experiment_common import actor, call_required, carla_location
+from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
+from carla_agentic_toolkit.experiment_common import actor, call_required, carla_location
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from carla_mcp.carla_protocols import CarlaWorld
-    from carla_mcp.models import TrafficVehiclePathRequest
+    from carla_agentic_toolkit.carla_protocols import CarlaWorld
+    from carla_agentic_toolkit.models import TrafficVehiclePathRequest
 
 MAX_TCP_PORT = 65535
 MAX_PERCENTAGE = 100.0

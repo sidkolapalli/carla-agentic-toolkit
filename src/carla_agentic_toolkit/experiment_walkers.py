@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, cast
 
-from carla_mcp.errors import CarlaAdapterError
-from carla_mcp.experiment_common import actor, carla_location, object_factory
+from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.experiment_common import actor, carla_location, object_factory
 
 if TYPE_CHECKING:
-    from carla_mcp.carla_protocols import CarlaBlueprint, CarlaWorld
-    from carla_mcp.models import Location
+    from carla_agentic_toolkit.carla_protocols import CarlaBlueprint, CarlaWorld
+    from carla_agentic_toolkit.models import Location
 
 
 @dataclass(frozen=True, slots=True)
@@ -100,22 +101,38 @@ def spawn_walkers(context: WalkerSpawnContext) -> dict[str, object]:
 
 
 def try_spawn_walker(context: WalkerSpawnContext, state: WalkerSpawnState, index: int) -> None:
-    """Try to spawn one walker/controller pair."""
+    """Try to spawn one walker/controller pair.
+
+    The walker is tracked before controller spawn so a later failure
+    does not leak an unowned pedestrian.
+    """
+    walker: object | None = None
+    controller: object | None = None
     try:
         transform = random_walker_transform(context.world)
         walker = context.world.try_spawn_actor(walker_blueprint(context, index), transform)
         if walker is None:
             state.failures.append("walker spawn returned None")
             return
+        state.walker_ids.append(int(walker.id))
         controller = context.world.spawn_actor(context.controller_blueprint, transform, walker)
+        state.controller_ids.append(int(controller.id))
         cast("Any", controller).start()
         cast("Any", controller).set_max_speed(context.speed)
         cast("Any", controller).go_to_location(random_walker_location(context.world))
     except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
         state.failures.append(str(exc))
+        # Clean up any partially created actors.
+        if controller is not None:
+            _destroy_actor(controller)
+            # Remove controller ID that was added before failure.
+            if state.controller_ids and state.controller_ids[-1] == int(controller.id):
+                state.controller_ids.pop()
+        if walker is not None:
+            _destroy_actor(walker)
+            if state.walker_ids and state.walker_ids[-1] == int(walker.id):
+                state.walker_ids.pop()
         return
-    state.walker_ids.append(int(walker.id))
-    state.controller_ids.append(int(controller.id))
 
 
 def walker_blueprint(context: WalkerSpawnContext, index: int) -> CarlaBlueprint:
@@ -125,6 +142,14 @@ def walker_blueprint(context: WalkerSpawnContext, index: int) -> CarlaBlueprint:
         raise CarlaAdapterError(msg)
     offset = context.seed or 0
     return context.walker_blueprints[(index + offset) % len(context.walker_blueprints)]
+
+
+def _destroy_actor(actor: object) -> None:
+    """Destroy a CARLA actor, silently ignoring errors."""
+    destroy = getattr(actor, "destroy", None)
+    if callable(destroy):
+        with contextlib.suppress(AttributeError, RuntimeError, TypeError, ValueError):
+            destroy()
 
 
 def random_walker_transform(world: CarlaWorld) -> object:

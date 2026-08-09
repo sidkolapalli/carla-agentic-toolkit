@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING, cast
 
 import pytest
 
-from carla_mcp.snapshots import RunSnapshots
+from carla_agentic_toolkit.snapshots import RunSnapshots
 
 if TYPE_CHECKING:
-    from carla_mcp.models import JsonObject
+    from carla_agentic_toolkit.models import JsonObject
 
 
 def test_run_snapshots_copy_registered_payloads() -> None:

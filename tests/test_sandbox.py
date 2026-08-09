@@ -11,8 +11,12 @@ from typing import Any, cast
 
 import pytest
 
-from carla_mcp import sandbox
-from carla_mcp.script_runner import run_script_file
+from carla_agentic_toolkit import sandbox
+from carla_agentic_toolkit.script_runner import MAX_SCRIPT_STDOUT_BYTES, run_script_file
+from carla_agentic_toolkit.tool_inputs import (
+    parse_traffic_population_request,
+    parse_transform,
+)
 
 
 @pytest.mark.parametrize(
@@ -43,7 +47,7 @@ def test_execute_script_rejects_invalid_input_before_side_effects(
 ) -> None:
     """Every public execution bound should fail before output setup or launch."""
     output_dir = tmp_path / "outputs"
-    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(output_dir))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR", str(output_dir))
 
     outcome = sandbox.execute_script("result = 1", **execution_input)
 
@@ -55,7 +59,7 @@ def test_execute_script_rejects_invalid_input_before_side_effects(
 
 def test_execute_script_reports_missing_rust_runner(monkeypatch: pytest.MonkeyPatch) -> None:
     """Scripts should fail closed when the Rust sandbox binary is unavailable."""
-    monkeypatch.setenv("CARLA_MCP_SANDBOX", "/missing/carla-mcp-sandbox")
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_SANDBOX", "/missing/carla-agentic-toolkit-sandbox")
 
     outcome = sandbox.execute_script("result = {'ok': True}")
 
@@ -77,10 +81,10 @@ def test_execute_script_normalizes_launcher_failures(
     error_type: str,
 ) -> None:
     """Expected outer watchdog and spawn failures should not escape the MCP server."""
-    runner = tmp_path / "carla-mcp-sandbox"
+    runner = tmp_path / "carla-agentic-toolkit-sandbox"
     runner.write_text("runner", encoding="utf-8")
-    monkeypatch.setenv("CARLA_MCP_SANDBOX", str(runner))
-    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(tmp_path / "outputs"))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_SANDBOX", str(runner))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR", str(tmp_path / "outputs"))
 
     def fail(*_args: object, **_kwargs: object) -> None:
         raise exception
@@ -98,12 +102,12 @@ def test_execute_script_normalizes_output_directory_failure(
     tmp_path: Path,
 ) -> None:
     """Output setup errors should become structured outcomes."""
-    runner = tmp_path / "carla-mcp-sandbox"
+    runner = tmp_path / "carla-agentic-toolkit-sandbox"
     runner.write_text("runner", encoding="utf-8")
     output_file = tmp_path / "not-a-directory"
     output_file.write_text("file", encoding="utf-8")
-    monkeypatch.setenv("CARLA_MCP_SANDBOX", str(runner))
-    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(output_file))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_SANDBOX", str(runner))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR", str(output_file))
 
     outcome = sandbox.execute_script("result = 1")
 
@@ -115,10 +119,10 @@ def test_execute_script_normalizes_temporary_directory_failure(
     tmp_path: Path,
 ) -> None:
     """Temporary-script setup failures should become structured outcomes."""
-    runner = tmp_path / "carla-mcp-sandbox"
+    runner = tmp_path / "carla-agentic-toolkit-sandbox"
     runner.write_text("runner", encoding="utf-8")
-    monkeypatch.setenv("CARLA_MCP_SANDBOX", str(runner))
-    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(tmp_path / "outputs"))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_SANDBOX", str(runner))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR", str(tmp_path / "outputs"))
 
     def fail(*_args: object, **_kwargs: object) -> None:
         message = "temporary directory unavailable"
@@ -136,7 +140,7 @@ def test_execute_script_supports_shallow_system_python(
     tmp_path: Path,
 ) -> None:
     """System Python paths should not crash or grant the filesystem root."""
-    runner = tmp_path / "carla-mcp-sandbox"
+    runner = tmp_path / "carla-agentic-toolkit-sandbox"
     runner.write_text("#!/bin/sh\n", encoding="utf-8")
     runner.chmod(0o755)
     commands: list[list[str]] = []
@@ -150,8 +154,8 @@ def test_execute_script_supports_shallow_system_python(
             stderr="",
         )
 
-    monkeypatch.setenv("CARLA_MCP_SANDBOX", str(runner))
-    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(tmp_path / "outputs"))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_SANDBOX", str(runner))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR", str(tmp_path / "outputs"))
     monkeypatch.setattr(sandbox.sys, "executable", "/usr/bin/python3.12")
     monkeypatch.setattr(sandbox.subprocess, "run", run_command)
 
@@ -166,7 +170,7 @@ def test_execute_script_passes_carla_ports_to_rust_runner(
     tmp_path: Path,
 ) -> None:
     """The wrapper should allow only CARLA-related TCP ports by default."""
-    runner = tmp_path / "carla-mcp-sandbox"
+    runner = tmp_path / "carla-agentic-toolkit-sandbox"
     runner.write_text("#!/bin/sh\n", encoding="utf-8")
     runner.chmod(0o755)
     output_dir = tmp_path / "outputs"
@@ -181,9 +185,9 @@ def test_execute_script_passes_carla_ports_to_rust_runner(
             stderr="",
         )
 
-    monkeypatch.setenv("CARLA_MCP_SANDBOX", str(runner))
-    monkeypatch.setenv("CARLA_MCP_OUTPUT_DIR", str(output_dir))
-    monkeypatch.setenv("CARLA_MCP_RECORDER_DIR", "E:/CARLA_0.9.16/recordings")
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_SANDBOX", str(runner))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR", str(output_dir))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR", "E:/CARLA_0.9.16/recordings")
     monkeypatch.setattr(sandbox.subprocess, "run", run_command)
 
     outcome = sandbox.execute_script(
@@ -238,7 +242,7 @@ def test_execute_script_preserves_snapshots_from_runner(
     tmp_path: Path,
 ) -> None:
     """The MCP layer should surface snapshots created during script execution."""
-    runner = tmp_path / "carla-mcp-sandbox"
+    runner = tmp_path / "carla-agentic-toolkit-sandbox"
     runner.write_text("#!/bin/sh\n", encoding="utf-8")
     runner.chmod(0o755)
 
@@ -253,7 +257,7 @@ def test_execute_script_preserves_snapshots_from_runner(
             stderr="",
         )
 
-    monkeypatch.setenv("CARLA_MCP_SANDBOX", str(runner))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_SANDBOX", str(runner))
     monkeypatch.setattr(sandbox.subprocess, "run", run_command)
 
     outcome = sandbox.execute_script("result = None")
@@ -290,7 +294,7 @@ def test_genuine_script_timeout_still_kills_the_child() -> None:
 def test_real_landlock_blocks_read_outside_allowlist(tmp_path: Path) -> None:
     """The real runner should permit an allowed read and deny an unlisted sibling."""
     project_root = Path(__file__).resolve().parents[1]
-    runner = project_root / "sandbox-runner" / "target" / "debug" / "carla-mcp-sandbox"
+    runner = project_root / "sandbox-runner" / "target" / "debug" / "carla-agentic-toolkit-sandbox"
     work_dir = tmp_path / "work"
     output_dir = tmp_path / "output"
     blocked_file = tmp_path / "blocked.txt"
@@ -303,7 +307,7 @@ def test_real_landlock_blocks_read_outside_allowlist(tmp_path: Path) -> None:
         probe.write_text(
             "#!/usr/bin/python3\n"
             f"open({str(path)!r}, encoding='utf-8').read()\n"
-            "print('{\"ok\":true,\"result\":null,\"stdout\":\"\",\"snapshots\":{}}')\n",
+            'print(\'{"ok":true,"result":null,"stdout":"","snapshots":{}}\')\n',
             encoding="utf-8",
         )
         probe.chmod(0o755)
@@ -356,7 +360,7 @@ def test_real_landlock_blocks_read_outside_allowlist(tmp_path: Path) -> None:
 def test_real_landlock_allows_requested_port_and_blocks_unlisted_port(tmp_path: Path) -> None:
     """Network rules should grant connect only to explicitly listed ports."""
     project_root = Path(__file__).resolve().parents[1]
-    runner = project_root / "sandbox-runner" / "target" / "debug" / "carla-mcp-sandbox"
+    runner = project_root / "sandbox-runner" / "target" / "debug" / "carla-agentic-toolkit-sandbox"
     work_dir = tmp_path / "work"
     output_dir = tmp_path / "output"
     work_dir.mkdir()
@@ -368,7 +372,7 @@ def test_real_landlock_allows_requested_port_and_blocks_unlisted_port(tmp_path: 
             "#!/usr/bin/python3\n"
             "import socket\n"
             f"socket.create_connection(('127.0.0.1', {port}), 1).close()\n"
-            "print('{\"ok\":true,\"result\":null,\"stdout\":\"\",\"snapshots\":{}}')\n",
+            'print(\'{"ok":true,"result":null,"stdout":"","snapshots":{}}\')\n',
             encoding="utf-8",
         )
         probe.chmod(0o755)
@@ -429,7 +433,7 @@ def test_execute_script_does_not_grant_proc_read_access(
     tmp_path: Path,
 ) -> None:
     """The wrapper should not expose broad /proc reads to scenario scripts."""
-    runner = tmp_path / "carla-mcp-sandbox"
+    runner = tmp_path / "carla-agentic-toolkit-sandbox"
     runner.write_text("#!/bin/sh\n", encoding="utf-8")
     runner.chmod(0o755)
     commands: list[list[str]] = []
@@ -443,7 +447,7 @@ def test_execute_script_does_not_grant_proc_read_access(
             stderr="",
         )
 
-    monkeypatch.setenv("CARLA_MCP_SANDBOX", str(runner))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_SANDBOX", str(runner))
     monkeypatch.setattr(sandbox.subprocess, "run", run_command)
 
     outcome = sandbox.execute_script("result = None")
@@ -518,3 +522,38 @@ def test_script_runner_rejects_open_builtin(tmp_path: Path) -> None:
     assert outcome["ok"] is False
     assert outcome["error_type"] == "script_rejected"
     assert "open" in str(outcome["error"])
+
+
+def test_script_runner_stdout_is_bounded(tmp_path: Path) -> None:
+    """Script stdout should be silently truncated instead of OOM-ing."""
+    script = tmp_path / "script.py"
+    size = MAX_SCRIPT_STDOUT_BYTES + 1024
+    script.write_text(
+        f"print('x' * {size})",
+        encoding="utf-8",
+    )
+    outcome = run_script_file(script_path=script, host="127.0.0.1", port=2000, timeout_seconds=1.0)
+    assert outcome["ok"] is False
+    assert outcome["error_type"] == "output_too_large"
+    assert len(outcome["stdout"]) <= MAX_SCRIPT_STDOUT_BYTES
+
+
+def test_bool_rejected_as_int_in_tool_inputs() -> None:
+    """True/False must not be accepted where integers are expected."""
+    payload = {
+        "vehicle_count": True,
+        "traffic_manager_port": 8000,
+        "seed": 0,
+    }
+    with pytest.raises(TypeError, match="integer"):
+        parse_traffic_population_request(payload)
+
+
+def test_bool_rejected_as_float_in_tool_inputs() -> None:
+    """True/False must not be accepted where floats are expected."""
+    payload = {
+        "location": {"x": False, "y": 0, "z": 0},
+        "rotation": {"pitch": 0, "yaw": 0, "roll": 0},
+    }
+    with pytest.raises(TypeError, match="finite number"):
+        parse_transform(payload)

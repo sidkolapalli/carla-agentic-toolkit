@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
+import contextlib
 import os
 from importlib import import_module
 from pathlib import Path
-from queue import Empty, Queue
+from queue import Empty, Full, Queue
 from typing import cast
 
-from carla_mcp.actor_runtime import actor_snapshot, destroy_actor
-from carla_mcp.adapter_experiments import PythonCarlaExperimentMixin
-from carla_mcp.carla_protocols import (
+from carla_agentic_toolkit.actor_runtime import actor_snapshot, destroy_actor
+from carla_agentic_toolkit.adapter_experiments import PythonCarlaExperimentMixin
+from carla_agentic_toolkit.carla_protocols import (
     CarlaBlueprint,
     CarlaBlueprintAttribute,
     CarlaClient,
@@ -19,8 +20,8 @@ from carla_mcp.carla_protocols import (
     CarlaSensor,
     CarlaWorld,
 )
-from carla_mcp.errors import CarlaAdapterError
-from carla_mcp.experiment_common import (
+from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.experiment_common import (
     actor_counts,
     carla_transform,
     frame,
@@ -30,7 +31,7 @@ from carla_mcp.experiment_common import (
     world_settings,
     world_state,
 )
-from carla_mcp.models import (
+from carla_agentic_toolkit.models import (
     ActorSnapshot,
     AutopilotRequest,
     BlueprintAttribute,
@@ -51,16 +52,16 @@ from carla_mcp.models import (
     Transform,
     WorldState,
 )
-from carla_mcp.traffic_runtime import (
+from carla_agentic_toolkit.traffic_runtime import (
     advance_world_once,
     populate_traffic_actors,
     set_actor_autopilot,
     traffic_manager,
 )
-from carla_mcp.traffic_runtime import (
+from carla_agentic_toolkit.traffic_runtime import (
     configure_traffic_manager as configure_traffic_manager_runtime,
 )
-from carla_mcp.traffic_tuning import set_traffic_vehicle_path, tune_traffic_vehicle
+from carla_agentic_toolkit.traffic_tuning import set_traffic_vehicle_path, tune_traffic_vehicle
 
 __all__ = ["PythonCarlaAdapter"]
 
@@ -388,13 +389,27 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
 
 
 def _server_recorder_path(output_path: Path) -> str:
-    """Resolve a relative recording under an optional simulator-side directory."""
-    path = output_path.as_posix()
-    directory = os.environ.get("CARLA_MCP_RECORDER_DIR")
-    if directory and not output_path.is_absolute() and not (len(path) > 1 and path[1] == ":"):
+    """Resolve a relative recording under the configured simulator directory.
+
+    Rejects absolute paths, Windows drive paths, empty names, NUL bytes,
+    and relative paths that escape the recorder root via ``..``.
+    """
+    text = output_path.as_posix()
+    if not text or "\x00" in text:
+        msg = "Recorder path must not be empty or contain NUL bytes."
+        raise CarlaAdapterError(msg)
+    # Absolute POSIX (/foo), bare root, or Windows drive-qualified (C:/) paths.
+    if text.startswith("/") or output_path.is_absolute() or (len(text) > 1 and text[1] == ":"):
+        msg = "Recorder path must be relative to the configured recorder directory."
+        raise CarlaAdapterError(msg)
+    if ".." in output_path.parts:
+        msg = "Recorder path must not contain '..' components."
+        raise CarlaAdapterError(msg)
+    directory = os.environ.get("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR")
+    if directory:
         base = directory.rstrip("/\\")
-        return f"{base}/{path}"
-    return path
+        return f"{base}/{text}"
+    return text
 
 
 def _carla_client_factory() -> CarlaClientFactory:
@@ -494,9 +509,13 @@ def _spawn_sensor(
 
 
 def _capture_image(sensor: CarlaSensor) -> CarlaImage:
-    """Capture one image from a CARLA sensor listener."""
+    """Capture one image from a CARLA sensor listener.
+
+    Uses ``put_nowait`` so a fast producer cannot block the CARLA
+    callback thread and deadlock ``sensor.stop()``.
+    """
     frames: Queue[object] = Queue(maxsize=1)
-    sensor.listen(frames.put)
+    sensor.listen(lambda frame: _put_nowait_drop(frames, frame))
     try:
         frame = frames.get(timeout=5.0)
     except Empty as exc:
@@ -505,6 +524,12 @@ def _capture_image(sensor: CarlaSensor) -> CarlaImage:
     finally:
         sensor.stop()
     return _require_image(frame)
+
+
+def _put_nowait_drop(queue: Queue[object], item: object) -> None:
+    """Put on a queue without blocking; drop if full."""
+    with contextlib.suppress(Full):
+        queue.put_nowait(item)
 
 
 def _require_image(candidate: object) -> CarlaImage:
