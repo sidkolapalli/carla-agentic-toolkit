@@ -39,8 +39,32 @@ jobs:
       - name: Run checks
         run: make check
 
+      - name: Ruff format check
+        run: uv run ruff format --check .
+
+      - name: Python dependency audit
+        run: uvx pip-audit --requirement <(uv export --locked --no-dev)
+
+      - name: Rust dependency audit
+        uses: rustsec/audit-check@717aa0b3183beac7a7e377f3d5436550be64f2c0 # v2.0.0
+        with:
+          manifest-path: sandbox-runner/Cargo.lock
+
+      - name: History secret scan
+        uses: zricethezav/gitleaks-action@d3367bf7a9f9bba2e9196923b46b36a56c86371f # v1.8.0
+        with:
+          args: --verbose
+
       - name: Build Python distributions
         run: uv build
 
       - name: Build MCP Docker image
-        run: docker build --build-arg CARLA_VERSION=0.9.16 -t carla-mcp:ci .
+        run: docker build --build-arg CARLA_VERSION=0.9.16 -t carla-agentic-toolkit:ci .
+
+      - name: Docker vulnerability scan
+        uses: docker/scout-action@a2fbd7b1cee49195fdefd79b983120b0a5a16bb3 # v1.19.1
+        with:
+          command: cves
+          image: carla-agentic-toolkit:ci
+          only-severities: critical,high
+          exit-code: true
