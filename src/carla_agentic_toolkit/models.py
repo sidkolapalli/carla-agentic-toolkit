@@ -173,6 +173,7 @@ class TrafficPopulationRequest:
     safe_filter: bool = True
     global_distance_to_leading_vehicle: float = 2.5
     global_percentage_speed_difference: float = 10.0
+    advance_world: bool = True
 
 
 @dataclass(frozen=True, slots=True)
@@ -195,6 +196,7 @@ class AutopilotRequest:
     actor_ids: tuple[int, ...]
     enabled: bool = True
     traffic_manager_port: int = 8000
+    advance_world: bool = True
 
 
 @dataclass(frozen=True, slots=True)
@@ -284,6 +286,15 @@ class TrafficControllerStatus(_JsonModel):
     vehicle_count: int
     moving_vehicle_count: int
     last_error: str | None
+    stopping: bool = False
+    generation: int = 0
+    desired_revision: int = 0
+    applied_revision: int | None = None
+    applied_target_vehicle_count: int | None = None
+    owned_actor_ids: tuple[int, ...] = ()
+    adopted_actor_ids: tuple[int, ...] = ()
+    error_type: str | None = None
+    conflict: dict[str, object] | None = None
 
 
 @dataclass(frozen=True, slots=True)

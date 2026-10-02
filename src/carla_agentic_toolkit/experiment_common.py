@@ -6,6 +6,7 @@ import math
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, cast
 
+from carla_agentic_toolkit.actor_runtime import actor_by_id
 from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
 from carla_agentic_toolkit.models import (
     ActorCounts,
@@ -114,7 +115,7 @@ def carla_rotation(module: object, rotation: Rotation) -> object:
 
 def actor(world: CarlaWorld, actor_id: int) -> object:
     """Return a CARLA actor by ID."""
-    found_actor = world.get_actors().find(actor_id)
+    found_actor = actor_by_id(world, actor_id)
     if found_actor is None:
         msg = f"Actor {actor_id} was not found."
         raise CarlaAdapterError(msg)
@@ -123,7 +124,7 @@ def actor(world: CarlaWorld, actor_id: int) -> object:
 
 def sensor_actor(world: CarlaWorld, sensor_id: int) -> CarlaSensor:
     """Return a sensor actor by ID."""
-    found_actor = world.get_actors().find(sensor_id)
+    found_actor = actor_by_id(world, sensor_id)
     if found_actor is None:
         msg = f"Sensor {sensor_id} was not found."
         raise CarlaAdapterError(msg)

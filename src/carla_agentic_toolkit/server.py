@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import threading
 from typing import cast
 
@@ -31,11 +32,23 @@ _execution_lock = threading.Lock()
 
 def build_server() -> MCPServer:
     """Build the MCP server with one script-execution tool."""
-    mcp = MCPServer("carla-agentic-toolkit", title="CARLA Agentic Toolkit", version=__version__)
+    mcp = _configured_server()
     _register_script_tool(mcp)
     _register_capture_resource(mcp)
     _register_prompts(mcp)
+    if os.environ.get("CARLA_AGENTIC_TOOLKIT_MANAGED_EXPERIMENTS") == "1":
+        from carla_agentic_toolkit.managed_mcp import register_managed_tool  # noqa: PLC0415
+
+        register_managed_tool(mcp)
     return mcp
+
+
+def _configured_server() -> MCPServer:
+    if os.environ.get("CARLA_AGENTIC_TOOLKIT_ENABLE_SCRIPT_SESSIONS") == "1":
+        from carla_agentic_toolkit.session_mcp import build_session_server  # noqa: PLC0415
+
+        return build_session_server()
+    return MCPServer("carla-agentic-toolkit", title="CARLA Agentic Toolkit", version=__version__)
 
 
 def _register_script_tool(mcp: MCPServer) -> None:
@@ -180,9 +193,11 @@ def _register_prompts(mcp: MCPServer) -> None:
             "Use one execute_carla_script call to create an 8-second visual CARLA demo. "
             "Save the current weather. Spawn one red Tesla Model 3 at the first free "
             "spawn point with role_name carla-agentic-toolkit-showcase. Apply rainy golden-hour "
-            "weather and vehicle lights, enable Traffic Manager autopilot at 8 m/s, "
+            "weather and vehicle lights, apply gentle throttle with api.apply_vehicle_control(), "
             "and call api.watch_actor(actor_id, seconds=8.0) for a smooth yaw-relative "
-            "chase view that restores the spectator. Attach an RGB camera and publish "
+            "chase view that restores the spectator, then apply the brake. "
+            "Check every operation for an ok: false result. "
+            "Attach a 320-by-180 RGB camera and publish "
             "a frame to captures/showcase.png. Return "
             "map, speed before/after, capture metadata, restored-state checks, and "
             "leftovers. In finally, detach sensors, destroy only actors created by this "

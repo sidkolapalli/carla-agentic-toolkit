@@ -32,9 +32,19 @@ def actor_snapshot(candidate: object) -> ActorSnapshot:
     )
 
 
+def actor_by_id(world: CarlaWorld, actor_id: int) -> object | None:
+    """Resolve an explicit actor ID without relying on cached world enumeration.
+
+    CARLA's explicit-ID overload requests actor descriptions from the server,
+    including actors spawned since the client's last received world snapshot.
+    Resolution never ticks the world or promises a newer physics measurement.
+    """
+    return world.get_actors([actor_id]).find(actor_id)
+
+
 def destroy_actor(world: CarlaWorld, actor_id: int) -> DestroyResult:
     """Destroy one actor by ID."""
-    actor = world.get_actors().find(actor_id)
+    actor = actor_by_id(world, actor_id)
     if actor is None:
         return DestroyResult(actor_id=actor_id, destroyed=False, error="Actor was not found.")
     try:

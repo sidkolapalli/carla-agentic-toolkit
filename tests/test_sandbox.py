@@ -17,6 +17,7 @@ from carla_agentic_toolkit.tool_inputs import (
     parse_traffic_population_request,
     parse_transform,
 )
+from tests.sandbox_helpers import sandbox_runner_path
 
 
 @pytest.mark.parametrize(
@@ -128,7 +129,7 @@ def test_execute_script_normalizes_temporary_directory_failure(
         message = "temporary directory unavailable"
         raise OSError(message)
 
-    monkeypatch.setattr(sandbox.tempfile, "TemporaryDirectory", fail)
+    monkeypatch.setattr(sandbox.tempfile, "mkdtemp", fail)
 
     outcome = sandbox.execute_script("result = 1")
 
@@ -294,7 +295,7 @@ def test_genuine_script_timeout_still_kills_the_child() -> None:
 def test_real_landlock_blocks_read_outside_allowlist(tmp_path: Path) -> None:
     """The real runner should permit an allowed read and deny an unlisted sibling."""
     project_root = Path(__file__).resolve().parents[1]
-    runner = project_root / "sandbox-runner" / "target" / "debug" / "carla-agentic-toolkit-sandbox"
+    runner = sandbox_runner_path()
     work_dir = tmp_path / "work"
     output_dir = tmp_path / "output"
     blocked_file = tmp_path / "blocked.txt"
@@ -359,8 +360,7 @@ def test_real_landlock_blocks_read_outside_allowlist(tmp_path: Path) -> None:
 @pytest.mark.skipif(sys.platform != "linux", reason="requires the Linux sandbox runner")
 def test_real_landlock_allows_requested_port_and_blocks_unlisted_port(tmp_path: Path) -> None:
     """Network rules should grant connect only to explicitly listed ports."""
-    project_root = Path(__file__).resolve().parents[1]
-    runner = project_root / "sandbox-runner" / "target" / "debug" / "carla-agentic-toolkit-sandbox"
+    runner = sandbox_runner_path()
     work_dir = tmp_path / "work"
     output_dir = tmp_path / "output"
     work_dir.mkdir()
@@ -535,12 +535,14 @@ def test_script_runner_stdout_is_bounded(tmp_path: Path) -> None:
     outcome = run_script_file(script_path=script, host="127.0.0.1", port=2000, timeout_seconds=1.0)
     assert outcome["ok"] is False
     assert outcome["error_type"] == "output_too_large"
-    assert len(outcome["stdout"]) <= MAX_SCRIPT_STDOUT_BYTES
+    stdout = outcome["stdout"]
+    assert isinstance(stdout, str)
+    assert len(stdout.encode("utf-8")) <= MAX_SCRIPT_STDOUT_BYTES
 
 
 def test_bool_rejected_as_int_in_tool_inputs() -> None:
     """True/False must not be accepted where integers are expected."""
-    payload = {
+    payload: dict[str, object] = {
         "vehicle_count": True,
         "traffic_manager_port": 8000,
         "seed": 0,
@@ -551,7 +553,7 @@ def test_bool_rejected_as_int_in_tool_inputs() -> None:
 
 def test_bool_rejected_as_float_in_tool_inputs() -> None:
     """True/False must not be accepted where floats are expected."""
-    payload = {
+    payload: dict[str, object] = {
         "location": {"x": False, "y": 0, "z": 0},
         "rotation": {"pitch": 0, "yaw": 0, "roll": 0},
     }

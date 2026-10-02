@@ -90,6 +90,7 @@ def parse_traffic_population_request(payload: dict[str, object]) -> TrafficPopul
             "traffic_manager_port": _int_field,
             "seed": _int_field,
             "safe_filter": _bool_field,
+            "advance_world": _bool_field,
             "global_distance_to_leading_vehicle": _float_field,
             "global_percentage_speed_difference": _float_field,
         },
@@ -135,7 +136,7 @@ def parse_autopilot_request(payload: dict[str, object]) -> AutopilotRequest:
     actor_ids = _list_field(payload, "actor_ids")
     fields = _provided_fields(
         payload,
-        {"enabled": _bool_field, "traffic_manager_port": _int_field},
+        {"enabled": _bool_field, "traffic_manager_port": _int_field, "advance_world": _bool_field},
     )
     return AutopilotRequest(
         actor_ids=tuple(_int_value(actor_id, "actor_ids") for actor_id in actor_ids),

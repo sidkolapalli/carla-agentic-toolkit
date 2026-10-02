@@ -15,17 +15,22 @@ from carla_agentic_toolkit import (
     experiment_vehicle,
     experiment_walkers,
 )
+from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.models import CameraAttachRequest, Location, SensorInfo, Transform
+from carla_agentic_toolkit.sensor_subscription import EVENT_SENSOR_TYPES, SensorSubscription
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaWorld
+    from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaSensor, CarlaWorld
     from carla_agentic_toolkit.models import CaptureInfo
 
 
 class PythonCarlaExperimentMixin:
     """Experiment capabilities layered onto the core Python CARLA adapter."""
+
+    _sensor_subscriptions: dict[int, SensorSubscription]
+    _sensor_handles: dict[int, CarlaSensor]
 
     def _client(self) -> CarlaClient:
         """Return a configured CARLA client."""
@@ -79,7 +84,82 @@ class PythonCarlaExperimentMixin:
 
     def detach_sensor(self, sensor_id: int) -> dict[str, object]:
         """Stop and destroy a sensor actor."""
-        return experiment_perception.detach_sensor(self._world(self._client()), sensor_id)
+        self.close_sensor_subscription(sensor_id)
+        result = experiment_perception.detach_sensor_handle(self._sensor_actor(sensor_id))
+        if result["destroyed"]:
+            self._sensor_handles.pop(sensor_id, None)
+        return result
+
+    def _sensor_actor(self, sensor_id: int) -> CarlaSensor:
+        """Prefer the created handle until snapshot propagation catches up with spawning."""
+        sensor = self._sensor_handles.get(sensor_id)
+        if sensor is not None:
+            return sensor
+        return experiment_common.sensor_actor(self._world(self._client()), sensor_id)
+
+    def subscribe_sensor(
+        self, sensor_id: int, *, event_sensor: bool | None = None, capacity: int = 32
+    ) -> dict[str, object]:
+        """Install a bounded listener before the owner advances the world."""
+        if sensor_id in self._sensor_subscriptions:
+            message = f"Sensor {sensor_id} already has an active subscription."
+            raise CarlaAdapterError(message)
+        sensor = self._sensor_actor(sensor_id)
+        is_event = sensor.type_id in EVENT_SENSOR_TYPES if event_sensor is None else event_sensor
+        self._sensor_subscriptions[sensor_id] = SensorSubscription(
+            sensor, event_sensor=is_event, capacity=capacity
+        )
+        return {"sensor_id": sensor_id, "event_sensor": is_event, "capacity": capacity}
+
+    def drain_sensor(
+        self,
+        sensor_id: int,
+        frame: int,
+        *,
+        timeout_seconds: float = 0.0,
+        output_dir: Path | None = None,
+    ) -> dict[str, object]:
+        """Read available samples for an owner frame without issuing simulator ticks."""
+        subscription = self._subscription(sensor_id)
+        batch = subscription.drain(frame, timeout_seconds=timeout_seconds)
+        frames = list(batch.frames)
+        paths = experiment_perception.save_sensor_frames(frames, sensor_id, output_dir)
+        return {
+            "sensor_id": sensor_id,
+            **batch.to_dict(),
+            "frames": [experiment_perception.sensor_frame_digest(item) for item in frames],
+            "paths": [str(path) for path in paths],
+        }
+
+    def _subscription(self, sensor_id: int) -> SensorSubscription:
+        """Require a listener owned by this adapter execution."""
+        try:
+            return self._sensor_subscriptions[sensor_id]
+        except KeyError as exc:
+            message = f"Sensor {sensor_id} has no subscription; call subscribe_sensor first."
+            raise CarlaAdapterError(message) from exc
+
+    def close_sensor_subscription(self, sensor_id: int) -> dict[str, object]:
+        """Idempotently close one owned listener without destroying its sensor actor."""
+        subscription = self._sensor_subscriptions.pop(sensor_id, None)
+        if subscription is not None:
+            subscription.close()
+        return {"sensor_id": sensor_id, "closed": True}
+
+    def close_sensor_subscriptions(self) -> None:
+        """Close all listener queues before ending an execution or replacing a world."""
+        errors: list[str] = []
+        for sensor_id in tuple(self._sensor_subscriptions):
+            self._close_subscription_recording_error(sensor_id, errors)
+        if errors:
+            raise CarlaAdapterError("; ".join(errors))
+
+    def _close_subscription_recording_error(self, sensor_id: int, errors: list[str]) -> None:
+        """Continue releasing other listeners if one sensor's stop fails."""
+        try:
+            self.close_sensor_subscription(sensor_id)
+        except CarlaAdapterError as exc:
+            errors.append(str(exc))
 
     def get_spawn_points(self) -> dict[str, object]:
         """Return legal vehicle spawn transforms from the loaded map."""
@@ -178,12 +258,14 @@ class PythonCarlaExperimentMixin:
         reset_settings: bool,
     ) -> dict[str, object]:
         """Generate a world from bounded OpenDRIVE text."""
+        self.close_sensor_subscriptions()
         world = experiment_environment.generate_opendrive_world(
             self._client(),
             opendrive=opendrive,
             parameters=parameters,
             reset_settings=reset_settings,
         )
+        self._sensor_handles.clear()
         return experiment_common.world_state_payload(cast("CarlaWorld", world))
 
     def configure_actor_physics(
@@ -382,7 +464,7 @@ class PythonCarlaExperimentMixin:
         """Set weather parameters when supported."""
         return experiment_scene.set_weather(self._world(self._client()), parameters)
 
-    def replay_recording(
+    def replay_recording(  # noqa: PLR0913 -- Preserve the existing public recorder arguments.
         self,
         *,
         path: Path,
@@ -390,6 +472,7 @@ class PythonCarlaExperimentMixin:
         duration: float = 0.0,
         follow_id: int = 0,
         replay_sensors: bool = False,
+        do_tick: bool = True,
     ) -> dict[str, object]:
         """Replay a CARLA recorder file."""
         return experiment_replay.replay_recording(
@@ -400,6 +483,7 @@ class PythonCarlaExperimentMixin:
                 duration=duration,
                 follow_id=follow_id,
                 replay_sensors=replay_sensors,
+                do_tick=do_tick,
             ),
         )
 
@@ -435,12 +519,16 @@ class PythonCarlaExperimentMixin:
 
     def reload_world(self, *, reset_settings: bool = False) -> dict[str, object]:
         """Reload the current world."""
+        self.close_sensor_subscriptions()
         world = cast("Any", self._client()).reload_world(reset_settings)
+        self._sensor_handles.clear()
         return experiment_common.world_state_payload(world)
 
-    def apply_batch(self, commands: list[dict[str, object]]) -> dict[str, object]:
+    def apply_batch(
+        self, commands: list[dict[str, object]], *, do_tick: bool = True
+    ) -> dict[str, object]:
         """Apply a small JSON-compatible batch using carla.command."""
-        return experiment_replay.apply_batch(self._client(), commands)
+        return experiment_replay.apply_batch(self._client(), commands, do_tick=do_tick)
 
     def list_capabilities(self) -> dict[str, object]:
         """Probe available CARLA capabilities."""

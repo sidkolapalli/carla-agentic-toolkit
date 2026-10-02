@@ -42,8 +42,10 @@
 
 The CARLA Agentic Toolkit gives local AI coding agents a constrained path into
 [CARLA](https://github.com/carla-simulator/carla). Instead of exposing dozens of
-small tools, it provides one composable tool—`execute_carla_script`—that runs a
-complete Python workflow against a curated CARLA API.
+small tools, its default interface provides one composable tool,
+`execute_carla_script`, that runs a complete Python workflow against a curated
+CARLA API. Optional managed experiments add bounded start/status/stop/result
+controls for a reviewed merge fixture.
 
 Agent-authored code is validated, launched through a Rust subprocess, restricted
 with Linux Landlock, and given a dedicated place for durable captures,
@@ -67,6 +69,8 @@ recordings, and evidence.
   captures and evidence remain in a dedicated output directory.
 - **Current MCP, practical compatibility.** The same stdio server supports the
   stateless MCP `2026-07-28` revision and 2025-era local clients.
+- **Opt-in managed experiments.** Run a no-key rules baseline, or select bounded
+  maneuvers with Jev, while a trusted supervisor owns timing, cleanup, and traces.
 
 ## Demo
 
@@ -107,6 +111,10 @@ layout](docs/client-setup.md#prerequisites)** before continuing.
 
 CARLA stays native so its GPU-rendered window remains visible. Docker packages
 only the MCP server, matching CARLA Python API, and Rust/Landlock sandbox:
+
+The runtime image is headless and contains no shell or package manager. Invoke
+installed commands directly. The default image excludes the optional Jev SDK;
+use the source setup below for Jev experiments.
 
 ```bash
 docker build --build-arg CARLA_VERSION=0.9.16 -t carla-agentic-toolkit .
@@ -207,7 +215,8 @@ keeps discovery next to execution and lets an agent compose a workflow without
 round-tripping through a large collection of narrow tools.
 
 Recoverable CARLA operation failures return a script value with `ok: false`,
-`error_type`, and `message`. Script rejection, uncaught exceptions, runner
+`error_type`, and `error`. Check that value before depending on an operation's
+result. Script rejection, uncaught exceptions, runner
 failures, and timeouts fail the complete MCP call with `isError: true` while
 retaining the structured diagnostics.
 
@@ -218,7 +227,7 @@ v0.1 this is a breaking rename from the former `resources` field; no
 compatibility alias is emitted.
 
 A script can explicitly return a durable camera frame as native MCP image
-content:
+content in an asynchronous world:
 
 ```python
 capture = api.capture_sensor_frame(sensor_id, "captures/front.png", publish=True)
@@ -230,6 +239,12 @@ clients and a `carla-output://capture/...` Resource link for later reads. JSON
 text remains first for clients that ignore visual content. Publication is
 limited to four images, 512 KiB each, and a 1 MiB combined encoded result; paths
 must resolve below `CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR`.
+
+Synchronous sensors use `subscribe_sensor` → owner `tick` → `drain_sensor` →
+`close_sensor_subscription`. Bounded queues report delayed and dropped frames;
+empty collision-event drains do not wait. Population/autopilot requests accept
+`advance_world=False`, and batch operations accept `do_tick=False` when a caller
+owns the clock. See [sensor timing and advancement](docs/sensor-timing.md).
 
 Actors can keep conversational names across calls:
 
@@ -244,6 +259,47 @@ checks the live simulator and removes stale aliases; names are a convenience,
 not an authorization boundary. Use `api.list_named_actors()` and
 `api.forget_actor()` to manage them.
 
+## Managed Merge Experiment
+
+The managed CLI runs a reviewed numerical specification in a trusted worker.
+It creates one independently controlled ego and one merging vehicle on a
+verified Town10HD corridor. It uses range-filtered simulator ground truth;
+it does not model realistic occlusion or claim to know another driver's intent.
+Use a dedicated CARLA instance with Town10HD loaded and no existing vehicles,
+walkers, sensors, or walker controllers.
+
+After the source setup above, run the no-key baseline:
+
+```bash
+uv run --no-sync carla-agentic-toolkit-experiment run \
+  --spec docs/examples/merge-rules-v1.json
+```
+
+The example connects to `127.0.0.1:2000`; edit its `host` and `port` for your
+simulator, including the Windows host address when using WSL NAT. It needs no
+Traffic Manager sidecar. JSON output reports the run ID, termination, cleanup,
+outcome, and paths to private JSONL evidence, summary JSON, and a static HTML
+report. A completed maneuver and verified cleanup are separate fields.
+
+Use `start` to return promptly, followed by `status`, `stop`, or `result` with
+the returned run ID. `stop` requests cancellation; inspect `terminated` and
+`cleanup.ok` before starting another owner. Managed MCP controls are disabled
+by default. Set `CARLA_AGENTIC_TOOLKIT_MANAGED_EXPERIMENTS=1` in the trusted
+server environment to expose `managed_experiment` with the same lifecycle.
+
+Jev is optional: install `uv sync --locked --extra jev --python 3.12`, reinstall
+the matching CARLA Python API if needed, and supply `TYPESAFE_API_KEY` only in
+the trusted process environment. Then use `docs/examples/merge-jev-v1.json`.
+Numerical candidates, controllers, constraints, and cleanup remain shared with
+the rules run. Provider failures and stale replies produce recorded fallbacks.
+The [managed experiment guide](docs/managed-experiments.md) covers exact setup,
+timing modes, limits, ownership, replay restrictions, and matched comparisons.
+
+Set `CARLA_AGENTIC_TOOLKIT_ENABLE_SCRIPT_SESSIONS=1` to add the opt-in
+`carla_script_session` lifecycle tool for a persistent sandboxed namespace,
+owned-vehicle telemetry, bounded deadlines, and cleanup. See
+[persistent script sessions](docs/persistent-sessions.md).
+
 ## Capabilities
 
 | Control surface | Examples |
@@ -255,6 +311,8 @@ not an authorization boundary. Use `api.list_named_actors()` and
 | Vehicles and pedestrians | Vehicle controls, telemetry, walker movement |
 | Scene and navigation | Weather, semantic tags/bounds, filtered landmarks, routes, map layers, bounded OpenDRIVE |
 | Recording and evidence | Record, replay, queries, captures, evidence manifests |
+| Managed experiments (opt-in) | Rules/Jev/replay selection, local lifecycle controls, protected actors, continuous traces |
+| Persistent scripts (opt-in) | Retained namespace, asynchronous requests, owned-vehicle telemetry, cancellation and cleanup |
 
 ## How It Works
 
@@ -279,7 +337,7 @@ The CARLA Agentic Toolkit uses defense in depth around model-authored Python:
 
 | Layer | What it enforces |
 | --- | --- |
-| MCP contract | One tool, structured output, and destructive/open-world annotations for client approval |
+| MCP contract | Default script tool, explicit lifecycle opt-ins, structured output, and destructive/open-world annotations |
 | Rust subprocess | Environment clearing, resource limits, timeout handling, and process-tree cleanup |
 | Landlock | Read-only runtime paths, write access only to scratch/output, and allowed TCP ports |
 | Python validation | No imports, unsafe builtins, private attributes, or string-format traversal |
@@ -305,11 +363,15 @@ assumptions, and private vulnerability reporting process.
 
 ## Current Boundaries
 
-- Source checkout only; the Python wheel does not yet bundle the Rust runner.
+- Use the Docker image or a source checkout; the Python wheel does not yet bundle
+  the Rust runner.
 - Local stdio only; there is no authenticated remote transport.
 - One MCP server serializes complete script executions against shared simulator
   state. `timeout_seconds` starts after queueing and covers sandbox execution,
   not time spent waiting for that lock.
+- Cooperating local scripts and managed workers also share a simulator lease
+  through private state. Use the same state directory for every local process.
+  This cannot prevent an unrelated CARLA client from changing the world.
 - Actors created through the curated API are journaled per execution. Uncaught
   exceptions and timeouts trigger best-effort CARLA-side cleanup without touching
   pre-existing actors. Successful runs keep their actors unless the script calls
@@ -320,9 +382,15 @@ assumptions, and private vulnerability reporting process.
   dedicated simulator and verify health afterward. Runtime capability probes
   avoid version assumptions but cannot guarantee an engine operation will succeed.
 - Traffic controller state lasts for one script process. Keep that script alive
-  with `api.wait()` or use the live sidecar.
-- Automated tests use mock CARLA adapters. Live simulator validation remains a
-  manual gate.
+  with `api.wait()` or use the live sidecar. Autopilot and traffic tuning require
+  an existing Traffic Manager server in a trusted client outside the sandbox;
+  see [Traffic Manager setup](docs/client-setup.md#traffic-manager).
+- Background density is supported in asynchronous worlds. Synchronous density
+  maintenance and non-ticking recorder replay fail explicitly before mutation.
+- Managed experiments accept validated data, not arbitrary scripts or provider
+  URLs. They require dedicated-instance ownership and retain private evidence.
+- Automated tests include deterministic adapters and real sandbox checks. Live
+  CARLA and configured provider integration remain separate validation gates.
 
 Relative capture and evidence paths such as `captures/front.png` are rooted in
 `CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR`. Recorder paths are opened by the CARLA simulator host;
@@ -365,6 +433,12 @@ one JSON report. Never run it against a shared simulator without permission.
 | Guide | Contents |
 | --- | --- |
 | [Client setup](docs/client-setup.md) | Client configuration, preflight checks, and troubleshooting |
+| [Managed experiments](docs/managed-experiments.md) | No-key baseline, optional Jev, lifecycle, limits, and comparison procedure |
+| [Managed architecture](docs/managed-architecture.md) | Ownership, timing, decisions, recovery, and evidence invariants |
+| [Release readiness](docs/release-readiness.md) | Verified local behavior and remaining CI, provider, and publication gates |
+| [Persistent script sessions](docs/persistent-sessions.md) | Retained namespaces, requests, telemetry, ownership, and cancellation |
+| [Sensor timing](docs/sensor-timing.md) | Subscribe/tick/drain/close, bounded delivery, and non-ticking mutations |
+| [Experiment evidence](docs/experiment-evidence.md) | Trace schema, physical metrics, private retention, and exact replay |
 | [Security policy](SECURITY.md) | Threat model and vulnerability reporting |
 | [Contributing guide](CONTRIBUTING.md) | Development workflow and contribution standards |
 | [Code of Conduct](CODE_OF_CONDUCT.md) | Community expectations |

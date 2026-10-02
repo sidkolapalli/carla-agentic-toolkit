@@ -7,15 +7,17 @@ use landlock::{
 use serde_json::{json, Value};
 use std::io::{self, Read};
 use std::os::unix::process::{CommandExt, ExitStatusExt};
-use std::path::PathBuf;
-use std::process::{Command, Stdio};
+use std::path::{Path, PathBuf};
+use std::process::{Child, Command, Stdio};
 use std::sync::{
     atomic::{AtomicBool, AtomicUsize, Ordering},
     Arc,
 };
 use std::thread::{self, JoinHandle};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use wait_timeout::ChildExt;
+
+mod guardian;
 
 const ADDRESS_SPACE_LIMIT_BYTES: libc::rlim_t = 4 * 1024 * 1024 * 1024;
 const CPU_LIMIT_SECONDS: libc::rlim_t = 60;
@@ -23,6 +25,7 @@ const PROCESS_LIMIT: libc::rlim_t = 128;
 const NOFILE_LIMIT: libc::rlim_t = 256;
 const MAX_OUTPUT_BYTES: usize = 1024 * 1024;
 const WATCHDOG_MARGIN_SECONDS: f64 = 2.0;
+const CANCEL_POLL_INTERVAL: Duration = Duration::from_millis(50);
 
 #[derive(Parser, Debug)]
 #[command(version, about = "Run a CARLA Python script inside a Landlock sandbox")]
@@ -43,6 +46,8 @@ struct Args {
     work_dir: PathBuf,
     #[arg(long)]
     ownership_file: Option<PathBuf>,
+    #[arg(long)]
+    cancel_file: Option<PathBuf>,
     #[arg(long)]
     output_dir: PathBuf,
     #[arg(long)]
@@ -73,6 +78,9 @@ fn main() {
 
 fn run() -> Result<Value> {
     let args = Args::parse();
+    let expected_parent = unsafe { libc::getppid() };
+    let guardian = guardian::Guardian::start().context("failed to start cleanup guardian")?;
+    let guardian_descriptor = guardian.descriptor();
     let status = apply_landlock(&args)?;
     let mut command = Command::new(&args.python);
     command
@@ -104,8 +112,12 @@ fn run() -> Result<Value> {
     if let Some(recorder_dir) = &args.recorder_dir {
         command.env("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR", recorder_dir);
     }
+    let expected_wrapper = unsafe { libc::getpid() };
     unsafe {
-        command.pre_exec(configure_child_process);
+        command.pre_exec(move || {
+            configure_child_process(expected_wrapper)?;
+            guardian::register_child(guardian_descriptor)
+        });
     }
     let mut child = command
         .spawn()
@@ -129,17 +141,38 @@ fn run() -> Result<Value> {
         Arc::clone(&output_too_large),
     );
     let timeout = Duration::from_secs_f64(args.timeout_seconds.max(0.1) + WATCHDOG_MARGIN_SECONDS);
-    let timed_out = child.wait_timeout(timeout)?.is_none();
+    let waited = wait_for_child(
+        &mut child,
+        timeout,
+        args.cancel_file.as_deref(),
+        expected_parent,
+    );
     // Always reap the process group after the main child exits (or times out).
     // A descendant that forked and holds a pipe open would otherwise hang
     // the pipe-join below indefinitely, breaking the deadline guarantee.
     kill_process_group(child.id())?;
     let child_status = child.wait().context("failed to wait for Python runner")?;
+    drop(guardian);
     let stdout_bytes = join_reader(stdout_reader, "stdout")?;
     let stderr_bytes = join_reader(stderr_reader, "stderr")?;
     let stdout = String::from_utf8_lossy(&stdout_bytes);
     let stderr = String::from_utf8_lossy(&stderr_bytes);
-    if timed_out {
+    let outcome = waited.context("failed to watch Python runner")?;
+    if outcome == WaitOutcome::Cancelled {
+        return Ok(json!({
+            "ok": false,
+            "result": null,
+            "stdout": stdout,
+            "error": "Session cancellation requested.",
+            "error_type": "session_cancelled",
+            "landlock": status,
+            "timed_out": false,
+            "cancelled": true,
+            "exit_status": child_status.code(),
+            "signal": child_status.signal()
+        }));
+    }
+    if outcome == WaitOutcome::TimedOut {
         return Ok(json!({
             "ok": false,
             "result": null,
@@ -191,6 +224,47 @@ fn run() -> Result<Value> {
     Ok(payload)
 }
 
+#[derive(Debug, PartialEq, Eq)]
+enum WaitOutcome {
+    Exited,
+    TimedOut,
+    Cancelled,
+}
+
+fn wait_for_child(
+    child: &mut Child,
+    timeout: Duration,
+    cancel_file: Option<&Path>,
+    expected_parent: libc::pid_t,
+) -> io::Result<WaitOutcome> {
+    let deadline = Instant::now() + timeout;
+    loop {
+        if unsafe { libc::getppid() } != expected_parent {
+            return Ok(WaitOutcome::Cancelled);
+        }
+        if cancel_file
+            .map(Path::try_exists)
+            .transpose()?
+            .unwrap_or(false)
+        {
+            return Ok(WaitOutcome::Cancelled);
+        }
+        if child.try_wait()?.is_some() {
+            return Ok(WaitOutcome::Exited);
+        }
+        let remaining = deadline.saturating_duration_since(Instant::now());
+        if remaining.is_zero() {
+            return Ok(WaitOutcome::TimedOut);
+        }
+        if child
+            .wait_timeout(remaining.min(CANCEL_POLL_INTERVAL))?
+            .is_some()
+        {
+            return Ok(WaitOutcome::Exited);
+        }
+    }
+}
+
 fn drain_pipe<R: Read + Send + 'static>(
     mut pipe: R,
     total_bytes: Arc<AtomicUsize>,
@@ -224,7 +298,15 @@ fn join_reader(reader: JoinHandle<io::Result<Vec<u8>>>, name: &str) -> Result<Ve
         .with_context(|| format!("failed to read Python runner {name}"))
 }
 
-fn configure_child_process() -> io::Result<()> {
+fn configure_child_process(expected_parent: libc::pid_t) -> io::Result<()> {
+    if unsafe { libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGKILL) } < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    if unsafe { libc::getppid() } != expected_parent {
+        return Err(io::Error::other(
+            "sandbox wrapper died before child guard armed",
+        ));
+    }
     set_session()?;
     set_rlimit(libc::RLIMIT_AS, ADDRESS_SPACE_LIMIT_BYTES)?;
     set_rlimit(libc::RLIMIT_CPU, CPU_LIMIT_SECONDS)?;
@@ -330,6 +412,7 @@ mod tests {
             timeout_seconds: 1.0,
             work_dir: tmp.path().to_path_buf(),
             ownership_file: None,
+            cancel_file: None,
             output_dir: tmp.path().to_path_buf(),
             recorder_dir: None,
             read_only: vec!["/usr".into(), "/lib".into(), "/lib64".into(), "/etc".into()],
@@ -367,6 +450,7 @@ mod tests {
             timeout_seconds: 1.0,
             work_dir: tmp.path().to_path_buf(),
             ownership_file: None,
+            cancel_file: None,
             output_dir: tmp.path().to_path_buf(),
             recorder_dir: None,
             read_only: vec!["/usr".into(), "/lib".into(), "/lib64".into(), "/etc".into()],
@@ -396,6 +480,7 @@ mod tests {
             timeout_seconds: 30.0,
             work_dir: tmp.path().to_path_buf(),
             ownership_file: None,
+            cancel_file: None,
             output_dir: tmp.path().to_path_buf(),
             recorder_dir: None,
             read_only: vec![],
@@ -420,10 +505,12 @@ mod tests {
     fn descendant_cleanup_after_child_exit() {
         use std::io::Read;
         use std::process::{Command, Stdio};
+        use std::time::Instant;
 
         let mut child = Command::new("sh")
             .arg("-c")
-            .arg("sleep 30 & disown; echo parent_done; exec sleep 0.1")
+            .arg("sleep 3 & echo parent_done")
+            .process_group(0)
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
             .spawn()
@@ -432,8 +519,10 @@ mod tests {
         let status = child.wait().unwrap();
         assert!(status.success());
 
-        // The fix: always kill the process group after child exits.
-        let _ = kill_process_group(child.id());
+        // Give the child its own group, just as configure_child_process does.
+        // Without cleanup, the descendant holds stdout open for three seconds.
+        let started = Instant::now();
+        kill_process_group(child.id()).unwrap();
 
         let mut stdout = String::new();
         child
@@ -443,5 +532,72 @@ mod tests {
             .read_to_string(&mut stdout)
             .unwrap();
         assert!(stdout.contains("parent_done"));
+        assert!(started.elapsed() < Duration::from_secs(2));
+    }
+
+    #[test]
+    fn cancellation_interrupts_blocked_process_tree() {
+        let control = tempfile::TempDir::new().unwrap();
+        let marker = control.path().join("cancel");
+        let mut child = Command::new("sh")
+            .arg("-c")
+            .arg("sleep 30 & echo ready; wait")
+            .process_group(0)
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap();
+        let writer_path = marker.clone();
+        let writer = thread::spawn(move || {
+            thread::sleep(Duration::from_millis(100));
+            std::fs::write(writer_path, b"stop").unwrap();
+        });
+        let started = std::time::Instant::now();
+        let outcome = wait_for_child(&mut child, Duration::from_secs(30), Some(&marker), unsafe {
+            libc::getppid()
+        })
+        .unwrap();
+        kill_process_group(child.id()).unwrap();
+        child.wait().unwrap();
+        writer.join().unwrap();
+        let mut stdout = String::new();
+        child
+            .stdout
+            .take()
+            .unwrap()
+            .read_to_string(&mut stdout)
+            .unwrap();
+        assert_eq!(outcome, WaitOutcome::Cancelled);
+        assert!(stdout.contains("ready"));
+        assert!(started.elapsed() < Duration::from_secs(2));
+    }
+
+    #[test]
+    fn absent_cancel_marker_preserves_normal_exit_and_timeout() {
+        let control = tempfile::TempDir::new().unwrap();
+        let marker = control.path().join("absent");
+        let mut completed = Command::new("true").process_group(0).spawn().unwrap();
+        assert_eq!(
+            wait_for_child(
+                &mut completed,
+                Duration::from_secs(1),
+                Some(&marker),
+                unsafe { libc::getppid() }
+            )
+            .unwrap(),
+            WaitOutcome::Exited
+        );
+        completed.wait().unwrap();
+        let mut blocked = Command::new("sleep")
+            .arg("30")
+            .process_group(0)
+            .spawn()
+            .unwrap();
+        let result = wait_for_child(&mut blocked, Duration::from_millis(50), None, unsafe {
+            libc::getppid()
+        })
+        .unwrap();
+        kill_process_group(blocked.id()).unwrap();
+        blocked.wait().unwrap();
+        assert_eq!(result, WaitOutcome::TimedOut);
     }
 }

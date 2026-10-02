@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import contextlib
-from queue import Empty, Full, Queue
 from typing import TYPE_CHECKING
 
 from carla_agentic_toolkit.errors import CarlaAdapterError
@@ -13,6 +11,7 @@ from carla_agentic_toolkit.experiment_common import (
     optional_transform_dict,
     sensor_actor,
 )
+from carla_agentic_toolkit.sensor_subscription import SensorSubscription, validate_capacity
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -28,6 +27,7 @@ def read_sensor_stream(
     output_dir: Path | None,
 ) -> dict[str, object]:
     """Read several frames from a CARLA sensor and optionally persist captures."""
+    require_async_sensor_read(world)
     sensor = sensor_actor(world, sensor_id)
     frames = collect_sensor_frames(sensor, frame_count)
     saved_paths = save_sensor_frames(frames, sensor_id, output_dir)
@@ -43,42 +43,45 @@ def read_sensor_stream(
 def detach_sensor(world: CarlaWorld, sensor_id: int) -> dict[str, object]:
     """Stop and destroy a sensor actor."""
     sensor = sensor_actor(world, sensor_id)
+    return detach_sensor_handle(sensor)
+
+
+def detach_sensor_handle(sensor: CarlaSensor) -> dict[str, object]:
+    """Release a created sensor even before its first world snapshot exists."""
     try:
-        sensor.stop()
+        if getattr(sensor, "is_listening", True):
+            sensor.stop()
         destroyed = bool(sensor.destroy())
     except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
         raise CarlaAdapterError(str(exc)) from exc
-    return {"sensor_id": sensor_id, "destroyed": destroyed}
+    return {"sensor_id": sensor.id, "destroyed": destroyed}
 
 
 def collect_sensor_frames(sensor: CarlaSensor, frame_count: int) -> list[object]:
-    """Collect a bounded number of sensor frames server-side.
-
-    Uses ``put_nowait`` so a fast producer cannot block the CARLA
-    callback thread and deadlock ``sensor.stop()`` at shutdown.
-    """
-    maxsize = max(frame_count, 1)
-    frames: Queue[object] = Queue(maxsize=maxsize)
-    sensor.listen(lambda frame: _put_nowait_drop(frames, frame))
+    """Collect bounded asynchronous frames using the shared listener lifetime."""
+    if frame_count == 0:
+        return []
+    validate_capacity(frame_count)
+    subscription = SensorSubscription(sensor, capacity=frame_count)
     try:
-        return [next_sensor_frame(frames) for _ in range(max(frame_count, 0))]
+        return [subscription.next_frame() for _ in range(frame_count)]
     finally:
-        sensor.stop()
+        subscription.close()
 
 
-def _put_nowait_drop(queue: Queue[object], item: object) -> None:
-    """Put on a queue without blocking; drop if full."""
-    with contextlib.suppress(Full):
-        queue.put_nowait(item)
-
-
-def next_sensor_frame(frames: Queue[object]) -> object:
-    """Return one sensor frame or raise a CARLA adapter error."""
+def require_async_sensor_read(world: CarlaWorld) -> None:
+    """Fail fast when a blocking read would prevent its synchronous owner ticking."""
     try:
-        return frames.get(timeout=5.0)
-    except Empty as exc:
-        msg = "Timed out waiting for a sensor frame."
-        raise CarlaAdapterError(msg) from exc
+        synchronous = world.get_settings().synchronous_mode
+    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+        raise CarlaAdapterError(str(exc)) from exc
+    if synchronous:
+        message = (
+            "Blocking sensor collection is unavailable in synchronous mode; use "
+            "subscribe_sensor, tick as the world owner, drain_sensor, "
+            "then close_sensor_subscription."
+        )
+        raise CarlaAdapterError(message)
 
 
 def save_sensor_frames(

@@ -141,7 +141,7 @@ class World:
 
     actor: object
 
-    def get_actors(self) -> Actors:
+    def get_actors(self, _actor_ids: list[int] | None = None) -> Actors:
         """Return the actor collection."""
         return Actors(self.actor)
 

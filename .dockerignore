@@ -1,13 +1,16 @@
 .git
 .github
 .venv
+target
+strix_runs
 __pycache__
 .pytest_cache
 .ruff_cache
 .ty_cache
 *.egg-info
 docs
-scripts
+scripts/*
+!scripts/assemble_runtime.py
 tests
 sandbox-runner/target
 carla-agentic-toolkit-output

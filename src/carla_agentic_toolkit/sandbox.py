@@ -5,23 +5,33 @@ from __future__ import annotations
 import json
 import math
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
+from contextlib import contextmanager
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-from carla_agentic_toolkit.adapter import PythonCarlaAdapter
 from carla_agentic_toolkit.ownership import (
     OWNERSHIP_FILENAME,
     RunOwnership,
-    cleanup_owned_actors,
     cleanup_report,
+)
+from carla_agentic_toolkit.sandbox_paths import output_dir_path
+from carla_agentic_toolkit.sandbox_paths import read_only_paths as _read_only_paths
+from carla_agentic_toolkit.script_recovery import cleanup_script_ownership
+from carla_agentic_toolkit.simulator_lease import (
+    LeaseBusyError,
+    RecoveryRequiredError,
+    SimulatorLease,
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Iterator, Sequence
+
+__all__ = ["ScriptOutcome", "execute_script", "output_dir_path"]
 
 DEFAULT_TIMEOUT_SECONDS = 30.0
 DEFAULT_TRAFFIC_MANAGER_PORT = 8000
@@ -101,11 +111,20 @@ def execute_script(
             "sandbox_runner_missing",
             "Rust sandbox runner is not built. Run `cargo build --release` in sandbox-runner.",
         )
-    return _execute_with_runner(
-        code,
-        runner=runner,
-        request=request,
-    )
+    return _execute_leased(code, request, runner)
+
+
+def _execute_leased(code: str, request: ExecutionRequest, runner: Path) -> ScriptOutcome:
+    """Normalize endpoint ownership and setup failures without weakening the lease."""
+    try:
+        with SimulatorLease(request.host, request.port) as lease:
+            return _execute_with_runner(code, runner=runner, request=request, lease=lease)
+    except LeaseBusyError as exc:
+        return _failure("simulator_busy", str(exc), runner)
+    except RecoveryRequiredError as exc:
+        return _failure("simulator_recovery_required", str(exc), runner)
+    except (OSError, ValueError, RuntimeError) as exc:
+        return _failure("sandbox_setup_error", str(exc), runner)
 
 
 def _execute_with_runner(
@@ -113,13 +132,13 @@ def _execute_with_runner(
     *,
     runner: Path,
     request: ExecutionRequest,
+    lease: SimulatorLease,
 ) -> ScriptOutcome:
     """Set up and launch one already-validated execution."""
     try:
         output_dir = output_dir_path()
         output_dir.mkdir(parents=True, exist_ok=True)
-        with tempfile.TemporaryDirectory(prefix="carla-agentic-toolkit-script-") as tmp_name:
-            work_dir = Path(tmp_name)
+        with _script_workdir(lease) as work_dir:
             script_path = work_dir / "script.py"
             script_path.write_text(code, encoding="utf-8")
             command = _runner_command(
@@ -135,32 +154,78 @@ def _execute_with_runner(
                     recorder_dir=os.environ.get("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR"),
                 )
             )
-            try:
-                completed = subprocess.run(
-                    command,
-                    check=False,
-                    text=True,
-                    capture_output=True,
-                    timeout=request.timeout_seconds + 5.0,
-                )
-            except subprocess.TimeoutExpired:
-                return _failure(
-                    "sandbox_watchdog_error",
-                    "Sandbox wrapper exceeded its cleanup deadline.",
-                    runner,
-                )
-            except OSError as exc:
-                return _failure("sandbox_launcher_error", str(exc), runner)
-            outcome = _decode_runner_output(completed, runner)
-            if outcome.ok:
-                return outcome
-            return _cleanup_failed_execution(
-                outcome,
-                ownership_path=work_dir / OWNERSHIP_FILENAME,
-                request=request,
-            )
+            return _run_owned_sandbox(command, work_dir, request, runner, lease)
     except OSError as exc:
         return _failure("sandbox_setup_error", str(exc), runner)
+
+
+@contextmanager
+def _script_workdir(lease: SimulatorLease) -> Iterator[Path]:
+    """Retain failed ownership evidence until trusted recovery confirms cleanup."""
+    path = Path(tempfile.mkdtemp(prefix="carla-agentic-toolkit-script-"))
+    try:
+        yield path
+    finally:
+        if not lease.recovery_state:
+            shutil.rmtree(path)
+
+
+def _run_owned_sandbox(
+    command: list[str],
+    work_dir: Path,
+    request: ExecutionRequest,
+    runner: Path,
+    lease: SimulatorLease,
+) -> ScriptOutcome:
+    """Keep ownership through sandbox exit and the last parent cleanup attempt."""
+    state: dict[str, object] = {
+        "kind": "script",
+        "ownership_path": str(work_dir / OWNERSHIP_FILENAME),
+    }
+    RunOwnership(work_dir / OWNERSHIP_FILENAME).clear()
+    lease.mark_dirty(state)
+    outcome = _run_sandbox(command, request=request, runner=runner, lease_fd=lease.descriptor)
+    if not outcome.ok:
+        outcome = _cleanup_failed_execution(
+            outcome,
+            ownership_path=work_dir / OWNERSHIP_FILENAME,
+            request=request,
+            lease_descriptor=lease.descriptor,
+        )
+    if (outcome.cleanup or {}).get("failures"):
+        state["cleanup"] = outcome.cleanup
+        lease.mark_dirty(state)
+    else:
+        lease.mark_clean()
+    return outcome
+
+
+def _run_sandbox(
+    command: list[str],
+    *,
+    request: ExecutionRequest,
+    runner: Path,
+    lease_fd: int,
+) -> ScriptOutcome:
+    """Normalize runner failures so all paths retain the ownership cleanup step."""
+    try:
+        completed = subprocess.run(
+            command,
+            check=False,
+            text=True,
+            capture_output=True,
+            timeout=request.timeout_seconds + 5.0,
+            pass_fds=(lease_fd,),
+        )
+    except subprocess.TimeoutExpired:
+        return _failure(
+            "sandbox_watchdog_error",
+            "Sandbox wrapper exceeded its cleanup deadline.",
+            runner,
+        )
+    except OSError as exc:
+        return _failure("sandbox_launcher_error", str(exc), runner)
+    return _decode_runner_output(completed, runner)
 
 
 def _validate_execution(request: ExecutionRequest) -> str | None:
@@ -313,14 +378,12 @@ def _cleanup_failed_execution(
     *,
     ownership_path: Path,
     request: ExecutionRequest,
+    lease_descriptor: int,
 ) -> ScriptOutcome:
     """Cleanup a failed run while its ownership journal still exists."""
-    try:
-        adapter = PythonCarlaAdapter(host=request.host, port=request.port, timeout=5.0)
-        report = cleanup_owned_actors(adapter, RunOwnership(ownership_path))
-    except (OSError, RuntimeError, TypeError, ValueError) as exc:
-        failure: dict[str, object] = {"actor_id": None, "error": str(exc)}
-        report = cleanup_report(failures=(failure,))
+    report = cleanup_script_ownership(
+        request.host, request.port, ownership_path, lease_descriptor, 10.0
+    )
     if not any(report.values()):
         return outcome
     previous = outcome.cleanup or cleanup_report()
@@ -365,33 +428,6 @@ def _allowed_tcp_ports(*, port: int, traffic_manager_ports: Sequence[int]) -> tu
     ports = {port, port + 1, port + 2, DEFAULT_TRAFFIC_MANAGER_PORT}
     ports.update(int(item) for item in traffic_manager_ports)
     return tuple(sorted(item for item in ports if 0 < item <= MAX_TCP_PORT))
-
-
-def _read_only_paths() -> tuple[Path, ...]:
-    """Return host paths the child Python process may read/execute."""
-    project_root = Path(__file__).resolve().parents[2]
-    candidates = [
-        project_root,
-        Path(sys.executable).resolve().parent.parent,
-        Path("/usr"),
-        Path("/lib"),
-        Path("/lib64"),
-        Path("/etc/nsswitch.conf"),
-        Path("/etc/host.conf"),
-        Path("/etc/hosts"),
-        Path("/etc/resolv.conf"),
-        Path("/etc/gai.conf"),
-    ]
-    return tuple(path for path in candidates if path.exists())
-
-
-def output_dir_path() -> Path:
-    """Return the persistent directory exposed for script outputs."""
-    configured = os.environ.get("CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR")
-    path = (
-        Path(configured).expanduser() if configured else Path.cwd() / "carla-agentic-toolkit-output"
-    )
-    return path.resolve()
 
 
 def _sandbox_runner() -> Path | None:

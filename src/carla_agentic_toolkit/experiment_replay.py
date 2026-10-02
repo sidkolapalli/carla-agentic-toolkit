@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, cast
 
-from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
 from carla_agentic_toolkit.experiment_common import (
     capabilities,
     int_attr,
@@ -30,10 +30,15 @@ class ReplayRequest:
     duration: float
     follow_id: int
     replay_sensors: bool
+    do_tick: bool = True
 
 
 def replay_recording(client: object, request: ReplayRequest) -> dict[str, object]:
     """Replay a CARLA recorder file."""
+    _validate_tick_flag(request.do_tick)
+    if not request.do_tick:
+        message = "CARLA replay_file does not expose a non-ticking replay capability."
+        raise UnsupportedFeatureError(message)
     result = cast("Any", client).replay_file(
         str(request.path),
         request.start,
@@ -68,11 +73,20 @@ def recording_actors_blocked(
     return {"path": str(path), "report": str(report)}
 
 
-def apply_batch(client: object, commands: list[dict[str, object]]) -> dict[str, object]:
+def apply_batch(
+    client: object, commands: list[dict[str, object]], *, do_tick: bool = True
+) -> dict[str, object]:
     """Apply a small JSON-compatible batch using carla.command."""
+    _validate_tick_flag(do_tick)
     carla_commands = [batch_command(import_module("carla"), command) for command in commands]
-    responses = cast("Any", client).apply_batch_sync(carla_commands, do_tick=True)
+    responses = cast("Any", client).apply_batch_sync(carla_commands, do_tick=do_tick)
     return {"responses": [batch_response(response) for response in responses]}
+
+
+def _validate_tick_flag(do_tick: object) -> None:
+    if type(do_tick) is not bool:
+        message = "do_tick must be a boolean."
+        raise CarlaAdapterError(message)
 
 
 def capability_report(client: object, world: CarlaWorld) -> dict[str, object]:

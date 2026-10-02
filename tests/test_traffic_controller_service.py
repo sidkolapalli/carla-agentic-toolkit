@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import threading
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 from typing import TYPE_CHECKING, Final, cast
 
 from carla_agentic_toolkit.models import (
@@ -77,9 +78,13 @@ class World:
     actor: VehicleActor
     events: list[str]
 
-    def get_actors(self) -> ActorCollection:
+    def get_actors(self, _actor_ids: list[int] | None = None) -> ActorCollection:
         """Return current actors."""
         return ActorCollection((self.actor,) if not self.actor.destroyed else ())
+
+    def get_settings(self) -> SimpleNamespace:
+        """Use the asynchronous mode supported by background maintenance."""
+        return SimpleNamespace(synchronous_mode=False)
 
     def wait_for_tick(self, seconds: float = 1.0) -> None:
         """Record world tick waits."""
@@ -162,15 +167,15 @@ def test_reset_existing_vehicles_happens_before_traffic_manager_opens(
     client = Client(world=World(actor=actor, events=events))
 
     monkeypatch.setattr(
-        "carla_agentic_toolkit.traffic_controller_service.traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_step.traffic_manager",
         TrafficManagerFactory(events),
     )
     monkeypatch.setattr(
-        "carla_agentic_toolkit.traffic_controller_service.configure_traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_step.configure_traffic_manager",
         ConfigureManager(events),
     )
     monkeypatch.setattr(
-        "carla_agentic_toolkit.traffic_controller_service.populate_traffic_actors",
+        "carla_agentic_toolkit.traffic_density.populate_traffic_actors",
         PopulateTraffic(world=client.world, events=events),
     )
 
@@ -206,15 +211,15 @@ def test_existing_vehicles_are_registered_with_traffic_manager(
     client = Client(world=World(actor=actor, events=events))
 
     monkeypatch.setattr(
-        "carla_agentic_toolkit.traffic_controller_service.traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_step.traffic_manager",
         lambda _client, _port: TrafficManager(port=9000),
     )
     monkeypatch.setattr(
-        "carla_agentic_toolkit.traffic_controller_service.configure_traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_step.configure_traffic_manager",
         lambda _manager, _request: events.append("configure"),
     )
     monkeypatch.setattr(
-        "carla_agentic_toolkit.traffic_controller_service.populate_traffic_actors",
+        "carla_agentic_toolkit.traffic_density.populate_traffic_actors",
         lambda **_kwargs: events.append("populate"),
     )
 
@@ -249,15 +254,15 @@ def test_spawned_vehicles_are_distinct_from_adopted_vehicles(
     actor = VehicleActor(destroyed=True)
     client = Client(world=World(actor=actor, events=events))
     monkeypatch.setattr(
-        "carla_agentic_toolkit.traffic_controller_service.traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_step.traffic_manager",
         lambda _client, _port: TrafficManager(),
     )
     monkeypatch.setattr(
-        "carla_agentic_toolkit.traffic_controller_service.configure_traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_step.configure_traffic_manager",
         lambda _manager, _request: None,
     )
     monkeypatch.setattr(
-        "carla_agentic_toolkit.traffic_controller_service.populate_traffic_actors",
+        "carla_agentic_toolkit.traffic_density.populate_traffic_actors",
         lambda **_kwargs: ([SPAWNED_ACTOR_ID], []),
     )
 
@@ -317,11 +322,11 @@ def test_known_vehicles_are_not_registered_again(
     client = Client(world=World(actor=actor, events=events))
 
     monkeypatch.setattr(
-        "carla_agentic_toolkit.traffic_controller_service.traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_step.traffic_manager",
         lambda _client, _port: TrafficManager(port=9000),
     )
     monkeypatch.setattr(
-        "carla_agentic_toolkit.traffic_controller_service.configure_traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_step.configure_traffic_manager",
         lambda _manager, _request: events.append("configure"),
     )
 
@@ -345,11 +350,11 @@ def test_configured_manager_can_be_left_undisturbed(
     client = Client(world=World(actor=actor, events=events))
 
     monkeypatch.setattr(
-        "carla_agentic_toolkit.traffic_controller_service.traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_step.traffic_manager",
         lambda _client, _port: TrafficManager(port=9000),
     )
     monkeypatch.setattr(
-        "carla_agentic_toolkit.traffic_controller_service.configure_traffic_manager",
+        "carla_agentic_toolkit.traffic_controller_step.configure_traffic_manager",
         lambda _manager, _request: events.append("configure"),
     )
 

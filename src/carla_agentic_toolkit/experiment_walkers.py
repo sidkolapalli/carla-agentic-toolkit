@@ -11,7 +11,7 @@ from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.experiment_common import actor, carla_location, object_factory
 
 if TYPE_CHECKING:
-    from carla_agentic_toolkit.carla_protocols import CarlaBlueprint, CarlaWorld
+    from carla_agentic_toolkit.carla_protocols import CarlaActor, CarlaBlueprint, CarlaWorld
     from carla_agentic_toolkit.models import Location
 
 
@@ -106,8 +106,8 @@ def try_spawn_walker(context: WalkerSpawnContext, state: WalkerSpawnState, index
     The walker is tracked before controller spawn so a later failure
     does not leak an unowned pedestrian.
     """
-    walker: object | None = None
-    controller: object | None = None
+    walker: CarlaActor | None = None
+    controller: CarlaActor | None = None
     try:
         transform = random_walker_transform(context.world)
         walker = context.world.try_spawn_actor(walker_blueprint(context, index), transform)
@@ -122,17 +122,16 @@ def try_spawn_walker(context: WalkerSpawnContext, state: WalkerSpawnState, index
         cast("Any", controller).go_to_location(random_walker_location(context.world))
     except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
         state.failures.append(str(exc))
-        # Clean up any partially created actors.
-        if controller is not None:
-            _destroy_actor(controller)
-            # Remove controller ID that was added before failure.
-            if state.controller_ids and state.controller_ids[-1] == int(controller.id):
-                state.controller_ids.pop()
-        if walker is not None:
-            _destroy_actor(walker)
-            if state.walker_ids and state.walker_ids[-1] == int(walker.id):
-                state.walker_ids.pop()
+        _rollback_spawned_actor(controller, state.controller_ids)
+        _rollback_spawned_actor(walker, state.walker_ids)
+
+
+def _rollback_spawned_actor(actor: CarlaActor | None, tracked_ids: list[int]) -> None:
+    """Destroy a partially created actor and remove it from successful results."""
+    if actor is None or not _destroy_actor(actor):
         return
+    if tracked_ids and tracked_ids[-1] == int(actor.id):
+        tracked_ids.pop()
 
 
 def walker_blueprint(context: WalkerSpawnContext, index: int) -> CarlaBlueprint:
@@ -144,12 +143,13 @@ def walker_blueprint(context: WalkerSpawnContext, index: int) -> CarlaBlueprint:
     return context.walker_blueprints[(index + offset) % len(context.walker_blueprints)]
 
 
-def _destroy_actor(actor: object) -> None:
-    """Destroy a CARLA actor, silently ignoring errors."""
+def _destroy_actor(actor: object) -> bool:
+    """Return whether a partial actor was destroyed without an error."""
     destroy = getattr(actor, "destroy", None)
     if callable(destroy):
         with contextlib.suppress(AttributeError, RuntimeError, TypeError, ValueError):
-            destroy()
+            return bool(destroy())
+    return False
 
 
 def random_walker_transform(world: CarlaWorld) -> object:

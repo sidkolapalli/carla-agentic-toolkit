@@ -1,65 +1,68 @@
-"""Persistent Traffic Manager controller service."""
+"""Thread lifetime, desired revisions, and truthful status for traffic maintenance."""
 
 from __future__ import annotations
 
 import threading
-import time
 from dataclasses import dataclass, replace
 from importlib import import_module
 from typing import TYPE_CHECKING, cast
 
-from carla_agentic_toolkit.behavior_profiles import BehaviorProfile, behavior_profile
-from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.behavior_profiles import behavior_profile
+from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
 from carla_agentic_toolkit.models import (
     DestroyResult,
     TrafficControllerStartRequest,
     TrafficControllerStatus,
     TrafficDensityRequest,
-    TrafficManagerRequest,
-    TrafficPopulationRequest,
     VehicleBehaviorRequest,
     VehicleBehaviorResult,
 )
-from carla_agentic_toolkit.traffic_runtime import (
-    configure_traffic_manager,
-    populate_traffic_actors,
-    traffic_manager,
+from carla_agentic_toolkit.traffic_behavior import apply_behavior_to_world
+from carla_agentic_toolkit.traffic_controller_step import (
+    TrafficControllerStep,
+    maintain_traffic_once,
+    require_async_density_mode,
 )
-
-MOVING_SPEED_THRESHOLD_MPS = 0.5
+from carla_agentic_toolkit.traffic_density import ControllerActors
+from carla_agentic_toolkit.traffic_runtime import traffic_manager
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping
+    from collections.abc import Callable
 
-    from carla_agentic_toolkit.carla_protocols import (
-        CarlaActor,
-        CarlaClient,
-        CarlaTrafficManager,
-        CarlaVector,
-        CarlaWorld,
-    )
+    from carla_agentic_toolkit.carla_protocols import CarlaClient
+STOP_JOIN_TIMEOUT_SECONDS = 5.0
+__all__ = [
+    "ControllerActors",
+    "InProcessTrafficControllerService",
+    "TrafficControllerStep",
+    "maintain_traffic_once",
+    "require_async_density_mode",
+]
 
 
 @dataclass(frozen=True, slots=True)
 class _RuntimeState:
-    """Mutable controller state stored behind a lock."""
+    """One generation's desired configuration and last applied observations.
+
+    Only a matching revision may consume its desired one-shot reset. Applied
+    observations never replace a newer request, and stopping generations may
+    not publish completed work. Registration never grants deletion ownership.
+    """
 
     request: TrafficControllerStartRequest
     active: bool
     vehicle_count: int = 0
     moving_vehicle_count: int = 0
     last_error: str | None = None
-
-
-@dataclass(frozen=True, slots=True)
-class TrafficControllerStep:
-    """Result of one Traffic Manager maintenance step."""
-
-    request: TrafficControllerStartRequest
-    vehicle_count: int
-    moving_vehicle_count: int
-    registered_actor_ids: frozenset[int]
-    spawned_actor_ids: tuple[int, ...] = ()
+    stopping: bool = False
+    generation: int = 0
+    revision: int = 0
+    applied_revision: int | None = None
+    applied_density: TrafficDensityRequest | None = None
+    registered_actor_ids: frozenset[int] = frozenset()
+    owned_actor_ids: frozenset[int] = frozenset()
+    error_type: str | None = None
+    conflict: dict[str, object] | None = None
 
 
 class InProcessTrafficControllerService:
@@ -76,21 +79,21 @@ class InProcessTrafficControllerService:
         self._thread: threading.Thread | None = None
         self._state = _RuntimeState(request=_default_start_request(), active=False)
         self._behaviors: dict[int, str] = {}
-        self._registered_actor_ids: frozenset[int] = frozenset()
-        self._configured_density: TrafficDensityRequest | None = None
 
     def start(self, request: TrafficControllerStartRequest) -> TrafficControllerStatus:
         """Start the persistent controller."""
         self.stop()
         with self._lock:
+            self._require_stopped()
             stop_event = threading.Event()
             self._stop_event = stop_event
-            self._state = _RuntimeState(request=request, active=True)
-            self._registered_actor_ids = frozenset()
-            self._configured_density = None
+            self._state = _RuntimeState(
+                request=request, active=True, generation=self._state.generation + 1, revision=1
+            )
+            self._behaviors.clear()
             self._thread = threading.Thread(
                 target=self._run,
-                args=(stop_event,),
+                args=(stop_event, self._state.generation),
                 name="carla-agentic-toolkit-traffic-controller",
                 daemon=True,
             )
@@ -98,34 +101,59 @@ class InProcessTrafficControllerService:
             return self._status_locked()
 
     def stop(self) -> TrafficControllerStatus:
-        """Stop the persistent controller."""
-        thread = self._thread
-        if thread is not None and thread.is_alive():
-            self._stop_event.set()
-            thread.join(timeout=5.0)
+        """Request cancellation, retaining a timed-out worker until it exits."""
         with self._lock:
-            self._state = replace(self._state, active=False)
-            self._thread = None
+            thread = self._thread
+            self._stop_event.set()
+            self._state = replace(self._state, stopping=self._worker_alive())
+        if thread is not None:
+            thread.join(timeout=STOP_JOIN_TIMEOUT_SECONDS)
+        with self._lock:
+            self._finish_stop(thread)
             return self._status_locked()
+
+    def _finish_stop(self, thread: threading.Thread | None) -> None:
+        """Commit a join result only while it still refers to the same worker."""
+        if self._thread is not thread:
+            return
+        if self._worker_alive():
+            self._state = replace(
+                self._state,
+                active=True,
+                stopping=True,
+                last_error="Traffic controller is still stopping after its join timeout.",
+                error_type="controller_stopping",
+            )
+            return
+        self._thread = None
+        self._state = replace(self._state, active=False, stopping=False)
+
+    def _worker_alive(self) -> bool:
+        """Use actual thread lifetime rather than a cancellation request."""
+        return self._thread is not None and self._thread.is_alive()
+
+    def _require_stopped(self) -> None:
+        if self._worker_alive():
+            msg = "Traffic controller is still stopping; retry after its worker terminates."
+            raise CarlaAdapterError(msg)
 
     def get_status(self) -> TrafficControllerStatus:
         """Return current controller status."""
         with self._lock:
-            active = self._thread is not None and self._thread.is_alive()
-            self._state = replace(self._state, active=active)
             return self._status_locked()
 
     def set_density(self, request: TrafficDensityRequest) -> TrafficControllerStatus:
         """Converge traffic to a target density."""
         with self._lock:
             start_request = replace(self._state.request, density=request)
-        if request.reset_existing:
-            return self.start(start_request)
-        if not self.get_status().active:
-            return self.start(start_request)
-        with self._lock:
-            self._state = replace(self._state, request=start_request, active=True)
-            return self._status_locked()
+            if self._state.stopping:
+                self._require_stopped()
+            if self._worker_alive():
+                self._state = replace(
+                    self._state, request=start_request, revision=self._state.revision + 1
+                )
+                return self._status_locked()
+        return self.start(start_request)
 
     def set_vehicle_behavior(self, request: VehicleBehaviorRequest) -> VehicleBehaviorResult:
         """Apply a named behavior profile to explicit actor IDs."""
@@ -146,60 +174,82 @@ class InProcessTrafficControllerService:
             ),
         )
 
-    def _run(self, stop_event: threading.Event) -> None:
+    def _run(self, stop_event: threading.Event, generation: int) -> None:
         """Run the controller loop until stopped."""
         client: CarlaClient | None = None
         while not stop_event.is_set():
             try:
                 client = client or _client(self._state.request)
-                self._control_once(client)
+                self._control_once(client, generation)
+            except UnsupportedFeatureError as exc:
+                self._record_error(str(exc), generation, error_type="unsupported_feature")
+                stop_event.set()
             except (CarlaAdapterError, RuntimeError, TypeError, ValueError) as exc:
-                self._record_error(str(exc))
+                self._record_error(str(exc), generation)
                 client = None
-                time.sleep(1.0)
+                stop_event.wait(1.0)
 
-    def _control_once(self, client: CarlaClient) -> None:
+    def _control_once(self, client: CarlaClient, generation: int) -> None:
         """Run one controller maintenance step."""
         with self._lock:
-            request = self._state.request
+            state = self._state
+            if state.generation != generation or state.stopping:
+                return
             behaviors = dict(self._behaviors)
-            registered_actor_ids = self._registered_actor_ids
-            configure_manager = request.density != self._configured_density
         result = maintain_traffic_once(
             client,
-            request,
+            state.request,
             behaviors,
-            registered_actor_ids,
-            configure_manager=configure_manager,
+            ControllerActors(state.registered_actor_ids, state.owned_actor_ids),
+            configure_manager=state.request.density != state.applied_density,
         )
-        self._record_step(result)
+        self._record_step(result, generation=generation, revision=state.revision)
 
-    def _record_step(self, result: TrafficControllerStep) -> None:
+    def _record_step(
+        self, result: TrafficControllerStep, *, generation: int, revision: int
+    ) -> None:
         """Record the completed controller step."""
         if result.spawned_actor_ids and self._on_spawn is not None:
             self._on_spawn(result.spawned_actor_ids)
         with self._lock:
-            self._state = replace(
-                self._state,
-                request=result.request,
-                active=True,
-                vehicle_count=result.vehicle_count,
-                moving_vehicle_count=result.moving_vehicle_count,
-                last_error=None,
-            )
-            self._registered_actor_ids = result.registered_actor_ids
-            self._configured_density = result.request.density
+            if self._state.generation != generation or self._state.stopping:
+                return
+            self._commit_step(result, revision)
 
-    def _record_error(self, message: str) -> None:
-        """Record the latest controller error."""
+    def _commit_step(self, result: TrafficControllerStep, revision: int) -> None:
+        """Keep desired and applied state distinct under the controller lock."""
+        request = result.request if revision == self._state.revision else self._state.request
+        conflict = result.conflict
+        self._state = replace(
+            self._state,
+            request=request,
+            vehicle_count=result.vehicle_count,
+            moving_vehicle_count=result.moving_vehicle_count,
+            registered_actor_ids=result.registered_actor_ids,
+            owned_actor_ids=result.owned_actor_ids,
+            applied_density=result.request.density,
+            applied_revision=revision,
+            conflict=conflict,
+            error_type="density_conflict" if conflict else None,
+            last_error="Protected vehicles exceed the density target." if conflict else None,
+        )
+
+    def _record_error(
+        self, message: str, generation: int, *, error_type: str = "controller_error"
+    ) -> None:
+        """Record errors only for the current generation that still accepts work."""
         with self._lock:
-            self._state = replace(self._state, last_error=message)
+            if self._state.generation != generation or self._state.stopping:
+                return
+            self._state = replace(self._state, last_error=message, error_type=error_type)
 
     def _status_locked(self) -> TrafficControllerStatus:
         """Build a status from locked state."""
         request = self._state.request
+        applied = self._state.applied_density
+        active = self._worker_alive()
         return TrafficControllerStatus(
-            active=self._state.active,
+            active=active,
             host=request.host,
             port=request.port,
             traffic_manager_port=request.density.traffic_manager_port,
@@ -207,6 +257,17 @@ class InProcessTrafficControllerService:
             vehicle_count=self._state.vehicle_count,
             moving_vehicle_count=self._state.moving_vehicle_count,
             last_error=self._state.last_error,
+            stopping=active and self._state.stopping,
+            generation=self._state.generation,
+            desired_revision=self._state.revision,
+            applied_revision=self._state.applied_revision,
+            applied_target_vehicle_count=applied.vehicle_count if applied else None,
+            owned_actor_ids=tuple(sorted(self._state.owned_actor_ids)),
+            adopted_actor_ids=tuple(
+                sorted(self._state.registered_actor_ids - self._state.owned_actor_ids)
+            ),
+            error_type=self._state.error_type,
+            conflict=self._state.conflict,
         )
 
 
@@ -227,188 +288,6 @@ def _client(request: TrafficControllerStartRequest) -> CarlaClient:
     return cast("CarlaClient", client)
 
 
-def maintain_traffic_once(
-    client: CarlaClient,
-    request: TrafficControllerStartRequest,
-    behaviors: Mapping[int, str],
-    registered_actor_ids: frozenset[int] = frozenset(),
-    *,
-    configure_manager: bool = True,
-) -> TrafficControllerStep:
-    """Run one Traffic Manager maintenance step."""
-    world = client.get_world()
-    density_request = request.density
-    if density_request.reset_existing:
-        _reset_existing_vehicles(world, density_request.traffic_manager_port)
-        density_request = replace(density_request, reset_existing=False)
-    traffic_manager_instance = traffic_manager(client, density_request.traffic_manager_port)
-    if configure_manager:
-        _configure_density_manager(traffic_manager_instance, density_request)
-    registered_actor_ids, spawned_actor_ids = _converge_density(
-        world,
-        traffic_manager_instance,
-        density_request,
-        registered_actor_ids,
-    )
-    _apply_profiles(world, traffic_manager_instance, dict(behaviors))
-    counts = _vehicle_counts(world)
-    _wait_for_tick(world)
-    return TrafficControllerStep(
-        request=replace(request, density=density_request),
-        vehicle_count=counts[0],
-        moving_vehicle_count=counts[1],
-        registered_actor_ids=registered_actor_ids,
-        spawned_actor_ids=spawned_actor_ids,
-    )
-
-
-def _configure_density_manager(
-    traffic_manager_instance: CarlaTrafficManager,
-    request: TrafficDensityRequest,
-) -> None:
-    """Apply Traffic Manager settings used by density control."""
-    configure_traffic_manager(
-        traffic_manager_instance,
-        TrafficManagerRequest(
-            traffic_manager_port=request.traffic_manager_port,
-            global_distance_to_leading_vehicle=request.global_distance_to_leading_vehicle,
-            global_percentage_speed_difference=request.global_percentage_speed_difference,
-            seed=request.seed,
-            synchronous_mode=False,
-        ),
-    )
-
-
-def _converge_density(
-    world: CarlaWorld,
-    traffic_manager_instance: CarlaTrafficManager,
-    request: TrafficDensityRequest,
-    registered_actor_ids: frozenset[int],
-) -> tuple[frozenset[int], tuple[int, ...]]:
-    """Converge current vehicles and return managed plus newly spawned IDs."""
-    vehicles = _vehicle_actors(world)
-    _trim_vehicles(vehicles, request.vehicle_count, registered_actor_ids)
-    vehicles = _vehicle_actors(world)
-    current_count = min(len(vehicles), request.vehicle_count)
-    managed_vehicles = vehicles[:current_count]
-    current_ids = frozenset(actor.id for actor in managed_vehicles)
-    known_ids = registered_actor_ids & current_ids
-    unregistered_vehicles = tuple(actor for actor in managed_vehicles if actor.id not in known_ids)
-    _enable_autopilot(unregistered_vehicles, traffic_manager_instance.get_port())
-    spawned_ids = _spawn_missing_vehicles(
-        world,
-        traffic_manager_instance,
-        request,
-        current_count,
-    )
-    newly_registered_ids = frozenset(actor.id for actor in unregistered_vehicles)
-    managed_ids = known_ids | newly_registered_ids | frozenset(spawned_ids)
-    return managed_ids, spawned_ids
-
-
-def _spawn_missing_vehicles(
-    world: CarlaWorld,
-    traffic_manager_instance: CarlaTrafficManager,
-    request: TrafficDensityRequest,
-    current_count: int,
-) -> tuple[int, ...]:
-    """Spawn missing vehicles for a density target."""
-    missing_count = request.vehicle_count - current_count
-    if missing_count <= 0:
-        return ()
-    actor_ids, _failed_spawns = populate_traffic_actors(
-        world=world,
-        traffic_manager_instance=traffic_manager_instance,
-        request=replace(_population_request(request), vehicle_count=missing_count),
-    )
-    return tuple(actor_ids)
-
-
-def _population_request(request: TrafficDensityRequest) -> TrafficPopulationRequest:
-    """Convert density settings into a population request."""
-    return TrafficPopulationRequest(
-        vehicle_count=request.vehicle_count,
-        traffic_manager_port=request.traffic_manager_port,
-        seed=request.seed,
-        safe_filter=request.safe_filter,
-        global_distance_to_leading_vehicle=request.global_distance_to_leading_vehicle,
-        global_percentage_speed_difference=request.global_percentage_speed_difference,
-    )
-
-
-def _vehicle_actors(world: CarlaWorld) -> tuple[CarlaActor, ...]:
-    """Return current vehicle actors."""
-    return tuple(cast("CarlaActor", actor) for actor in world.get_actors().filter("vehicle.*"))
-
-
-def _trim_vehicles(
-    vehicles: tuple[CarlaActor, ...],
-    target_count: int,
-    registered_actor_ids: frozenset[int],
-) -> None:
-    """Destroy surplus controller-owned vehicles above target density.
-
-    Without ``reset_existing=True``, only actors that were previously
-    registered by the density controller are eligible for removal.
-    Pre-existing or externally owned vehicles are left alone.
-    """
-    if len(vehicles) <= target_count:
-        return
-    # Only destroy controller-registered vehicles (sorted by id for determinism).
-    owned = sorted(
-        (v for v in vehicles if v.id in registered_actor_ids),
-        key=lambda actor: actor.id,
-    )
-    surplus = owned[target_count:] if len(owned) > target_count else []
-    _destroy_vehicles(tuple(surplus))
-
-
-def _reset_existing_vehicles(world: CarlaWorld, traffic_manager_port: int) -> None:
-    """Disable autopilot and remove existing vehicles before opening Traffic Manager."""
-    vehicles = _vehicle_actors(world)
-    for actor in vehicles:
-        try:
-            autopilot_enabled = False
-            actor.set_autopilot(autopilot_enabled, traffic_manager_port)
-        except (AttributeError, RuntimeError, TypeError, ValueError):
-            continue
-    _wait_for_tick(world)
-    _destroy_vehicles(vehicles)
-    _wait_for_tick(world)
-
-
-def _enable_autopilot(vehicles: tuple[CarlaActor, ...], traffic_manager_port: int) -> None:
-    """Register existing vehicles with Traffic Manager autopilot."""
-    for actor in vehicles:
-        try:
-            autopilot_enabled = True
-            actor.set_autopilot(autopilot_enabled, traffic_manager_port)
-        except (AttributeError, RuntimeError, TypeError, ValueError):
-            continue
-
-
-def _destroy_vehicles(vehicles: tuple[CarlaActor, ...]) -> None:
-    """Destroy vehicles and ignore actors already gone."""
-    for actor in vehicles:
-        try:
-            actor.destroy()
-        except (AttributeError, RuntimeError, TypeError, ValueError):
-            continue
-
-
-def _apply_profiles(
-    world: CarlaWorld,
-    traffic_manager_instance: CarlaTrafficManager,
-    behaviors: dict[int, str],
-) -> None:
-    """Apply behavior profiles to registered actor IDs."""
-    for actor_id, profile_name in behaviors.items():
-        actor = world.get_actors().find(actor_id)
-        profile = behavior_profile(profile_name)
-        if actor is not None and profile is not None:
-            _apply_profile(traffic_manager_instance, cast("CarlaActor", actor), profile)
-
-
 def _apply_behavior_once(
     start_request: TrafficControllerStartRequest,
     request: VehicleBehaviorRequest,
@@ -417,98 +296,4 @@ def _apply_behavior_once(
     client = _client(start_request)
     world = client.get_world()
     manager = traffic_manager(client, request.traffic_manager_port)
-    return _apply_behavior_to_world(world, manager, request)
-
-
-def _apply_behavior_to_world(
-    world: CarlaWorld,
-    traffic_manager_instance: CarlaTrafficManager,
-    request: VehicleBehaviorRequest,
-) -> dict[int, str]:
-    """Apply a behavior request and return per-actor failures."""
-    failures: dict[int, str] = {}
-    profile = behavior_profile(request.profile)
-    for actor_id in request.actor_ids:
-        actor = world.get_actors().find(actor_id)
-        if actor is None:
-            failures[actor_id] = "Actor was not found."
-        elif profile is not None:
-            _apply_profile(traffic_manager_instance, cast("CarlaActor", actor), profile)
-    return failures
-
-
-def _apply_profile(
-    traffic_manager_instance: CarlaTrafficManager,
-    actor: CarlaActor,
-    profile: BehaviorProfile,
-) -> None:
-    """Apply one behavior profile to one actor."""
-    autopilot_enabled = True
-    actor.set_autopilot(autopilot_enabled, traffic_manager_instance.get_port())
-    _call_manager(
-        traffic_manager_instance,
-        "vehicle_percentage_speed_difference",
-        actor,
-        profile.speed_difference,
-    )
-    _call_manager(
-        traffic_manager_instance,
-        "distance_to_leading_vehicle",
-        actor,
-        profile.distance_to_leading_vehicle,
-    )
-    _call_manager(traffic_manager_instance, "auto_lane_change", actor, profile.auto_lane_change)
-    _call_manager(
-        traffic_manager_instance,
-        "ignore_lights_percentage",
-        actor,
-        profile.ignore_lights_percentage,
-    )
-    _call_manager(
-        traffic_manager_instance,
-        "ignore_signs_percentage",
-        actor,
-        profile.ignore_signs_percentage,
-    )
-    _call_manager(
-        traffic_manager_instance,
-        "ignore_vehicles_percentage",
-        actor,
-        profile.ignore_vehicles_percentage,
-    )
-
-
-def _call_manager(manager: CarlaTrafficManager, method_name: str, *args: object) -> None:
-    """Call an optional Traffic Manager method."""
-    method = getattr(manager, method_name, None)
-    if callable(method):
-        method(*args)
-
-
-def _vehicle_counts(world: CarlaWorld) -> tuple[int, int]:
-    """Return total and moving vehicle counts."""
-    vehicles = _vehicle_actors(world)
-    moving = sum(1 for actor in vehicles if _speed_mps(actor) > MOVING_SPEED_THRESHOLD_MPS)
-    return len(vehicles), moving
-
-
-def _speed_mps(actor: CarlaActor) -> float:
-    """Return actor speed in metres per second."""
-    squared_speed = _squared_vector_magnitude(actor.get_velocity())
-    return float(squared_speed**0.5)
-
-
-def _squared_vector_magnitude(vector: CarlaVector) -> float:
-    """Return squared vector magnitude for a CARLA vector-like object."""
-    x = float(vector.x)
-    y = float(vector.y)
-    z = float(vector.z)
-    return x * x + y * y + z * z
-
-
-def _wait_for_tick(world: CarlaWorld) -> None:
-    """Wait for a world tick without letting timeouts kill the controller."""
-    try:
-        world.wait_for_tick(1.0)
-    except (AttributeError, RuntimeError, TypeError, ValueError):
-        time.sleep(0.2)
+    return apply_behavior_to_world(world, manager, request)

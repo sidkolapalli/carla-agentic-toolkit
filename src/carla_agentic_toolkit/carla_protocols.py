@@ -63,8 +63,8 @@ class CarlaWorld(Protocol):
     def get_settings(self) -> CarlaWorldSettings:
         """Return world settings."""
 
-    def get_actors(self) -> CarlaActorList:
-        """Return world actors."""
+    def get_actors(self, actor_ids: list[int] | None = None, /) -> CarlaActorList:
+        """Return cached actors, or directly resolve the supplied actor IDs."""
 
     def get_snapshot(self) -> CarlaSnapshot:
         """Return the latest world snapshot."""

@@ -43,6 +43,11 @@ The image contains the MCP server, CARLA Python API, and compiled Rust sandbox.
 It deliberately does not contain the CARLA simulator: keep CARLA native so its
 GPU-rendered window remains visible and recordable.
 
+The headless runtime image has no shell, compiler, or package manager. Run its
+installed commands directly; `docker exec ... sh` and runtime package installs
+are unavailable. The image includes the default dependencies only. For the
+optional Jev SDK, use the [managed experiment source setup](managed-experiments.md#optional-jev-selection).
+
 Build the image with the Python API version matching the simulator, create its
 durable output volume, and run the real sandbox preflight:
 
@@ -354,6 +359,33 @@ ip route show default | awk '{print $3}'
 Git Bash rewrites Linux-looking environment values such as `/home/user` before
 passing them to Windows programs. Prefer PowerShell for launcher commands. If
 Git Bash is required, prefix the command with `MSYS_NO_PATHCONV=1`.
+
+### Traffic Manager
+
+The sandbox can connect to Traffic Manager but cannot bind a TCP server port.
+Before using autopilot or traffic tuning, keep a trusted CARLA client running
+outside the sandbox on the chosen Traffic Manager port. For example, inside
+the Linux environment with the matching CARLA Python API:
+
+```python
+import time
+import carla
+
+client = carla.Client("127.0.0.1", 2000)  # Use the reachable simulator endpoint.
+client.set_timeout(10.0)
+manager = client.get_trafficmanager(8000)
+try:
+    while True:
+        time.sleep(1.0)
+except KeyboardInterrupt:
+    pass
+```
+
+This starts no vehicles. Keep this process alive while sandbox scripts use
+Traffic Manager on port 8000. For other ports, also include them in the MCP
+tool's `traffic_manager_ports` argument. With Windows CARLA and WSL NAT, use the
+Windows host address and an available RPC port as described above. The live
+MCP smoke test uses direct throttle and brake controls, so it needs no sidecar.
 
 ## 5. First Request
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Final
+from typing import TYPE_CHECKING, Final, cast
 
 from carla_agentic_toolkit.models import (
     ActorCounts,
@@ -19,6 +19,13 @@ from carla_agentic_toolkit.models import (
 from carla_agentic_toolkit.snapshots import RunSnapshots
 from carla_agentic_toolkit.traffic_runtime import _spawn_traffic_actor, _SpawnTrafficContext
 from tests.api_helpers import build_api
+
+if TYPE_CHECKING:
+    from carla_agentic_toolkit.carla_protocols import (
+        CarlaBlueprint,
+        CarlaTrafficManager,
+        CarlaWorld,
+    )
 
 TRAFFIC_MANAGER_PORT: Final = 8000
 TRAFFIC_VEHICLE_COUNT: Final = 3
@@ -245,14 +252,14 @@ def test_spawn_traffic_actor_cleans_up_on_autopilot_failure() -> None:
             return 8000
 
     context = _SpawnTrafficContext(
-        world=FakeWorld(),  # type: ignore[arg-type]
-        traffic_manager_instance=FakeTM(),  # type: ignore[arg-type]
+        world=cast("CarlaWorld", FakeWorld()),
+        traffic_manager_instance=cast("CarlaTrafficManager", FakeTM()),
         seed=0,
     )
 
     result = _spawn_traffic_actor(
         context=context,
-        blueprint=_FakeBlueprint(),  # type: ignore[arg-type]
+        blueprint=cast("CarlaBlueprint", _FakeBlueprint()),
         spawn_point=object(),
         index=0,
     )

@@ -6,6 +6,8 @@ from dataclasses import asdict, dataclass
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Final
 
+import pytest
+
 from carla_agentic_toolkit.models import (
     TrafficControllerStartRequest,
     TrafficControllerStatus,
@@ -136,8 +138,31 @@ def test_set_vehicle_behavior_applies_profile_to_explicit_actors() -> None:
 
 
 def _api(service: TrafficControllerService, snapshots: RunSnapshots) -> CarlaScriptApi:
-    adapter = SimpleNamespace(host="127.0.0.1", port=2000, timeout=10.0)
+    adapter = SimpleNamespace(
+        host="127.0.0.1",
+        port=2000,
+        timeout=10.0,
+        get_world_state=lambda: SimpleNamespace(settings=SimpleNamespace(synchronous_mode=False)),
+    )
     return build_api(adapter, snapshots, service)
+
+
+@pytest.mark.parametrize("method", ["start_traffic_controller", "set_traffic_density"])
+def test_sync_density_is_rejected_before_start_or_mutation(method: str) -> None:
+    """An unsupported synchronous controller is a public failure, not a false start."""
+    service = TrafficControllerService(status=_status(active=False, vehicle_count=0))
+    adapter = SimpleNamespace(
+        host="127.0.0.1",
+        port=2000,
+        timeout=10.0,
+        get_world_state=lambda: SimpleNamespace(settings=SimpleNamespace(synchronous_mode=True)),
+    )
+    api = build_api(adapter, RunSnapshots(), service)
+    result = getattr(api, method)({"vehicle_count": 5})
+    assert result["ok"] is False
+    assert result["error_type"] == "unsupported_feature"
+    assert service.started_with is None
+    assert service.density_request is None
 
 
 def _status(*, active: bool, vehicle_count: int) -> TrafficControllerStatus:

@@ -13,10 +13,15 @@ dependencies = [
     "mcp>=2.0.0,<3",
 ]
 
+[project.optional-dependencies]
+jev = ["typesafe-sdk==0.7.2"]
+
 [project.scripts]
 carla-agentic-toolkit = "carla_agentic_toolkit.server:main"
 carla-agentic-toolkit-windows = "carla_agentic_toolkit.windows_launcher:main"
 carla-agentic-toolkit-preflight = "carla_agentic_toolkit.preflight:main"
+carla-agentic-toolkit-experiment = "carla_agentic_toolkit.managed_cli:main"
+carla-agentic-toolkit-recover-scripts = "carla_agentic_toolkit.script_recovery_cli:main"
 
 [dependency-groups]
 dev = [
@@ -24,6 +29,44 @@ dev = [
     "radon>=6.0.1",
     "ruff>=0.8.0",
     "ty>=0.0.1a20",
+]
+
+[tool.hatch.build.targets.sdist]
+# Package the reproducible project inputs, never arbitrary local audit reports.
+only-include = [
+    "src/carla_agentic_toolkit",
+    "tests",
+    "scripts",
+    "docs",
+    "sandbox-runner/src",
+    "sandbox-runner/tests",
+    "sandbox-runner/Cargo.toml",
+    "sandbox-runner/Cargo.lock",
+    ".github",
+    ".dockerignore",
+    ".gitattributes",
+    ".gitignore",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
+    "Dockerfile",
+    "LICENSE",
+    "Makefile",
+    "README.md",
+    "SECURITY.md",
+    "pyproject.toml",
+    "uv.lock",
+]
+exclude = [
+    "**/__pycache__",
+    "**/*.py[cod]",
+    "**/*.egg-info",
+    "**/.venv",
+    "**/.pytest_cache",
+    "**/.ruff_cache",
+    "**/.ty_cache",
+    "**/target",
+    "**/dist",
+    "**/strix_runs",
 ]
 
 [tool.pytest.ini_options]

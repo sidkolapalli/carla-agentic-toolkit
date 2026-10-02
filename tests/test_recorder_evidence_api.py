@@ -138,35 +138,103 @@ def test_export_evidence_packet_writes_manifest_and_snapshot(tmp_path: Path) -> 
     assert snapshots.read_snapshot(snapshot_uri) == result
 
 
-def test_server_recorder_rejects_escaped_relative_path() -> None:
-    """Record episode must reject relative paths that escape the recorder root."""
+@pytest.mark.parametrize(
+    "output_path",
+    [
+        "../outside.log",
+        r"..\outside.log",
+        "nested/../outside.log",
+        r"nested\..\outside.log",
+        r"nested/..\outside.log",
+        r"nested\../outside.log",
+        "..",
+    ],
+)
+def test_server_recorder_rejects_escaped_relative_path(
+    monkeypatch: pytest.MonkeyPatch,
+    output_path: str,
+) -> None:
+    """Both separator styles must reject traversal before calling the recorder."""
     adapter = PythonCarlaAdapter()
     client = RecorderClient(accepted_path="ok.log")
-    monkeypatch = pytest.MonkeyPatch()
     monkeypatch.setattr(adapter, "_client", lambda: client)
     monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR", "/opt/carla/recordings")
 
     with pytest.raises(CarlaAdapterError, match=r"'\.\.'"):
-        adapter.record_episode(Path("../outside.log"))
+        adapter.record_episode(Path(output_path))
+    assert client.requested_path is None
 
 
-def test_server_recorder_rejects_absolute_path() -> None:
-    """Record episode must reject absolute paths."""
+@pytest.mark.parametrize(
+    "output_path",
+    [
+        "/etc/passwd",
+        "/",
+        r"\outside.log",
+        "C:/outside.log",
+        r"C:\outside.log",
+        "C:outside.log",
+        "C:",
+        r"\\server\share\outside.log",
+        "//server/share/outside.log",
+        r"\\?\C:\outside.log",
+        r"\\.\C:\outside.log",
+    ],
+)
+def test_server_recorder_rejects_absolute_path(
+    monkeypatch: pytest.MonkeyPatch,
+    output_path: str,
+) -> None:
+    """Rooted, UNC, device and drive-relative names must fail on every client OS."""
     adapter = PythonCarlaAdapter()
     client = RecorderClient(accepted_path="ok.log")
-    monkeypatch = pytest.MonkeyPatch()
     monkeypatch.setattr(adapter, "_client", lambda: client)
 
     with pytest.raises(CarlaAdapterError, match="relative to the configured"):
-        adapter.record_episode(Path("/etc/passwd"))
+        adapter.record_episode(Path(output_path))
+    assert client.requested_path is None
 
 
-def test_server_recorder_rejects_empty_path() -> None:
-    """Record episode must reject NUL-containing paths."""
+@pytest.mark.parametrize("output_path", ["", ".", "./", ".\\", "test\x00.log", "dir/\x00"])
+def test_server_recorder_rejects_empty_path(
+    monkeypatch: pytest.MonkeyPatch,
+    output_path: str,
+) -> None:
+    """Empty, current-directory and NUL names must fail without connecting to CARLA."""
     adapter = PythonCarlaAdapter()
-    client = RecorderClient(accepted_path="ok.log")
-    monkeypatch = pytest.MonkeyPatch()
-    monkeypatch.setattr(adapter, "_client", lambda: client)
+    monkeypatch.setattr(adapter, "_client", lambda: pytest.fail("Must validate before connecting"))
 
-    with pytest.raises(CarlaAdapterError, match="NUL"):
-        adapter.record_episode(Path("test\x00.log"))
+    with pytest.raises(CarlaAdapterError, match="empty or contain NUL"):
+        adapter.record_episode(Path(output_path))
+
+
+@pytest.mark.parametrize(
+    ("directory", "expected_root"),
+    [
+        (None, ""),
+        ("/opt/carla/recordings/", "/opt/carla/recordings/"),
+        ("/", "/"),
+        ("E:/CARLA/recordings/", "E:/CARLA/recordings/"),
+        ("E:\\CARLA\\recordings\\", "E:/CARLA/recordings/"),
+        ("E:\\", "E:/"),
+        ("\\\\server\\share\\recordings\\", "//server/share/recordings/"),
+    ],
+)
+@pytest.mark.parametrize("output_path", ["nested/episode.log", r"nested\episode.log"])
+def test_server_recorder_preserves_nested_paths_on_either_host(
+    monkeypatch: pytest.MonkeyPatch,
+    directory: str | None,
+    expected_root: str,
+    output_path: str,
+) -> None:
+    """Relative names stay nested under Linux, Windows and UNC simulator roots."""
+    adapter = PythonCarlaAdapter()
+    client = RecorderClient(accepted_path="accepted.log")
+    monkeypatch.setattr(adapter, "_client", lambda: client)
+    monkeypatch.delenv("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR", raising=False)
+    if directory is not None:
+        monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR", directory)
+
+    adapter.record_episode(Path(output_path))
+
+    assert client.requested_path == f"{expected_root}nested/episode.log"
