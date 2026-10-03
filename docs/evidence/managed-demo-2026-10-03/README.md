@@ -5,6 +5,13 @@ frames alongside decisions and controller execution from the same recorded frame
 Playback is slowed and sampled for readability; it is not a real-time latency
 demonstration. No scene pixels, decisions or outcomes are synthesized.
 
+Scene credit: CARLA Simulator contributors, CARLA 0.9.16, Town10HD_Opt. CARLA's
+[upstream license notice](https://github.com/carla-simulator/carla/blob/0.9.16/README.md#licenses)
+identifies CARLA-specific assets as CC-BY. The recording, frame selection,
+letterboxing and explanatory overlays were produced for this project; the
+underlying scene assets retain their upstream terms, independently of this
+toolkit's MIT license. No CARLA endorsement is implied.
+
 These are two new camera-instrumented runs on 2026-10-03. They are separate from
 both the [original comparison](../merge-comparison-2026-10-02/README.md) and the
 [independent reproduction](../independent-reproduction-2026-10-03/README.md).
