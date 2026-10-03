@@ -1,8 +1,8 @@
 # Release readiness
 
 This checkout is an experimental local toolkit candidate. It is not approved for
-production use or a public release. The implementation work covers the current
-open issue set; acceptance that requires external evidence remains explicit below.
+production use or a public release. The implemented fixes and experiments are
+described below; remaining acceptance work stays explicit.
 No repository visibility change, release tag, PyPI upload, or hosted release has
 been made by this validation work.
 
@@ -10,13 +10,14 @@ been made by this validation work.
 
 | Gate | Required evidence |
 | --- | --- |
-| Candidate and CI (#81, #82) | Candidate `49a739ebab377f04161afd2201d93fab1a4bd8d7` passed [hosted CI](https://github.com/sidkolapalli/carla-agentic-toolkit/actions/runs/37078825584). Follow-up changes require their own successful run; [PR #88](https://github.com/sidkolapalli/carla-agentic-toolkit/pull/88) records the current exact candidate and evidence. |
+| Candidate and CI (#81, #82) | Merged implementation `660ac45ef0163f8758d2abe51f1b2136dcc9e568` passed [hosted CI](https://github.com/sidkolapalli/carla-agentic-toolkit/actions/runs/37090466781): 533 Python tests, one expected live-provider skip and nine Rust tests, plus quality/security/container gates. Later artifact-tool changes require their own successful candidate run. |
 | Public release (#82) | Owner approval of the concrete candidate and visibility/publication changes, followed by a prerelease tag. Distribution remains a source checkout; the wheel does not bundle the Rust runner. |
 | Security reporting (#82) | The repository is private; the private-vulnerability-reporting endpoint returned 404 on 2026-10-02. Configure and verify a public-release reporting route before publication. The owner's public profile currently lists no email or website fallback. |
 | Live provider (#86) | Passed the separately opted-in live Jev check using the existing Windows Credential Manager entry through private process input. The key was neither printed nor copied to configuration or report files. |
 | Matched evaluation (#87) | Six declared trials completed: one rules and one Jev run for each seed 7, 19 and 31. Strict matching accepted all pairs; all runs verified actor cleanup and world restoration. The [saved comparison](evidence/merge-comparison-2026-10-02/README.md) records sample counts, metrics, versions and limitations. |
 | Follow-on article (#87) | Read the current original article before preparing its follow-up. Its URL or file path is still required. |
-| Demo (#87) | Record a successful run and a failure/fallback only after the corresponding final validation gates pass. Retain machine-readable evidence alongside the video. |
+| Demo (#87) | The [recorded camera demo](evidence/managed-demo-2026-10-03/README.md) shows a completed maneuver and a deliberate budget fallback with an incomplete maneuver. Both cleaned up and restored actors/settings. Exact-frame projections and coverage gaps accompany the video. |
+| Reproduction (#87) | An [independent automated operator](evidence/independent-reproduction-2026-10-03/README.md), starting from the checked-in instructions in a fresh checkout/venv/state, reproduced all six trials with no retries or comparison blockers. This is not an external-human or second-machine validation claim. |
 
 ## Delivered implementation
 
@@ -40,9 +41,9 @@ been made by this validation work.
 - **#86:** the optional pinned Jev Choice adapter implements bounded async
   inference, persistent account reservations, validation and phase-appropriate
   fallback. The configured live provider check passed.
-- **#87:** CLI/MCP lifecycle controls and a saved matched rules/Jev comparison are
-  implemented and validated. The original-article review and final video remain
-  separate gates.
+- **#87:** CLI/MCP lifecycle controls, a saved matched rules/Jev comparison, a
+  recorded camera demo and independent automated reproduction are delivered.
+  The original-article review remains incomplete until its URL/path is supplied.
 - **#81, #82:** the workflow pins, full-history scan, source packaging, container
   runtime, and local release checks have been repaired. Publication remains gated.
 

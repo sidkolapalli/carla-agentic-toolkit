@@ -1,0 +1,17 @@
+{
+  "carla_client": "0.9.16",
+  "carla_server": "0.9.16",
+  "controlled_actor_counts": {
+    "controller.": 0,
+    "sensor.": 0,
+    "vehicle.": 0,
+    "walker.": 0
+  },
+  "fixed_delta_seconds": null,
+  "map": "Carla/Maps/Town10HD_Opt",
+  "max_substep_delta_time": 0.01,
+  "max_substeps": 10,
+  "no_rendering_mode": false,
+  "substepping": true,
+  "synchronous_mode": false
+}

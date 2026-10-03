@@ -1,0 +1,6740 @@
+{
+  "schema_version": 1,
+  "run_id": "bf15cfc6424448d1bb1b1489dbdc0e80",
+  "trace_sha256": "6dd7db2bef9eaaa77a16643641e4fb0a3514382246de2aa96ffcce6a2e4b7c56",
+  "code_sha256": "85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68",
+  "seed": 7,
+  "policy": "jev",
+  "fixed_delta_seconds": 0.05,
+  "outcome": {
+    "completed": false,
+    "status": "corridor_invalid"
+  },
+  "cleanup": {
+    "ok": true,
+    "settings_restored": true,
+    "world_replaced": false
+  },
+  "samples": [
+    {
+      "observation_sequence": 5,
+      "frame": 105479,
+      "simulation_seconds": 502.0507181994617,
+      "phase": "following",
+      "policy": {
+        "longitudinal_m": 0.0,
+        "lateral_m": -0.0,
+        "speed_mps": 0.4899999797344208,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "ego": {
+        "longitudinal_m": 24.00000173047194,
+        "lateral_m": 3.500007606366672,
+        "speed_mps": 0.4899999797344208,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": null,
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "following",
+        "sequence": 18
+      }
+    },
+    {
+      "observation_sequence": 19,
+      "frame": 105480,
+      "simulation_seconds": 502.10071820020676,
+      "phase": "following",
+      "policy": {
+        "longitudinal_m": 0.0,
+        "lateral_m": -0.0,
+        "speed_mps": 0.9800000786781311,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "ego": {
+        "longitudinal_m": 24.00000173047194,
+        "lateral_m": 3.500007606366672,
+        "speed_mps": 0.9800000786781311,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "selected",
+        "choice_id": "defer",
+        "source": "jev",
+        "sequence": 16,
+        "frame": 105479
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "following",
+        "sequence": 26
+      }
+    },
+    {
+      "observation_sequence": 27,
+      "frame": 105481,
+      "simulation_seconds": 502.1507182009518,
+      "phase": "following",
+      "policy": {
+        "longitudinal_m": 0.0,
+        "lateral_m": -0.0,
+        "speed_mps": 1.470000147819519,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "ego": {
+        "longitudinal_m": 24.00000173047194,
+        "lateral_m": 3.500007606366672,
+        "speed_mps": 1.470000147819519,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "selected",
+        "choice_id": "defer",
+        "source": "jev",
+        "sequence": 16,
+        "frame": 105479
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "following",
+        "sequence": 35
+      }
+    },
+    {
+      "observation_sequence": 36,
+      "frame": 105482,
+      "simulation_seconds": 502.2007182016969,
+      "phase": "following",
+      "policy": {
+        "longitudinal_m": 0.0,
+        "lateral_m": -0.0,
+        "speed_mps": 1.9600002765655518,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "ego": {
+        "longitudinal_m": 24.00000173047194,
+        "lateral_m": 3.500007606366672,
+        "speed_mps": 1.9600002765655518,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "selected",
+        "choice_id": "defer",
+        "source": "jev",
+        "sequence": 16,
+        "frame": 105479
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "following",
+        "sequence": 44
+      }
+    },
+    {
+      "observation_sequence": 45,
+      "frame": 105483,
+      "simulation_seconds": 502.25071820244193,
+      "phase": "following",
+      "policy": {
+        "longitudinal_m": 0.0,
+        "lateral_m": -0.0,
+        "speed_mps": 2.450000286102295,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "ego": {
+        "longitudinal_m": 24.00000173047194,
+        "lateral_m": 3.500007606366672,
+        "speed_mps": 2.450000286102295,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "selected",
+        "choice_id": "defer",
+        "source": "jev",
+        "sequence": 16,
+        "frame": 105479
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "following",
+        "sequence": 56
+      }
+    },
+    {
+      "observation_sequence": 57,
+      "frame": 105484,
+      "simulation_seconds": 502.300718203187,
+      "phase": "following",
+      "policy": {
+        "longitudinal_m": 0.0,
+        "lateral_m": -0.0,
+        "speed_mps": 1.1564931869591666,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "ego": {
+        "longitudinal_m": 24.00000173047194,
+        "lateral_m": 3.500007606366672,
+        "speed_mps": 1.156493067750046,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "selected",
+        "choice_id": "defer",
+        "source": "jev",
+        "sequence": 16,
+        "frame": 105479
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "following",
+        "sequence": 66
+      }
+    },
+    {
+      "observation_sequence": 67,
+      "frame": 105485,
+      "simulation_seconds": 502.35071820393205,
+      "phase": "following",
+      "policy": {
+        "longitudinal_m": 0.0,
+        "lateral_m": -0.0,
+        "speed_mps": 0.39074331522129524,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "ego": {
+        "longitudinal_m": 24.00000173047194,
+        "lateral_m": 3.500007606366672,
+        "speed_mps": 0.3907434642332285,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "selected",
+        "choice_id": "defer",
+        "source": "jev",
+        "sequence": 16,
+        "frame": 105479
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "following",
+        "sequence": 76
+      }
+    },
+    {
+      "observation_sequence": 77,
+      "frame": 105486,
+      "simulation_seconds": 502.4007182046771,
+      "phase": "following",
+      "policy": {
+        "longitudinal_m": 0.0,
+        "lateral_m": -0.0,
+        "speed_mps": 0.03427931293853715,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "ego": {
+        "longitudinal_m": 24.00000173047194,
+        "lateral_m": 3.500007606366672,
+        "speed_mps": 0.034279115499502084,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "selected",
+        "choice_id": "defer",
+        "source": "jev",
+        "sequence": 16,
+        "frame": 105479
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "following",
+        "sequence": 86
+      }
+    },
+    {
+      "observation_sequence": 87,
+      "frame": 105487,
+      "simulation_seconds": 502.45071820542216,
+      "phase": "following",
+      "policy": {
+        "longitudinal_m": 0.0,
+        "lateral_m": -0.0,
+        "speed_mps": 0.11119274050034597,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "ego": {
+        "longitudinal_m": 24.00000173047194,
+        "lateral_m": 3.500007606366672,
+        "speed_mps": 0.11119294911629052,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "selected",
+        "choice_id": "defer",
+        "source": "jev",
+        "sequence": 16,
+        "frame": 105479
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "following",
+        "sequence": 96
+      }
+    },
+    {
+      "observation_sequence": 97,
+      "frame": 105488,
+      "simulation_seconds": 502.5007182061672,
+      "phase": "following",
+      "policy": {
+        "longitudinal_m": 0.0,
+        "lateral_m": -0.0,
+        "speed_mps": 0.15320186316976975,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "ego": {
+        "longitudinal_m": 24.00000173047194,
+        "lateral_m": 3.500007606366672,
+        "speed_mps": 0.1532010436060397,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "selected",
+        "choice_id": "defer",
+        "source": "jev",
+        "sequence": 16,
+        "frame": 105479
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "following",
+        "sequence": 104
+      }
+    },
+    {
+      "observation_sequence": 105,
+      "frame": 105489,
+      "simulation_seconds": 502.5507182069123,
+      "phase": "following",
+      "policy": {
+        "longitudinal_m": 0.0,
+        "lateral_m": -0.0,
+        "speed_mps": 0.14854264259359842,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "ego": {
+        "longitudinal_m": 24.00000173047194,
+        "lateral_m": 3.500007606366672,
+        "speed_mps": 0.14854285121105532,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "selected",
+        "choice_id": "defer",
+        "source": "jev",
+        "sequence": 16,
+        "frame": 105479
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 120
+      }
+    },
+    {
+      "observation_sequence": 122,
+      "frame": 105490,
+      "simulation_seconds": 502.60071820765734,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 0.0,
+        "lateral_m": -0.0,
+        "speed_mps": 0.12610952556143676,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "ego": {
+        "longitudinal_m": 24.00000173047194,
+        "lateral_m": 3.500007606366672,
+        "speed_mps": 0.12610979378238393,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 118,
+        "frame": 105489
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 131
+      }
+    },
+    {
+      "observation_sequence": 132,
+      "frame": 105491,
+      "simulation_seconds": 502.6507182084024,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 0.002658843771976215,
+        "lateral_m": 1.0869227047395797e-06,
+        "speed_mps": 0.27845602409170467,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000244140625
+      },
+      "ego": {
+        "longitudinal_m": 24.00265675954697,
+        "lateral_m": 3.500008691729947,
+        "speed_mps": 0.278456120284232,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000244140625
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 118,
+        "frame": 105489
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 139
+      }
+    },
+    {
+      "observation_sequence": 140,
+      "frame": 105492,
+      "simulation_seconds": 502.70071820914745,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 0.038658145097414325,
+        "lateral_m": 5.444757559914502e-07,
+        "speed_mps": 1.050269836121685,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0003204345703125
+      },
+      "ego": {
+        "longitudinal_m": 24.03865606087241,
+        "lateral_m": 3.500008149282998,
+        "speed_mps": 1.0506517835298215,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0003204345703125
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 118,
+        "frame": 105489
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 150
+      }
+    },
+    {
+      "observation_sequence": 151,
+      "frame": 105493,
+      "simulation_seconds": 502.7507182098925,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 0.10705185601462779,
+        "lateral_m": 5.615314409389779e-06,
+        "speed_mps": 1.5892361349337583,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0003204345703125
+      },
+      "ego": {
+        "longitudinal_m": 24.10706503057741,
+        "lateral_m": 3.5000132263593717,
+        "speed_mps": 1.5496252526474465,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0003814697265625
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 118,
+        "frame": 105489
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 161
+      }
+    },
+    {
+      "observation_sequence": 162,
+      "frame": 105494,
+      "simulation_seconds": 502.80071821063757,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 0.19868852166690854,
+        "lateral_m": 4.928972219277921e-06,
+        "speed_mps": 1.9833519947590614,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000457763671875
+      },
+      "ego": {
+        "longitudinal_m": 24.198892424839315,
+        "lateral_m": 3.5000278767764685,
+        "speed_mps": 1.9869992668309446,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0019378662109375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 118,
+        "frame": 105489
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 170
+      }
+    },
+    {
+      "observation_sequence": 171,
+      "frame": 105495,
+      "simulation_seconds": 502.8507182113826,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 0.30722811572854,
+        "lateral_m": -4.106323461800643e-06,
+        "speed_mps": 2.2883292903051338,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0
+      },
+      "ego": {
+        "longitudinal_m": 24.307802041385933,
+        "lateral_m": 3.5000266221393908,
+        "speed_mps": 2.29494180795307,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0027618408203125
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 118,
+        "frame": 105489
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 181
+      }
+    },
+    {
+      "observation_sequence": 182,
+      "frame": 105496,
+      "simulation_seconds": 502.9007182121277,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 0.4302597434913732,
+        "lateral_m": -7.2173446015511066e-06,
+        "speed_mps": 2.5698625659426266,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0007171630859375
+      },
+      "ego": {
+        "longitudinal_m": 24.43108544226612,
+        "lateral_m": 3.5000159846467365,
+        "speed_mps": 2.571819450783735,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.00042724609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 118,
+        "frame": 105489
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 191
+      }
+    },
+    {
+      "observation_sequence": 192,
+      "frame": 105497,
+      "simulation_seconds": 502.95071821287274,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 0.5659370885142577,
+        "lateral_m": 2.470538577441808e-06,
+        "speed_mps": 2.8082780295629104,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0001983642578125
+      },
+      "ego": {
+        "longitudinal_m": 24.566850528437644,
+        "lateral_m": 3.500018079002912,
+        "speed_mps": 2.809806514370347,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0007476806640625
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 118,
+        "frame": 105489
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 199
+      }
+    },
+    {
+      "observation_sequence": 200,
+      "frame": 105498,
+      "simulation_seconds": 503.0007182136178,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 0.7134476265852278,
+        "lateral_m": 9.366379699260712e-06,
+        "speed_mps": 3.0442975968586006,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000274658203125
+      },
+      "ego": {
+        "longitudinal_m": 24.714429734172516,
+        "lateral_m": 3.5000173735198796,
+        "speed_mps": 3.045411963801167,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0007781982421875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 118,
+        "frame": 105489
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 210
+      }
+    },
+    {
+      "observation_sequence": 211,
+      "frame": 105499,
+      "simulation_seconds": 503.05071821436286,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 0.8721352360671397,
+        "lateral_m": -2.056830982321103e-06,
+        "speed_mps": 3.260416455628212,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000274658203125
+      },
+      "ego": {
+        "longitudinal_m": 24.87316311689893,
+        "lateral_m": 3.5000135984162517,
+        "speed_mps": 3.2612916941201773,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0007476806640625
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 118,
+        "frame": 105489
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 225
+      }
+    },
+    {
+      "observation_sequence": 227,
+      "frame": 105500,
+      "simulation_seconds": 503.1007182151079,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 1.0417748404835476,
+        "lateral_m": -9.002918155570974e-06,
+        "speed_mps": 3.4813785978319958,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000274658203125
+      },
+      "ego": {
+        "longitudinal_m": 25.042734056770296,
+        "lateral_m": 3.500006624259339,
+        "speed_mps": 3.4771147279255885,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000732421875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 223,
+        "frame": 105499
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 235
+      }
+    },
+    {
+      "observation_sequence": 236,
+      "frame": 105501,
+      "simulation_seconds": 503.150718215853,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 1.2221413695957257,
+        "lateral_m": -3.93449429628124e-06,
+        "speed_mps": 3.691200721027126,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000274658203125
+      },
+      "ego": {
+        "longitudinal_m": 25.222310946733327,
+        "lateral_m": 3.500003740487296,
+        "speed_mps": 3.665859222816627,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0006866455078125
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 223,
+        "frame": 105499
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 244
+      }
+    },
+    {
+      "observation_sequence": 245,
+      "frame": 105502,
+      "simulation_seconds": 503.20071821659803,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 1.4129830596428996,
+        "lateral_m": -2.213269571478679e-06,
+        "speed_mps": 3.899711212475062,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000274658203125
+      },
+      "ego": {
+        "longitudinal_m": 25.410718857009535,
+        "lateral_m": 3.500012096189579,
+        "speed_mps": 3.8327537476621076,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0006866455078125
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 223,
+        "frame": 105499
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 256
+      }
+    },
+    {
+      "observation_sequence": 257,
+      "frame": 105503,
+      "simulation_seconds": 503.2507182173431,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 1.613830696662883,
+        "lateral_m": 1.1227733917289944e-05,
+        "speed_mps": 4.09539562961509,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000244140625
+      },
+      "ego": {
+        "longitudinal_m": 25.60631365945252,
+        "lateral_m": 3.5000157604640743,
+        "speed_mps": 3.9619897081594093,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0006561279296875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 223,
+        "frame": 105499
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 265
+      }
+    },
+    {
+      "observation_sequence": 266,
+      "frame": 105504,
+      "simulation_seconds": 503.30071821808815,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 1.824321900040022,
+        "lateral_m": -1.9065991480705447e-06,
+        "speed_mps": 4.2859420459039566,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000244140625
+      },
+      "ego": {
+        "longitudinal_m": 25.80769153934812,
+        "lateral_m": 3.5000294182283325,
+        "speed_mps": 4.069029290768313,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0006103515625
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 223,
+        "frame": 105499
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 274
+      }
+    },
+    {
+      "observation_sequence": 275,
+      "frame": 105505,
+      "simulation_seconds": 503.3507182188332,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 2.044067555091435,
+        "lateral_m": -3.6283611579784013e-06,
+        "speed_mps": 4.466135435789787,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000244140625
+      },
+      "ego": {
+        "longitudinal_m": 26.013544068118993,
+        "lateral_m": 3.5000220170222898,
+        "speed_mps": 4.147744574740453,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000579833984375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 223,
+        "frame": 105499
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 286
+      }
+    },
+    {
+      "observation_sequence": 287,
+      "frame": 105506,
+      "simulation_seconds": 503.40071821957827,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 2.2723238052690595,
+        "lateral_m": -1.712982264224876e-05,
+        "speed_mps": 4.629050181549973,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000244140625
+      },
+      "ego": {
+        "longitudinal_m": 26.222864159533437,
+        "lateral_m": 3.5000084039442165,
+        "speed_mps": 4.211073777882892,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.00054931640625
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 223,
+        "frame": 105499
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 294
+      }
+    },
+    {
+      "observation_sequence": 295,
+      "frame": 105507,
+      "simulation_seconds": 503.4507182203233,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 2.5080759318284462,
+        "lateral_m": -1.9937610297587026e-05,
+        "speed_mps": 4.770023273320716,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0001983642578125
+      },
+      "ego": {
+        "longitudinal_m": 26.434747727296187,
+        "lateral_m": 3.4999958388030983,
+        "speed_mps": 4.2549132247775665,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.00054931640625
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 223,
+        "frame": 105499
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 305
+      }
+    },
+    {
+      "observation_sequence": 306,
+      "frame": 105508,
+      "simulation_seconds": 503.5007182210684,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 2.750175710988583,
+        "lateral_m": -1.2521112551721562e-05,
+        "speed_mps": 4.887823037308353,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0001678466796875
+      },
+      "ego": {
+        "longitudinal_m": 26.64854626980741,
+        "lateral_m": 3.4999916858897304,
+        "speed_mps": 4.289818177428704,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000518798828125
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 223,
+        "frame": 105499
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 316
+      }
+    },
+    {
+      "observation_sequence": 317,
+      "frame": 105509,
+      "simulation_seconds": 503.55071822181344,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 2.9974901839939667,
+        "lateral_m": -1.0602267899935706e-05,
+        "speed_mps": 4.98337215124074,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0001678466796875
+      },
+      "ego": {
+        "longitudinal_m": 26.863699032853642,
+        "lateral_m": 3.499980457180116,
+        "speed_mps": 4.311830886212216,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000457763671875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 223,
+        "frame": 105499
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 328
+      }
+    },
+    {
+      "observation_sequence": 330,
+      "frame": 105510,
+      "simulation_seconds": 503.6007182225585,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 3.248943603186716,
+        "lateral_m": -6.991441706338418e-06,
+        "speed_mps": 5.056491876387853,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000152587890625
+      },
+      "ego": {
+        "longitudinal_m": 27.079824543621324,
+        "lateral_m": 3.499969626125149,
+        "speed_mps": 4.329759008011544,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0004119873046875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 326,
+        "frame": 105509
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 340
+      }
+    },
+    {
+      "observation_sequence": 341,
+      "frame": 105511,
+      "simulation_seconds": 503.65071822330356,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 3.503677661753784,
+        "lateral_m": -2.039505719231803e-06,
+        "speed_mps": 5.135691222563172,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.00018310546875
+      },
+      "ego": {
+        "longitudinal_m": 27.29659092347608,
+        "lateral_m": 3.4999590570544217,
+        "speed_mps": 4.339192752050986,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0003662109375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 326,
+        "frame": 105509
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 351
+      }
+    },
+    {
+      "observation_sequence": 352,
+      "frame": 105512,
+      "simulation_seconds": 503.7007182240486,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 3.756462410180995,
+        "lateral_m": 2.115561541731533e-06,
+        "speed_mps": 5.034038511460355,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0001220703125
+      },
+      "ego": {
+        "longitudinal_m": 27.513795993479736,
+        "lateral_m": 3.499948667318143,
+        "speed_mps": 4.347761036472003,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0002899169921875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 326,
+        "frame": 105509
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 359
+      }
+    },
+    {
+      "observation_sequence": 360,
+      "frame": 105513,
+      "simulation_seconds": 503.7507182247937,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 4.008545251251119,
+        "lateral_m": 1.361308757784601e-05,
+        "speed_mps": 5.049177122188705,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0005340576171875
+      },
+      "ego": {
+        "longitudinal_m": 27.73126045975691,
+        "lateral_m": 3.4999460130169977,
+        "speed_mps": 4.350523828437164,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000244140625
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 326,
+        "frame": 105509
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 371
+      }
+    },
+    {
+      "observation_sequence": 372,
+      "frame": 105514,
+      "simulation_seconds": 503.80071822553873,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 4.259724012263694,
+        "lateral_m": 1.7111634811986607e-05,
+        "speed_mps": 5.0382143946025115,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0005645751953125
+      },
+      "ego": {
+        "longitudinal_m": 27.948888964240524,
+        "lateral_m": 3.4999281669835542,
+        "speed_mps": 4.354369041578368,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0001678466796875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 326,
+        "frame": 105509
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 381
+      }
+    },
+    {
+      "observation_sequence": 382,
+      "frame": 105515,
+      "simulation_seconds": 503.8507182262838,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 4.512592684023737,
+        "lateral_m": 2.1301009532783896e-05,
+        "speed_mps": 5.019894542869236,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.00048828125
+      },
+      "ego": {
+        "longitudinal_m": 28.16658613015032,
+        "lateral_m": 3.4999179784137446,
+        "speed_mps": 4.353926533057365,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0001068115234375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 326,
+        "frame": 105509
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 390
+      }
+    },
+    {
+      "observation_sequence": 391,
+      "frame": 105516,
+      "simulation_seconds": 503.90071822702885,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 4.765121847755506,
+        "lateral_m": 2.5351594984252684e-05,
+        "speed_mps": 5.1105656745014265,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0004730224609375
+      },
+      "ego": {
+        "longitudinal_m": 28.38433288400157,
+        "lateral_m": 3.4999154395104184,
+        "speed_mps": 4.355656018170763,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -3.0517578125e-05
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 326,
+        "frame": 105509
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 400
+      }
+    },
+    {
+      "observation_sequence": 401,
+      "frame": 105517,
+      "simulation_seconds": 503.9507182277739,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 5.017963816636921,
+        "lateral_m": 2.9530053695102886e-05,
+        "speed_mps": 5.02061838277812,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0004119873046875
+      },
+      "ego": {
+        "longitudinal_m": 28.602056752789995,
+        "lateral_m": 3.499905261856619,
+        "speed_mps": 4.353947984841261,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 4.57763671875e-05
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 326,
+        "frame": 105509
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 411
+      }
+    },
+    {
+      "observation_sequence": 412,
+      "frame": 105518,
+      "simulation_seconds": 504.00071822851896,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 5.270615047552131,
+        "lateral_m": 4.1259934800092456e-05,
+        "speed_mps": 5.115956333011945,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0003509521484375
+      },
+      "ego": {
+        "longitudinal_m": 28.81978443627537,
+        "lateral_m": 3.4998950857622493,
+        "speed_mps": 4.354992732796136,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0001220703125
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 326,
+        "frame": 105509
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 419
+      }
+    },
+    {
+      "observation_sequence": 420,
+      "frame": 105519,
+      "simulation_seconds": 504.050718229264,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 5.524021591581684,
+        "lateral_m": 4.566918914982593e-05,
+        "speed_mps": 5.03263707282231,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000274658203125
+      },
+      "ego": {
+        "longitudinal_m": 29.03746252870043,
+        "lateral_m": 3.49988488939529,
+        "speed_mps": 4.352868420284185,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000213623046875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 326,
+        "frame": 105509
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 435
+      }
+    },
+    {
+      "observation_sequence": 437,
+      "frame": 105520,
+      "simulation_seconds": 504.1007182300091,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 5.775173649715629,
+        "lateral_m": 4.915682037401944e-05,
+        "speed_mps": 5.050387795263371,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000213623046875
+      },
+      "ego": {
+        "longitudinal_m": 29.255125362337708,
+        "lateral_m": 3.4998746867906103,
+        "speed_mps": 4.353702405661809,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000274658203125
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 433,
+        "frame": 105519
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 446
+      }
+    },
+    {
+      "observation_sequence": 447,
+      "frame": 105521,
+      "simulation_seconds": 504.15071823075414,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 6.029793267374291,
+        "lateral_m": 5.4061973461352105e-05,
+        "speed_mps": 5.060940720399667,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0001220703125
+      },
+      "ego": {
+        "longitudinal_m": 29.472746224951987,
+        "lateral_m": 3.499887355213882,
+        "speed_mps": 4.351540899419836,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0003662109375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 433,
+        "frame": 105519
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 456
+      }
+    },
+    {
+      "observation_sequence": 457,
+      "frame": 105522,
+      "simulation_seconds": 504.2007182314992,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 6.282112622773983,
+        "lateral_m": 5.8026790263236445e-05,
+        "speed_mps": 5.037433580193066,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 9.1552734375e-05
+      },
+      "ego": {
+        "longitudinal_m": 29.69035182877848,
+        "lateral_m": 3.499900017399434,
+        "speed_mps": 4.352452135708564,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.00042724609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 433,
+        "frame": 105519
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 466
+      }
+    },
+    {
+      "observation_sequence": 467,
+      "frame": 105523,
+      "simulation_seconds": 504.25071823224425,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 6.533550780060085,
+        "lateral_m": 6.926077263062595e-05,
+        "speed_mps": 5.078902799529198,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -1.52587890625e-05
+      },
+      "ego": {
+        "longitudinal_m": 29.90791165624161,
+        "lateral_m": 3.499912660871826,
+        "speed_mps": 4.350418426452784,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.00048828125
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 433,
+        "frame": 105519
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 476
+      }
+    },
+    {
+      "observation_sequence": 477,
+      "frame": 105524,
+      "simulation_seconds": 504.3007182329893,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 6.788921893017282,
+        "lateral_m": 7.447313342647238e-05,
+        "speed_mps": 5.090911369877701,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -4.57763671875e-05
+      },
+      "ego": {
+        "longitudinal_m": 30.125463863667427,
+        "lateral_m": 3.499902413043676,
+        "speed_mps": 4.351488450962344,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0005340576171875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 433,
+        "frame": 105519
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 486
+      }
+    },
+    {
+      "observation_sequence": 487,
+      "frame": 105525,
+      "simulation_seconds": 504.35071823373437,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 7.041481574324627,
+        "lateral_m": 7.853619431788137e-05,
+        "speed_mps": 5.024058780345191,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000152587890625
+      },
+      "ego": {
+        "longitudinal_m": 30.34298173882072,
+        "lateral_m": 3.4998921511806573,
+        "speed_mps": 4.349612095200802,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0005340576171875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 433,
+        "frame": 105519
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 496
+      }
+    },
+    {
+      "observation_sequence": 497,
+      "frame": 105526,
+      "simulation_seconds": 504.4007182344794,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 7.2927671468517135,
+        "lateral_m": 8.207840559181032e-05,
+        "speed_mps": 5.061351724131214,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0001678466796875
+      },
+      "ego": {
+        "longitudinal_m": 30.56049197522354,
+        "lateral_m": 3.4999047743804597,
+        "speed_mps": 4.350833272333168,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0006256103515625
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 433,
+        "frame": 105519
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 504
+      }
+    },
+    {
+      "observation_sequence": 505,
+      "frame": 105527,
+      "simulation_seconds": 504.4507182352245,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 7.548828716837436,
+        "lateral_m": 9.520241711005305e-05,
+        "speed_mps": 5.096675871741105,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000274658203125
+      },
+      "ego": {
+        "longitudinal_m": 30.777983138141625,
+        "lateral_m": 3.4999173897831115,
+        "speed_mps": 4.349088526440862,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0006256103515625
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 433,
+        "frame": 105519
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 516
+      }
+    },
+    {
+      "observation_sequence": 517,
+      "frame": 105528,
+      "simulation_seconds": 504.50071823596954,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 7.803093567680037,
+        "lateral_m": 9.996254320808777e-05,
+        "speed_mps": 5.078140712043271,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0003204345703125
+      },
+      "ego": {
+        "longitudinal_m": 30.99547811887552,
+        "lateral_m": 3.4999223773512997,
+        "speed_mps": 4.35042557933877,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0006256103515625
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 433,
+        "frame": 105519
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 524
+      }
+    },
+    {
+      "observation_sequence": 525,
+      "frame": 105529,
+      "simulation_seconds": 504.5507182367146,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 8.05511919141482,
+        "lateral_m": 0.00010380728390055327,
+        "speed_mps": 5.017206161638159,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000396728515625
+      },
+      "ego": {
+        "longitudinal_m": 31.212954032362397,
+        "lateral_m": 3.4999120983345504,
+        "speed_mps": 4.348775723198458,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000732421875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 433,
+        "frame": 105519
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 539
+      }
+    },
+    {
+      "observation_sequence": 541,
+      "frame": 105530,
+      "simulation_seconds": 504.60071823745966,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 8.306305578702426,
+        "lateral_m": 0.00011493834388844092,
+        "speed_mps": 5.063861831669333,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0004425048828125
+      },
+      "ego": {
+        "longitudinal_m": 31.430429945849276,
+        "lateral_m": 3.4999018193178015,
+        "speed_mps": 4.350191452352156,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000732421875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 537,
+        "frame": 105529
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 551
+      }
+    },
+    {
+      "observation_sequence": 552,
+      "frame": 105531,
+      "simulation_seconds": 504.6507182382047,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 8.563004206197139,
+        "lateral_m": 0.00012069338632166113,
+        "speed_mps": 5.113780987830686,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.00054931640625
+      },
+      "ego": {
+        "longitudinal_m": 31.647890588072926,
+        "lateral_m": 3.499922051638907,
+        "speed_mps": 4.348603582409508,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000732421875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 537,
+        "frame": 105529
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 560
+      }
+    },
+    {
+      "observation_sequence": 561,
+      "frame": 105532,
+      "simulation_seconds": 504.7007182389498,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 8.818196028397832,
+        "lateral_m": 0.00012583245390786202,
+        "speed_mps": 5.097548474658329,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0006103515625
+      },
+      "ego": {
+        "longitudinal_m": 31.865366495322085,
+        "lateral_m": 3.4999270314099458,
+        "speed_mps": 4.350067474586141,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000732421875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 537,
+        "frame": 105529
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 571
+      }
+    },
+    {
+      "observation_sequence": 572,
+      "frame": 105533,
+      "simulation_seconds": 504.75071823969483,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 9.071247805611325,
+        "lateral_m": 0.00013009668126829667,
+        "speed_mps": 5.0382313554626785,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0006866455078125
+      },
+      "ego": {
+        "longitudinal_m": 32.082827150021174,
+        "lateral_m": 3.4999167461554763,
+        "speed_mps": 4.348516324075156,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000732421875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 537,
+        "frame": 105529
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 581
+      }
+    },
+    {
+      "observation_sequence": 582,
+      "frame": 105534,
+      "simulation_seconds": 504.8007182404399,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 9.322975882984249,
+        "lateral_m": 0.00013381978642135065,
+        "speed_mps": 5.0335402338595365,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000732421875
+      },
+      "ego": {
+        "longitudinal_m": 32.30029924257339,
+        "lateral_m": 3.499921724367085,
+        "speed_mps": 4.3500083461747225,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000732421875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 537,
+        "frame": 105529
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 589
+      }
+    },
+    {
+      "observation_sequence": 590,
+      "frame": 105535,
+      "simulation_seconds": 504.85071824118495,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 9.574982430115437,
+        "lateral_m": 0.00014528612385761568,
+        "speed_mps": 5.106466877476205,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0008087158203125
+      },
+      "ego": {
+        "longitudinal_m": 32.517752258522,
+        "lateral_m": 3.4999343241754373,
+        "speed_mps": 4.348477222076136,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000732421875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 537,
+        "frame": 105529
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 601
+      }
+    },
+    {
+      "observation_sequence": 602,
+      "frame": 105536,
+      "simulation_seconds": 504.90071824193,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 9.83266907347597,
+        "lateral_m": 0.000128556876977594,
+        "speed_mps": 5.145395776981536,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000885009765625
+      },
+      "ego": {
+        "longitudinal_m": 32.73521862279107,
+        "lateral_m": 3.4999545588356877,
+        "speed_mps": 4.349932051912101,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000732421875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 537,
+        "frame": 105529
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 611
+      }
+    },
+    {
+      "observation_sequence": 612,
+      "frame": 105537,
+      "simulation_seconds": 504.95071824267507,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 10.087956269338056,
+        "lateral_m": 0.00011847614252608052,
+        "speed_mps": 5.080982205302309,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.000946044921875
+      },
+      "ego": {
+        "longitudinal_m": 32.952665926050855,
+        "lateral_m": 3.4999442681232136,
+        "speed_mps": 4.3483389435491535,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000732421875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 537,
+        "frame": 105529
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 621
+      }
+    },
+    {
+      "observation_sequence": 622,
+      "frame": 105538,
+      "simulation_seconds": 505.0007182434201,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 10.341656545032519,
+        "lateral_m": 0.00012300547298523326,
+        "speed_mps": 5.07081221817122,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001007080078125
+      },
+      "ego": {
+        "longitudinal_m": 33.1701303954469,
+        "lateral_m": 3.4999339844281745,
+        "speed_mps": 4.349820476621586,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000732421875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 537,
+        "frame": 105529
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 629
+      }
+    },
+    {
+      "observation_sequence": 630,
+      "frame": 105539,
+      "simulation_seconds": 505.0507182441652,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 10.59362113361615,
+        "lateral_m": 0.00012682526279781878,
+        "speed_mps": 5.019474494112056,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0010528564453125
+      },
+      "ego": {
+        "longitudinal_m": 33.38757960605514,
+        "lateral_m": 3.4999236944954153,
+        "speed_mps": 4.348294596205095,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000732421875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 537,
+        "frame": 105529
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 645
+      }
+    },
+    {
+      "observation_sequence": 647,
+      "frame": 105540,
+      "simulation_seconds": 505.10071824491024,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 10.844639674238095,
+        "lateral_m": 0.00013788770786603895,
+        "speed_mps": 5.021807659742112,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001068115234375
+      },
+      "ego": {
+        "longitudinal_m": 33.60504216498385,
+        "lateral_m": 3.499921039414555,
+        "speed_mps": 4.349818088977021,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000732421875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 643,
+        "frame": 105539
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 656
+      }
+    },
+    {
+      "observation_sequence": 657,
+      "frame": 105541,
+      "simulation_seconds": 505.1507182456553,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 11.099610250253589,
+        "lateral_m": 0.00012767754072515354,
+        "speed_mps": 5.167808595656383,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 33.82249136623552,
+        "lateral_m": 3.499933637663477,
+        "speed_mps": 4.348317958072645,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 643,
+        "frame": 105539
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 664
+      }
+    },
+    {
+      "observation_sequence": 665,
+      "frame": 105542,
+      "simulation_seconds": 505.20071824640036,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 11.357159564524034,
+        "lateral_m": 0.00011089215436540199,
+        "speed_mps": 5.140283596971648,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0011444091796875
+      },
+      "ego": {
+        "longitudinal_m": 34.03995392828308,
+        "lateral_m": 3.499923353188723,
+        "speed_mps": 4.34985480701509,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 643,
+        "frame": 105539
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 675
+      }
+    },
+    {
+      "observation_sequence": 676,
+      "frame": 105543,
+      "simulation_seconds": 505.2507182471454,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 11.61230179878328,
+        "lateral_m": 0.00010838155546793928,
+        "speed_mps": 5.079215045804091,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001190185546875
+      },
+      "ego": {
+        "longitudinal_m": 34.25740313889133,
+        "lateral_m": 3.499913063255964,
+        "speed_mps": 4.348361351989197,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 643,
+        "frame": 105539
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 686
+      }
+    },
+    {
+      "observation_sequence": 687,
+      "frame": 105544,
+      "simulation_seconds": 505.3007182478905,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 11.865986815689954,
+        "lateral_m": 0.00011290464820712127,
+        "speed_mps": 5.07146500821698,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001190185546875
+      },
+      "ego": {
+        "longitudinal_m": 34.474865691582316,
+        "lateral_m": 3.499925666962891,
+        "speed_mps": 4.349898196421261,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 643,
+        "frame": 105539
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 694
+      }
+    },
+    {
+      "observation_sequence": 695,
+      "frame": 105545,
+      "simulation_seconds": 505.35071824863553,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 12.118042957000311,
+        "lateral_m": 0.00011676186433952525,
+        "speed_mps": 5.022132861677129,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001190185546875
+      },
+      "ego": {
+        "longitudinal_m": 34.69231489595285,
+        "lateral_m": 3.499930635817919,
+        "speed_mps": 4.348400452047376,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 643,
+        "frame": 105539
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 706
+      }
+    },
+    {
+      "observation_sequence": 707,
+      "frame": 105546,
+      "simulation_seconds": 505.4007182493806,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 12.369240791497619,
+        "lateral_m": 0.00012026820872362929,
+        "speed_mps": 5.0259160889899475,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0012054443359375
+      },
+      "ego": {
+        "longitudinal_m": 34.90977936534888,
+        "lateral_m": 3.4999203521228806,
+        "speed_mps": 4.349933007779402,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 643,
+        "frame": 105539
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 716
+      }
+    },
+    {
+      "observation_sequence": 717,
+      "frame": 105547,
+      "simulation_seconds": 505.45071825012565,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 12.624478393180535,
+        "lateral_m": 0.00011779659557597643,
+        "speed_mps": 5.174357953383874,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0012054443359375
+      },
+      "ego": {
+        "longitudinal_m": 35.1272266654898,
+        "lateral_m": 3.4999176908043,
+        "speed_mps": 4.348430015590486,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 643,
+        "frame": 105539
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 724
+      }
+    },
+    {
+      "observation_sequence": 725,
+      "frame": 105548,
+      "simulation_seconds": 505.5007182508707,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 12.88239391835788,
+        "lateral_m": 0.0001011609144955022,
+        "speed_mps": 5.147801887936762,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001220703125
+      },
+      "ego": {
+        "longitudinal_m": 35.344691125529266,
+        "lateral_m": 3.4999302952909424,
+        "speed_mps": 4.349957324208274,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 643,
+        "frame": 105539
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 735
+      }
+    },
+    {
+      "observation_sequence": 736,
+      "frame": 105549,
+      "simulation_seconds": 505.55071825161576,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 13.137913810733727,
+        "lateral_m": 9.117530527352844e-05,
+        "speed_mps": 5.086621756892145,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001251220703125
+      },
+      "ego": {
+        "longitudinal_m": 35.562140333018654,
+        "lateral_m": 3.4999276347520767,
+        "speed_mps": 4.348450043399833,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 643,
+        "frame": 105539
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 750
+      }
+    },
+    {
+      "observation_sequence": 752,
+      "frame": 105550,
+      "simulation_seconds": 505.6007182523608,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 13.391961223850355,
+        "lateral_m": 9.584654386199376e-05,
+        "speed_mps": 5.078512659385499,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001220703125
+      },
+      "ego": {
+        "longitudinal_m": 35.77960289506622,
+        "lateral_m": 3.4999173502773226,
+        "speed_mps": 4.349972584478859,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 748,
+        "frame": 105549
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 759
+      }
+    },
+    {
+      "observation_sequence": 760,
+      "frame": 105551,
+      "simulation_seconds": 505.6507182531059,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 13.644356873188984,
+        "lateral_m": 9.984254926372668e-05,
+        "speed_mps": 5.028641686602619,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0012054443359375
+      },
+      "ego": {
+        "longitudinal_m": 35.99705591101483,
+        "lateral_m": 3.499929950085675,
+        "speed_mps": 4.348461962646898,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 748,
+        "frame": 105549
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 771
+      }
+    },
+    {
+      "observation_sequence": 772,
+      "frame": 105552,
+      "simulation_seconds": 505.70071825385094,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 13.89585225092929,
+        "lateral_m": 0.00011109992308100305,
+        "speed_mps": 5.03174208229629,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0012054443359375
+      },
+      "ego": {
+        "longitudinal_m": 36.214522281521624,
+        "lateral_m": 3.499934925958138,
+        "speed_mps": 4.349982597851268,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 748,
+        "frame": 105549
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 781
+      }
+    },
+    {
+      "observation_sequence": 782,
+      "frame": 105553,
+      "simulation_seconds": 505.750718254596,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 14.148034280357754,
+        "lateral_m": 0.00010737920650939758,
+        "speed_mps": 5.115059962906144,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0012054443359375
+      },
+      "ego": {
+        "longitudinal_m": 36.43197530682682,
+        "lateral_m": 3.499924637584809,
+        "speed_mps": 4.348468640877746,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 748,
+        "frame": 105549
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 791
+      }
+    },
+    {
+      "observation_sequence": 792,
+      "frame": 105554,
+      "simulation_seconds": 505.80071825534105,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 14.406544898258813,
+        "lateral_m": 9.098679650774381e-05,
+        "speed_mps": 5.163606187979551,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0012054443359375
+      },
+      "ego": {
+        "longitudinal_m": 36.649447405616755,
+        "lateral_m": 3.4999143570086297,
+        "speed_mps": 4.349986412472949,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 748,
+        "frame": 105549
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 800
+      }
+    },
+    {
+      "observation_sequence": 801,
+      "frame": 105555,
+      "simulation_seconds": 505.8507182560861,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 14.662926912144654,
+        "lateral_m": 8.13536184640657e-05,
+        "speed_mps": 5.102987285401269,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0012054443359375
+      },
+      "ego": {
+        "longitudinal_m": 36.86690041844651,
+        "lateral_m": 3.499934586210876,
+        "speed_mps": 4.348471498857608,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 748,
+        "frame": 105549
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 809
+      }
+    },
+    {
+      "observation_sequence": 810,
+      "frame": 105556,
+      "simulation_seconds": 505.90071825683117,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 14.917744894044553,
+        "lateral_m": 8.633986191100649e-05,
+        "speed_mps": 5.093022812809016,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001190185546875
+      },
+      "ego": {
+        "longitudinal_m": 37.084370606769106,
+        "lateral_m": 3.4999319342488753,
+        "speed_mps": 4.349988320436482,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 748,
+        "frame": 105549
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 821
+      }
+    },
+    {
+      "observation_sequence": 822,
+      "frame": 105557,
+      "simulation_seconds": 505.9507182575762,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 15.17080430065194,
+        "lateral_m": 9.060720813142565e-05,
+        "speed_mps": 5.041143401431032,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001190185546875
+      },
+      "ego": {
+        "longitudinal_m": 37.30182553942278,
+        "lateral_m": 3.499921646655261,
+        "speed_mps": 4.348472932086269,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 748,
+        "frame": 105549
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 830
+      }
+    },
+    {
+      "observation_sequence": 831,
+      "frame": 105558,
+      "simulation_seconds": 506.0007182583213,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 15.422860441962296,
+        "lateral_m": 9.446442426383136e-05,
+        "speed_mps": 5.042190058785279,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0011444091796875
+      },
+      "ego": {
+        "longitudinal_m": 37.51929572462652,
+        "lateral_m": 3.4999266240871547,
+        "speed_mps": 4.3499897497689375,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 748,
+        "frame": 105549
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 841
+      }
+    },
+    {
+      "observation_sequence": 842,
+      "frame": 105559,
+      "simulation_seconds": 506.05071825906634,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 15.673718765312472,
+        "lateral_m": 0.00010546137327236815,
+        "speed_mps": 5.00126884454483,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 37.736748743693994,
+        "lateral_m": 3.499931594501613,
+        "speed_mps": 4.348473884679403,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 748,
+        "frame": 105549
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 855
+      }
+    },
+    {
+      "observation_sequence": 857,
+      "frame": 105560,
+      "simulation_seconds": 506.1007182598114,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 15.927354194277697,
+        "lateral_m": 0.00010233479952788567,
+        "speed_mps": 5.157914718205837,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 37.95421893513545,
+        "lateral_m": 3.4999213131457187,
+        "speed_mps": 4.349990227723127,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 853,
+        "frame": 105559
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 864
+      }
+    },
+    {
+      "observation_sequence": 865,
+      "frame": 105561,
+      "simulation_seconds": 506.15071826055646,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 16.185841923997078,
+        "lateral_m": 8.593303294627836e-05,
+        "speed_mps": 5.14045525677385,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001190185546875
+      },
+      "ego": {
+        "longitudinal_m": 38.171673861551405,
+        "lateral_m": 3.499926284339892,
+        "speed_mps": 4.348474360922701,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 853,
+        "frame": 105559
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 874
+      }
+    },
+    {
+      "observation_sequence": 875,
+      "frame": 105562,
+      "simulation_seconds": 506.2007182613015,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 16.442346005066355,
+        "lateral_m": 8.397915055612017e-05,
+        "speed_mps": 5.125262254345839,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0011444091796875
+      },
+      "ego": {
+        "longitudinal_m": 38.389144040517415,
+        "lateral_m": 3.499946520559573,
+        "speed_mps": 4.349990703528959,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 853,
+        "frame": 105559
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 886
+      }
+    },
+    {
+      "observation_sequence": 887,
+      "frame": 105563,
+      "simulation_seconds": 506.2507182620466,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 16.696885514089136,
+        "lateral_m": 8.885155561361244e-05,
+        "speed_mps": 5.069064126267422,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 38.60659706582262,
+        "lateral_m": 3.499936232186244,
+        "speed_mps": 4.34847531808535,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 853,
+        "frame": 105559
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 894
+      }
+    },
+    {
+      "observation_sequence": 895,
+      "frame": 105564,
+      "simulation_seconds": 506.30071826279163,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 16.950204320088908,
+        "lateral_m": 9.322494307351884e-05,
+        "speed_mps": 5.065624222439837,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 38.82406916461255,
+        "lateral_m": 3.4999259516100647,
+        "speed_mps": 4.3499911830370595,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 853,
+        "frame": 105559
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 904
+      }
+    },
+    {
+      "observation_sequence": 905,
+      "frame": 105565,
+      "simulation_seconds": 506.3507182635367,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 17.202088796917796,
+        "lateral_m": 0.00010464137875002607,
+        "speed_mps": 5.020112019299631,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 39.04152218991775,
+        "lateral_m": 3.499915663236736,
+        "speed_mps": 4.348475316019996,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 853,
+        "frame": 105559
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 916
+      }
+    },
+    {
+      "observation_sequence": 917,
+      "frame": 105566,
+      "simulation_seconds": 506.40071826428175,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 17.453275187324262,
+        "lateral_m": 0.00010814304484415161,
+        "speed_mps": 5.026917918250748,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 39.25899237200262,
+        "lateral_m": 3.4999282700625227,
+        "speed_mps": 4.349991179467944,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 853,
+        "frame": 105559
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 925
+      }
+    },
+    {
+      "observation_sequence": 926,
+      "frame": 105567,
+      "simulation_seconds": 506.4507182650268,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 17.705338958028513,
+        "lateral_m": 0.00011200337983654097,
+        "speed_mps": 5.115428079179077,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 39.476447295299714,
+        "lateral_m": 3.4999408706505895,
+        "speed_mps": 4.348475315200874,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 853,
+        "frame": 105559
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 934
+      }
+    },
+    {
+      "observation_sequence": 935,
+      "frame": 105568,
+      "simulation_seconds": 506.50071826577187,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 17.964093716534176,
+        "lateral_m": 9.571077335440541e-05,
+        "speed_mps": 5.16981985269951,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 39.69391748674118,
+        "lateral_m": 3.4999305892946957,
+        "speed_mps": 4.349991182820226,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 853,
+        "frame": 105559
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 946
+      }
+    },
+    {
+      "observation_sequence": 947,
+      "frame": 105569,
+      "simulation_seconds": 506.5507182665169,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 18.220887717690275,
+        "lateral_m": 8.624601374991169e-05,
+        "speed_mps": 5.111338134612452,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 39.911370512046375,
+        "lateral_m": 3.4999203009213664,
+        "speed_mps": 4.3484757934447495,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 853,
+        "frame": 105559
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 958
+      }
+    },
+    {
+      "observation_sequence": 960,
+      "frame": 105570,
+      "simulation_seconds": 506.600718267262,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 18.476121501557387,
+        "lateral_m": 9.140223506602999e-05,
+        "speed_mps": 5.101555337627908,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 40.128840697250105,
+        "lateral_m": 3.49992527835326,
+        "speed_mps": 4.349991180369755,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 956,
+        "frame": 105569
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 970
+      }
+    },
+    {
+      "observation_sequence": 971,
+      "frame": 105571,
+      "simulation_seconds": 506.65071826800704,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 18.729596710131982,
+        "lateral_m": 9.583955915562752e-05,
+        "speed_mps": 5.049559101295328,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 40.34629562366606,
+        "lateral_m": 3.4999302495474334,
+        "speed_mps": 4.3484753151592175,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 956,
+        "frame": 105569
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 981
+      }
+    },
+    {
+      "observation_sequence": 982,
+      "frame": 105572,
+      "simulation_seconds": 506.7007182687521,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 18.98206865340955,
+        "lateral_m": 9.986675315720901e-05,
+        "speed_mps": 5.050180897194772,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 40.563765815107516,
+        "lateral_m": 3.499919968191539,
+        "speed_mps": 4.349991181340222,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 956,
+        "frame": 105569
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 989
+      }
+    },
+    {
+      "observation_sequence": 990,
+      "frame": 105573,
+      "simulation_seconds": 506.75071826949716,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 19.233304634876326,
+        "lateral_m": 0.00010338869184123647,
+        "speed_mps": 5.0086202440813,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 40.781218834175,
+        "lateral_m": 3.4999249386059974,
+        "speed_mps": 4.348475314519667,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 956,
+        "frame": 105569
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1001
+      }
+    },
+    {
+      "observation_sequence": 1002,
+      "frame": 105574,
+      "simulation_seconds": 506.8007182702422,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 19.484578760193713,
+        "lateral_m": 0.00011455561871895163,
+        "speed_mps": 5.073771463214547,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 40.99869092048949,
+        "lateral_m": 3.4999451756053936,
+        "speed_mps": 4.3499911802405675,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 956,
+        "frame": 105569
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1011
+      }
+    },
+    {
+      "observation_sequence": 1012,
+      "frame": 105575,
+      "simulation_seconds": 506.8507182709873,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 19.742898643247425,
+        "lateral_m": 9.808523721767728e-05,
+        "speed_mps": 5.159822016168264,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 41.216143945794684,
+        "lateral_m": 3.4999348872320644,
+        "speed_mps": 4.348475317870417,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 956,
+        "frame": 105569
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1020
+      }
+    },
+    {
+      "observation_sequence": 1021,
+      "frame": 105576,
+      "simulation_seconds": 506.90071827173233,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 20.0004174399423,
+        "lateral_m": 8.128737541798596e-05,
+        "speed_mps": 5.145263196108876,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 41.43361413723614,
+        "lateral_m": 3.4999246058761697,
+        "speed_mps": 4.3499911827900775,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 956,
+        "frame": 105569
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1031
+      }
+    },
+    {
+      "observation_sequence": 1032,
+      "frame": 105577,
+      "simulation_seconds": 506.9507182724774,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 20.255910623201796,
+        "lateral_m": 8.654963797359062e-05,
+        "speed_mps": 5.0875029452188345,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 41.651069069889815,
+        "lateral_m": 3.499914318282556,
+        "speed_mps": 4.3484757926049005,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 956,
+        "frame": 105569
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1041
+      }
+    },
+    {
+      "observation_sequence": 1042,
+      "frame": 105578,
+      "simulation_seconds": 507.00071827322245,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 20.510083918198813,
+        "lateral_m": 9.890173164556898e-05,
+        "speed_mps": 5.082042681059611,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 41.868539251974696,
+        "lateral_m": 3.499926925108343,
+        "speed_mps": 4.3499916559570115,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 956,
+        "frame": 105569
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1050
+      }
+    },
+    {
+      "observation_sequence": 1051,
+      "frame": 105579,
+      "simulation_seconds": 507.0507182739675,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 20.76272752283899,
+        "lateral_m": 0.00010299909999681063,
+        "speed_mps": 5.0342755154621575,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 42.08599226792331,
+        "lateral_m": 3.4999395249166954,
+        "speed_mps": 4.34847579166954,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 956,
+        "frame": 105569
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1065
+      }
+    },
+    {
+      "observation_sequence": 1067,
+      "frame": 105580,
+      "simulation_seconds": 507.10071827471256,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 21.01454715293864,
+        "lateral_m": 0.00010675963146968351,
+        "speed_mps": 5.038771614413596,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 42.3034624562459,
+        "lateral_m": 3.499936872954695,
+        "speed_mps": 4.349992136144491,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1063,
+        "frame": 105579
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1076
+      }
+    },
+    {
+      "observation_sequence": 1077,
+      "frame": 105581,
+      "simulation_seconds": 507.1507182754576,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 21.26532537077179,
+        "lateral_m": 0.00011009443855461779,
+        "speed_mps": 5.000863534486378,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 42.520917388899576,
+        "lateral_m": 3.499926585361081,
+        "speed_mps": 4.348476271064762,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1063,
+        "frame": 105579
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1085
+      }
+    },
+    {
+      "observation_sequence": 1086,
+      "frame": 105582,
+      "simulation_seconds": 507.2007182762027,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 21.519044719950987,
+        "lateral_m": 0.00011463156616373267,
+        "speed_mps": 5.16062077041519,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 42.73838758034104,
+        "lateral_m": 3.499916304005186,
+        "speed_mps": 4.349992135214647,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1063,
+        "frame": 105579
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1095
+      }
+    },
+    {
+      "observation_sequence": 1096,
+      "frame": 105583,
+      "simulation_seconds": 507.25071827694774,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 21.777921548758947,
+        "lateral_m": 9.838886144135535e-05,
+        "speed_mps": 5.1500077384109195,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0011444091796875
+      },
+      "ego": {
+        "longitudinal_m": 42.95584059940852,
+        "lateral_m": 3.499921274419645,
+        "speed_mps": 4.348476267895191,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1063,
+        "frame": 105579
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1106
+      }
+    },
+    {
+      "observation_sequence": 1107,
+      "frame": 105584,
+      "simulation_seconds": 507.3007182776928,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 22.034887214396523,
+        "lateral_m": 8.136488229275839e-05,
+        "speed_mps": 5.1344366052189585,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0011444091796875
+      },
+      "ego": {
+        "longitudinal_m": 43.17331268884187,
+        "lateral_m": 3.499933882025147,
+        "speed_mps": 4.349992610208337,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1063,
+        "frame": 105579
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1116
+      }
+    },
+    {
+      "observation_sequence": 1117,
+      "frame": 105585,
+      "simulation_seconds": 507.35071827843785,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 22.289880669237117,
+        "lateral_m": 9.405225341311413e-05,
+        "speed_mps": 5.0780677674535335,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0011444091796875
+      },
+      "ego": {
+        "longitudinal_m": 43.3907657110282,
+        "lateral_m": 3.499931223045712,
+        "speed_mps": 4.348476746601792,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1063,
+        "frame": 105579
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1126
+      }
+    },
+    {
+      "observation_sequence": 1127,
+      "frame": 105586,
+      "simulation_seconds": 507.4007182791829,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 22.54363053599189,
+        "lateral_m": 9.860185646216879e-05,
+        "speed_mps": 5.074139582508297,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 43.6082358993508,
+        "lateral_m": 3.499928571083711,
+        "speed_mps": 4.349992612177109,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1063,
+        "frame": 105579
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1136
+      }
+    },
+    {
+      "observation_sequence": 1137,
+      "frame": 105587,
+      "simulation_seconds": 507.45071827992797,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 22.795919373816005,
+        "lateral_m": 0.00010255419782411249,
+        "speed_mps": 5.027924044680743,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 43.82569083200447,
+        "lateral_m": 3.499918283490097,
+        "speed_mps": 4.3484762695863015,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1063,
+        "frame": 105579
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1144
+      }
+    },
+    {
+      "observation_sequence": 1145,
+      "frame": 105588,
+      "simulation_seconds": 507.500718280673,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 23.047471975129376,
+        "lateral_m": 0.00010620556919751535,
+        "speed_mps": 5.033870205428516,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 44.04315910985974,
+        "lateral_m": 3.4999232601422756,
+        "speed_mps": 4.349992133444024,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1063,
+        "frame": 105579
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1154
+      }
+    },
+    {
+      "observation_sequence": 1155,
+      "frame": 105589,
+      "simulation_seconds": 507.5507182814181,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 23.29804801402434,
+        "lateral_m": 0.00010945772649284709,
+        "speed_mps": 4.997350198569359,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 44.260614030037964,
+        "lateral_m": 3.4999434901242363,
+        "speed_mps": 4.3484762681931795,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1063,
+        "frame": 105579
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1170
+      }
+    },
+    {
+      "observation_sequence": 1172,
+      "frame": 105590,
+      "simulation_seconds": 507.60071828216314,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 23.55557824857233,
+        "lateral_m": 0.00010792333077065848,
+        "speed_mps": 5.210862682275544,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0011444091796875
+      },
+      "ego": {
+        "longitudinal_m": 44.47808422147942,
+        "lateral_m": 3.499933208768342,
+        "speed_mps": 4.349992613512075,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1168,
+        "frame": 105589
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1179
+      }
+    },
+    {
+      "observation_sequence": 1180,
+      "frame": 105591,
+      "simulation_seconds": 507.6507182829082,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 23.813447997386316,
+        "lateral_m": 9.126893653027372e-05,
+        "speed_mps": 5.1331443825274246,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0011444091796875
+      },
+      "ego": {
+        "longitudinal_m": 44.695539154133094,
+        "lateral_m": 3.4999229211747283,
+        "speed_mps": 4.348476270603615,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1168,
+        "frame": 105589
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1191
+      }
+    },
+    {
+      "observation_sequence": 1192,
+      "frame": 105592,
+      "simulation_seconds": 507.70071828365326,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 24.069719381941837,
+        "lateral_m": 8.921992891057669e-05,
+        "speed_mps": 5.1215019170381195,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001190185546875
+      },
+      "ego": {
+        "longitudinal_m": 44.91300743822608,
+        "lateral_m": 3.4999126390391186,
+        "speed_mps": 4.349992134479655,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1168,
+        "frame": 105589
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1199
+      }
+    },
+    {
+      "observation_sequence": 1200,
+      "frame": 105593,
+      "simulation_seconds": 507.7507182843983,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 24.32413300596537,
+        "lateral_m": 9.404087277831846e-05,
+        "speed_mps": 5.067313658067604,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0011444091796875
+      },
+      "ego": {
+        "longitudinal_m": 45.13046235840431,
+        "lateral_m": 3.49993286902108,
+        "speed_mps": 4.348476266952485,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1168,
+        "frame": 105589
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1211
+      }
+    },
+    {
+      "observation_sequence": 1212,
+      "frame": 105594,
+      "simulation_seconds": 507.8007182851434,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 24.577409850298725,
+        "lateral_m": 9.839710650830745e-05,
+        "speed_mps": 5.065525995473734,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 45.34793254672691,
+        "lateral_m": 3.4999302170590796,
+        "speed_mps": 4.349992611506374,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1168,
+        "frame": 105589
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1221
+      }
+    },
+    {
+      "observation_sequence": 1222,
+      "frame": 105595,
+      "simulation_seconds": 507.85071828588843,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 24.829336291912888,
+        "lateral_m": 0.00010220130202096868,
+        "speed_mps": 5.021406633961954,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 45.56538747626172,
+        "lateral_m": 3.4999275588593592,
+        "speed_mps": 4.348476746211042,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1168,
+        "frame": 105589
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1229
+      }
+    },
+    {
+      "observation_sequence": 1230,
+      "frame": 105596,
+      "simulation_seconds": 507.9007182866335,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 25.080621864439973,
+        "lateral_m": 0.0001057435132948998,
+        "speed_mps": 5.029228195342645,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 45.78285766770318,
+        "lateral_m": 3.4999172775034646,
+        "speed_mps": 4.34999261134694,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1168,
+        "frame": 105589
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1241
+      }
+    },
+    {
+      "observation_sequence": 1242,
+      "frame": 105597,
+      "simulation_seconds": 507.95071828737855,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 25.332834405206295,
+        "lateral_m": 0.00011729405995075659,
+        "speed_mps": 5.118784537125576,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 46.0003106836518,
+        "lateral_m": 3.499929877311817,
+        "speed_mps": 4.348476267423213,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1168,
+        "frame": 105589
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1251
+      }
+    },
+    {
+      "observation_sequence": 1252,
+      "frame": 105598,
+      "simulation_seconds": 508.0007182881236,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 25.59180278674098,
+        "lateral_m": 0.0001010887815481986,
+        "speed_mps": 5.174443744756003,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001190185546875
+      },
+      "ego": {
+        "longitudinal_m": 46.21778086573667,
+        "lateral_m": 3.499942484137604,
+        "speed_mps": 4.349992134250396,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1168,
+        "frame": 105589
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1261
+      }
+    },
+    {
+      "observation_sequence": 1262,
+      "frame": 105599,
+      "simulation_seconds": 508.05071828886867,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 25.848848561014435,
+        "lateral_m": 8.409755042944334e-05,
+        "speed_mps": 5.116251466520412,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001190185546875
+      },
+      "ego": {
+        "longitudinal_m": 46.435235798390345,
+        "lateral_m": 3.49993219654399,
+        "speed_mps": 4.348527767479794,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1168,
+        "frame": 105589
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1275
+      }
+    },
+    {
+      "observation_sequence": 1277,
+      "frame": 105600,
+      "simulation_seconds": 508.1007182896137,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 26.1043226707892,
+        "lateral_m": 8.935201583508585e-05,
+        "speed_mps": 5.10624026317999,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0011444091796875
+      },
+      "ego": {
+        "longitudinal_m": 46.652709804528754,
+        "lateral_m": 3.499921916747526,
+        "speed_mps": 4.350064615727556,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1273,
+        "frame": 105599
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1286
+      }
+    },
+    {
+      "observation_sequence": 1287,
+      "frame": 105601,
+      "simulation_seconds": 508.1507182903588,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 26.358030575877553,
+        "lateral_m": 9.388446515422311e-05,
+        "speed_mps": 5.053896412486316,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 46.870166641412034,
+        "lateral_m": 3.4999192593275206,
+        "speed_mps": 4.348512984988113,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1273,
+        "frame": 105599
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1295
+      }
+    },
+    {
+      "observation_sequence": 1296,
+      "frame": 105602,
+      "simulation_seconds": 508.20071829110384,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 26.610697068699412,
+        "lateral_m": 9.799119008542002e-05,
+        "speed_mps": 5.0540799951335735,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 47.08763682037805,
+        "lateral_m": 3.4999394955472014,
+        "speed_mps": 4.350005961183545,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1273,
+        "frame": 105599
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1304
+      }
+    },
+    {
+      "observation_sequence": 1305,
+      "frame": 105603,
+      "simulation_seconds": 508.2507182918489,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 26.86211615561964,
+        "lateral_m": 0.00010158798140908441,
+        "speed_mps": 5.0120134176999205,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 47.30508984568325,
+        "lateral_m": 3.499929207173872,
+        "speed_mps": 4.348474362889253,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1273,
+        "frame": 105599
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1316
+      }
+    },
+    {
+      "observation_sequence": 1317,
+      "frame": 105604,
+      "simulation_seconds": 508.30071829259396,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 27.11298592306066,
+        "lateral_m": 0.0001125896087075997,
+        "speed_mps": 5.0218009787455795,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 47.52256003400585,
+        "lateral_m": 3.499926555211872,
+        "speed_mps": 4.349982121370092,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1273,
+        "frame": 105599
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1324
+      }
+    },
+    {
+      "observation_sequence": 1325,
+      "frame": 105605,
+      "simulation_seconds": 508.350718293339,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 27.36832270686419,
+        "lateral_m": 0.00011015854073975241,
+        "speed_mps": 5.183378756838492,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 47.740014966659515,
+        "lateral_m": 3.4999162676182576,
+        "speed_mps": 4.348461010174155,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1273,
+        "frame": 105599
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1336
+      }
+    },
+    {
+      "observation_sequence": 1337,
+      "frame": 105606,
+      "simulation_seconds": 508.4007182940841,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 27.626951580370605,
+        "lateral_m": 9.381447306786549e-05,
+        "speed_mps": 5.163315306353013,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0011444091796875
+      },
+      "ego": {
+        "longitudinal_m": 47.957484195070165,
+        "lateral_m": 3.4999288740541874,
+        "speed_mps": 4.349975443329871,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1273,
+        "frame": 105599
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1346
+      }
+    },
+    {
+      "observation_sequence": 1347,
+      "frame": 105607,
+      "simulation_seconds": 508.45071829482913,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 27.883261115014456,
+        "lateral_m": 8.415166585432933e-05,
+        "speed_mps": 5.102627747954946,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0011444091796875
+      },
+      "ego": {
+        "longitudinal_m": 48.174939115248385,
+        "lateral_m": 3.499949104036148,
+        "speed_mps": 4.348459579179795,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1273,
+        "frame": 105599
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1356
+      }
+    },
+    {
+      "observation_sequence": 1357,
+      "frame": 105608,
+      "simulation_seconds": 508.5007182955742,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 28.138101985096036,
+        "lateral_m": 8.914726588122451e-05,
+        "speed_mps": 5.0943598639947805,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0011444091796875
+      },
+      "ego": {
+        "longitudinal_m": 48.39240930668985,
+        "lateral_m": 3.499938822680254,
+        "speed_mps": 4.3499764017314595,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1273,
+        "frame": 105599
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1364
+      }
+    },
+    {
+      "observation_sequence": 1365,
+      "frame": 105609,
+      "simulation_seconds": 508.55071829631925,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 28.391268203217937,
+        "lateral_m": 9.345827614143376e-05,
+        "speed_mps": 5.043830855788058,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 48.60986423934352,
+        "lateral_m": 3.4999285350866396,
+        "speed_mps": 4.34846244320271,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1273,
+        "frame": 105599
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1380
+      }
+    },
+    {
+      "observation_sequence": 1382,
+      "frame": 105610,
+      "simulation_seconds": 508.6007182970643,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 28.643488376497007,
+        "lateral_m": 9.738254776351339e-05,
+        "speed_mps": 5.045817836581828,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 48.82733347711074,
+        "lateral_m": 3.4999182533408884,
+        "speed_mps": 4.349979737680396,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1378,
+        "frame": 105609
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1391
+      }
+    },
+    {
+      "observation_sequence": 1392,
+      "frame": 105611,
+      "simulation_seconds": 508.65071829780936,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 28.894552693482314,
+        "lateral_m": 0.00010846370599164323,
+        "speed_mps": 5.0055579952549625,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 49.04478840352669,
+        "lateral_m": 3.4999232245350616,
+        "speed_mps": 4.34846625455239,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1378,
+        "frame": 105609
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1399
+      }
+    },
+    {
+      "observation_sequence": 1400,
+      "frame": 105612,
+      "simulation_seconds": 508.7007182985544,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 29.145712381010153,
+        "lateral_m": 0.00011195445607582212,
+        "speed_mps": 5.072085843261043,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 49.262257628818475,
+        "lateral_m": 3.4999434603648854,
+        "speed_mps": 4.349983550685277,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1378,
+        "frame": 105609
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1410
+      }
+    },
+    {
+      "observation_sequence": 1411,
+      "frame": 105613,
+      "simulation_seconds": 508.7507182992995,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 29.4040475197328,
+        "lateral_m": 0.00010311970618827847,
+        "speed_mps": 5.1615681940789555,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 49.47971256147215,
+        "lateral_m": 3.499933172771271,
+        "speed_mps": 4.3484695956084884,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1378,
+        "frame": 105609
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1421
+      }
+    },
+    {
+      "observation_sequence": 1422,
+      "frame": 105614,
+      "simulation_seconds": 508.80071830004454,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 29.661669313245234,
+        "lateral_m": 8.636394899838411e-05,
+        "speed_mps": 5.147341730459622,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0011444091796875
+      },
+      "ego": {
+        "longitudinal_m": 49.69718179923937,
+        "lateral_m": 3.499922891025519,
+        "speed_mps": 4.349986414107098,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1378,
+        "frame": 105609
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1429
+      }
+    },
+    {
+      "observation_sequence": 1430,
+      "frame": 105615,
+      "simulation_seconds": 508.8507183007896,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 29.91727312583505,
+        "lateral_m": 8.404204113000857e-05,
+        "speed_mps": 5.089708795284569,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0011444091796875
+      },
+      "ego": {
+        "longitudinal_m": 49.91463673189303,
+        "lateral_m": 3.499912603431905,
+        "speed_mps": 4.348471500714465,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1378,
+        "frame": 105609
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1441
+      }
+    },
+    {
+      "observation_sequence": 1442,
+      "frame": 105616,
+      "simulation_seconds": 508.90071830153465,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 30.171557050162388,
+        "lateral_m": 8.8809964378005e-05,
+        "speed_mps": 5.084253775437005,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 50.13210595718482,
+        "lateral_m": 3.4999328392617284,
+        "speed_mps": 4.3499878409823065,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1378,
+        "frame": 105609
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1451
+      }
+    },
+    {
+      "observation_sequence": 1452,
+      "frame": 105617,
+      "simulation_seconds": 508.9507183022797,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 30.42430365162013,
+        "lateral_m": 9.294943733904361e-05,
+        "speed_mps": 5.036416513582927,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 50.34956088048191,
+        "lateral_m": 3.4999454398497956,
+        "speed_mps": 4.348523473102187,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1378,
+        "frame": 105609
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1461
+      }
+    },
+    {
+      "observation_sequence": 1462,
+      "frame": 105618,
+      "simulation_seconds": 509.00071830302477,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 30.676230090115432,
+        "lateral_m": 0.00010438302674546825,
+        "speed_mps": 5.040770037327864,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 50.56703583405683,
+        "lateral_m": 3.4999504192309767,
+        "speed_mps": 4.350110391878928,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1378,
+        "frame": 105609
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1471
+      }
+    },
+    {
+      "observation_sequence": 1472,
+      "frame": 105619,
+      "simulation_seconds": 509.0507183037698,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 30.927103675372255,
+        "lateral_m": 0.00010775681958021324,
+        "speed_mps": 5.002673130539462,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 50.78449648875592,
+        "lateral_m": 3.4999401339765073,
+        "speed_mps": 4.348628383928631,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1378,
+        "frame": 105609
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1485
+      }
+    },
+    {
+      "observation_sequence": 1487,
+      "frame": 105620,
+      "simulation_seconds": 509.1007183045149,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 31.18091076570009,
+        "lateral_m": 0.00010470042018539093,
+        "speed_mps": 5.162046989608832,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 51.00197335591704,
+        "lateral_m": 3.4999298553496154,
+        "speed_mps": 4.3501523549393815,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1483,
+        "frame": 105619
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1496
+      }
+    },
+    {
+      "observation_sequence": 1497,
+      "frame": 105621,
+      "simulation_seconds": 509.15071830525994,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 31.43982574147752,
+        "lateral_m": 8.84733097629379e-05,
+        "speed_mps": 5.15069152081748,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 51.21943305694189,
+        "lateral_m": 3.499919569705289,
+        "speed_mps": 4.34863076591936,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1483,
+        "frame": 105619
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1505
+      }
+    },
+    {
+      "observation_sequence": 1506,
+      "frame": 105622,
+      "simulation_seconds": 509.200718306005,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 31.696825736268753,
+        "lateral_m": 7.909275937803724e-05,
+        "speed_mps": 5.134928224212436,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 51.43690897042877,
+        "lateral_m": 3.4999092906885396,
+        "speed_mps": 4.3501308938926195,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1483,
+        "frame": 105619
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1516
+      }
+    },
+    {
+      "observation_sequence": 1517,
+      "frame": 105623,
+      "simulation_seconds": 509.25071830675006,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 31.95182873097058,
+        "lateral_m": 8.415463517961151e-05,
+        "speed_mps": 5.078085886753883,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 51.654369612652424,
+        "lateral_m": 3.4999295230096457,
+        "speed_mps": 4.34859738326337,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1483,
+        "frame": 105619
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1526
+      }
+    },
+    {
+      "observation_sequence": 1527,
+      "frame": 105624,
+      "simulation_seconds": 509.3007183074951,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 32.20556715363451,
+        "lateral_m": 8.869955993868854e-05,
+        "speed_mps": 5.073793873731079,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 51.87184551678272,
+        "lateral_m": 3.499942132174578,
+        "speed_mps": 4.350093700606885,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1483,
+        "frame": 105619
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1534
+      }
+    },
+    {
+      "observation_sequence": 1535,
+      "frame": 105625,
+      "simulation_seconds": 509.3507183082402,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 32.45783500750656,
+        "lateral_m": 0.00010027271832943607,
+        "speed_mps": 5.027284126663363,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0010833740234375
+      },
+      "ego": {
+        "longitudinal_m": 52.08930521780758,
+        "lateral_m": 3.499931846530251,
+        "speed_mps": 4.3485601947064785,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1483,
+        "frame": 105619
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1545
+      }
+    },
+    {
+      "observation_sequence": 1546,
+      "frame": 105626,
+      "simulation_seconds": 509.40071830898523,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 32.70934564715351,
+        "lateral_m": 0.00010390693597291979,
+        "speed_mps": 5.033026678913314,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0010833740234375
+      },
+      "ego": {
+        "longitudinal_m": 52.30677827027174,
+        "lateral_m": 3.4999215663439296,
+        "speed_mps": 4.350059370135209,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1483,
+        "frame": 105619
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1556
+      }
+    },
+    {
+      "observation_sequence": 1557,
+      "frame": 105627,
+      "simulation_seconds": 509.4507183097303,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 32.95988163173053,
+        "lateral_m": 0.00010714271925333328,
+        "speed_mps": 4.996370773815192,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0010833740234375
+      },
+      "ego": {
+        "longitudinal_m": 52.524235110273885,
+        "lateral_m": 3.4999112795300302,
+        "speed_mps": 4.348528721025864,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1483,
+        "frame": 105619
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1564
+      }
+    },
+    {
+      "observation_sequence": 1565,
+      "frame": 105628,
+      "simulation_seconds": 509.50071831047535,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 33.217356556291655,
+        "lateral_m": 9.795631790249053e-05,
+        "speed_mps": 5.209700152308783,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 52.7417052892399,
+        "lateral_m": 3.499931515749711,
+        "speed_mps": 4.350032186566975,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1483,
+        "frame": 105619
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1574
+      }
+    },
+    {
+      "observation_sequence": 1575,
+      "frame": 105629,
+      "simulation_seconds": 509.5507183112204,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 33.475167177302964,
+        "lateral_m": 8.127775249722365e-05,
+        "speed_mps": 5.131941320093719,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 52.95915926198162,
+        "lateral_m": 3.4999364865540272,
+        "speed_mps": 4.348506309862441,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1483,
+        "frame": 105619
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1590
+      }
+    },
+    {
+      "observation_sequence": 1592,
+      "frame": 105630,
+      "simulation_seconds": 509.60071831196547,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 33.73137943093695,
+        "lateral_m": 8.683396760640616e-05,
+        "speed_mps": 5.120361796342827,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 53.176629453423075,
+        "lateral_m": 3.4999262051981326,
+        "speed_mps": 4.350015024034678,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1588,
+        "frame": 105629
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1601
+      }
+    },
+    {
+      "observation_sequence": 1602,
+      "frame": 105631,
+      "simulation_seconds": 509.6507183127105,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 33.98573583450627,
+        "lateral_m": 9.163152002425977e-05,
+        "speed_mps": 5.066265091288268,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 53.39408533975098,
+        "lateral_m": 3.499915917994376,
+        "speed_mps": 4.348492481796373,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1588,
+        "frame": 105629
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1611
+      }
+    },
+    {
+      "observation_sequence": 1612,
+      "frame": 105632,
+      "simulation_seconds": 509.7007183134556,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 34.238964995127795,
+        "lateral_m": 9.596826087934426e-05,
+        "speed_mps": 5.064586147466122,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0010833740234375
+      },
+      "ego": {
+        "longitudinal_m": 53.61155552183586,
+        "lateral_m": 3.4999285248201635,
+        "speed_mps": 4.35000357700652,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1588,
+        "frame": 105629
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1620
+      }
+    },
+    {
+      "observation_sequence": 1621,
+      "frame": 105633,
+      "simulation_seconds": 509.75071831420064,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 34.490843749911264,
+        "lateral_m": 0.00010738235741086267,
+        "speed_mps": 5.020591240867376,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001068115234375
+      },
+      "ego": {
+        "longitudinal_m": 53.82901139880719,
+        "lateral_m": 3.499941125798088,
+        "speed_mps": 4.348535871505975,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1588,
+        "frame": 105629
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1631
+      }
+    },
+    {
+      "observation_sequence": 1632,
+      "frame": 105634,
+      "simulation_seconds": 509.8007183149457,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 34.742091175468886,
+        "lateral_m": 0.00011090897438486604,
+        "speed_mps": 5.028543457116969,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0010833740234375
+      },
+      "ego": {
+        "longitudinal_m": 54.04648539870787,
+        "lateral_m": 3.4999461047894114,
+        "speed_mps": 4.350119451273793,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1588,
+        "frame": 105629
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1639
+      }
+    },
+    {
+      "observation_sequence": 1640,
+      "frame": 105635,
+      "simulation_seconds": 509.85071831569076,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 34.99427320177849,
+        "lateral_m": 0.00011481765170702138,
+        "speed_mps": 5.118331542286203,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0010833740234375
+      },
+      "ego": {
+        "longitudinal_m": 54.2639470070812,
+        "lateral_m": 3.4999358199247994,
+        "speed_mps": 4.34863553576278,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1588,
+        "frame": 105629
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1651
+      }
+    },
+    {
+      "observation_sequence": 1652,
+      "frame": 105636,
+      "simulation_seconds": 509.9007183164358,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 35.25323013922233,
+        "lateral_m": 9.860769501448749e-05,
+        "speed_mps": 5.174297832335789,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 54.481424827916555,
+        "lateral_m": 3.4999255416877655,
+        "speed_mps": 4.350157599228398,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1588,
+        "frame": 105629
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1661
+      }
+    },
+    {
+      "observation_sequence": 1662,
+      "frame": 105637,
+      "simulation_seconds": 509.9507183171809,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 35.51027018833151,
+        "lateral_m": 8.924351864450682e-05,
+        "speed_mps": 5.11621474974371,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 54.69888738996412,
+        "lateral_m": 3.499915257213011,
+        "speed_mps": 4.348635056450757,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1588,
+        "frame": 105629
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1669
+      }
+    },
+    {
+      "observation_sequence": 1670,
+      "frame": 105638,
+      "simulation_seconds": 510.00071831792593,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 35.76574239387666,
+        "lateral_m": 8.686781044139023e-05,
+        "speed_mps": 5.106238356703899,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 54.916364247768655,
+        "lateral_m": 3.4999278667678007,
+        "speed_mps": 4.350134230559223,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1588,
+        "frame": 105629
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1680
+      }
+    },
+    {
+      "observation_sequence": 1681,
+      "frame": 105639,
+      "simulation_seconds": 510.050718318671,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 36.01945220631349,
+        "lateral_m": 9.140103947552318e-05,
+        "speed_mps": 5.053926929977112,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 55.13382489311117,
+        "lateral_m": 3.499940469695013,
+        "speed_mps": 4.348599292813041,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1588,
+        "frame": 105629
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1695
+      }
+    },
+    {
+      "observation_sequence": 1697,
+      "frame": 105640,
+      "simulation_seconds": 510.10071831941605,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 36.272120603364954,
+        "lateral_m": 0.0001031379380154792,
+        "speed_mps": 5.054131969729103,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 55.35129985292381,
+        "lateral_m": 3.499930190288407,
+        "speed_mps": 4.350095610215873,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1693,
+        "frame": 105639
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1706
+      }
+    },
+    {
+      "observation_sequence": 1707,
+      "frame": 105641,
+      "simulation_seconds": 510.1507183201611,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 36.52353587558824,
+        "lateral_m": 0.0001067331699091522,
+        "speed_mps": 5.012083036002462,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 55.56875860027443,
+        "lateral_m": 3.4999199042542224,
+        "speed_mps": 4.348561147291211,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.000823974609375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1693,
+        "frame": 105639
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1716
+      }
+    },
+    {
+      "observation_sequence": 1717,
+      "frame": 105642,
+      "simulation_seconds": 510.20071832090616,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 36.774415182890486,
+        "lateral_m": 0.00011010930188888428,
+        "speed_mps": 5.021879180643396,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 55.786286925299144,
+        "lateral_m": 3.5000088288002544,
+        "speed_mps": 4.3505211056629545,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0097503662109375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1693,
+        "frame": 105639
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1726
+      }
+    },
+    {
+      "observation_sequence": 1727,
+      "frame": 105643,
+      "simulation_seconds": 510.2507183216512,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 37.029751966694015,
+        "lateral_m": 0.000107678233921037,
+        "speed_mps": 5.183464586843927,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 56.00374946551469,
+        "lateral_m": 3.5000519500827565,
+        "speed_mps": 4.348973887054914,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.01092529296875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1693,
+        "frame": 105639
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1736
+      }
+    },
+    {
+      "observation_sequence": 1737,
+      "frame": 105644,
+      "simulation_seconds": 510.3007183223963,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 37.2883827475489,
+        "lateral_m": 9.13349459641475e-05,
+        "speed_mps": 5.163404951140374,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0011444091796875
+      },
+      "ego": {
+        "longitudinal_m": 56.22123250660746,
+        "lateral_m": 3.500102709141089,
+        "speed_mps": 4.35035911731864,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.010406494140625
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1693,
+        "frame": 105639
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1746
+      }
+    },
+    {
+      "observation_sequence": 1747,
+      "frame": 105645,
+      "simulation_seconds": 510.35071832314134,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 37.5446960968897,
+        "lateral_m": 8.167369818060446e-05,
+        "speed_mps": 5.102711670525087,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.0011444091796875
+      },
+      "ego": {
+        "longitudinal_m": 56.43869982455077,
+        "lateral_m": 3.500122944191197,
+        "speed_mps": 4.348731261484768,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.009613037109375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1693,
+        "frame": 105639
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1756
+      }
+    },
+    {
+      "observation_sequence": 1757,
+      "frame": 105646,
+      "simulation_seconds": 510.4007183238864,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 37.799542689016704,
+        "lateral_m": 8.667163735248673e-05,
+        "speed_mps": 5.094437110790157,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 56.65617715607357,
+        "lateral_m": 3.500143183334809,
+        "speed_mps": 4.350162290470293,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.008819580078125
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1693,
+        "frame": 105639
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1766
+      }
+    },
+    {
+      "observation_sequence": 1767,
+      "frame": 105647,
+      "simulation_seconds": 510.45071832463145,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 38.052712718716684,
+        "lateral_m": 9.861360093645077e-05,
+        "speed_mps": 5.043900950043778,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 56.87363779829721,
+        "lateral_m": 3.500163415655915,
+        "speed_mps": 4.348583029057217,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0080108642578125
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1693,
+        "frame": 105639
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1774
+      }
+    },
+    {
+      "observation_sequence": 1775,
+      "frame": 105648,
+      "simulation_seconds": 510.5007183253765,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 38.30493670669271,
+        "lateral_m": 0.00010253943198852526,
+        "speed_mps": 5.045878395012196,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 57.0911113120042,
+        "lateral_m": 3.500191282633991,
+        "speed_mps": 4.350054565435144,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0072784423828125
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1693,
+        "frame": 105639
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1785
+      }
+    },
+    {
+      "observation_sequence": 1786,
+      "frame": 105649,
+      "simulation_seconds": 510.55071832612157,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 38.5559991194484,
+        "lateral_m": 0.00010599041660789427,
+        "speed_mps": 5.005609970984917,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 57.308566712138415,
+        "lateral_m": 3.500203883416987,
+        "speed_mps": 4.34850772015362,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0065765380859375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1693,
+        "frame": 105639
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1800
+      }
+    },
+    {
+      "observation_sequence": 1802,
+      "frame": 105650,
+      "simulation_seconds": 510.6007183268666,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 38.807162621673186,
+        "lateral_m": 0.00010948272612206628,
+        "speed_mps": 5.0721263748232195,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 57.52603736794155,
+        "lateral_m": 3.5002241198315964,
+        "speed_mps": 4.35000357089102,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0059051513671875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1798,
+        "frame": 105649
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1811
+      }
+    },
+    {
+      "observation_sequence": 1812,
+      "frame": 105651,
+      "simulation_seconds": 510.6507183276117,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 39.065499667744305,
+        "lateral_m": 0.00010064875594952005,
+        "speed_mps": 5.161584405885444,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 57.7434913375644,
+        "lateral_m": 3.500236720029806,
+        "speed_mps": 4.348474365629674,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0052642822265625
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1798,
+        "frame": 105649
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1820
+      }
+    },
+    {
+      "observation_sequence": 1821,
+      "frame": 105652,
+      "simulation_seconds": 510.70071832835674,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 39.323123368605216,
+        "lateral_m": 8.389377847461965e-05,
+        "speed_mps": 5.14735031269815,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 57.960959618538524,
+        "lateral_m": 3.500234067288091,
+        "speed_mps": 4.3499826126535,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.004669189453125
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1798,
+        "frame": 105649
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1831
+      }
+    },
+    {
+      "observation_sequence": 1832,
+      "frame": 105653,
+      "simulation_seconds": 510.7507183291018,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 39.578727181195035,
+        "lateral_m": 8.157187060624585e-05,
+        "speed_mps": 5.0897145166080024,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 58.17841264384373,
+        "lateral_m": 3.500223778914762,
+        "speed_mps": 4.348461986070156,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.004119873046875
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1798,
+        "frame": 105649
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1840
+      }
+    },
+    {
+      "observation_sequence": 1841,
+      "frame": 105654,
+      "simulation_seconds": 510.80071832984686,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 39.8330111024035,
+        "lateral_m": 9.396918774800395e-05,
+        "speed_mps": 5.084255681999728,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 58.395880924817845,
+        "lateral_m": 3.500221126173046,
+        "speed_mps": 4.349976426847357,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0036163330078125
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1798,
+        "frame": 105649
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "preparing",
+        "sequence": 1851
+      }
+    },
+    {
+      "observation_sequence": 1852,
+      "frame": 105655,
+      "simulation_seconds": 510.8507183305919,
+      "phase": "preparing",
+      "policy": {
+        "longitudinal_m": 40.08575770386125,
+        "lateral_m": 9.810866070904256e-05,
+        "speed_mps": 5.036416036775258,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": -0.001129150390625
+      },
+      "ego": {
+        "longitudinal_m": 58.6132609191913,
+        "lateral_m": 3.5003939134290687,
+        "speed_mps": 4.34888192015822,
+        "length_m": 4.791779518127441,
+        "width_m": 2.163450002670288,
+        "yaw_error_degrees": 0.0007171630859375
+      },
+      "lane": {
+        "width_m": 3.5,
+        "target_offset_m": 3.50000029233756
+      },
+      "decision": {
+        "reason": "budget_exhausted",
+        "choice_id": "defer",
+        "source": "fallback",
+        "sequence": 1798,
+        "frame": 105649
+      },
+      "execution": {
+        "executed_choice": "defer",
+        "phase": "aborted",
+        "sequence": 1860
+      }
+    }
+  ]
+}

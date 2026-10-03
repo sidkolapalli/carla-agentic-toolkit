@@ -1,0 +1,31 @@
+{
+  "cli_exit_code": 0,
+  "final_guard_revalidated": true,
+  "source_sha256": "e430dcfe878639ff7596df0214df274658c80032dbf1d76712b6f8818c1e6c9a",
+  "cases": [
+    {
+      "case": "normal-budget",
+      "run_id": "7ccdd5dc76cc4e879c760416650322f7",
+      "capture_ok": true,
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "actors_restored": true,
+      "settings_restored": true,
+      "camera_images": 114
+    },
+    {
+      "case": "restricted-budget",
+      "run_id": "1d7f2d8a9310410eb3b5a1444f3a8f00",
+      "capture_ok": true,
+      "outcome": {
+        "completed": false,
+        "status": "corridor_invalid"
+      },
+      "actors_restored": true,
+      "settings_restored": true,
+      "camera_images": 175
+    }
+  ]
+}
