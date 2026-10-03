@@ -1,0 +1,70 @@
+{
+  "actors_restored": true,
+  "cleanup": {
+    "failures": [],
+    "ok": true,
+    "settings_restored": true,
+    "world_replaced": false
+  },
+  "code_sha256": "85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68",
+  "decision_reasons": {
+    "budget_exhausted": 17,
+    "selected": 1
+  },
+  "environment": {
+    "carla_client": "0.9.16",
+    "carla_server": "0.9.16",
+    "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+    "python": "3.12.14"
+  },
+  "evaluation_role": "Separate budget-exhaustion probe; excluded from the predeclared six-run matched comparison.",
+  "event_count": 1870,
+  "first_wall_time": "2026-10-03T02:13:26.700680+00:00",
+  "last_wall_time": "2026-10-03T02:13:37.813582+00:00",
+  "raw_trace_included": false,
+  "result": {
+    "cancellation_requested": false,
+    "deadline_exceeded": false,
+    "error": null,
+    "exit_code": 0,
+    "forced_termination": false,
+    "ok": false,
+    "outcome": {
+      "completed": false,
+      "status": "corridor_invalid"
+    },
+    "state": "completed",
+    "terminated": true
+  },
+  "run_id": "919533e9c8074854872e4fb78b42e90c",
+  "schema_version": 1,
+  "settings_restored": true,
+  "spec": {
+    "decision_interval_steps": 10,
+    "decision_timeout_seconds": 5.0,
+    "ego_speed_mps": 5.0,
+    "fixed_delta_seconds": 0.05,
+    "fixture": "town10-merge-v1",
+    "host": "172.18.112.1",
+    "max_requests": 1,
+    "max_steps": 600,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10,
+    "max_trace_bytes": 16777216,
+    "max_wall_seconds": 180.0,
+    "observation_mode": "range_filtered_ground_truth",
+    "observation_range_m": 80.0,
+    "policy": "jev",
+    "port": 3000,
+    "replay_run_id": null,
+    "rpc_timeout_seconds": 5.0,
+    "schema_version": 1,
+    "seed": 7,
+    "target_speed_mps": 6.0,
+    "timing_mode": "simulation_time"
+  },
+  "trace_alias": "private-trace:separate-seed-7-budget-exhaustion/events.jsonl",
+  "trace_bytes": 2320056,
+  "trace_sha256": "c64e2c1340f1024989a73c775f7b29be106cc607a763aabf656871622cd48bb7",
+  "validation_ok": true
+}

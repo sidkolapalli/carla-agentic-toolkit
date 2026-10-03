@@ -2,39 +2,36 @@
 
 from __future__ import annotations
 
-import contextlib
-import os
-from importlib import import_module
 from pathlib import Path
-from queue import Empty, Full, Queue
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.actor_runtime import actor_snapshot, destroy_actor
 from carla_agentic_toolkit.adapter_experiments import PythonCarlaExperimentMixin
-from carla_agentic_toolkit.carla_protocols import (
-    CarlaBlueprint,
-    CarlaBlueprintAttribute,
-    CarlaClient,
-    CarlaClientFactory,
-    CarlaImage,
-    CarlaSensor,
-    CarlaWorld,
+from carla_agentic_toolkit.adapter_objects import (
+    _blueprint_info,
+    _capture_image,
+    _carla_client_factory,
+    _configured_blueprint,
+    _mime_type,
+    _parent_actor,
+    _require_carla_client,
+    _safe_call,
+    _spawn_actor,
+    _spawn_sensor,
 )
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.experiment_common import (
     actor_counts,
-    carla_transform,
     frame,
     map_name,
-    require_sensor,
-    sensor_actor,
     world_settings,
     world_state,
 )
+from carla_agentic_toolkit.experiment_perception import require_async_sensor_read
+from carla_agentic_toolkit.managed_session import world_identity
 from carla_agentic_toolkit.models import (
     ActorSnapshot,
     AutopilotRequest,
-    BlueprintAttribute,
     BlueprintInfo,
     CameraAttachRequest,
     CaptureInfo,
@@ -49,9 +46,10 @@ from carla_agentic_toolkit.models import (
     TrafficPopulationRequest,
     TrafficPopulationResult,
     TrafficVehiclePathRequest,
-    Transform,
     WorldState,
 )
+from carla_agentic_toolkit.ownership import cleanup_report
+from carla_agentic_toolkit.recorder_paths import _server_recorder_path
 from carla_agentic_toolkit.traffic_runtime import (
     advance_world_once,
     populate_traffic_actors,
@@ -65,6 +63,10 @@ from carla_agentic_toolkit.traffic_tuning import set_traffic_vehicle_path, tune_
 
 __all__ = ["PythonCarlaAdapter"]
 
+if TYPE_CHECKING:
+    from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaSensor, CarlaWorld
+    from carla_agentic_toolkit.sensor_subscription import SensorSubscription
+
 
 class PythonCarlaAdapter(PythonCarlaExperimentMixin):
     """Adapter backed by CARLA's official Python API."""
@@ -75,6 +77,9 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
         self._port = port
         self._timeout = timeout
         self._recording: RecordingInfo | None = None
+        self._connected_client: CarlaClient | None = None
+        self._sensor_subscriptions: dict[int, SensorSubscription] = {}
+        self._sensor_handles: dict[int, CarlaSensor] = {}
 
     @property
     def host(self) -> str:
@@ -128,11 +133,20 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
     def load_world(self, map_name: str) -> WorldState:
         """Load a CARLA world by map name."""
         client = self._client()
+        self.close_sensor_subscriptions()
         try:
             world = client.load_world(map_name)
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
             raise CarlaAdapterError(str(exc)) from exc
+        self._sensor_handles.clear()
         return world_state(world)
+
+    def get_world_identity(self) -> int:
+        """Read the connected episode identity without advancing the world."""
+        try:
+            return world_identity(self._client().get_world())
+        except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+            raise CarlaAdapterError(str(exc)) from exc
 
     def set_sync_mode(self, *, enabled: bool, fixed_delta_seconds: float | None) -> WorldState:
         """Configure synchronous mode and fixed timestep."""
@@ -185,7 +199,39 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
     def destroy_actors(self, actor_ids: tuple[int, ...]) -> tuple[DestroyResult, ...]:
         """Destroy explicit CARLA actors by ID."""
         world = self._world(self._client())
-        return tuple(destroy_actor(world, actor_id) for actor_id in actor_ids)
+        return tuple(self._destroy_actor(world, actor_id) for actor_id in actor_ids)
+
+    def _destroy_actor(self, world: CarlaWorld, actor_id: int) -> DestroyResult:
+        """Use created sensor handles even before the next snapshot exposes their IDs."""
+        if actor_id not in self._sensor_handles:
+            result = destroy_actor(world, actor_id)
+            if result.error == "Actor was not found.":
+                return self._destroy_uncached_actor(world, actor_id)
+            return result
+        try:
+            result = self.detach_sensor(actor_id)
+        except CarlaAdapterError as exc:
+            return DestroyResult(actor_id, destroyed=False, error=str(exc))
+        return DestroyResult(actor_id, destroyed=bool(result["destroyed"]), error=None)
+
+    def _destroy_uncached_actor(self, world: CarlaWorld, actor_id: int) -> DestroyResult:
+        """Use an authoritative server response when a cached snapshot omits an actor."""
+        try:
+            identity = world_identity(world)
+            self._require_cleanup_episode(identity)
+            payload = self.apply_batch(
+                [{"action": "destroy_actor", "actor_id": actor_id}],
+                do_tick=False,
+            )
+            self._require_cleanup_episode(identity)
+            return _destroy_batch_result(actor_id, payload)
+        except (CarlaAdapterError, AttributeError, RuntimeError, TypeError, ValueError) as exc:
+            return DestroyResult(actor_id, destroyed=False, error=str(exc))
+
+    def _require_cleanup_episode(self, identity: int) -> None:
+        if self.get_world_identity() != identity:
+            message = "CARLA world episode changed during authoritative actor cleanup."
+            raise CarlaAdapterError(message)
 
     def populate_traffic(
         self,
@@ -213,7 +259,8 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
             traffic_manager_instance=traffic_manager_instance,
             request=request,
         )
-        advance_world_once(world)
+        if request.advance_world:
+            self._advance_population(world, actor_ids)
         return TrafficPopulationResult(
             requested_vehicle_count=request.vehicle_count,
             spawned_vehicle_count=len(actor_ids),
@@ -230,6 +277,20 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
             world_state=world_state(world),
         )
 
+    def _advance_population(self, world: CarlaWorld, actor_ids: list[int]) -> int:
+        """Clean newly created actors if required advancement fails, retaining evidence."""
+        try:
+            return advance_world_once(world)
+        except CarlaAdapterError as exc:
+            cleanup = _population_cleanup(self, actor_ids)
+            destroyed = cast("list[int]", cleanup["destroyed_actor_ids"])
+            exc.details.update(
+                actor_ids=actor_ids,
+                remaining_actor_ids=[item for item in actor_ids if item not in destroyed],
+                cleanup=cleanup,
+            )
+            raise
+
     def set_autopilot(
         self,
         *,
@@ -244,7 +305,8 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
             request=request,
             traffic_manager_port=traffic_manager_instance.get_port(),
         )
-        advance_world_once(world)
+        if request.advance_world:
+            advance_world_once(world)
         return TrafficPopulationResult(
             requested_vehicle_count=len(request.actor_ids),
             spawned_vehicle_count=len(changed_ids),
@@ -294,8 +356,8 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
 
     def record_episode(self, output_path: Path) -> RecordingInfo:
         """Start recording an episode at the simulator-side path."""
-        client = self._client()
         requested_path = _server_recorder_path(output_path)
+        client = self._client()
         try:
             accepted_path = client.start_recorder(requested_path)
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
@@ -339,6 +401,7 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
         blueprint = _configured_blueprint(world, spawn_request)
         parent = _parent_actor(world, request.parent_actor_id)
         sensor = _spawn_sensor(world, blueprint, request.transform, parent)
+        self._sensor_handles[sensor.id] = sensor
         return SensorInfo(
             sensor_id=sensor.id,
             blueprint_id=request.blueprint_id,
@@ -349,7 +412,9 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
 
     def capture_sensor_frame(self, *, sensor_id: int, output_path: Path) -> CaptureInfo:
         """Capture one sensor frame to disk."""
-        sensor = sensor_actor(self._world(self._client()), sensor_id)
+        world = self._world(self._client())
+        require_async_sensor_read(world)
+        sensor = self._sensor_actor(sensor_id)
         image = _capture_image(sensor)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         image.save_to_disk(str(output_path))
@@ -362,6 +427,12 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
         )
 
     def _client(self) -> CarlaClient:
+        """Retain one client stream so paused synchronous worlds keep observable state."""
+        if self._connected_client is None:
+            self._connected_client = self._connect()
+        return self._connected_client
+
+    def _connect(self) -> CarlaClient:
         """Create and configure a CARLA client."""
         try:
             client_factory = _carla_client_factory()
@@ -388,169 +459,46 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
             raise CarlaAdapterError(str(exc)) from exc
 
 
-def _server_recorder_path(output_path: Path) -> str:
-    """Resolve a relative recording under the configured simulator directory.
-
-    Rejects absolute paths, Windows drive paths, empty names, NUL bytes,
-    and relative paths that escape the recorder root via ``..``.
-    """
-    text = output_path.as_posix()
-    if not text or "\x00" in text:
-        msg = "Recorder path must not be empty or contain NUL bytes."
-        raise CarlaAdapterError(msg)
-    # Absolute POSIX (/foo), bare root, or Windows drive-qualified (C:/) paths.
-    if text.startswith("/") or output_path.is_absolute() or (len(text) > 1 and text[1] == ":"):
-        msg = "Recorder path must be relative to the configured recorder directory."
-        raise CarlaAdapterError(msg)
-    if ".." in output_path.parts:
-        msg = "Recorder path must not contain '..' components."
-        raise CarlaAdapterError(msg)
-    directory = os.environ.get("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR")
-    if directory:
-        base = directory.rstrip("/\\")
-        return f"{base}/{text}"
-    return text
-
-
-def _carla_client_factory() -> CarlaClientFactory:
-    """Import the optional CARLA Python module and return its Client factory."""
-    module = import_module("carla")
-    client_factory = getattr(module, "Client", None)
-    if not callable(client_factory):
-        msg = "Imported carla module does not expose Client."
-        raise TypeError(msg)
-    return cast("CarlaClientFactory", client_factory)
-
-
-def _require_carla_client(candidate: object) -> CarlaClient:
-    """Validate that a dynamic CARLA client exposes the expected API."""
-    if isinstance(candidate, CarlaClient):
-        return candidate
-    msg = "CARLA Client object does not expose the expected API."
-    raise CarlaAdapterError(msg)
-
-
-def _safe_call(target: object, method_name: str) -> str | None:
-    """Return a method result as text, or None when unavailable."""
-    method = getattr(target, method_name, None)
-    if not callable(method):
-        return None
+def _population_cleanup(adapter: PythonCarlaAdapter, actor_ids: list[int]) -> dict[str, object]:
+    """Attempt every owned actor and preserve cleanup failures for the caller."""
+    attempted = tuple(reversed(actor_ids))
     try:
-        value = method()
-    except (AttributeError, RuntimeError, TypeError, ValueError):
-        return None
-    return str(value)
+        results = adapter.destroy_actors(attempted)
+    except CarlaAdapterError as exc:
+        failure: dict[str, object] = {"actor_id": None, "error": str(exc)}
+        return cleanup_report(attempted, failures=(failure,))
+    return _population_cleanup_results(attempted, results)
 
 
-def _blueprint_info(blueprint: CarlaBlueprint) -> BlueprintInfo:
-    """Convert a CARLA blueprint into a stable summary."""
-    return BlueprintInfo(
-        blueprint_id=str(blueprint.id),
-        tags=tuple(str(tag) for tag in blueprint.tags),
-        attributes=tuple(_blueprint_attribute(attribute) for attribute in blueprint),
-    )
+def _population_cleanup_results(
+    attempted: tuple[int, ...], results: tuple[DestroyResult, ...]
+) -> dict[str, object]:
+    """Retain per-actor cleanup outcomes without discarding failures."""
+    destroyed = [item.actor_id for item in results if item.destroyed]
+    return cleanup_report(attempted, destroyed, _population_cleanup_failures(results))
 
 
-def _blueprint_attribute(attribute: object) -> BlueprintAttribute:
-    """Convert a CARLA blueprint attribute into a stable summary."""
-    typed_attribute = _require_blueprint_attribute(attribute)
-    return BlueprintAttribute(
-        attribute_id=str(typed_attribute.id),
-        is_modifiable=bool(typed_attribute.is_modifiable),
-        recommended_values=tuple(str(value) for value in typed_attribute.recommended_values),
-    )
+def _population_cleanup_failures(results: tuple[DestroyResult, ...]) -> list[dict[str, object]]:
+    """Keep enough evidence to retry cleanup of every remaining actor."""
+    return [
+        {"actor_id": item.actor_id, "error": item.error or "destroy returned false"}
+        for item in results
+        if not item.destroyed
+    ]
 
 
-def _require_blueprint_attribute(candidate: object) -> CarlaBlueprintAttribute:
-    """Validate a dynamic CARLA blueprint attribute."""
-    missing_api = not all(
-        hasattr(candidate, attribute_name)
-        for attribute_name in ("id", "is_modifiable", "recommended_values")
-    )
-    if missing_api:
-        msg = "CARLA blueprint attribute does not expose the expected API."
-        raise CarlaAdapterError(msg)
-    return cast("CarlaBlueprintAttribute", candidate)
+def _destroy_batch_result(actor_id: int, payload: dict[str, object]) -> DestroyResult:
+    """Require one matching server acknowledgement; incomplete responses retain ownership."""
+    response = _single_destroy_response(payload)
+    if not isinstance(response, dict) or response.get("actor_id") != actor_id:
+        return DestroyResult(actor_id, destroyed=False, error="Invalid destroy response identity.")
+    error = response.get("error")
+    return DestroyResult(actor_id, destroyed=not error, error=str(error) if error else None)
 
 
-def _spawn_actor(world: CarlaWorld, index: int, request: SpawnRequest) -> SpawnResult:
-    """Spawn one actor and convert CARLA failures into a structured result."""
-    try:
-        blueprint = _configured_blueprint(world, request)
-        actor = world.spawn_actor(blueprint, carla_transform(request.transform))
-    except (AttributeError, RuntimeError, TypeError, ValueError, CarlaAdapterError) as exc:
-        return SpawnResult(request_index=index, actor_id=None, error=str(exc))
-    return SpawnResult(request_index=index, actor_id=int(actor.id), error=None)
-
-
-def _parent_actor(world: CarlaWorld, actor_id: int | None) -> object | None:
-    """Return an attach parent actor when requested."""
-    if actor_id is None:
-        return None
-    actor = world.get_actors().find(actor_id)
-    if actor is None:
-        msg = f"Parent actor {actor_id} was not found."
-        raise CarlaAdapterError(msg)
-    return actor
-
-
-def _spawn_sensor(
-    world: CarlaWorld,
-    blueprint: CarlaBlueprint,
-    transform: Transform,
-    parent: object | None,
-) -> CarlaSensor:
-    """Spawn a sensor actor."""
-    try:
-        actor = world.spawn_actor(blueprint, carla_transform(transform), parent)
-    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
-        raise CarlaAdapterError(str(exc)) from exc
-    return require_sensor(actor)
-
-
-def _capture_image(sensor: CarlaSensor) -> CarlaImage:
-    """Capture one image from a CARLA sensor listener.
-
-    Uses ``put_nowait`` so a fast producer cannot block the CARLA
-    callback thread and deadlock ``sensor.stop()``.
-    """
-    frames: Queue[object] = Queue(maxsize=1)
-    sensor.listen(lambda frame: _put_nowait_drop(frames, frame))
-    try:
-        frame = frames.get(timeout=5.0)
-    except Empty as exc:
-        msg = "Timed out waiting for a sensor frame."
-        raise CarlaAdapterError(msg) from exc
-    finally:
-        sensor.stop()
-    return _require_image(frame)
-
-
-def _put_nowait_drop(queue: Queue[object], item: object) -> None:
-    """Put on a queue without blocking; drop if full."""
-    with contextlib.suppress(Full):
-        queue.put_nowait(item)
-
-
-def _require_image(candidate: object) -> CarlaImage:
-    """Validate a dynamic CARLA image/frame object."""
-    missing_api = not all(hasattr(candidate, name) for name in ("frame", "save_to_disk"))
-    if missing_api:
-        msg = "CARLA sensor frame does not expose the expected image API."
-        raise CarlaAdapterError(msg)
-    return cast("CarlaImage", candidate)
-
-
-def _mime_type(path: Path) -> str:
-    """Infer a capture MIME type from the output path."""
-    if path.suffix.lower() == ".jpg" or path.suffix.lower() == ".jpeg":
-        return "image/jpeg"
-    return "image/png"
-
-
-def _configured_blueprint(world: CarlaWorld, request: SpawnRequest) -> CarlaBlueprint:
-    """Find and configure a CARLA blueprint for a spawn request."""
-    blueprint = world.get_blueprint_library().find(request.blueprint_id)
-    for attribute_id, value in request.attributes.items():
-        blueprint.set_attribute(attribute_id, value)
-    return blueprint
+def _single_destroy_response(payload: dict[str, object]) -> object:
+    responses = payload.get("responses")
+    if not isinstance(responses, list) or len(responses) != 1:
+        message = "Invalid destroy response count."
+        raise CarlaAdapterError(message)
+    return responses[0]

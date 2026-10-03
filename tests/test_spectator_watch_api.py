@@ -74,7 +74,7 @@ class World:
     spectator: Spectator = field(default_factory=Spectator)
     ticks: int = 0
 
-    def get_actors(self) -> Actors:
+    def get_actors(self, _actor_ids: list[int] | None = None) -> Actors:
         """Return actors."""
         return self.actors
 

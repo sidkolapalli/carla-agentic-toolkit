@@ -7,6 +7,7 @@ import hashlib
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, cast
 
+from carla_agentic_toolkit.actor_runtime import actor_by_id
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.models import (
     AutopilotRequest,
@@ -116,15 +117,15 @@ def set_actor_autopilot(
     return _successful_actor_ids(results), _failed_spawns(results)
 
 
-def advance_world_once(world: CarlaWorld) -> None:
-    """Advance or wait one frame so Traffic Manager changes become visible."""
+def advance_world_once(world: CarlaWorld) -> int:
+    """Require one successful frame advance/wait and return its observed identity."""
     try:
         if world.get_settings().synchronous_mode:
-            world.tick()
-        else:
-            world.wait_for_tick(2.0)
-    except (AttributeError, RuntimeError, TypeError, ValueError):
-        return
+            return int(world.tick())
+        return int(world.wait_for_tick(2.0).frame)
+    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+        message = f"World advancement failed: {exc}"
+        raise CarlaAdapterError(message) from exc
 
 
 def _missing_traffic_manager_api(candidate: object) -> bool:
@@ -200,7 +201,7 @@ def _set_one_actor_autopilot(
     index: int,
 ) -> SpawnResult:
     """Set autopilot for one actor and return a structured result."""
-    actor = world.get_actors().find(actor_id)
+    actor = actor_by_id(world, actor_id)
     if actor is None:
         return _spawn_failure(index, f"Actor {actor_id} was not found.")
     if not hasattr(actor, "set_autopilot"):

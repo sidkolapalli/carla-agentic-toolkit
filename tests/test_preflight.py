@@ -11,6 +11,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.sandbox_helpers import sandbox_runner_path
+
 IS_WSL2 = "microsoft" in platform.release().casefold() and "wsl2" in platform.release().casefold()
 
 
@@ -18,7 +20,7 @@ IS_WSL2 = "microsoft" in platform.release().casefold() and "wsl2" in platform.re
 def test_preflight_proves_landlock_and_persistent_output(tmp_path: Path) -> None:
     """The public preflight should exercise the real sandbox without CARLA."""
     project_root = Path(__file__).resolve().parents[1]
-    runner = project_root / "sandbox-runner" / "target" / "debug" / "carla-agentic-toolkit-sandbox"
+    runner = sandbox_runner_path()
     output_dir = tmp_path / "outputs"
     command_name = (
         "carla-agentic-toolkit-preflight.exe"

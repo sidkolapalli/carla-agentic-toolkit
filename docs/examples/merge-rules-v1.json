@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "fixture": "town10-merge-v1",
+  "host": "127.0.0.1",
+  "port": 2000,
+  "seed": 7,
+  "policy": "rules",
+  "timing_mode": "simulation_time",
+  "observation_mode": "range_filtered_ground_truth",
+  "fixed_delta_seconds": 0.05,
+  "max_substep_delta_time": 0.01,
+  "max_substeps": 10,
+  "max_steps": 600,
+  "max_wall_seconds": 180.0,
+  "rpc_timeout_seconds": 5.0,
+  "target_speed_mps": 6.0,
+  "ego_speed_mps": 5.0,
+  "observation_range_m": 80.0,
+  "decision_interval_steps": 10,
+  "decision_timeout_seconds": 5.0,
+  "max_requests": 40,
+  "max_trace_bytes": 16777216
+}

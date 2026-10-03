@@ -4,6 +4,11 @@
 class CarlaAdapterError(RuntimeError):
     """Raised when CARLA cannot satisfy an adapter operation."""
 
+    def __init__(self, message: str, *, details: dict[str, object] | None = None) -> None:
+        """Retain optional partial-operation evidence alongside the original cause."""
+        super().__init__(message)
+        self.details = details or {}
+
 
 class ActorRegistryError(RuntimeError):
     """Raised when persistent actor-name state cannot satisfy an operation."""

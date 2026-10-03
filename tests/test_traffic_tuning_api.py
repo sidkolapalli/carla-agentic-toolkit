@@ -112,7 +112,7 @@ class World:
 
     actors: Actors = field(default_factory=Actors)
 
-    def get_actors(self) -> Actors:
+    def get_actors(self, _actor_ids: list[int] | None = None) -> Actors:
         """Return actors."""
         return self.actors
 

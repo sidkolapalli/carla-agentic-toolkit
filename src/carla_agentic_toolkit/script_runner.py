@@ -8,21 +8,23 @@ import builtins
 import contextlib
 import io
 import json
+import math
 import runpy
 import sys
-from collections.abc import Iterable, Mapping
+from collections.abc import Collection, Iterator, Mapping
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import cast
 
 from carla_agentic_toolkit.adapter import PythonCarlaAdapter
+from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.ownership import RunOwnership, cleanup_owned_actors, cleanup_report
 from carla_agentic_toolkit.script_api import CarlaScriptApi
 from carla_agentic_toolkit.snapshots import RunSnapshots
 
 RESULT_NAME = "result"
 API_NAME = "api"
-# Half the Rust 1 MiB pipe cap — generous for script output while
-# ensuring output_too_large fires before Rust-side truncation.
+# Bound captured UTF-8 output separately from the Rust 1 MiB JSON pipe cap.
 MAX_SCRIPT_STDOUT_BYTES = 1024 * 512
 
 _FORBIDDEN_NAMES = frozenset(
@@ -56,18 +58,20 @@ class _BoundedWriter(io.StringIO):
     def __init__(self, max_bytes: int) -> None:
         super().__init__()
         self._max_bytes = max_bytes
+        self._bytes_written = 0
         self.truncated: bool = False
 
     def write(self, s: str) -> int:
         if self.truncated:
             return len(s)
-        current = self.tell()
-        if current + len(s) > self._max_bytes:
+        remaining = self._max_bytes - self._bytes_written
+        # Slicing first avoids encoding a potentially enormous print argument.
+        encoded = s[: remaining + 1].encode("utf-8", errors="surrogatepass")
+        if len(encoded) > remaining:
             self.truncated = True
-            remaining = max(0, self._max_bytes - current)
-            if remaining:
-                super().write(s[:remaining])
+            super().write(encoded[:remaining].decode("utf-8", errors="ignore"))
             return len(s)
+        self._bytes_written += len(encoded)
         return super().write(s)
 
 
@@ -135,8 +139,12 @@ def run_script_file(
     ownership = RunOwnership(ownership_path) if ownership_path is not None else None
     api = CarlaScriptApi(adapter=adapter, snapshots=snapshots, ownership=ownership)
     stream = _BoundedWriter(MAX_SCRIPT_STDOUT_BYTES)
+    listener_errors: list[str] = []
     try:
-        with contextlib.redirect_stdout(stream):
+        with (
+            contextlib.redirect_stdout(stream),
+            _sensor_listener_lifetime(adapter, listener_errors),
+        ):
             globals_after_run = runpy.run_path(
                 str(script_path),
                 init_globals={
@@ -151,7 +159,7 @@ def run_script_file(
             type(exc).__name__,
             str(exc),
             stdout=stream.getvalue(),
-            cleanup=cleanup,
+            cleanup=_listener_cleanup_evidence(cleanup, listener_errors),
         )
     if stream.truncated:
         return _error(
@@ -159,26 +167,56 @@ def run_script_file(
             f"Script stdout exceeded {MAX_SCRIPT_STDOUT_BYTES} bytes.",
             stdout=stream.getvalue(),
         )
-    result_value = None
-    json_error = None
+    return _finished_script(globals_after_run, stream, snapshots, listener_errors)
+
+
+@contextlib.contextmanager
+def _sensor_listener_lifetime(adapter: PythonCarlaAdapter, errors: list[str]) -> Iterator[None]:
+    """Release listener storage without hiding an original script failure."""
     try:
-        result_value = _jsonable(
-            globals_after_run.get(RESULT_NAME),
-            _seen=set(),
-            _depth=0,
-        )
+        yield
+    finally:
+        try:
+            adapter.close_sensor_subscriptions()
+        except CarlaAdapterError as exc:
+            errors.append(str(exc))
+
+
+def _listener_cleanup_evidence(
+    cleanup: dict[str, object], listener_errors: list[str]
+) -> dict[str, object]:
+    """Include cleanup failures only when a listener could not be stopped."""
+    if listener_errors:
+        cleanup["sensor_failures"] = listener_errors
+    return cleanup
+
+
+def _finished_script(
+    globals_after_run: dict[str, object],
+    stream: _BoundedWriter,
+    snapshots: RunSnapshots,
+    listener_errors: list[str],
+) -> dict[str, object]:
+    """Reject a nominal success if listener cleanup failed."""
+    if listener_errors:
+        return _error("sensor_cleanup_failed", "; ".join(listener_errors), stdout=stream.getvalue())
+    return _script_outcome(globals_after_run.get(RESULT_NAME), stream.getvalue(), snapshots)
+
+
+def _script_outcome(result: object, stdout: str, snapshots: RunSnapshots) -> dict[str, object]:
+    """Serialize a successful execution or return its conversion failure."""
+    try:
+        result_value = _jsonable(result, _state=_JsonState(), _depth=0)
     except Exception as exc:
-        json_error = f"{type(exc).__name__}: {exc}"
-    if json_error:
         return _error(
             "result_not_serializable",
-            json_error,
-            stdout=stream.getvalue(),
+            f"{type(exc).__name__}: {exc}",
+            stdout=stdout,
         )
     return {
         "ok": True,
         "result": result_value,
-        "stdout": stream.getvalue(),
+        "stdout": stdout,
         "error": None,
         "error_type": None,
         "snapshots": _snapshots(snapshots),
@@ -277,58 +315,84 @@ MAX_JSON_DEPTH = 50
 MAX_JSON_ITEMS = 10_000
 
 
-def _jsonable(value: object, *, _seen: set[int], _depth: int) -> object:
+@dataclass
+class _JsonState:
+    """Share a conversion budget and active-container IDs across the result."""
+
+    seen: set[int] = field(default_factory=set)
+    item_count: int = 0
+
+    def claim_items(self, count: int) -> None:
+        """Reject oversized results before traversing the next container."""
+        self.item_count += count
+        if self.item_count > MAX_JSON_ITEMS:
+            msg = f"Result exceeded maximum item count of {MAX_JSON_ITEMS}."
+            raise ValueError(msg)
+
+
+def _jsonable(value: object, *, _state: _JsonState, _depth: int) -> object:
     """Coerce a script result into a JSON-compatible value.
 
     Detects cycles, enforces depth and item limits, rejects NaN/Infinity,
     and sorts unordered collections for deterministic output.
     """
     if value is None or isinstance(value, bool | int | float | str):
-        if isinstance(value, float) and not __import__("math").isfinite(value):
-            msg = "Result cannot contain NaN or Infinity."
-            raise ValueError(msg)
-        return value
-    if _depth > MAX_JSON_DEPTH:
-        msg = f"Result exceeded maximum nesting depth of {MAX_JSON_DEPTH}."
-        raise RecursionError(msg)
+        return _jsonable_scalar(value)
     if isinstance(value, Mapping):
-        return _jsonable_mapping(cast("Mapping[object, object]", value), _seen=_seen, _depth=_depth)
+        return _jsonable_mapping(
+            cast("Mapping[object, object]", value), _state=_state, _depth=_depth
+        )
     if isinstance(value, list | tuple | set | frozenset):
-        return _jsonable_iterable(value, _seen=_seen, _depth=_depth)
+        return _jsonable_iterable(value, _state=_state, _depth=_depth)
     return repr(value)
 
 
-def _jsonable_mapping(
-    value: Mapping[object, object], *, _seen: set[int], _depth: int
-) -> dict[str, object]:
-    """Coerce a mapping into a JSON-compatible dict."""
+def _jsonable_scalar(value: object) -> object:
+    """Reject floating-point values that JSON cannot represent."""
+    if isinstance(value, float) and not math.isfinite(value):
+        msg = "Result cannot contain NaN or Infinity."
+        raise ValueError(msg)
+    return value
+
+
+@contextlib.contextmanager
+def _json_container(
+    value: Collection[object], *, _state: _JsonState, _depth: int
+) -> Iterator[None]:
+    """Enforce common collection bounds and track cycles only on the active path."""
+    if _depth > MAX_JSON_DEPTH:
+        msg = f"Result exceeded maximum nesting depth of {MAX_JSON_DEPTH}."
+        raise RecursionError(msg)
     key = id(value)
-    if key in _seen:
+    if key in _state.seen:
         msg = "Result contains a cycle."
         raise ValueError(msg)
-    _seen.add(key)
+    _state.claim_items(len(value))
+    _state.seen.add(key)
     try:
-        return {str(k): _jsonable(v, _seen=_seen, _depth=_depth + 1) for k, v in value.items()}
+        yield
     finally:
-        _seen.discard(key)
+        _state.seen.remove(key)
 
 
-def _jsonable_iterable(value: Iterable[object], *, _seen: set[int], _depth: int) -> list[object]:
+def _jsonable_mapping(
+    value: Mapping[object, object], *, _state: _JsonState, _depth: int
+) -> dict[str, object]:
+    """Coerce a mapping into a JSON-compatible dict."""
+    with _json_container(value, _state=_state, _depth=_depth):
+        return {str(k): _jsonable(v, _state=_state, _depth=_depth + 1) for k, v in value.items()}
+
+
+def _jsonable_iterable(
+    value: Collection[object], *, _state: _JsonState, _depth: int
+) -> list[object]:
     """Coerce an iterable into a JSON-compatible list.
 
     Unordered collections (sets) are sorted for deterministic output.
     """
-    items: Iterable[object] = value
-    if isinstance(value, set | frozenset):
-        # Sort sets by their string representation for determinism.
-        items = sorted(value, key=repr)
-    result: list[object] = []
-    for item in items:
-        if len(result) >= MAX_JSON_ITEMS:
-            msg = f"Result exceeded maximum item count of {MAX_JSON_ITEMS}."
-            raise ValueError(msg)
-        result.append(_jsonable(item, _seen=_seen, _depth=_depth + 1))
-    return result
+    with _json_container(value, _state=_state, _depth=_depth):
+        items = sorted(value, key=repr) if isinstance(value, set | frozenset) else value
+        return [_jsonable(item, _state=_state, _depth=_depth + 1) for item in items]
 
 
 if __name__ == "__main__":

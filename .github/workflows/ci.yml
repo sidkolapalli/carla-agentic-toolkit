@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  checks: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -23,6 +24,7 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
+          fetch-depth: 0
 
       - name: Install uv and Python
         uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
@@ -34,7 +36,7 @@ jobs:
         run: rustup component add rustfmt clippy
 
       - name: Install dependencies
-        run: uv sync --locked
+        run: uv sync --locked --all-extras
 
       - name: Run checks
         run: make check
@@ -43,17 +45,26 @@ jobs:
         run: uv run ruff format --check .
 
       - name: Python dependency audit
-        run: uvx pip-audit --requirement <(uv export --locked --no-dev)
+        run: |
+          uv export --locked --no-dev --all-extras --no-emit-project \
+            --output-file "$RUNNER_TEMP/audit-requirements.txt"
+          uvx pip-audit --strict --require-hashes \
+            --requirement "$RUNNER_TEMP/audit-requirements.txt"
 
       - name: Rust dependency audit
-        uses: rustsec/audit-check@717aa0b3183beac7a7e377f3d5436550be64f2c0 # v2.0.0
+        uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998 # v2.0.0
         with:
-          manifest-path: sandbox-runner/Cargo.lock
+          token: ${{ secrets.GITHUB_TOKEN }}
+          working-directory: sandbox-runner
 
       - name: History secret scan
-        uses: zricethezav/gitleaks-action@d3367bf7a9f9bba2e9196923b46b36a56c86371f # v1.8.0
-        with:
-          args: --verbose
+        run: |
+          curl --fail --silent --show-error --location \
+            https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz \
+            --output "$RUNNER_TEMP/gitleaks.tar.gz"
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+          "$RUNNER_TEMP/gitleaks" git --redact --verbose --log-opts="--all" .
 
       - name: Build Python distributions
         run: uv build
@@ -61,10 +72,29 @@ jobs:
       - name: Build MCP Docker image
         run: docker build --build-arg CARLA_VERSION=0.9.16 -t carla-agentic-toolkit:ci .
 
+      - name: Verify hardened container runtime
+        run: |
+          docker run --rm --network none carla-agentic-toolkit:ci carla-agentic-toolkit-preflight
+          docker run --rm --network none --read-only --cap-drop ALL \
+            --security-opt no-new-privileges \
+            --tmpfs /tmp:rw,nosuid,nodev,mode=1777 \
+            --tmpfs /output:rw,nosuid,nodev,uid=10001,gid=10001 \
+            carla-agentic-toolkit:ci /app/.venv/bin/python \
+            -c 'import carla, ssl, sqlite3, uuid; from carla_agentic_toolkit.preflight import main; main()'
+
       - name: Docker vulnerability scan
-        uses: docker/scout-action@a2fbd7b1cee49195fdefd79b983120b0a5a16bb3 # v1.19.1
-        with:
-          command: cves
-          image: carla-agentic-toolkit:ci
-          only-severities: critical,high
-          exit-code: true
+        env:
+          # Trivy 0.75.0: public database download, then network-isolated artifact scan.
+          TRIVY_IMAGE: aquasec/trivy@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa
+        run: |
+          mkdir -p "$RUNNER_TEMP/container-scan"
+          docker save --output "$RUNNER_TEMP/container-scan/image.tar" carla-agentic-toolkit:ci
+          docker run --rm \
+            --mount type=volume,source=carla-trivy-cache,target=/root/.cache/trivy \
+            "$TRIVY_IMAGE" image --download-db-only --skip-version-check --disable-telemetry
+          docker run --rm --network none \
+            --mount type=volume,source=carla-trivy-cache,target=/root/.cache/trivy \
+            --mount "type=bind,source=$RUNNER_TEMP/container-scan,target=/scan" \
+            "$TRIVY_IMAGE" image --input /scan/image.tar \
+            --skip-db-update --skip-java-db-update --skip-version-check --disable-telemetry \
+            --offline-scan --scanners vuln --severity HIGH,CRITICAL --exit-code 1

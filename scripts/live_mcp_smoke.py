@@ -27,10 +27,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = _parse_args(argv)
     try:
         report = asyncio.run(run_live_smoke(args))
-    except (OSError, RuntimeError, TypeError) as error:
-        report = {"ok": False, "error": str(error)}
+    except (OSError, RuntimeError, TypeError, ExceptionGroup) as error:
+        report = {"ok": False, "error": _error_message(error)}
     sys.stdout.write(json.dumps(report, sort_keys=True) + "\n")
     return 0 if report.get("ok") is True else 1
+
+
+def _error_message(error: Exception) -> str:
+    """Unwrap task-group failures so the report retains actionable causes."""
+    if isinstance(error, ExceptionGroup):
+        return "; ".join(dict.fromkeys(_error_message(child) for child in error.exceptions))
+    return f"{type(error).__name__}: {error}"
 
 
 def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -171,8 +178,18 @@ async def _call(
         },
     )
     payload = _mapping(response.structured_content, "tool result")
-    _require(f"unexpected MCP isError: {payload}", condition=response.is_error is expect_error)
-    _require(f"unexpected tool outcome: {payload}", condition=payload.get("ok") is not expect_error)
+    details = json.dumps(
+        {key: payload[key] for key in ("error_type", "error", "cleanup") if key in payload},
+        sort_keys=True,
+    )
+    _require(
+        f"unexpected MCP isError={response.is_error}: {details}",
+        condition=response.is_error is expect_error,
+    )
+    _require(
+        f"unexpected tool outcome ok={payload.get('ok')}: {details}",
+        condition=payload.get("ok") is (not expect_error),
+    )
     images = [item for item in response.content if isinstance(item, ImageContent)]
     resources = [item for item in response.content if isinstance(item, ResourceLink)]
     payload["_image_content"] = bool(images) and bool(resources)
@@ -203,50 +220,62 @@ def _mutation_script(tag: str, *, drive_seconds: float = 1.0) -> str:
     return f"""
 tag = {quoted_tag}
 health = api.health_check()
+assert health.get("connected") is True, health
 capabilities = api.list_capabilities()
-weather_before = api.get_weather()["weather"]
+weather = api.get_weather()
+assert "weather" in weather, weather
+weather_before = weather["weather"]
 spectator_restored = True
 actor_ids = []
 sensor_ids = []
+cleanup_results = []
 capture = None
 before_speed = 0.0
 after_speed = 0.0
 weather_changed = False
 try:
-    points = api.get_spawn_points()["spawn_points"]
+    spawn_points = api.get_spawn_points()
+    assert "spawn_points" in spawn_points, spawn_points
+    points = spawn_points["spawn_points"]
     actor_id = None
     for point in points[:10]:
-        spawned = api.spawn_actor_batch([{{
+        batch = api.spawn_actor_batch([{{
             "blueprint_id": "vehicle.tesla.model3",
             "transform": point,
             "attributes": {{"role_name": tag, "color": "255,0,0"}},
-        }}])["results"][0]
+        }}])
+        assert "results" in batch, batch
+        spawned = batch["results"][0]
         if spawned["actor_id"] is not None:
             actor_id = spawned["actor_id"]
             actor_ids.append(actor_id)
             break
     assert actor_id is not None, "no free spawn point"
-    before_speed = api.get_vehicle_telemetry(actor_id)["speed_mps"]
-    api.set_weather({{
+    before = api.get_vehicle_telemetry(actor_id)
+    assert "speed_mps" in before, before
+    before_speed = before["speed_mps"]
+    weather_set = api.set_weather({{
         "cloudiness": 50.0,
         "precipitation": 15.0,
         "wetness": 35.0,
         "sun_altitude_angle": 45.0,
     }})
-    weather_changed = api.get_weather()["weather"]["cloudiness"] == 50.0
-    api.set_vehicle_lights(actor_id, "Position|LowBeam")
-    api.set_autopilot({{
-        "actor_ids": [actor_id],
-        "enabled": True,
-        "traffic_manager_port": 8000,
-    }})
-    api.tune_traffic_vehicle(actor_id, {{
-        "desired_speed": 8.0,
-        "auto_lane_change": False,
-    }})
+    assert weather_set.get("ok") is not False, weather_set
+    weather_now = api.get_weather()
+    assert "weather" in weather_now, weather_now
+    weather_changed = weather_now["weather"]["cloudiness"] == 50.0
+    lights = api.set_vehicle_lights(actor_id, "Position|LowBeam")
+    assert lights.get("actor_id") == actor_id, lights
+    driving = api.apply_vehicle_control(actor_id, throttle=0.65, brake=0.0, hand_brake=False)
+    assert "applied_control" in driving, driving
     watch = api.watch_actor(actor_id, seconds={drive_seconds})
+    assert "spectator_restored" in watch, watch
     spectator_restored = watch["spectator_restored"]
-    after_speed = api.get_vehicle_telemetry(actor_id)["speed_mps"]
+    after = api.get_vehicle_telemetry(actor_id)
+    assert "speed_mps" in after, after
+    after_speed = after["speed_mps"]
+    braking = api.apply_vehicle_control(actor_id, throttle=0.0, brake=1.0)
+    assert "applied_control" in braking, braking
     sensor = api.attach_sensor(
         "rgb",
         actor_id,
@@ -254,27 +283,40 @@ try:
             "location": {{"x": -6.0, "y": 0.0, "z": 3.0}},
             "rotation": {{"pitch": -10.0, "yaw": 0.0, "roll": 0.0}},
         }},
-        {{"image_size_x": "640", "image_size_y": "360"}},
+        {{"image_size_x": "320", "image_size_y": "180"}},
     )
+    assert "sensor_id" in sensor, sensor
     sensor_ids.append(sensor["sensor_id"])
     capture = api.capture_sensor_frame(
         sensor["sensor_id"], "live-mcp/" + tag + ".png", publish=True
     )
+    assert capture.get("ok") is not False, capture
 finally:
     for sensor_id in sensor_ids:
-        api.detach_sensor(sensor_id)
+        cleanup_results.append(api.detach_sensor(sensor_id))
     if actor_ids:
-        api.destroy_actors(actor_ids)
-    api.set_weather(weather_before)
-remaining = api.list_actors("*")["actors"]
-leftovers = [actor["actor_id"] for actor in remaining if actor["role_name"] == tag]
+        cleanup_results.append(api.destroy_actors(actor_ids))
+    cleanup_results.append(api.set_weather(weather_before))
+for cleanup in cleanup_results:
+    assert cleanup.get("ok") is not False, cleanup
+leftovers = actor_ids
+for observation_attempt in range(11):
+    remaining_state = api.list_actors("*")
+    assert "actors" in remaining_state, remaining_state
+    remaining = remaining_state["actors"]
+    leftovers = [actor["actor_id"] for actor in remaining if actor["role_name"] == tag]
+    if not leftovers or observation_attempt == 10:
+        break
+    api.wait(0.1)
+weather_after = api.get_weather()
+assert "weather" in weather_after, weather_after
 result = {{
     "health": health,
     "capabilities": capabilities,
     "movement": {{"before_mps": before_speed, "after_mps": after_speed}},
     "capture": capture,
     "weather_changed": weather_changed,
-    "weather_restored": api.get_weather()["weather"]["cloudiness"] == weather_before["cloudiness"],
+    "weather_restored": weather_after["weather"]["cloudiness"] == weather_before["cloudiness"],
     "spectator_restored": spectator_restored,
     "leftovers": leftovers,
 }}

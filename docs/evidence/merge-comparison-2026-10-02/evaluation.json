@@ -1,0 +1,182 @@
+{
+  "code_sha256": "85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68",
+  "implementation_commit": "49a739ebab377f04161afd2201d93fab1a4bd8d7",
+  "plan": {
+    "policies": [
+      "rules",
+      "jev"
+    ],
+    "replicates_per_seed": 1,
+    "retry_failed_trials": false,
+    "seeds": [
+      7,
+      19,
+      31
+    ]
+  },
+  "runs": [
+    {
+      "run_id": "b0980a48cdff4f94a391b76f5d9a9119",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-v1",
+        "host": "172.18.112.1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "rules",
+        "port": 3000,
+        "replay_run_id": null,
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      }
+    },
+    {
+      "run_id": "34845c7950f6411f88d2989404dc19e3",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-v1",
+        "host": "172.18.112.1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "jev",
+        "port": 3000,
+        "replay_run_id": null,
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      }
+    },
+    {
+      "run_id": "ade91f36f0a7444f8479146544ff1a1b",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-v1",
+        "host": "172.18.112.1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "rules",
+        "port": 3000,
+        "replay_run_id": null,
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 19,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      }
+    },
+    {
+      "run_id": "7b5053225af74804b0ac53f4ba4d0cf2",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-v1",
+        "host": "172.18.112.1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "jev",
+        "port": 3000,
+        "replay_run_id": null,
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 19,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      }
+    },
+    {
+      "run_id": "11e47792d0fb4b79837d235e09297a37",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-v1",
+        "host": "172.18.112.1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "rules",
+        "port": 3000,
+        "replay_run_id": null,
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 31,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      }
+    },
+    {
+      "run_id": "bb2f0dc041bf4f02bab71d8de94d995d",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-v1",
+        "host": "172.18.112.1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "jev",
+        "port": 3000,
+        "replay_run_id": null,
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 31,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      }
+    }
+  ],
+  "schema_version": 1
+}

@@ -8,17 +8,13 @@ publish successful values as run-local snapshots.
 from __future__ import annotations
 
 import time
-from functools import wraps
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from carla_agentic_toolkit.actor_registry import ActorRegistry, actor_registry_path
 from carla_agentic_toolkit.api_discovery import method_catalog
 from carla_agentic_toolkit.errors import (
-    ActorRegistryError,
     CarlaAdapterError,
-    OwnershipError,
-    UnsupportedFeatureError,
 )
 from carla_agentic_toolkit.evidence import export_evidence_packet as export_evidence
 from carla_agentic_toolkit.ownership import (
@@ -29,6 +25,8 @@ from carla_agentic_toolkit.ownership import (
     release_destroyed,
     track_owned,
 )
+from carla_agentic_toolkit.script_operations import ScriptOperations
+from carla_agentic_toolkit.script_operations import recover as _recover
 from carla_agentic_toolkit.tool_inputs import (
     parse_autopilot_request,
     parse_camera_attach_request,
@@ -44,39 +42,20 @@ from carla_agentic_toolkit.tool_inputs import (
     sensor_blueprint,
     zero_transform,
 )
-from carla_agentic_toolkit.traffic_controller_service import InProcessTrafficControllerService
+from carla_agentic_toolkit.traffic_controller_service import (
+    InProcessTrafficControllerService,
+    require_async_density_mode,
+)
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Iterable
 
     from carla_agentic_toolkit.adapter import PythonCarlaAdapter
     from carla_agentic_toolkit.models import JsonObject
     from carla_agentic_toolkit.snapshots import RunSnapshots
 
 
-def _recover(
-    error_type: str,
-    *,
-    endpoint: bool = False,
-) -> Callable[[Callable[..., JsonObject]], Callable[..., JsonObject]]:
-    """Route one facade method through the recoverable operation policy."""
-
-    def decorate(method: Callable[..., JsonObject]) -> Callable[..., JsonObject]:
-        @wraps(method)
-        def recovered(self: CarlaScriptApi, *args: object, **kwargs: object) -> JsonObject:
-            details = {"host": self._adapter.host, "port": self._adapter.port} if endpoint else {}
-            return self._operation(
-                error_type,
-                lambda: method(self, *args, **kwargs),
-                **details,
-            )
-
-        return recovered
-
-    return decorate
-
-
-class CarlaScriptApi:
+class CarlaScriptApi(ScriptOperations):
     """High-level CARLA operations callable from a sandboxed script."""
 
     def __init__(
@@ -92,38 +71,6 @@ class CarlaScriptApi:
         self._actor_registry = actor_registry
         self._ownership = ownership
         self._traffic_controller = InProcessTrafficControllerService(on_spawn=self._track_owned)
-
-    def _operation(
-        self,
-        error_type: str,
-        operation: Callable[[], JsonObject],
-        **details: object,
-    ) -> JsonObject:
-        """Return a CARLA value or one uniform recoverable failure."""
-        try:
-            return operation()
-        except UnsupportedFeatureError as exc:
-            return {
-                "ok": False,
-                "error_type": "unsupported_feature",
-                "message": str(exc),
-                "retryable": False,
-                "error": str(exc),
-                **details,
-            }
-        except (ActorRegistryError, CarlaAdapterError, OwnershipError) as exc:
-            return {
-                "ok": False,
-                "error_type": error_type,
-                "message": str(exc),
-                "retryable": True,
-                "error": str(exc),
-                **details,
-            }
-
-    def _snapshot(self, uri: str, payload: JsonObject) -> JsonObject:
-        self._snapshots.register_snapshot(uri, payload)
-        return payload
 
     def _replaced_world(self, payload: JsonObject) -> JsonObject:
         if self._ownership is not None:
@@ -196,7 +143,9 @@ class CarlaScriptApi:
     @_recover("spawn_actor_batch_failed")
     def spawn_actor_batch(self, requests: list[dict[str, object]]) -> JsonObject:
         """Spawn actors from JSON-compatible spawn requests."""
-        results = self._adapter.spawn_actor_batch(parse_spawn_requests(requests))
+        parsed = parse_spawn_requests(requests)
+        self._prepare_owned_creation()
+        results = self._adapter.spawn_actor_batch(parsed)
         self._track_owned(result.actor_id for result in results if result.actor_id is not None)
         payload = {"results": [item.to_dict() for item in results]}
         return self._snapshot("carla-snapshot://actors", payload)
@@ -253,9 +202,13 @@ class CarlaScriptApi:
     @_recover("populate_traffic_failed")
     def populate_traffic(self, request: dict[str, object]) -> JsonObject:
         """Spawn Traffic Manager-controlled vehicles."""
-        population = self._adapter.populate_traffic(
-            request=parse_traffic_population_request(request)
-        )
+        parsed = parse_traffic_population_request(request)
+        self._prepare_owned_creation()
+        try:
+            population = self._adapter.populate_traffic(request=parsed)
+        except CarlaAdapterError as exc:
+            self._track_owned(payload_actor_ids(exc.details, "remaining_actor_ids"))
+            raise
         self._track_owned(population.actor_ids)
         payload = population.to_dict()
         self._snapshots.register_snapshot("carla-snapshot://traffic/population", payload)
@@ -310,6 +263,8 @@ class CarlaScriptApi:
     @_recover("start_traffic_controller_failed")
     def start_traffic_controller(self, request: dict[str, object]) -> JsonObject:
         """Start an in-script persistent Traffic Manager controller."""
+        self._require_async_traffic_controller()
+        self._prepare_owned_creation()
         status = self._traffic_controller.start(
             parse_traffic_controller_start_request(
                 request,
@@ -333,8 +288,16 @@ class CarlaScriptApi:
     @_recover("set_traffic_density_failed")
     def set_traffic_density(self, request: dict[str, object]) -> JsonObject:
         """Converge in-script traffic to a requested density."""
+        self._require_async_traffic_controller()
+        self._prepare_owned_creation()
         status = self._traffic_controller.set_density(parse_traffic_density_request(request))
         return self._controller_status_payload(status.to_dict())
+
+    def _require_async_traffic_controller(self) -> None:
+        """Reject unsupported tick ownership before starting background mutations."""
+        require_async_density_mode(
+            synchronous_mode=self._adapter.get_world_state().settings.synchronous_mode,
+        )
 
     @_recover("set_vehicle_behavior_failed")
     def set_vehicle_behavior(self, request: dict[str, object]) -> JsonObject:
@@ -350,11 +313,18 @@ class CarlaScriptApi:
     def _track_owned(self, actor_ids: Iterable[int]) -> None:
         track_owned(self._adapter, self._ownership, actor_ids)
 
+    def _prepare_owned_creation(self) -> None:
+        """Capture episode before mutation while keeping no-actor scripts fully offline."""
+        if self._ownership is not None:
+            self._ownership.bind_world(self._adapter.get_world_identity())
+
     # Sensors and durable captures.
     @_recover("attach_camera_failed")
     def attach_camera(self, request: dict[str, object]) -> JsonObject:
         """Attach a camera sensor."""
-        sensor = self._adapter.attach_camera(request=parse_camera_attach_request(request))
+        parsed = parse_camera_attach_request(request)
+        self._prepare_owned_creation()
+        sensor = self._adapter.attach_camera(request=parsed)
         self._track_owned((sensor.sensor_id,))
         return self._snapshot(f"carla-snapshot://sensors/{sensor.sensor_id}", sensor.to_dict())
 
@@ -385,6 +355,7 @@ class CarlaScriptApi:
         attributes: dict[str, str] | None = None,
     ) -> JsonObject:
         """Attach any supported CARLA sensor kind to an actor."""
+        self._prepare_owned_creation()
         sensor = self._adapter.attach_sensor(
             blueprint_id=sensor_blueprint(kind),
             transform=parse_transform(transform),
@@ -408,6 +379,38 @@ class CarlaScriptApi:
             output_dir=Path(output_dir) if output_dir is not None else None,
         )
         return self._snapshot(f"carla-snapshot://sensors/{sensor_id}/stream", payload)
+
+    @_recover("subscribe_sensor_failed")
+    def subscribe_sensor(
+        self, sensor_id: int, *, event_sensor: bool | None = None, capacity: int = 32
+    ) -> JsonObject:
+        """Listen before the owner ticks; event sensors never require an event each frame."""
+        return self._adapter.subscribe_sensor(
+            sensor_id, event_sensor=event_sensor, capacity=capacity
+        )
+
+    @_recover("drain_sensor_failed")
+    def drain_sensor(
+        self,
+        sensor_id: int,
+        frame: int,
+        *,
+        timeout_seconds: float = 0.0,
+        output_dir: str | None = None,
+    ) -> JsonObject:
+        """Drain by owner frame, exposing missing/late/dropped samples without ticking."""
+        payload = self._adapter.drain_sensor(
+            sensor_id,
+            frame,
+            timeout_seconds=timeout_seconds,
+            output_dir=Path(output_dir) if output_dir is not None else None,
+        )
+        return self._snapshot(f"carla-snapshot://sensors/{sensor_id}/drain", payload)
+
+    @_recover("close_sensor_subscription_failed")
+    def close_sensor_subscription(self, sensor_id: int) -> JsonObject:
+        """Stop one subscription when the owner finishes reading its sensor."""
+        return self._adapter.close_sensor_subscription(sensor_id)
 
     def attach_event_sensor(
         self,
@@ -632,6 +635,7 @@ class CarlaScriptApi:
         seed: int | None = None,
     ) -> JsonObject:
         """Spawn pedestrians and AI walker controllers."""
+        self._prepare_owned_creation()
         payload = self._adapter.spawn_walkers(count=count, speed=speed, seed=seed)
         self._track_owned(payload_actor_ids(payload, "walker_ids", "controller_ids"))
         return self._snapshot("carla-snapshot://walkers/latest", payload)
@@ -715,7 +719,7 @@ class CarlaScriptApi:
 
     # Replay, batch operations, and run cleanup.
     @_recover("replay_recording_failed")
-    def replay_recording(
+    def replay_recording(  # noqa: PLR0913 -- Preserve the existing public recorder arguments.
         self,
         path: str,
         start: float = 0.0,
@@ -723,6 +727,7 @@ class CarlaScriptApi:
         follow_id: int = 0,
         *,
         replay_sensors: bool = False,
+        do_tick: bool = True,
     ) -> JsonObject:
         """Replay a CARLA recorder file."""
         return self._adapter.replay_recording(
@@ -731,6 +736,7 @@ class CarlaScriptApi:
             duration=duration,
             follow_id=follow_id,
             replay_sensors=replay_sensors,
+            do_tick=do_tick,
         )
 
     @_recover("query_recording_collisions_failed")
@@ -767,9 +773,9 @@ class CarlaScriptApi:
         return self._replaced_world(self._adapter.reload_world(reset_settings=reset_settings))
 
     @_recover("apply_batch_failed")
-    def apply_batch(self, commands: list[dict[str, object]]) -> JsonObject:
+    def apply_batch(self, commands: list[dict[str, object]], *, do_tick: bool = True) -> JsonObject:
         """Apply supported bulk CARLA commands, such as destroy_actor."""
-        payload = self._adapter.apply_batch(commands)
+        payload = self._adapter.apply_batch(commands, do_tick=do_tick)
         release_batch_destroyed(self._ownership, payload)
         return payload
 
