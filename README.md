@@ -311,7 +311,7 @@ owned-vehicle telemetry, bounded deadlines, and cleanup. See
 | Vehicles and pedestrians | Vehicle controls, telemetry, walker movement |
 | Scene and navigation | Weather, semantic tags/bounds, filtered landmarks, routes, map layers, bounded OpenDRIVE |
 | Recording and evidence | Record, replay, queries, captures, evidence manifests |
-| Managed experiments (opt-in) | Rules/Jev/replay selection, local lifecycle controls, protected actors, continuous traces |
+| Managed experiments (opt-in) | Rules/Jev selection, strict offline replay, local lifecycle controls, protected actors, continuous traces |
 | Persistent scripts (opt-in) | Retained namespace, asynchronous requests, owned-vehicle telemetry, cancellation and cleanup |
 
 ## How It Works
@@ -435,7 +435,9 @@ one JSON report. Never run it against a shared simulator without permission.
 | [Client setup](docs/client-setup.md) | Client configuration, preflight checks, and troubleshooting |
 | [Managed experiments](docs/managed-experiments.md) | No-key baseline, optional Jev, lifecycle, limits, and comparison procedure |
 | [Managed architecture](docs/managed-architecture.md) | Ownership, timing, decisions, recovery, and evidence invariants |
-| [Release readiness](docs/release-readiness.md) | Verified local behavior and remaining CI, provider, and publication gates |
+| [Release readiness](docs/release-readiness.md) | Candidate evidence and remaining acceptance/publication gates |
+| [Alpha release notes](docs/alpha-release-notes.md) | Source-only changes, supported workflows, and known limitations |
+| [Alpha demo guide](docs/alpha-demo.md) | Reproducible installation, successful live run, and failure checks |
 | [Persistent script sessions](docs/persistent-sessions.md) | Retained namespaces, requests, telemetry, ownership, and cancellation |
 | [Sensor timing](docs/sensor-timing.md) | Subscribe/tick/drain/close, bounded delivery, and non-ticking mutations |
 | [Experiment evidence](docs/experiment-evidence.md) | Trace schema, physical metrics, private retention, and exact replay |

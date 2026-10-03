@@ -17,6 +17,9 @@ Makefile text eol=lf
 .gitattributes text eol=lf
 .gitignore text eol=lf
 
+# Evidence hashes must remain stable in Windows checkouts.
+docs/evidence/** text eol=lf
+
 # Binary
 *.gif binary
 *.png binary

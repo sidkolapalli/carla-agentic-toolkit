@@ -1,0 +1,2488 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CARLA matched comparison</title><style>body{font:16px system-ui;max-width:1000px;margin:3rem auto;padding:0 1rem}table{border-collapse:collapse;width:100%}th,td{padding:.6rem;border-bottom:1px solid #ccc}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f4f6f7;padding:1rem}</style><h1>Matched descriptive comparison</h1><p>Descriptive evidence only; no significance, improved realism, or safety claim. Interventions/fallbacks belong to the shared controller, not provider reasoning.</p><table><tr><th>Policy</th><th>Samples</th><th>Eligible</th><th>Excluded</th></tr><tr><td>jev</td><td>3</td><td>3</td><td>0</td></tr><tr><td>rules</td><td>3</td><td>3</td><td>0</td></tr></table><h2>Physical metrics</h2><table><tr><th>Metric</th><th>Rules</th><th>Jev</th></tr><tr><th>collision_events</th><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.0}</td><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.0}</td></tr><tr><th>collision_impulse_magnitude_sum_kg_mps</th><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.0}</td><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.0}</td></tr><tr><th>completion</th><td>{&quot;denominator&quot;: 3, &quot;numerator&quot;: 3, &quot;rate&quot;: 1.0}</td><td>{&quot;denominator&quot;: 3, &quot;numerator&quot;: 3, &quot;rate&quot;: 1.0}</td></tr><tr><th>decision_latency_mean_seconds</th><td>{&quot;denominator&quot;: 0, &quot;mean&quot;: null}</td><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.15571666852792987}</td></tr><tr><th>decision_staleness_max_frames</th><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.0}</td><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.0}</td></tr><tr><th>fallbacks</th><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.0}</td><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.0}</td></tr><tr><th>hesitation_seconds</th><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.2500000037252903}</td><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.2500000037252903}</td></tr><tr><th>interventions</th><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.0}</td><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.0}</td></tr><tr><th>lane_invasion_events</th><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 4.0}</td><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 4.0}</td></tr><tr><th>observed_collision</th><td>{&quot;denominator&quot;: 3, &quot;numerator&quot;: 0, &quot;rate&quot;: 0.0}</td><td>{&quot;denominator&quot;: 3, &quot;numerator&quot;: 0, &quot;rate&quot;: 0.0}</td></tr><tr><th>real_time_factor</th><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 3.0120887180594926}</td><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.82096452368521}</td></tr><tr><th>reversal_count</th><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.0}</td><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.0}</td></tr><tr><th>sensor_dropped_samples</th><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.0}</td><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.0}</td></tr><tr><th>sensor_trailing_events</th><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 1.0}</td><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.6666666666666666}</td></tr><tr><th>tracking_error_rmse_m</th><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.8462215966514043}</td><td>{&quot;denominator&quot;: 3, &quot;mean&quot;: 0.8440895070571658}</td></tr></table><h2>Definitions and saved evidence</h2><pre>{
+  &quot;blockers&quot;: [],
+  &quot;comparable&quot;: true,
+  &quot;comparison_version&quot;: &quot;matched-comparison-v1&quot;,
+  &quot;definitions&quot;: {
+    &quot;completion&quot;: &quot;Explicit completed=true / eligible runs; unknown completion is excluded.&quot;,
+    &quot;interpretation&quot;: &quot;Descriptive evidence only; no significance, improved realism, or safety claim. Interventions/fallbacks belong to the shared controller, not provider reasoning.&quot;,
+    &quot;matching&quot;: &quot;Exact spec except policy/replay_run_id, fixture except actor_ids, seed, environment, package/code/planner/controller/fixture versions. Every cohort needs equal rules/Jev counts.&quot;,
+    &quot;numeric_means&quot;: &quot;Unweighted mean of per-run metrics among eligible runs with that measurement; each metric includes its own measured-run denominator. Latency is a mean of per-run means.&quot;,
+    &quot;observed_collision&quot;: &quot;Eligible runs with delivered collision events / eligible runs. Zero delivered events does not establish collision absence; inspect sensor coverage, drops and trailing data.&quot;,
+    &quot;physical_denominator&quot;: &quot;Per-policy verified terminal runs with observations and successful cleanup. Partial, cancelled, infrastructure-invalid and insufficient-evidence runs are excluded, retained in sample/status/exclusion counts. Different attrition can bias comparison.&quot;,
+    &quot;usage&quot;: &quot;Saved usage by run, or null when any included policy run has unknown usage.&quot;
+  },
+  &quot;match_groups&quot;: [
+    {
+      &quot;jev&quot;: [
+        &quot;7b5053225af74804b0ac53f4ba4d0cf2&quot;
+      ],
+      &quot;match_id&quot;: &quot;208f27fdb4f1956a7a1fea7c94e1be8ca162cd0b7395104bfea2d9cac4eff652&quot;,
+      &quot;rules&quot;: [
+        &quot;ade91f36f0a7444f8479146544ff1a1b&quot;
+      ]
+    },
+    {
+      &quot;jev&quot;: [
+        &quot;bb2f0dc041bf4f02bab71d8de94d995d&quot;
+      ],
+      &quot;match_id&quot;: &quot;2dfedecc8aa787ba74097bc3797f0e0c8b5b7a83d0faec124f7fac345f4596e5&quot;,
+      &quot;rules&quot;: [
+        &quot;11e47792d0fb4b79837d235e09297a37&quot;
+      ]
+    },
+    {
+      &quot;jev&quot;: [
+        &quot;34845c7950f6411f88d2989404dc19e3&quot;
+      ],
+      &quot;match_id&quot;: &quot;70d37e6e4a39cca8af6d19cef4dd39535292b9210285eb9cb95ebb375eb84239&quot;,
+      &quot;rules&quot;: [
+        &quot;b0980a48cdff4f94a391b76f5d9a9119&quot;
+      ]
+    }
+  ],
+  &quot;metric_version&quot;: &quot;physical-metrics-v1&quot;,
+  &quot;policies&quot;: {
+    &quot;jev&quot;: {
+      &quot;eligible_count&quot;: 3,
+      &quot;excluded_count&quot;: 0,
+      &quot;metrics&quot;: {
+        &quot;collision_events&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.0
+        },
+        &quot;collision_impulse_magnitude_sum_kg_mps&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.0
+        },
+        &quot;completion&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;numerator&quot;: 3,
+          &quot;rate&quot;: 1.0
+        },
+        &quot;decision_latency_mean_seconds&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.15571666852792987
+        },
+        &quot;decision_staleness_max_frames&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.0
+        },
+        &quot;fallbacks&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.0
+        },
+        &quot;hesitation_seconds&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.2500000037252903
+        },
+        &quot;interventions&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.0
+        },
+        &quot;lane_invasion_events&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 4.0
+        },
+        &quot;observed_collision&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;numerator&quot;: 0,
+          &quot;rate&quot;: 0.0
+        },
+        &quot;real_time_factor&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.82096452368521
+        },
+        &quot;reversal_count&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.0
+        },
+        &quot;sensor_dropped_samples&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.0
+        },
+        &quot;sensor_trailing_events&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.6666666666666666
+        },
+        &quot;tracking_error_rmse_m&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.8440895070571658
+        }
+      },
+      &quot;sample_count&quot;: 3,
+      &quot;status_counts&quot;: {
+        &quot;completed&quot;: 3
+      },
+      &quot;usage&quot;: [
+        {
+          &quot;run_id&quot;: &quot;34845c7950f6411f88d2989404dc19e3&quot;,
+          &quot;usage&quot;: [
+            {
+              &quot;input_tokens&quot;: 1933,
+              &quot;output_tokens&quot;: 27
+            },
+            {
+              &quot;input_tokens&quot;: 2598,
+              &quot;output_tokens&quot;: 27
+            },
+            {
+              &quot;input_tokens&quot;: 3838,
+              &quot;output_tokens&quot;: 33
+            },
+            {
+              &quot;input_tokens&quot;: 3658,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 3624,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 3441,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 3777,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 4101,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 4114,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 3764,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 3767,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 3772,
+              &quot;output_tokens&quot;: 32
+            }
+          ]
+        },
+        {
+          &quot;run_id&quot;: &quot;7b5053225af74804b0ac53f4ba4d0cf2&quot;,
+          &quot;usage&quot;: [
+            {
+              &quot;input_tokens&quot;: 1931,
+              &quot;output_tokens&quot;: 27
+            },
+            {
+              &quot;input_tokens&quot;: 3115,
+              &quot;output_tokens&quot;: 27
+            },
+            {
+              &quot;input_tokens&quot;: 3494,
+              &quot;output_tokens&quot;: 33
+            },
+            {
+              &quot;input_tokens&quot;: 4172,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 3792,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 4123,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 4123,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 4117,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 4107,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 3761,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 3410,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 3758,
+              &quot;output_tokens&quot;: 32
+            }
+          ]
+        },
+        {
+          &quot;run_id&quot;: &quot;bb2f0dc041bf4f02bab71d8de94d995d&quot;,
+          &quot;usage&quot;: [
+            {
+              &quot;input_tokens&quot;: 1931,
+              &quot;output_tokens&quot;: 27
+            },
+            {
+              &quot;input_tokens&quot;: 2940,
+              &quot;output_tokens&quot;: 27
+            },
+            {
+              &quot;input_tokens&quot;: 3838,
+              &quot;output_tokens&quot;: 33
+            },
+            {
+              &quot;input_tokens&quot;: 3828,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 3788,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 4135,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 4125,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 3939,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 3771,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 4109,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 3932,
+              &quot;output_tokens&quot;: 32
+            },
+            {
+              &quot;input_tokens&quot;: 3418,
+              &quot;output_tokens&quot;: 32
+            }
+          ]
+        }
+      ]
+    },
+    &quot;rules&quot;: {
+      &quot;eligible_count&quot;: 3,
+      &quot;excluded_count&quot;: 0,
+      &quot;metrics&quot;: {
+        &quot;collision_events&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.0
+        },
+        &quot;collision_impulse_magnitude_sum_kg_mps&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.0
+        },
+        &quot;completion&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;numerator&quot;: 3,
+          &quot;rate&quot;: 1.0
+        },
+        &quot;decision_latency_mean_seconds&quot;: {
+          &quot;denominator&quot;: 0,
+          &quot;mean&quot;: null
+        },
+        &quot;decision_staleness_max_frames&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.0
+        },
+        &quot;fallbacks&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.0
+        },
+        &quot;hesitation_seconds&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.2500000037252903
+        },
+        &quot;interventions&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.0
+        },
+        &quot;lane_invasion_events&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 4.0
+        },
+        &quot;observed_collision&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;numerator&quot;: 0,
+          &quot;rate&quot;: 0.0
+        },
+        &quot;real_time_factor&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 3.0120887180594926
+        },
+        &quot;reversal_count&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.0
+        },
+        &quot;sensor_dropped_samples&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.0
+        },
+        &quot;sensor_trailing_events&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 1.0
+        },
+        &quot;tracking_error_rmse_m&quot;: {
+          &quot;denominator&quot;: 3,
+          &quot;mean&quot;: 0.8462215966514043
+        }
+      },
+      &quot;sample_count&quot;: 3,
+      &quot;status_counts&quot;: {
+        &quot;completed&quot;: 3
+      },
+      &quot;usage&quot;: null
+    }
+  },
+  &quot;runs&quot;: [
+    {
+      &quot;coverage&quot;: {
+        &quot;observations&quot;: 115,
+        &quot;sensor_events&quot;: 928
+      },
+      &quot;decision_metadata&quot;: [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+      ],
+      &quot;definitions&quot;: {
+        &quot;collision_events&quot;: &quot;Count of delivered collision events; does not prove absence of collision.&quot;,
+        &quot;collision_impulse_magnitude_sum_kg_mps&quot;: &quot;Sum of impulse-vector magnitudes in kg m/s.&quot;,
+        &quot;decision_latency_mean_seconds&quot;: &quot;Mean recorded provider response latency_seconds.&quot;,
+        &quot;decision_staleness_max_frames&quot;: &quot;Maximum recorded staleness_frames; missing is null.&quot;,
+        &quot;gap_ttc_assumptions&quot;: &quot;Gap and TTC require numerical positions, declared reference points, and positive closing speed along the same path. No TTC is inferred from semantic scores or unsigned speed. Crossing-path and acceleration predictions are outside this metric version.&quot;,
+        &quot;hesitation_seconds&quot;: &quot;Actor-seconds between observations whose starting |speed| &lt;=0.2 m/s.&quot;,
+        &quot;interventions&quot;: &quot;Count of intervention events; fallbacks count only explicit fallback=true.&quot;,
+        &quot;lane_invasion_events&quot;: &quot;Count of delivered lane-invasion events with at least one marking.&quot;,
+        &quot;real_time_factor&quot;: &quot;Per-world simulation duration / full trace monotonic wall duration.&quot;,
+        &quot;reversal_count&quot;: &quot;Sign changes in longitudinal_speed_mps, ignoring |speed| &lt;=0.2 m/s samples; legacy traces fall back to speed_mps, which must be signed to represent reversals.&quot;,
+        &quot;sensor_dropped_samples&quot;: &quot;Sum of maximum cumulative dropped_samples per world/actor/sensor.&quot;,
+        &quot;sensor_trailing_events&quot;: &quot;Count of sensor events explicitly labeled trailing=true.&quot;,
+        &quot;tracking_error_rmse_m&quot;: &quot;Root mean square of recorded tracking_error_m; missing is null.&quot;
+      },
+      &quot;eligible&quot;: true,
+      &quot;event_count&quot;: 1213,
+      &quot;exclusion_reasons&quot;: [],
+      &quot;fixture&quot;: {
+        &quot;actor_ids&quot;: {
+          &quot;ego&quot;: 34,
+          &quot;policy&quot;: 33
+        },
+        &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+        &quot;ego_start&quot;: {
+          &quot;x&quot;: 39.809814453125,
+          &quot;y&quot;: -67.91323852539062,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+        &quot;length_m&quot;: 50.0,
+        &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+        &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+        &quot;policy_start&quot;: {
+          &quot;x&quot;: 63.81124496459961,
+          &quot;y&quot;: -64.42304229736328,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;reachability&quot;: &quot;same-road, same-lane, unique nonjunction successors at 2m&quot;,
+        &quot;road_id&quot;: 10,
+        &quot;seed&quot;: 7,
+        &quot;settings&quot;: {
+          &quot;crossing_seconds&quot;: 3.0,
+          &quot;ego_speed_mps&quot;: 5.0,
+          &quot;expiry_frames&quot;: 20,
+          &quot;fixed_delta_seconds&quot;: 0.05,
+          &quot;following_headway_seconds&quot;: 1.5,
+          &quot;maneuver_timeout_seconds&quot;: 8.0,
+          &quot;minimum_gap_m&quot;: 8.0,
+          &quot;minimum_ttc_seconds&quot;: 3.0,
+          &quot;preparation_steps&quot;: 10,
+          &quot;settling_steps&quot;: 10,
+          &quot;target_speed_mps&quot;: 6.0,
+          &quot;waiting_timeout_seconds&quot;: 15.0
+        },
+        &quot;source_lane_id&quot;: -1,
+        &quot;source_marking&quot;: &quot;Broken&quot;,
+        &quot;target_lane_id&quot;: -2,
+        &quot;target_marking&quot;: &quot;Broken&quot;,
+        &quot;target_start&quot;: {
+          &quot;x&quot;: 63.809814453125,
+          &quot;y&quot;: -67.92304229736328,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;width_m&quot;: 3.5
+      },
+      &quot;last_sequence&quot;: 1213,
+      &quot;match_id&quot;: &quot;70d37e6e4a39cca8af6d19cef4dd39535292b9210285eb9cb95ebb375eb84239&quot;,
+      &quot;matching_errors&quot;: [],
+      &quot;matching_evidence&quot;: {
+        &quot;code_sha256&quot;: &quot;85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68&quot;,
+        &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+        &quot;environment&quot;: {
+          &quot;carla_client&quot;: &quot;0.9.16&quot;,
+          &quot;carla_server&quot;: &quot;0.9.16&quot;,
+          &quot;platform&quot;: &quot;Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43&quot;,
+          &quot;python&quot;: &quot;3.12.14&quot;
+        },
+        &quot;fixture&quot;: {
+          &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+          &quot;ego_start&quot;: {
+            &quot;x&quot;: 39.809814453125,
+            &quot;y&quot;: -67.91323852539062,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+          &quot;length_m&quot;: 50.0,
+          &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+          &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+          &quot;policy_start&quot;: {
+            &quot;x&quot;: 63.81124496459961,
+            &quot;y&quot;: -64.42304229736328,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;reachability&quot;: &quot;same-road, same-lane, unique nonjunction successors at 2m&quot;,
+          &quot;road_id&quot;: 10,
+          &quot;seed&quot;: 7,
+          &quot;settings&quot;: {
+            &quot;crossing_seconds&quot;: 3.0,
+            &quot;ego_speed_mps&quot;: 5.0,
+            &quot;expiry_frames&quot;: 20,
+            &quot;fixed_delta_seconds&quot;: 0.05,
+            &quot;following_headway_seconds&quot;: 1.5,
+            &quot;maneuver_timeout_seconds&quot;: 8.0,
+            &quot;minimum_gap_m&quot;: 8.0,
+            &quot;minimum_ttc_seconds&quot;: 3.0,
+            &quot;preparation_steps&quot;: 10,
+            &quot;settling_steps&quot;: 10,
+            &quot;target_speed_mps&quot;: 6.0,
+            &quot;waiting_timeout_seconds&quot;: 15.0
+          },
+          &quot;source_lane_id&quot;: -1,
+          &quot;source_marking&quot;: &quot;Broken&quot;,
+          &quot;target_lane_id&quot;: -2,
+          &quot;target_marking&quot;: &quot;Broken&quot;,
+          &quot;target_start&quot;: {
+            &quot;x&quot;: 63.809814453125,
+            &quot;y&quot;: -67.92304229736328,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;width_m&quot;: 3.5
+        },
+        &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+        &quot;package_version&quot;: &quot;0.1.0&quot;,
+        &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+        &quot;seed&quot;: 7,
+        &quot;spec&quot;: {
+          &quot;decision_interval_steps&quot;: 10,
+          &quot;decision_timeout_seconds&quot;: 5.0,
+          &quot;ego_speed_mps&quot;: 5.0,
+          &quot;fixed_delta_seconds&quot;: 0.05,
+          &quot;fixture&quot;: &quot;town10-merge-v1&quot;,
+          &quot;host&quot;: &quot;172.18.112.1&quot;,
+          &quot;max_requests&quot;: 40,
+          &quot;max_steps&quot;: 600,
+          &quot;max_substep_delta_time&quot;: 0.01,
+          &quot;max_substeps&quot;: 10,
+          &quot;max_trace_bytes&quot;: 16777216,
+          &quot;max_wall_seconds&quot;: 180.0,
+          &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+          &quot;observation_range_m&quot;: 80.0,
+          &quot;port&quot;: 3000,
+          &quot;rpc_timeout_seconds&quot;: 5.0,
+          &quot;schema_version&quot;: 1,
+          &quot;seed&quot;: 7,
+          &quot;target_speed_mps&quot;: 6.0,
+          &quot;timing_mode&quot;: &quot;simulation_time&quot;
+        }
+      },
+      &quot;metadata&quot;: [
+        {
+          &quot;code_sha256&quot;: &quot;85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68&quot;,
+          &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+          &quot;environment&quot;: {
+            &quot;carla_client&quot;: &quot;0.9.16&quot;,
+            &quot;carla_server&quot;: &quot;0.9.16&quot;,
+            &quot;platform&quot;: &quot;Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43&quot;,
+            &quot;python&quot;: &quot;3.12.14&quot;
+          },
+          &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+          &quot;package_version&quot;: &quot;0.1.0&quot;,
+          &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+          &quot;policy_version&quot;: &quot;rules&quot;,
+          &quot;seed&quot;: 7,
+          &quot;spec&quot;: {
+            &quot;decision_interval_steps&quot;: 10,
+            &quot;decision_timeout_seconds&quot;: 5.0,
+            &quot;ego_speed_mps&quot;: 5.0,
+            &quot;fixed_delta_seconds&quot;: 0.05,
+            &quot;fixture&quot;: &quot;town10-merge-v1&quot;,
+            &quot;host&quot;: &quot;172.18.112.1&quot;,
+            &quot;max_requests&quot;: 40,
+            &quot;max_steps&quot;: 600,
+            &quot;max_substep_delta_time&quot;: 0.01,
+            &quot;max_substeps&quot;: 10,
+            &quot;max_trace_bytes&quot;: 16777216,
+            &quot;max_wall_seconds&quot;: 180.0,
+            &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+            &quot;observation_range_m&quot;: 80.0,
+            &quot;policy&quot;: &quot;rules&quot;,
+            &quot;port&quot;: 3000,
+            &quot;replay_run_id&quot;: null,
+            &quot;rpc_timeout_seconds&quot;: 5.0,
+            &quot;schema_version&quot;: 1,
+            &quot;seed&quot;: 7,
+            &quot;target_speed_mps&quot;: 6.0,
+            &quot;timing_mode&quot;: &quot;simulation_time&quot;
+          }
+        }
+      ],
+      &quot;metric_version&quot;: &quot;physical-metrics-v1&quot;,
+      &quot;metrics&quot;: {
+        &quot;collision_events&quot;: 0,
+        &quot;collision_impulse_magnitude_sum_kg_mps&quot;: 0,
+        &quot;completed&quot;: true,
+        &quot;decision_latency_mean_seconds&quot;: null,
+        &quot;decision_staleness_max_frames&quot;: 0.0,
+        &quot;fallbacks&quot;: 0,
+        &quot;hesitation_seconds&quot;: 0.2500000037252903,
+        &quot;interventions&quot;: 0,
+        &quot;lane_invasion_events&quot;: 4,
+        &quot;real_time_factor&quot;: 6.730156631352222,
+        &quot;reversal_count&quot;: 0,
+        &quot;sensor_dropped_samples&quot;: 0,
+        &quot;sensor_trailing_events&quot;: 0,
+        &quot;simulation_duration_seconds&quot;: 5.700000084936619,
+        &quot;tracking_error_rmse_m&quot;: 0.846221073431229,
+        &quot;wall_duration_seconds&quot;: 0.8469342390017118
+      },
+      &quot;policy&quot;: &quot;rules&quot;,
+      &quot;run_id&quot;: &quot;b0980a48cdff4f94a391b76f5d9a9119&quot;,
+      &quot;schema_version&quot;: 1,
+      &quot;source_path&quot;: &quot;private-trace:seed-7-rules/events.jsonl&quot;,
+      &quot;status&quot;: &quot;completed&quot;,
+      &quot;trace_errors&quot;: [],
+      &quot;usage&quot;: null
+    },
+    {
+      &quot;coverage&quot;: {
+        &quot;observations&quot;: 117,
+        &quot;sensor_events&quot;: 944
+      },
+      &quot;decision_metadata&quot;: [
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.24454907000108506,
+          &quot;input_tokens&quot;: 1933,
+          &quot;output_tokens&quot;: 27,
+          &quot;probabilities&quot;: {
+            &quot;defer&quot;: 1.0
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff809026731fbea8a12f47406dcb&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.12514659400039818,
+          &quot;input_tokens&quot;: 2598,
+          &quot;output_tokens&quot;: 27,
+          &quot;probabilities&quot;: {
+            &quot;defer&quot;: 1.0
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff80911f7614b37338415ca0a13d&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.1348699209993356,
+          &quot;input_tokens&quot;: 3838,
+          &quot;output_tokens&quot;: 33,
+          &quot;probabilities&quot;: {
+            &quot;defer&quot;: 0.38,
+            &quot;merge&quot;: 0.62
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff8091d37f3c8b17b7a6fa7b010b&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.1632220139981655,
+          &quot;input_tokens&quot;: 3658,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.0,
+            &quot;continue&quot;: 1.0
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff8092d77d5da52e25d8ff6d0715&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.14391791700109025,
+          &quot;input_tokens&quot;: 3624,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.01,
+            &quot;continue&quot;: 0.99
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff8093c67ae7b7f3405880ac3b79&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.19257162199937738,
+          &quot;input_tokens&quot;: 3441,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.02,
+            &quot;continue&quot;: 0.98
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff8094e57d68b642267c0949e6c3&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.1447145530000853,
+          &quot;input_tokens&quot;: 3777,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.01,
+            &quot;continue&quot;: 0.99
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff8095e37decaaa671412f52b880&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.1514560209980118,
+          &quot;input_tokens&quot;: 4101,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.01,
+            &quot;continue&quot;: 0.99
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff8096ec79c68b8d207cd71f6761&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.13540966300206492,
+          &quot;input_tokens&quot;: 4114,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.03,
+            &quot;continue&quot;: 0.97
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff8097e775cea21f110581f58f58&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.14605054599815048,
+          &quot;input_tokens&quot;: 3764,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.01,
+            &quot;continue&quot;: 0.99
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff8098c57be8a71f318df93d6d45&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.20073584099736763,
+          &quot;input_tokens&quot;: 3767,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.01,
+            &quot;continue&quot;: 0.99
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff80999270edaf8ac7f1588c8ea4&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.15044978899823036,
+          &quot;input_tokens&quot;: 3772,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.0,
+            &quot;continue&quot;: 1.0
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff809a90787792f5a9c729a15e1f&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        }
+      ],
+      &quot;definitions&quot;: {
+        &quot;collision_events&quot;: &quot;Count of delivered collision events; does not prove absence of collision.&quot;,
+        &quot;collision_impulse_magnitude_sum_kg_mps&quot;: &quot;Sum of impulse-vector magnitudes in kg m/s.&quot;,
+        &quot;decision_latency_mean_seconds&quot;: &quot;Mean recorded provider response latency_seconds.&quot;,
+        &quot;decision_staleness_max_frames&quot;: &quot;Maximum recorded staleness_frames; missing is null.&quot;,
+        &quot;gap_ttc_assumptions&quot;: &quot;Gap and TTC require numerical positions, declared reference points, and positive closing speed along the same path. No TTC is inferred from semantic scores or unsigned speed. Crossing-path and acceleration predictions are outside this metric version.&quot;,
+        &quot;hesitation_seconds&quot;: &quot;Actor-seconds between observations whose starting |speed| &lt;=0.2 m/s.&quot;,
+        &quot;interventions&quot;: &quot;Count of intervention events; fallbacks count only explicit fallback=true.&quot;,
+        &quot;lane_invasion_events&quot;: &quot;Count of delivered lane-invasion events with at least one marking.&quot;,
+        &quot;real_time_factor&quot;: &quot;Per-world simulation duration / full trace monotonic wall duration.&quot;,
+        &quot;reversal_count&quot;: &quot;Sign changes in longitudinal_speed_mps, ignoring |speed| &lt;=0.2 m/s samples; legacy traces fall back to speed_mps, which must be signed to represent reversals.&quot;,
+        &quot;sensor_dropped_samples&quot;: &quot;Sum of maximum cumulative dropped_samples per world/actor/sensor.&quot;,
+        &quot;sensor_trailing_events&quot;: &quot;Count of sensor events explicitly labeled trailing=true.&quot;,
+        &quot;tracking_error_rmse_m&quot;: &quot;Root mean square of recorded tracking_error_m; missing is null.&quot;
+      },
+      &quot;eligible&quot;: true,
+      &quot;event_count&quot;: 1233,
+      &quot;exclusion_reasons&quot;: [],
+      &quot;fixture&quot;: {
+        &quot;actor_ids&quot;: {
+          &quot;ego&quot;: 42,
+          &quot;policy&quot;: 41
+        },
+        &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+        &quot;ego_start&quot;: {
+          &quot;x&quot;: 39.809814453125,
+          &quot;y&quot;: -67.91323852539062,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+        &quot;length_m&quot;: 50.0,
+        &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+        &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+        &quot;policy_start&quot;: {
+          &quot;x&quot;: 63.81124496459961,
+          &quot;y&quot;: -64.42304229736328,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;reachability&quot;: &quot;same-road, same-lane, unique nonjunction successors at 2m&quot;,
+        &quot;road_id&quot;: 10,
+        &quot;seed&quot;: 7,
+        &quot;settings&quot;: {
+          &quot;crossing_seconds&quot;: 3.0,
+          &quot;ego_speed_mps&quot;: 5.0,
+          &quot;expiry_frames&quot;: 20,
+          &quot;fixed_delta_seconds&quot;: 0.05,
+          &quot;following_headway_seconds&quot;: 1.5,
+          &quot;maneuver_timeout_seconds&quot;: 8.0,
+          &quot;minimum_gap_m&quot;: 8.0,
+          &quot;minimum_ttc_seconds&quot;: 3.0,
+          &quot;preparation_steps&quot;: 10,
+          &quot;settling_steps&quot;: 10,
+          &quot;target_speed_mps&quot;: 6.0,
+          &quot;waiting_timeout_seconds&quot;: 15.0
+        },
+        &quot;source_lane_id&quot;: -1,
+        &quot;source_marking&quot;: &quot;Broken&quot;,
+        &quot;target_lane_id&quot;: -2,
+        &quot;target_marking&quot;: &quot;Broken&quot;,
+        &quot;target_start&quot;: {
+          &quot;x&quot;: 63.809814453125,
+          &quot;y&quot;: -67.92304229736328,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;width_m&quot;: 3.5
+      },
+      &quot;last_sequence&quot;: 1233,
+      &quot;match_id&quot;: &quot;70d37e6e4a39cca8af6d19cef4dd39535292b9210285eb9cb95ebb375eb84239&quot;,
+      &quot;matching_errors&quot;: [],
+      &quot;matching_evidence&quot;: {
+        &quot;code_sha256&quot;: &quot;85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68&quot;,
+        &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+        &quot;environment&quot;: {
+          &quot;carla_client&quot;: &quot;0.9.16&quot;,
+          &quot;carla_server&quot;: &quot;0.9.16&quot;,
+          &quot;platform&quot;: &quot;Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43&quot;,
+          &quot;python&quot;: &quot;3.12.14&quot;
+        },
+        &quot;fixture&quot;: {
+          &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+          &quot;ego_start&quot;: {
+            &quot;x&quot;: 39.809814453125,
+            &quot;y&quot;: -67.91323852539062,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+          &quot;length_m&quot;: 50.0,
+          &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+          &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+          &quot;policy_start&quot;: {
+            &quot;x&quot;: 63.81124496459961,
+            &quot;y&quot;: -64.42304229736328,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;reachability&quot;: &quot;same-road, same-lane, unique nonjunction successors at 2m&quot;,
+          &quot;road_id&quot;: 10,
+          &quot;seed&quot;: 7,
+          &quot;settings&quot;: {
+            &quot;crossing_seconds&quot;: 3.0,
+            &quot;ego_speed_mps&quot;: 5.0,
+            &quot;expiry_frames&quot;: 20,
+            &quot;fixed_delta_seconds&quot;: 0.05,
+            &quot;following_headway_seconds&quot;: 1.5,
+            &quot;maneuver_timeout_seconds&quot;: 8.0,
+            &quot;minimum_gap_m&quot;: 8.0,
+            &quot;minimum_ttc_seconds&quot;: 3.0,
+            &quot;preparation_steps&quot;: 10,
+            &quot;settling_steps&quot;: 10,
+            &quot;target_speed_mps&quot;: 6.0,
+            &quot;waiting_timeout_seconds&quot;: 15.0
+          },
+          &quot;source_lane_id&quot;: -1,
+          &quot;source_marking&quot;: &quot;Broken&quot;,
+          &quot;target_lane_id&quot;: -2,
+          &quot;target_marking&quot;: &quot;Broken&quot;,
+          &quot;target_start&quot;: {
+            &quot;x&quot;: 63.809814453125,
+            &quot;y&quot;: -67.92304229736328,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;width_m&quot;: 3.5
+        },
+        &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+        &quot;package_version&quot;: &quot;0.1.0&quot;,
+        &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+        &quot;seed&quot;: 7,
+        &quot;spec&quot;: {
+          &quot;decision_interval_steps&quot;: 10,
+          &quot;decision_timeout_seconds&quot;: 5.0,
+          &quot;ego_speed_mps&quot;: 5.0,
+          &quot;fixed_delta_seconds&quot;: 0.05,
+          &quot;fixture&quot;: &quot;town10-merge-v1&quot;,
+          &quot;host&quot;: &quot;172.18.112.1&quot;,
+          &quot;max_requests&quot;: 40,
+          &quot;max_steps&quot;: 600,
+          &quot;max_substep_delta_time&quot;: 0.01,
+          &quot;max_substeps&quot;: 10,
+          &quot;max_trace_bytes&quot;: 16777216,
+          &quot;max_wall_seconds&quot;: 180.0,
+          &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+          &quot;observation_range_m&quot;: 80.0,
+          &quot;port&quot;: 3000,
+          &quot;rpc_timeout_seconds&quot;: 5.0,
+          &quot;schema_version&quot;: 1,
+          &quot;seed&quot;: 7,
+          &quot;target_speed_mps&quot;: 6.0,
+          &quot;timing_mode&quot;: &quot;simulation_time&quot;
+        }
+      },
+      &quot;metadata&quot;: [
+        {
+          &quot;code_sha256&quot;: &quot;85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68&quot;,
+          &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+          &quot;environment&quot;: {
+            &quot;carla_client&quot;: &quot;0.9.16&quot;,
+            &quot;carla_server&quot;: &quot;0.9.16&quot;,
+            &quot;platform&quot;: &quot;Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43&quot;,
+            &quot;python&quot;: &quot;3.12.14&quot;
+          },
+          &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+          &quot;package_version&quot;: &quot;0.1.0&quot;,
+          &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+          &quot;policy_version&quot;: &quot;jev&quot;,
+          &quot;seed&quot;: 7,
+          &quot;spec&quot;: {
+            &quot;decision_interval_steps&quot;: 10,
+            &quot;decision_timeout_seconds&quot;: 5.0,
+            &quot;ego_speed_mps&quot;: 5.0,
+            &quot;fixed_delta_seconds&quot;: 0.05,
+            &quot;fixture&quot;: &quot;town10-merge-v1&quot;,
+            &quot;host&quot;: &quot;172.18.112.1&quot;,
+            &quot;max_requests&quot;: 40,
+            &quot;max_steps&quot;: 600,
+            &quot;max_substep_delta_time&quot;: 0.01,
+            &quot;max_substeps&quot;: 10,
+            &quot;max_trace_bytes&quot;: 16777216,
+            &quot;max_wall_seconds&quot;: 180.0,
+            &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+            &quot;observation_range_m&quot;: 80.0,
+            &quot;policy&quot;: &quot;jev&quot;,
+            &quot;port&quot;: 3000,
+            &quot;replay_run_id&quot;: null,
+            &quot;rpc_timeout_seconds&quot;: 5.0,
+            &quot;schema_version&quot;: 1,
+            &quot;seed&quot;: 7,
+            &quot;target_speed_mps&quot;: 6.0,
+            &quot;timing_mode&quot;: &quot;simulation_time&quot;
+          }
+        }
+      ],
+      &quot;metric_version&quot;: &quot;physical-metrics-v1&quot;,
+      &quot;metrics&quot;: {
+        &quot;collision_events&quot;: 0,
+        &quot;collision_impulse_magnitude_sum_kg_mps&quot;: 0,
+        &quot;completed&quot;: true,
+        &quot;decision_latency_mean_seconds&quot;: 0.16109112924944688,
+        &quot;decision_staleness_max_frames&quot;: 0.0,
+        &quot;fallbacks&quot;: 0,
+        &quot;hesitation_seconds&quot;: 0.2500000037252903,
+        &quot;interventions&quot;: 0,
+        &quot;lane_invasion_events&quot;: 4,
+        &quot;real_time_factor&quot;: 0.8026978050634856,
+        &quot;reversal_count&quot;: 0,
+        &quot;sensor_dropped_samples&quot;: 0,
+        &quot;sensor_trailing_events&quot;: 2,
+        &quot;simulation_duration_seconds&quot;: 5.800000086426735,
+        &quot;tracking_error_rmse_m&quot;: 0.8398263743090393,
+        &quot;wall_duration_seconds&quot;: 7.2256334199992125
+      },
+      &quot;policy&quot;: &quot;jev&quot;,
+      &quot;run_id&quot;: &quot;34845c7950f6411f88d2989404dc19e3&quot;,
+      &quot;schema_version&quot;: 1,
+      &quot;source_path&quot;: &quot;private-trace:seed-7-jev/events.jsonl&quot;,
+      &quot;status&quot;: &quot;completed&quot;,
+      &quot;trace_errors&quot;: [],
+      &quot;usage&quot;: [
+        {
+          &quot;input_tokens&quot;: 1933,
+          &quot;output_tokens&quot;: 27
+        },
+        {
+          &quot;input_tokens&quot;: 2598,
+          &quot;output_tokens&quot;: 27
+        },
+        {
+          &quot;input_tokens&quot;: 3838,
+          &quot;output_tokens&quot;: 33
+        },
+        {
+          &quot;input_tokens&quot;: 3658,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 3624,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 3441,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 3777,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 4101,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 4114,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 3764,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 3767,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 3772,
+          &quot;output_tokens&quot;: 32
+        }
+      ]
+    },
+    {
+      &quot;coverage&quot;: {
+        &quot;observations&quot;: 115,
+        &quot;sensor_events&quot;: 928
+      },
+      &quot;decision_metadata&quot;: [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+      ],
+      &quot;definitions&quot;: {
+        &quot;collision_events&quot;: &quot;Count of delivered collision events; does not prove absence of collision.&quot;,
+        &quot;collision_impulse_magnitude_sum_kg_mps&quot;: &quot;Sum of impulse-vector magnitudes in kg m/s.&quot;,
+        &quot;decision_latency_mean_seconds&quot;: &quot;Mean recorded provider response latency_seconds.&quot;,
+        &quot;decision_staleness_max_frames&quot;: &quot;Maximum recorded staleness_frames; missing is null.&quot;,
+        &quot;gap_ttc_assumptions&quot;: &quot;Gap and TTC require numerical positions, declared reference points, and positive closing speed along the same path. No TTC is inferred from semantic scores or unsigned speed. Crossing-path and acceleration predictions are outside this metric version.&quot;,
+        &quot;hesitation_seconds&quot;: &quot;Actor-seconds between observations whose starting |speed| &lt;=0.2 m/s.&quot;,
+        &quot;interventions&quot;: &quot;Count of intervention events; fallbacks count only explicit fallback=true.&quot;,
+        &quot;lane_invasion_events&quot;: &quot;Count of delivered lane-invasion events with at least one marking.&quot;,
+        &quot;real_time_factor&quot;: &quot;Per-world simulation duration / full trace monotonic wall duration.&quot;,
+        &quot;reversal_count&quot;: &quot;Sign changes in longitudinal_speed_mps, ignoring |speed| &lt;=0.2 m/s samples; legacy traces fall back to speed_mps, which must be signed to represent reversals.&quot;,
+        &quot;sensor_dropped_samples&quot;: &quot;Sum of maximum cumulative dropped_samples per world/actor/sensor.&quot;,
+        &quot;sensor_trailing_events&quot;: &quot;Count of sensor events explicitly labeled trailing=true.&quot;,
+        &quot;tracking_error_rmse_m&quot;: &quot;Root mean square of recorded tracking_error_m; missing is null.&quot;
+      },
+      &quot;eligible&quot;: true,
+      &quot;event_count&quot;: 1213,
+      &quot;exclusion_reasons&quot;: [],
+      &quot;fixture&quot;: {
+        &quot;actor_ids&quot;: {
+          &quot;ego&quot;: 50,
+          &quot;policy&quot;: 49
+        },
+        &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+        &quot;ego_start&quot;: {
+          &quot;x&quot;: 39.809814453125,
+          &quot;y&quot;: -67.91323852539062,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+        &quot;length_m&quot;: 50.0,
+        &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+        &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+        &quot;policy_start&quot;: {
+          &quot;x&quot;: 63.81124496459961,
+          &quot;y&quot;: -64.42304229736328,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;reachability&quot;: &quot;same-road, same-lane, unique nonjunction successors at 2m&quot;,
+        &quot;road_id&quot;: 10,
+        &quot;seed&quot;: 19,
+        &quot;settings&quot;: {
+          &quot;crossing_seconds&quot;: 3.0,
+          &quot;ego_speed_mps&quot;: 5.0,
+          &quot;expiry_frames&quot;: 20,
+          &quot;fixed_delta_seconds&quot;: 0.05,
+          &quot;following_headway_seconds&quot;: 1.5,
+          &quot;maneuver_timeout_seconds&quot;: 8.0,
+          &quot;minimum_gap_m&quot;: 8.0,
+          &quot;minimum_ttc_seconds&quot;: 3.0,
+          &quot;preparation_steps&quot;: 10,
+          &quot;settling_steps&quot;: 10,
+          &quot;target_speed_mps&quot;: 6.0,
+          &quot;waiting_timeout_seconds&quot;: 15.0
+        },
+        &quot;source_lane_id&quot;: -1,
+        &quot;source_marking&quot;: &quot;Broken&quot;,
+        &quot;target_lane_id&quot;: -2,
+        &quot;target_marking&quot;: &quot;Broken&quot;,
+        &quot;target_start&quot;: {
+          &quot;x&quot;: 63.809814453125,
+          &quot;y&quot;: -67.92304229736328,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;width_m&quot;: 3.5
+      },
+      &quot;last_sequence&quot;: 1213,
+      &quot;match_id&quot;: &quot;208f27fdb4f1956a7a1fea7c94e1be8ca162cd0b7395104bfea2d9cac4eff652&quot;,
+      &quot;matching_errors&quot;: [],
+      &quot;matching_evidence&quot;: {
+        &quot;code_sha256&quot;: &quot;85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68&quot;,
+        &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+        &quot;environment&quot;: {
+          &quot;carla_client&quot;: &quot;0.9.16&quot;,
+          &quot;carla_server&quot;: &quot;0.9.16&quot;,
+          &quot;platform&quot;: &quot;Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43&quot;,
+          &quot;python&quot;: &quot;3.12.14&quot;
+        },
+        &quot;fixture&quot;: {
+          &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+          &quot;ego_start&quot;: {
+            &quot;x&quot;: 39.809814453125,
+            &quot;y&quot;: -67.91323852539062,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+          &quot;length_m&quot;: 50.0,
+          &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+          &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+          &quot;policy_start&quot;: {
+            &quot;x&quot;: 63.81124496459961,
+            &quot;y&quot;: -64.42304229736328,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;reachability&quot;: &quot;same-road, same-lane, unique nonjunction successors at 2m&quot;,
+          &quot;road_id&quot;: 10,
+          &quot;seed&quot;: 19,
+          &quot;settings&quot;: {
+            &quot;crossing_seconds&quot;: 3.0,
+            &quot;ego_speed_mps&quot;: 5.0,
+            &quot;expiry_frames&quot;: 20,
+            &quot;fixed_delta_seconds&quot;: 0.05,
+            &quot;following_headway_seconds&quot;: 1.5,
+            &quot;maneuver_timeout_seconds&quot;: 8.0,
+            &quot;minimum_gap_m&quot;: 8.0,
+            &quot;minimum_ttc_seconds&quot;: 3.0,
+            &quot;preparation_steps&quot;: 10,
+            &quot;settling_steps&quot;: 10,
+            &quot;target_speed_mps&quot;: 6.0,
+            &quot;waiting_timeout_seconds&quot;: 15.0
+          },
+          &quot;source_lane_id&quot;: -1,
+          &quot;source_marking&quot;: &quot;Broken&quot;,
+          &quot;target_lane_id&quot;: -2,
+          &quot;target_marking&quot;: &quot;Broken&quot;,
+          &quot;target_start&quot;: {
+            &quot;x&quot;: 63.809814453125,
+            &quot;y&quot;: -67.92304229736328,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;width_m&quot;: 3.5
+        },
+        &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+        &quot;package_version&quot;: &quot;0.1.0&quot;,
+        &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+        &quot;seed&quot;: 19,
+        &quot;spec&quot;: {
+          &quot;decision_interval_steps&quot;: 10,
+          &quot;decision_timeout_seconds&quot;: 5.0,
+          &quot;ego_speed_mps&quot;: 5.0,
+          &quot;fixed_delta_seconds&quot;: 0.05,
+          &quot;fixture&quot;: &quot;town10-merge-v1&quot;,
+          &quot;host&quot;: &quot;172.18.112.1&quot;,
+          &quot;max_requests&quot;: 40,
+          &quot;max_steps&quot;: 600,
+          &quot;max_substep_delta_time&quot;: 0.01,
+          &quot;max_substeps&quot;: 10,
+          &quot;max_trace_bytes&quot;: 16777216,
+          &quot;max_wall_seconds&quot;: 180.0,
+          &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+          &quot;observation_range_m&quot;: 80.0,
+          &quot;port&quot;: 3000,
+          &quot;rpc_timeout_seconds&quot;: 5.0,
+          &quot;schema_version&quot;: 1,
+          &quot;seed&quot;: 19,
+          &quot;target_speed_mps&quot;: 6.0,
+          &quot;timing_mode&quot;: &quot;simulation_time&quot;
+        }
+      },
+      &quot;metadata&quot;: [
+        {
+          &quot;code_sha256&quot;: &quot;85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68&quot;,
+          &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+          &quot;environment&quot;: {
+            &quot;carla_client&quot;: &quot;0.9.16&quot;,
+            &quot;carla_server&quot;: &quot;0.9.16&quot;,
+            &quot;platform&quot;: &quot;Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43&quot;,
+            &quot;python&quot;: &quot;3.12.14&quot;
+          },
+          &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+          &quot;package_version&quot;: &quot;0.1.0&quot;,
+          &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+          &quot;policy_version&quot;: &quot;rules&quot;,
+          &quot;seed&quot;: 19,
+          &quot;spec&quot;: {
+            &quot;decision_interval_steps&quot;: 10,
+            &quot;decision_timeout_seconds&quot;: 5.0,
+            &quot;ego_speed_mps&quot;: 5.0,
+            &quot;fixed_delta_seconds&quot;: 0.05,
+            &quot;fixture&quot;: &quot;town10-merge-v1&quot;,
+            &quot;host&quot;: &quot;172.18.112.1&quot;,
+            &quot;max_requests&quot;: 40,
+            &quot;max_steps&quot;: 600,
+            &quot;max_substep_delta_time&quot;: 0.01,
+            &quot;max_substeps&quot;: 10,
+            &quot;max_trace_bytes&quot;: 16777216,
+            &quot;max_wall_seconds&quot;: 180.0,
+            &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+            &quot;observation_range_m&quot;: 80.0,
+            &quot;policy&quot;: &quot;rules&quot;,
+            &quot;port&quot;: 3000,
+            &quot;replay_run_id&quot;: null,
+            &quot;rpc_timeout_seconds&quot;: 5.0,
+            &quot;schema_version&quot;: 1,
+            &quot;seed&quot;: 19,
+            &quot;target_speed_mps&quot;: 6.0,
+            &quot;timing_mode&quot;: &quot;simulation_time&quot;
+          }
+        }
+      ],
+      &quot;metric_version&quot;: &quot;physical-metrics-v1&quot;,
+      &quot;metrics&quot;: {
+        &quot;collision_events&quot;: 0,
+        &quot;collision_impulse_magnitude_sum_kg_mps&quot;: 0,
+        &quot;completed&quot;: true,
+        &quot;decision_latency_mean_seconds&quot;: null,
+        &quot;decision_staleness_max_frames&quot;: 0.0,
+        &quot;fallbacks&quot;: 0,
+        &quot;hesitation_seconds&quot;: 0.2500000037252903,
+        &quot;interventions&quot;: 0,
+        &quot;lane_invasion_events&quot;: 4,
+        &quot;real_time_factor&quot;: 1.150741495875434,
+        &quot;reversal_count&quot;: 0,
+        &quot;sensor_dropped_samples&quot;: 0,
+        &quot;sensor_trailing_events&quot;: 2,
+        &quot;simulation_duration_seconds&quot;: 5.700000084936619,
+        &quot;tracking_error_rmse_m&quot;: 0.8462226430917552,
+        &quot;wall_duration_seconds&quot;: 4.953328010997211
+      },
+      &quot;policy&quot;: &quot;rules&quot;,
+      &quot;run_id&quot;: &quot;ade91f36f0a7444f8479146544ff1a1b&quot;,
+      &quot;schema_version&quot;: 1,
+      &quot;source_path&quot;: &quot;private-trace:seed-19-rules/events.jsonl&quot;,
+      &quot;status&quot;: &quot;completed&quot;,
+      &quot;trace_errors&quot;: [],
+      &quot;usage&quot;: null
+    },
+    {
+      &quot;coverage&quot;: {
+        &quot;observations&quot;: 115,
+        &quot;sensor_events&quot;: 928
+      },
+      &quot;decision_metadata&quot;: [
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.2190274229978968,
+          &quot;input_tokens&quot;: 1931,
+          &quot;output_tokens&quot;: 27,
+          &quot;probabilities&quot;: {
+            &quot;defer&quot;: 1.0
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff80d8b47c00a23838d2513fe389&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.15063010599988047,
+          &quot;input_tokens&quot;: 3115,
+          &quot;output_tokens&quot;: 27,
+          &quot;probabilities&quot;: {
+            &quot;defer&quot;: 1.0
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff80d984741280923e134e106fc2&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.14269851200151606,
+          &quot;input_tokens&quot;: 3494,
+          &quot;output_tokens&quot;: 33,
+          &quot;probabilities&quot;: {
+            &quot;defer&quot;: 0.4,
+            &quot;merge&quot;: 0.6
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff80da4c77dcab8085c22ae43c5b&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.14745058600237826,
+          &quot;input_tokens&quot;: 4172,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.0,
+            &quot;continue&quot;: 1.0
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff80db0c7f099e7e7521a77c5ede&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.14931412499936414,
+          &quot;input_tokens&quot;: 3792,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.03,
+            &quot;continue&quot;: 0.97
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff80dbd679c4ac61bf25fd7c87bb&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.1377256599989778,
+          &quot;input_tokens&quot;: 4123,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.02,
+            &quot;continue&quot;: 0.98
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff80dcab7e4cb95127940e77311e&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.1602971640022588,
+          &quot;input_tokens&quot;: 4123,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.02,
+            &quot;continue&quot;: 0.98
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff80dd797ed28d85415ab0c859e3&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.1678142470009334,
+          &quot;input_tokens&quot;: 4117,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.03,
+            &quot;continue&quot;: 0.97
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff80de8371abb86cddc8c762abec&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.14515438099988387,
+          &quot;input_tokens&quot;: 4107,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.02,
+            &quot;continue&quot;: 0.98
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff80df9278dc82dfd739fc1ba3aa&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.13303336999888415,
+          &quot;input_tokens&quot;: 3761,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.02,
+            &quot;continue&quot;: 0.98
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff80e0607a9ebc3f4c926ece0fa3&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.1376102290014387,
+          &quot;input_tokens&quot;: 3410,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.01,
+            &quot;continue&quot;: 0.99
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff80e11d7164aa164a23f58a1c67&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.13654664299974684,
+          &quot;input_tokens&quot;: 3758,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.0,
+            &quot;continue&quot;: 1.0
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff80e1e17ab1b80bbb1250f082f8&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        }
+      ],
+      &quot;definitions&quot;: {
+        &quot;collision_events&quot;: &quot;Count of delivered collision events; does not prove absence of collision.&quot;,
+        &quot;collision_impulse_magnitude_sum_kg_mps&quot;: &quot;Sum of impulse-vector magnitudes in kg m/s.&quot;,
+        &quot;decision_latency_mean_seconds&quot;: &quot;Mean recorded provider response latency_seconds.&quot;,
+        &quot;decision_staleness_max_frames&quot;: &quot;Maximum recorded staleness_frames; missing is null.&quot;,
+        &quot;gap_ttc_assumptions&quot;: &quot;Gap and TTC require numerical positions, declared reference points, and positive closing speed along the same path. No TTC is inferred from semantic scores or unsigned speed. Crossing-path and acceleration predictions are outside this metric version.&quot;,
+        &quot;hesitation_seconds&quot;: &quot;Actor-seconds between observations whose starting |speed| &lt;=0.2 m/s.&quot;,
+        &quot;interventions&quot;: &quot;Count of intervention events; fallbacks count only explicit fallback=true.&quot;,
+        &quot;lane_invasion_events&quot;: &quot;Count of delivered lane-invasion events with at least one marking.&quot;,
+        &quot;real_time_factor&quot;: &quot;Per-world simulation duration / full trace monotonic wall duration.&quot;,
+        &quot;reversal_count&quot;: &quot;Sign changes in longitudinal_speed_mps, ignoring |speed| &lt;=0.2 m/s samples; legacy traces fall back to speed_mps, which must be signed to represent reversals.&quot;,
+        &quot;sensor_dropped_samples&quot;: &quot;Sum of maximum cumulative dropped_samples per world/actor/sensor.&quot;,
+        &quot;sensor_trailing_events&quot;: &quot;Count of sensor events explicitly labeled trailing=true.&quot;,
+        &quot;tracking_error_rmse_m&quot;: &quot;Root mean square of recorded tracking_error_m; missing is null.&quot;
+      },
+      &quot;eligible&quot;: true,
+      &quot;event_count&quot;: 1213,
+      &quot;exclusion_reasons&quot;: [],
+      &quot;fixture&quot;: {
+        &quot;actor_ids&quot;: {
+          &quot;ego&quot;: 58,
+          &quot;policy&quot;: 57
+        },
+        &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+        &quot;ego_start&quot;: {
+          &quot;x&quot;: 39.809814453125,
+          &quot;y&quot;: -67.91323852539062,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+        &quot;length_m&quot;: 50.0,
+        &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+        &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+        &quot;policy_start&quot;: {
+          &quot;x&quot;: 63.81124496459961,
+          &quot;y&quot;: -64.42304229736328,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;reachability&quot;: &quot;same-road, same-lane, unique nonjunction successors at 2m&quot;,
+        &quot;road_id&quot;: 10,
+        &quot;seed&quot;: 19,
+        &quot;settings&quot;: {
+          &quot;crossing_seconds&quot;: 3.0,
+          &quot;ego_speed_mps&quot;: 5.0,
+          &quot;expiry_frames&quot;: 20,
+          &quot;fixed_delta_seconds&quot;: 0.05,
+          &quot;following_headway_seconds&quot;: 1.5,
+          &quot;maneuver_timeout_seconds&quot;: 8.0,
+          &quot;minimum_gap_m&quot;: 8.0,
+          &quot;minimum_ttc_seconds&quot;: 3.0,
+          &quot;preparation_steps&quot;: 10,
+          &quot;settling_steps&quot;: 10,
+          &quot;target_speed_mps&quot;: 6.0,
+          &quot;waiting_timeout_seconds&quot;: 15.0
+        },
+        &quot;source_lane_id&quot;: -1,
+        &quot;source_marking&quot;: &quot;Broken&quot;,
+        &quot;target_lane_id&quot;: -2,
+        &quot;target_marking&quot;: &quot;Broken&quot;,
+        &quot;target_start&quot;: {
+          &quot;x&quot;: 63.809814453125,
+          &quot;y&quot;: -67.92304229736328,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;width_m&quot;: 3.5
+      },
+      &quot;last_sequence&quot;: 1213,
+      &quot;match_id&quot;: &quot;208f27fdb4f1956a7a1fea7c94e1be8ca162cd0b7395104bfea2d9cac4eff652&quot;,
+      &quot;matching_errors&quot;: [],
+      &quot;matching_evidence&quot;: {
+        &quot;code_sha256&quot;: &quot;85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68&quot;,
+        &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+        &quot;environment&quot;: {
+          &quot;carla_client&quot;: &quot;0.9.16&quot;,
+          &quot;carla_server&quot;: &quot;0.9.16&quot;,
+          &quot;platform&quot;: &quot;Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43&quot;,
+          &quot;python&quot;: &quot;3.12.14&quot;
+        },
+        &quot;fixture&quot;: {
+          &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+          &quot;ego_start&quot;: {
+            &quot;x&quot;: 39.809814453125,
+            &quot;y&quot;: -67.91323852539062,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+          &quot;length_m&quot;: 50.0,
+          &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+          &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+          &quot;policy_start&quot;: {
+            &quot;x&quot;: 63.81124496459961,
+            &quot;y&quot;: -64.42304229736328,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;reachability&quot;: &quot;same-road, same-lane, unique nonjunction successors at 2m&quot;,
+          &quot;road_id&quot;: 10,
+          &quot;seed&quot;: 19,
+          &quot;settings&quot;: {
+            &quot;crossing_seconds&quot;: 3.0,
+            &quot;ego_speed_mps&quot;: 5.0,
+            &quot;expiry_frames&quot;: 20,
+            &quot;fixed_delta_seconds&quot;: 0.05,
+            &quot;following_headway_seconds&quot;: 1.5,
+            &quot;maneuver_timeout_seconds&quot;: 8.0,
+            &quot;minimum_gap_m&quot;: 8.0,
+            &quot;minimum_ttc_seconds&quot;: 3.0,
+            &quot;preparation_steps&quot;: 10,
+            &quot;settling_steps&quot;: 10,
+            &quot;target_speed_mps&quot;: 6.0,
+            &quot;waiting_timeout_seconds&quot;: 15.0
+          },
+          &quot;source_lane_id&quot;: -1,
+          &quot;source_marking&quot;: &quot;Broken&quot;,
+          &quot;target_lane_id&quot;: -2,
+          &quot;target_marking&quot;: &quot;Broken&quot;,
+          &quot;target_start&quot;: {
+            &quot;x&quot;: 63.809814453125,
+            &quot;y&quot;: -67.92304229736328,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;width_m&quot;: 3.5
+        },
+        &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+        &quot;package_version&quot;: &quot;0.1.0&quot;,
+        &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+        &quot;seed&quot;: 19,
+        &quot;spec&quot;: {
+          &quot;decision_interval_steps&quot;: 10,
+          &quot;decision_timeout_seconds&quot;: 5.0,
+          &quot;ego_speed_mps&quot;: 5.0,
+          &quot;fixed_delta_seconds&quot;: 0.05,
+          &quot;fixture&quot;: &quot;town10-merge-v1&quot;,
+          &quot;host&quot;: &quot;172.18.112.1&quot;,
+          &quot;max_requests&quot;: 40,
+          &quot;max_steps&quot;: 600,
+          &quot;max_substep_delta_time&quot;: 0.01,
+          &quot;max_substeps&quot;: 10,
+          &quot;max_trace_bytes&quot;: 16777216,
+          &quot;max_wall_seconds&quot;: 180.0,
+          &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+          &quot;observation_range_m&quot;: 80.0,
+          &quot;port&quot;: 3000,
+          &quot;rpc_timeout_seconds&quot;: 5.0,
+          &quot;schema_version&quot;: 1,
+          &quot;seed&quot;: 19,
+          &quot;target_speed_mps&quot;: 6.0,
+          &quot;timing_mode&quot;: &quot;simulation_time&quot;
+        }
+      },
+      &quot;metadata&quot;: [
+        {
+          &quot;code_sha256&quot;: &quot;85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68&quot;,
+          &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+          &quot;environment&quot;: {
+            &quot;carla_client&quot;: &quot;0.9.16&quot;,
+            &quot;carla_server&quot;: &quot;0.9.16&quot;,
+            &quot;platform&quot;: &quot;Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43&quot;,
+            &quot;python&quot;: &quot;3.12.14&quot;
+          },
+          &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+          &quot;package_version&quot;: &quot;0.1.0&quot;,
+          &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+          &quot;policy_version&quot;: &quot;jev&quot;,
+          &quot;seed&quot;: 19,
+          &quot;spec&quot;: {
+            &quot;decision_interval_steps&quot;: 10,
+            &quot;decision_timeout_seconds&quot;: 5.0,
+            &quot;ego_speed_mps&quot;: 5.0,
+            &quot;fixed_delta_seconds&quot;: 0.05,
+            &quot;fixture&quot;: &quot;town10-merge-v1&quot;,
+            &quot;host&quot;: &quot;172.18.112.1&quot;,
+            &quot;max_requests&quot;: 40,
+            &quot;max_steps&quot;: 600,
+            &quot;max_substep_delta_time&quot;: 0.01,
+            &quot;max_substeps&quot;: 10,
+            &quot;max_trace_bytes&quot;: 16777216,
+            &quot;max_wall_seconds&quot;: 180.0,
+            &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+            &quot;observation_range_m&quot;: 80.0,
+            &quot;policy&quot;: &quot;jev&quot;,
+            &quot;port&quot;: 3000,
+            &quot;replay_run_id&quot;: null,
+            &quot;rpc_timeout_seconds&quot;: 5.0,
+            &quot;schema_version&quot;: 1,
+            &quot;seed&quot;: 19,
+            &quot;target_speed_mps&quot;: 6.0,
+            &quot;timing_mode&quot;: &quot;simulation_time&quot;
+          }
+        }
+      ],
+      &quot;metric_version&quot;: &quot;physical-metrics-v1&quot;,
+      &quot;metrics&quot;: {
+        &quot;collision_events&quot;: 0,
+        &quot;collision_impulse_magnitude_sum_kg_mps&quot;: 0,
+        &quot;completed&quot;: true,
+        &quot;decision_latency_mean_seconds&quot;: 0.1522752038335966,
+        &quot;decision_staleness_max_frames&quot;: 0.0,
+        &quot;fallbacks&quot;: 0,
+        &quot;hesitation_seconds&quot;: 0.2500000037252903,
+        &quot;interventions&quot;: 0,
+        &quot;lane_invasion_events&quot;: 4,
+        &quot;real_time_factor&quot;: 0.829602050189063,
+        &quot;reversal_count&quot;: 0,
+        &quot;sensor_dropped_samples&quot;: 0,
+        &quot;sensor_trailing_events&quot;: 0,
+        &quot;simulation_duration_seconds&quot;: 5.700000084936619,
+        &quot;tracking_error_rmse_m&quot;: 0.846221073431229,
+        &quot;wall_duration_seconds&quot;: 6.870764221999707
+      },
+      &quot;policy&quot;: &quot;jev&quot;,
+      &quot;run_id&quot;: &quot;7b5053225af74804b0ac53f4ba4d0cf2&quot;,
+      &quot;schema_version&quot;: 1,
+      &quot;source_path&quot;: &quot;private-trace:seed-19-jev/events.jsonl&quot;,
+      &quot;status&quot;: &quot;completed&quot;,
+      &quot;trace_errors&quot;: [],
+      &quot;usage&quot;: [
+        {
+          &quot;input_tokens&quot;: 1931,
+          &quot;output_tokens&quot;: 27
+        },
+        {
+          &quot;input_tokens&quot;: 3115,
+          &quot;output_tokens&quot;: 27
+        },
+        {
+          &quot;input_tokens&quot;: 3494,
+          &quot;output_tokens&quot;: 33
+        },
+        {
+          &quot;input_tokens&quot;: 4172,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 3792,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 4123,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 4123,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 4117,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 4107,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 3761,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 3410,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 3758,
+          &quot;output_tokens&quot;: 32
+        }
+      ]
+    },
+    {
+      &quot;coverage&quot;: {
+        &quot;observations&quot;: 115,
+        &quot;sensor_events&quot;: 928
+      },
+      &quot;decision_metadata&quot;: [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+      ],
+      &quot;definitions&quot;: {
+        &quot;collision_events&quot;: &quot;Count of delivered collision events; does not prove absence of collision.&quot;,
+        &quot;collision_impulse_magnitude_sum_kg_mps&quot;: &quot;Sum of impulse-vector magnitudes in kg m/s.&quot;,
+        &quot;decision_latency_mean_seconds&quot;: &quot;Mean recorded provider response latency_seconds.&quot;,
+        &quot;decision_staleness_max_frames&quot;: &quot;Maximum recorded staleness_frames; missing is null.&quot;,
+        &quot;gap_ttc_assumptions&quot;: &quot;Gap and TTC require numerical positions, declared reference points, and positive closing speed along the same path. No TTC is inferred from semantic scores or unsigned speed. Crossing-path and acceleration predictions are outside this metric version.&quot;,
+        &quot;hesitation_seconds&quot;: &quot;Actor-seconds between observations whose starting |speed| &lt;=0.2 m/s.&quot;,
+        &quot;interventions&quot;: &quot;Count of intervention events; fallbacks count only explicit fallback=true.&quot;,
+        &quot;lane_invasion_events&quot;: &quot;Count of delivered lane-invasion events with at least one marking.&quot;,
+        &quot;real_time_factor&quot;: &quot;Per-world simulation duration / full trace monotonic wall duration.&quot;,
+        &quot;reversal_count&quot;: &quot;Sign changes in longitudinal_speed_mps, ignoring |speed| &lt;=0.2 m/s samples; legacy traces fall back to speed_mps, which must be signed to represent reversals.&quot;,
+        &quot;sensor_dropped_samples&quot;: &quot;Sum of maximum cumulative dropped_samples per world/actor/sensor.&quot;,
+        &quot;sensor_trailing_events&quot;: &quot;Count of sensor events explicitly labeled trailing=true.&quot;,
+        &quot;tracking_error_rmse_m&quot;: &quot;Root mean square of recorded tracking_error_m; missing is null.&quot;
+      },
+      &quot;eligible&quot;: true,
+      &quot;event_count&quot;: 1213,
+      &quot;exclusion_reasons&quot;: [],
+      &quot;fixture&quot;: {
+        &quot;actor_ids&quot;: {
+          &quot;ego&quot;: 66,
+          &quot;policy&quot;: 65
+        },
+        &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+        &quot;ego_start&quot;: {
+          &quot;x&quot;: 39.809814453125,
+          &quot;y&quot;: -67.91323852539062,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+        &quot;length_m&quot;: 50.0,
+        &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+        &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+        &quot;policy_start&quot;: {
+          &quot;x&quot;: 63.81124496459961,
+          &quot;y&quot;: -64.42304229736328,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;reachability&quot;: &quot;same-road, same-lane, unique nonjunction successors at 2m&quot;,
+        &quot;road_id&quot;: 10,
+        &quot;seed&quot;: 31,
+        &quot;settings&quot;: {
+          &quot;crossing_seconds&quot;: 3.0,
+          &quot;ego_speed_mps&quot;: 5.0,
+          &quot;expiry_frames&quot;: 20,
+          &quot;fixed_delta_seconds&quot;: 0.05,
+          &quot;following_headway_seconds&quot;: 1.5,
+          &quot;maneuver_timeout_seconds&quot;: 8.0,
+          &quot;minimum_gap_m&quot;: 8.0,
+          &quot;minimum_ttc_seconds&quot;: 3.0,
+          &quot;preparation_steps&quot;: 10,
+          &quot;settling_steps&quot;: 10,
+          &quot;target_speed_mps&quot;: 6.0,
+          &quot;waiting_timeout_seconds&quot;: 15.0
+        },
+        &quot;source_lane_id&quot;: -1,
+        &quot;source_marking&quot;: &quot;Broken&quot;,
+        &quot;target_lane_id&quot;: -2,
+        &quot;target_marking&quot;: &quot;Broken&quot;,
+        &quot;target_start&quot;: {
+          &quot;x&quot;: 63.809814453125,
+          &quot;y&quot;: -67.92304229736328,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;width_m&quot;: 3.5
+      },
+      &quot;last_sequence&quot;: 1213,
+      &quot;match_id&quot;: &quot;2dfedecc8aa787ba74097bc3797f0e0c8b5b7a83d0faec124f7fac345f4596e5&quot;,
+      &quot;matching_errors&quot;: [],
+      &quot;matching_evidence&quot;: {
+        &quot;code_sha256&quot;: &quot;85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68&quot;,
+        &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+        &quot;environment&quot;: {
+          &quot;carla_client&quot;: &quot;0.9.16&quot;,
+          &quot;carla_server&quot;: &quot;0.9.16&quot;,
+          &quot;platform&quot;: &quot;Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43&quot;,
+          &quot;python&quot;: &quot;3.12.14&quot;
+        },
+        &quot;fixture&quot;: {
+          &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+          &quot;ego_start&quot;: {
+            &quot;x&quot;: 39.809814453125,
+            &quot;y&quot;: -67.91323852539062,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+          &quot;length_m&quot;: 50.0,
+          &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+          &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+          &quot;policy_start&quot;: {
+            &quot;x&quot;: 63.81124496459961,
+            &quot;y&quot;: -64.42304229736328,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;reachability&quot;: &quot;same-road, same-lane, unique nonjunction successors at 2m&quot;,
+          &quot;road_id&quot;: 10,
+          &quot;seed&quot;: 31,
+          &quot;settings&quot;: {
+            &quot;crossing_seconds&quot;: 3.0,
+            &quot;ego_speed_mps&quot;: 5.0,
+            &quot;expiry_frames&quot;: 20,
+            &quot;fixed_delta_seconds&quot;: 0.05,
+            &quot;following_headway_seconds&quot;: 1.5,
+            &quot;maneuver_timeout_seconds&quot;: 8.0,
+            &quot;minimum_gap_m&quot;: 8.0,
+            &quot;minimum_ttc_seconds&quot;: 3.0,
+            &quot;preparation_steps&quot;: 10,
+            &quot;settling_steps&quot;: 10,
+            &quot;target_speed_mps&quot;: 6.0,
+            &quot;waiting_timeout_seconds&quot;: 15.0
+          },
+          &quot;source_lane_id&quot;: -1,
+          &quot;source_marking&quot;: &quot;Broken&quot;,
+          &quot;target_lane_id&quot;: -2,
+          &quot;target_marking&quot;: &quot;Broken&quot;,
+          &quot;target_start&quot;: {
+            &quot;x&quot;: 63.809814453125,
+            &quot;y&quot;: -67.92304229736328,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;width_m&quot;: 3.5
+        },
+        &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+        &quot;package_version&quot;: &quot;0.1.0&quot;,
+        &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+        &quot;seed&quot;: 31,
+        &quot;spec&quot;: {
+          &quot;decision_interval_steps&quot;: 10,
+          &quot;decision_timeout_seconds&quot;: 5.0,
+          &quot;ego_speed_mps&quot;: 5.0,
+          &quot;fixed_delta_seconds&quot;: 0.05,
+          &quot;fixture&quot;: &quot;town10-merge-v1&quot;,
+          &quot;host&quot;: &quot;172.18.112.1&quot;,
+          &quot;max_requests&quot;: 40,
+          &quot;max_steps&quot;: 600,
+          &quot;max_substep_delta_time&quot;: 0.01,
+          &quot;max_substeps&quot;: 10,
+          &quot;max_trace_bytes&quot;: 16777216,
+          &quot;max_wall_seconds&quot;: 180.0,
+          &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+          &quot;observation_range_m&quot;: 80.0,
+          &quot;port&quot;: 3000,
+          &quot;rpc_timeout_seconds&quot;: 5.0,
+          &quot;schema_version&quot;: 1,
+          &quot;seed&quot;: 31,
+          &quot;target_speed_mps&quot;: 6.0,
+          &quot;timing_mode&quot;: &quot;simulation_time&quot;
+        }
+      },
+      &quot;metadata&quot;: [
+        {
+          &quot;code_sha256&quot;: &quot;85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68&quot;,
+          &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+          &quot;environment&quot;: {
+            &quot;carla_client&quot;: &quot;0.9.16&quot;,
+            &quot;carla_server&quot;: &quot;0.9.16&quot;,
+            &quot;platform&quot;: &quot;Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43&quot;,
+            &quot;python&quot;: &quot;3.12.14&quot;
+          },
+          &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+          &quot;package_version&quot;: &quot;0.1.0&quot;,
+          &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+          &quot;policy_version&quot;: &quot;rules&quot;,
+          &quot;seed&quot;: 31,
+          &quot;spec&quot;: {
+            &quot;decision_interval_steps&quot;: 10,
+            &quot;decision_timeout_seconds&quot;: 5.0,
+            &quot;ego_speed_mps&quot;: 5.0,
+            &quot;fixed_delta_seconds&quot;: 0.05,
+            &quot;fixture&quot;: &quot;town10-merge-v1&quot;,
+            &quot;host&quot;: &quot;172.18.112.1&quot;,
+            &quot;max_requests&quot;: 40,
+            &quot;max_steps&quot;: 600,
+            &quot;max_substep_delta_time&quot;: 0.01,
+            &quot;max_substeps&quot;: 10,
+            &quot;max_trace_bytes&quot;: 16777216,
+            &quot;max_wall_seconds&quot;: 180.0,
+            &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+            &quot;observation_range_m&quot;: 80.0,
+            &quot;policy&quot;: &quot;rules&quot;,
+            &quot;port&quot;: 3000,
+            &quot;replay_run_id&quot;: null,
+            &quot;rpc_timeout_seconds&quot;: 5.0,
+            &quot;schema_version&quot;: 1,
+            &quot;seed&quot;: 31,
+            &quot;target_speed_mps&quot;: 6.0,
+            &quot;timing_mode&quot;: &quot;simulation_time&quot;
+          }
+        }
+      ],
+      &quot;metric_version&quot;: &quot;physical-metrics-v1&quot;,
+      &quot;metrics&quot;: {
+        &quot;collision_events&quot;: 0,
+        &quot;collision_impulse_magnitude_sum_kg_mps&quot;: 0,
+        &quot;completed&quot;: true,
+        &quot;decision_latency_mean_seconds&quot;: null,
+        &quot;decision_staleness_max_frames&quot;: 0.0,
+        &quot;fallbacks&quot;: 0,
+        &quot;hesitation_seconds&quot;: 0.2500000037252903,
+        &quot;interventions&quot;: 0,
+        &quot;lane_invasion_events&quot;: 4,
+        &quot;real_time_factor&quot;: 1.1553680269508215,
+        &quot;reversal_count&quot;: 0,
+        &quot;sensor_dropped_samples&quot;: 0,
+        &quot;sensor_trailing_events&quot;: 1,
+        &quot;simulation_duration_seconds&quot;: 5.700000084936619,
+        &quot;tracking_error_rmse_m&quot;: 0.846221073431229,
+        &quot;wall_duration_seconds&quot;: 4.933493009997619
+      },
+      &quot;policy&quot;: &quot;rules&quot;,
+      &quot;run_id&quot;: &quot;11e47792d0fb4b79837d235e09297a37&quot;,
+      &quot;schema_version&quot;: 1,
+      &quot;source_path&quot;: &quot;private-trace:seed-31-rules/events.jsonl&quot;,
+      &quot;status&quot;: &quot;completed&quot;,
+      &quot;trace_errors&quot;: [],
+      &quot;usage&quot;: null
+    },
+    {
+      &quot;coverage&quot;: {
+        &quot;observations&quot;: 115,
+        &quot;sensor_events&quot;: 928
+      },
+      &quot;decision_metadata&quot;: [
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.19669391700153938,
+          &quot;input_tokens&quot;: 1931,
+          &quot;output_tokens&quot;: 27,
+          &quot;probabilities&quot;: {
+            &quot;defer&quot;: 1.0
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff811fa477929c5d89c9c19faeef&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.12125686299987137,
+          &quot;input_tokens&quot;: 2940,
+          &quot;output_tokens&quot;: 27,
+          &quot;probabilities&quot;: {
+            &quot;defer&quot;: 1.0
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff812057745c80834810c2fa1812&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.15035238200289314,
+          &quot;input_tokens&quot;: 3838,
+          &quot;output_tokens&quot;: 33,
+          &quot;probabilities&quot;: {
+            &quot;defer&quot;: 0.4,
+            &quot;merge&quot;: 0.6
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff8121167aaf89bccae64671a020&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.13688395699864486,
+          &quot;input_tokens&quot;: 3828,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.0,
+            &quot;continue&quot;: 1.0
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff8121dc74469d05b74a1d5122fe&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.1515505259994825,
+          &quot;input_tokens&quot;: 3788,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.01,
+            &quot;continue&quot;: 0.99
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff8122a379f2bea1d8fce8d0a45f&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.204112414001429,
+          &quot;input_tokens&quot;: 4135,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.01,
+            &quot;continue&quot;: 0.99
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff81239a73968dffe74c3af9e89a&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.1297793060002732,
+          &quot;input_tokens&quot;: 4125,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.01,
+            &quot;continue&quot;: 0.99
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff81246a70639c2fd21ab073f6f2&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.157891180999286,
+          &quot;input_tokens&quot;: 3939,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.03,
+            &quot;continue&quot;: 0.97
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff8125867be5a165d989140f99ff&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.14836641100191628,
+          &quot;input_tokens&quot;: 3771,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.02,
+            &quot;continue&quot;: 0.98
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff812659798e8ca48d0f8ca5694f&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.14914668400160735,
+          &quot;input_tokens&quot;: 4109,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.01,
+            &quot;continue&quot;: 0.99
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff8127277c049a1717d1420f3762&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.16310689300007652,
+          &quot;input_tokens&quot;: 3932,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.0,
+            &quot;continue&quot;: 1.0
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff8127ec73dc8a5e00fd34e25218&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        },
+        {
+          &quot;attempts&quot;: 1,
+          &quot;elapsed_seconds&quot;: 0.13626353600193397,
+          &quot;input_tokens&quot;: 3418,
+          &quot;output_tokens&quot;: 32,
+          &quot;probabilities&quot;: {
+            &quot;abort&quot;: 0.0,
+            &quot;continue&quot;: 1.0
+          },
+          &quot;question_version&quot;: &quot;carla-merge-choice-v1&quot;,
+          &quot;request_id&quot;: &quot;req_01a0ff8128d6791598cb393e5a4d0c39&quot;,
+          &quot;requested_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_model&quot;: &quot;jev-1.13.0&quot;,
+          &quot;returned_question_version&quot;: null,
+          &quot;sdk_version&quot;: &quot;0.7.2&quot;
+        }
+      ],
+      &quot;definitions&quot;: {
+        &quot;collision_events&quot;: &quot;Count of delivered collision events; does not prove absence of collision.&quot;,
+        &quot;collision_impulse_magnitude_sum_kg_mps&quot;: &quot;Sum of impulse-vector magnitudes in kg m/s.&quot;,
+        &quot;decision_latency_mean_seconds&quot;: &quot;Mean recorded provider response latency_seconds.&quot;,
+        &quot;decision_staleness_max_frames&quot;: &quot;Maximum recorded staleness_frames; missing is null.&quot;,
+        &quot;gap_ttc_assumptions&quot;: &quot;Gap and TTC require numerical positions, declared reference points, and positive closing speed along the same path. No TTC is inferred from semantic scores or unsigned speed. Crossing-path and acceleration predictions are outside this metric version.&quot;,
+        &quot;hesitation_seconds&quot;: &quot;Actor-seconds between observations whose starting |speed| &lt;=0.2 m/s.&quot;,
+        &quot;interventions&quot;: &quot;Count of intervention events; fallbacks count only explicit fallback=true.&quot;,
+        &quot;lane_invasion_events&quot;: &quot;Count of delivered lane-invasion events with at least one marking.&quot;,
+        &quot;real_time_factor&quot;: &quot;Per-world simulation duration / full trace monotonic wall duration.&quot;,
+        &quot;reversal_count&quot;: &quot;Sign changes in longitudinal_speed_mps, ignoring |speed| &lt;=0.2 m/s samples; legacy traces fall back to speed_mps, which must be signed to represent reversals.&quot;,
+        &quot;sensor_dropped_samples&quot;: &quot;Sum of maximum cumulative dropped_samples per world/actor/sensor.&quot;,
+        &quot;sensor_trailing_events&quot;: &quot;Count of sensor events explicitly labeled trailing=true.&quot;,
+        &quot;tracking_error_rmse_m&quot;: &quot;Root mean square of recorded tracking_error_m; missing is null.&quot;
+      },
+      &quot;eligible&quot;: true,
+      &quot;event_count&quot;: 1213,
+      &quot;exclusion_reasons&quot;: [],
+      &quot;fixture&quot;: {
+        &quot;actor_ids&quot;: {
+          &quot;ego&quot;: 74,
+          &quot;policy&quot;: 73
+        },
+        &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+        &quot;ego_start&quot;: {
+          &quot;x&quot;: 39.809814453125,
+          &quot;y&quot;: -67.91323852539062,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+        &quot;length_m&quot;: 50.0,
+        &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+        &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+        &quot;policy_start&quot;: {
+          &quot;x&quot;: 63.81124496459961,
+          &quot;y&quot;: -64.42304229736328,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;reachability&quot;: &quot;same-road, same-lane, unique nonjunction successors at 2m&quot;,
+        &quot;road_id&quot;: 10,
+        &quot;seed&quot;: 31,
+        &quot;settings&quot;: {
+          &quot;crossing_seconds&quot;: 3.0,
+          &quot;ego_speed_mps&quot;: 5.0,
+          &quot;expiry_frames&quot;: 20,
+          &quot;fixed_delta_seconds&quot;: 0.05,
+          &quot;following_headway_seconds&quot;: 1.5,
+          &quot;maneuver_timeout_seconds&quot;: 8.0,
+          &quot;minimum_gap_m&quot;: 8.0,
+          &quot;minimum_ttc_seconds&quot;: 3.0,
+          &quot;preparation_steps&quot;: 10,
+          &quot;settling_steps&quot;: 10,
+          &quot;target_speed_mps&quot;: 6.0,
+          &quot;waiting_timeout_seconds&quot;: 15.0
+        },
+        &quot;source_lane_id&quot;: -1,
+        &quot;source_marking&quot;: &quot;Broken&quot;,
+        &quot;target_lane_id&quot;: -2,
+        &quot;target_marking&quot;: &quot;Broken&quot;,
+        &quot;target_start&quot;: {
+          &quot;x&quot;: 63.809814453125,
+          &quot;y&quot;: -67.92304229736328,
+          &quot;yaw&quot;: 179.97657775878906,
+          &quot;z&quot;: 0.0
+        },
+        &quot;width_m&quot;: 3.5
+      },
+      &quot;last_sequence&quot;: 1213,
+      &quot;match_id&quot;: &quot;2dfedecc8aa787ba74097bc3797f0e0c8b5b7a83d0faec124f7fac345f4596e5&quot;,
+      &quot;matching_errors&quot;: [],
+      &quot;matching_evidence&quot;: {
+        &quot;code_sha256&quot;: &quot;85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68&quot;,
+        &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+        &quot;environment&quot;: {
+          &quot;carla_client&quot;: &quot;0.9.16&quot;,
+          &quot;carla_server&quot;: &quot;0.9.16&quot;,
+          &quot;platform&quot;: &quot;Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43&quot;,
+          &quot;python&quot;: &quot;3.12.14&quot;
+        },
+        &quot;fixture&quot;: {
+          &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+          &quot;ego_start&quot;: {
+            &quot;x&quot;: 39.809814453125,
+            &quot;y&quot;: -67.91323852539062,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+          &quot;length_m&quot;: 50.0,
+          &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+          &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+          &quot;policy_start&quot;: {
+            &quot;x&quot;: 63.81124496459961,
+            &quot;y&quot;: -64.42304229736328,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;reachability&quot;: &quot;same-road, same-lane, unique nonjunction successors at 2m&quot;,
+          &quot;road_id&quot;: 10,
+          &quot;seed&quot;: 31,
+          &quot;settings&quot;: {
+            &quot;crossing_seconds&quot;: 3.0,
+            &quot;ego_speed_mps&quot;: 5.0,
+            &quot;expiry_frames&quot;: 20,
+            &quot;fixed_delta_seconds&quot;: 0.05,
+            &quot;following_headway_seconds&quot;: 1.5,
+            &quot;maneuver_timeout_seconds&quot;: 8.0,
+            &quot;minimum_gap_m&quot;: 8.0,
+            &quot;minimum_ttc_seconds&quot;: 3.0,
+            &quot;preparation_steps&quot;: 10,
+            &quot;settling_steps&quot;: 10,
+            &quot;target_speed_mps&quot;: 6.0,
+            &quot;waiting_timeout_seconds&quot;: 15.0
+          },
+          &quot;source_lane_id&quot;: -1,
+          &quot;source_marking&quot;: &quot;Broken&quot;,
+          &quot;target_lane_id&quot;: -2,
+          &quot;target_marking&quot;: &quot;Broken&quot;,
+          &quot;target_start&quot;: {
+            &quot;x&quot;: 63.809814453125,
+            &quot;y&quot;: -67.92304229736328,
+            &quot;yaw&quot;: 179.97657775878906,
+            &quot;z&quot;: 0.0
+          },
+          &quot;width_m&quot;: 3.5
+        },
+        &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+        &quot;package_version&quot;: &quot;0.1.0&quot;,
+        &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+        &quot;seed&quot;: 31,
+        &quot;spec&quot;: {
+          &quot;decision_interval_steps&quot;: 10,
+          &quot;decision_timeout_seconds&quot;: 5.0,
+          &quot;ego_speed_mps&quot;: 5.0,
+          &quot;fixed_delta_seconds&quot;: 0.05,
+          &quot;fixture&quot;: &quot;town10-merge-v1&quot;,
+          &quot;host&quot;: &quot;172.18.112.1&quot;,
+          &quot;max_requests&quot;: 40,
+          &quot;max_steps&quot;: 600,
+          &quot;max_substep_delta_time&quot;: 0.01,
+          &quot;max_substeps&quot;: 10,
+          &quot;max_trace_bytes&quot;: 16777216,
+          &quot;max_wall_seconds&quot;: 180.0,
+          &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+          &quot;observation_range_m&quot;: 80.0,
+          &quot;port&quot;: 3000,
+          &quot;rpc_timeout_seconds&quot;: 5.0,
+          &quot;schema_version&quot;: 1,
+          &quot;seed&quot;: 31,
+          &quot;target_speed_mps&quot;: 6.0,
+          &quot;timing_mode&quot;: &quot;simulation_time&quot;
+        }
+      },
+      &quot;metadata&quot;: [
+        {
+          &quot;code_sha256&quot;: &quot;85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68&quot;,
+          &quot;controller_version&quot;: &quot;bounded-lateral-speed-tracker-v1&quot;,
+          &quot;environment&quot;: {
+            &quot;carla_client&quot;: &quot;0.9.16&quot;,
+            &quot;carla_server&quot;: &quot;0.9.16&quot;,
+            &quot;platform&quot;: &quot;Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43&quot;,
+            &quot;python&quot;: &quot;3.12.14&quot;
+          },
+          &quot;fixture_version&quot;: &quot;town10-merge-v1&quot;,
+          &quot;package_version&quot;: &quot;0.1.0&quot;,
+          &quot;planner_version&quot;: &quot;bounded-merge-planner-v1&quot;,
+          &quot;policy_version&quot;: &quot;jev&quot;,
+          &quot;seed&quot;: 31,
+          &quot;spec&quot;: {
+            &quot;decision_interval_steps&quot;: 10,
+            &quot;decision_timeout_seconds&quot;: 5.0,
+            &quot;ego_speed_mps&quot;: 5.0,
+            &quot;fixed_delta_seconds&quot;: 0.05,
+            &quot;fixture&quot;: &quot;town10-merge-v1&quot;,
+            &quot;host&quot;: &quot;172.18.112.1&quot;,
+            &quot;max_requests&quot;: 40,
+            &quot;max_steps&quot;: 600,
+            &quot;max_substep_delta_time&quot;: 0.01,
+            &quot;max_substeps&quot;: 10,
+            &quot;max_trace_bytes&quot;: 16777216,
+            &quot;max_wall_seconds&quot;: 180.0,
+            &quot;observation_mode&quot;: &quot;range_filtered_ground_truth&quot;,
+            &quot;observation_range_m&quot;: 80.0,
+            &quot;policy&quot;: &quot;jev&quot;,
+            &quot;port&quot;: 3000,
+            &quot;replay_run_id&quot;: null,
+            &quot;rpc_timeout_seconds&quot;: 5.0,
+            &quot;schema_version&quot;: 1,
+            &quot;seed&quot;: 31,
+            &quot;target_speed_mps&quot;: 6.0,
+            &quot;timing_mode&quot;: &quot;simulation_time&quot;
+          }
+        }
+      ],
+      &quot;metric_version&quot;: &quot;physical-metrics-v1&quot;,
+      &quot;metrics&quot;: {
+        &quot;collision_events&quot;: 0,
+        &quot;collision_impulse_magnitude_sum_kg_mps&quot;: 0,
+        &quot;completed&quot;: true,
+        &quot;decision_latency_mean_seconds&quot;: 0.15378367250074612,
+        &quot;decision_staleness_max_frames&quot;: 0.0,
+        &quot;fallbacks&quot;: 0,
+        &quot;hesitation_seconds&quot;: 0.2500000037252903,
+        &quot;interventions&quot;: 0,
+        &quot;lane_invasion_events&quot;: 4,
+        &quot;real_time_factor&quot;: 0.8305937158030815,
+        &quot;reversal_count&quot;: 0,
+        &quot;sensor_dropped_samples&quot;: 0,
+        &quot;sensor_trailing_events&quot;: 0,
+        &quot;simulation_duration_seconds&quot;: 5.700000084936619,
+        &quot;tracking_error_rmse_m&quot;: 0.846221073431229,
+        &quot;wall_duration_seconds&quot;: 6.8625610529998085
+      },
+      &quot;policy&quot;: &quot;jev&quot;,
+      &quot;run_id&quot;: &quot;bb2f0dc041bf4f02bab71d8de94d995d&quot;,
+      &quot;schema_version&quot;: 1,
+      &quot;source_path&quot;: &quot;private-trace:seed-31-jev/events.jsonl&quot;,
+      &quot;status&quot;: &quot;completed&quot;,
+      &quot;trace_errors&quot;: [],
+      &quot;usage&quot;: [
+        {
+          &quot;input_tokens&quot;: 1931,
+          &quot;output_tokens&quot;: 27
+        },
+        {
+          &quot;input_tokens&quot;: 2940,
+          &quot;output_tokens&quot;: 27
+        },
+        {
+          &quot;input_tokens&quot;: 3838,
+          &quot;output_tokens&quot;: 33
+        },
+        {
+          &quot;input_tokens&quot;: 3828,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 3788,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 4135,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 4125,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 3939,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 3771,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 4109,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 3932,
+          &quot;output_tokens&quot;: 32
+        },
+        {
+          &quot;input_tokens&quot;: 3418,
+          &quot;output_tokens&quot;: 32
+        }
+      ]
+    }
+  ],
+  &quot;schema_version&quot;: 1
+}</pre></html>

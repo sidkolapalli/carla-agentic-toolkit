@@ -27,6 +27,22 @@ uv run --no-sync carla-agentic-toolkit-experiment run \
   --spec docs/examples/merge-rules-v1.json
 ```
 
+The checked-in [Python example](../scripts/managed_baseline.py) uses the public
+`ManagedController` start/status/stop API and returns the same numerical JSON result:
+
+```bash
+uv run --no-sync python scripts/managed_baseline.py \
+  --spec docs/examples/merge-rules-v1.json
+```
+
+Import `run_baseline` and pass an `ExperimentSpec(policy="rules", host=..., port=...)`
+to use it from Python. It rejects provider policies before launching, requests stop
+on Ctrl-C or a caller-side failure, and bounds polling by the run deadline plus a
+45-second cleanup allowance. If that allowance expires, `example_wait_expired: true`
+reports the last observed status without claiming termination or cleanup; use the
+returned run ID with `status` or `recover` below. The detached supervisor retains
+ownership until it verifies termination and cleanup.
+
 `run` waits for the supervisor's terminal result; Ctrl-C requests cancellation and
 continues waiting for termination. For responsive interactive control:
 

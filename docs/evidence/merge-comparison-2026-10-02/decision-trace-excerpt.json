@@ -1,0 +1,283 @@
+{
+  "events": [
+    {
+      "actor_id": 41,
+      "data": {
+        "actor_id": 41,
+        "ego": {
+          "actor_id": 42,
+          "frame": 201389,
+          "lane_id": -2,
+          "lateral_m": 3.5000135984162517,
+          "length_m": 4.791779518127441,
+          "longitudinal_m": 24.87316311689893,
+          "longitudinal_speed_mps": 3.261285587273487,
+          "position_m": [
+            38.93665313720703,
+            -67.91288757324219,
+            0.0007029342232272029
+          ],
+          "speed_mps": 3.2612916941201773,
+          "velocity_mps": [
+            -3.2612853050231934,
+            0.0013570431619882584,
+            0.006311244796961546
+          ],
+          "width_m": 2.163450002670288,
+          "yaw_error_degrees": -0.0007476806640625
+        },
+        "frame": 201389,
+        "known_driver_intentions": false,
+        "lane": {
+          "adjacent": true,
+          "lane_change_allowed": true,
+          "remaining_m": 49.12786476393286,
+          "road_id": 10,
+          "same_direction": true,
+          "source_lane_id": -1,
+          "source_marking": "Broken",
+          "target_lane_id": -2,
+          "target_marking": "Broken",
+          "target_offset_m": 3.50000029233756,
+          "width_m": 3.5
+        },
+        "longitudinal_speed_mps": 3.260410347193121,
+        "observation_mode": "range_filtered_ground_truth",
+        "occlusion_model": "none",
+        "phase": "preparing",
+        "policy": {
+          "actor_id": 41,
+          "frame": 201389,
+          "lane_id": -1,
+          "lateral_m": -2.056830982321103e-06,
+          "length_m": 4.791779518127441,
+          "longitudinal_m": 0.8721352360671397,
+          "longitudinal_speed_mps": 3.260410347193121,
+          "position_m": [
+            62.939109802246094,
+            -64.42268371582031,
+            0.0007025146041996777
+          ],
+          "speed_mps": 3.260416455628212,
+          "velocity_mps": [
+            -3.2604100704193115,
+            0.001343467622064054,
+            0.006311254575848579
+          ],
+          "width_m": 2.163450002670288,
+          "yaw_error_degrees": -0.000274658203125
+        },
+        "simulation_seconds": 952.7341386973858,
+        "speed_mps": 3.260416455628212,
+        "tracking_error_m": 2.056830982321103e-06
+      },
+      "frame": 201389,
+      "kind": "observation",
+      "monotonic_seconds": 20447.667264494,
+      "run_id": "34845c7950f6411f88d2989404dc19e3",
+      "schema_version": 1,
+      "sequence": 209,
+      "wall_time": "2026-10-03T02:03:31.478834+00:00",
+      "world_generation": "c3da49dc6b3b4a2792c7fb62c45dd4f1"
+    },
+    {
+      "actor_id": 41,
+      "data": {
+        "candidate_set_id": "afa0622079ba462ed9ec4ce4",
+        "candidates": [
+          {
+            "candidate_id": "defer",
+            "expires_frame": 201409,
+            "horizon_seconds": 3.0,
+            "target_lane_id": -1,
+            "target_speed_mps": 6.0
+          },
+          {
+            "candidate_id": "merge",
+            "expires_frame": 201409,
+            "horizon_seconds": 3.0,
+            "target_lane_id": -2,
+            "target_speed_mps": 6.0
+          }
+        ],
+        "candidates_id": "3fa396e83c27e4086c3ef68365fbb139c676709967180ccc944c773d7276479b",
+        "context": {
+          "actor_id": 41,
+          "candidate_set_id": "afa0622079ba462ed9ec4ce4",
+          "deadline_monotonic": 20452.668497076,
+          "maneuver_generation": 0,
+          "observation_frame": 201389,
+          "phase": "preparing",
+          "revision": 3,
+          "run_id": "34845c7950f6411f88d2989404dc19e3",
+          "world_generation": "c3da49dc6b3b4a2792c7fb62c45dd4f1"
+        },
+        "observation_id": "45e747d661faf99c44979ebe66080603dfc2b8ad23c2e426c031502b482cbe87"
+      },
+      "frame": 201389,
+      "kind": "candidates",
+      "monotonic_seconds": 20447.668839016,
+      "run_id": "34845c7950f6411f88d2989404dc19e3",
+      "schema_version": 1,
+      "sequence": 219,
+      "wall_time": "2026-10-03T02:03:31.480408+00:00",
+      "world_generation": "c3da49dc6b3b4a2792c7fb62c45dd4f1"
+    },
+    {
+      "actor_id": 41,
+      "data": {
+        "candidate_set_id": "afa0622079ba462ed9ec4ce4",
+        "candidates": [
+          {
+            "candidate_id": "defer",
+            "expires_frame": 201409,
+            "horizon_seconds": 3.0,
+            "target_lane_id": -1,
+            "target_speed_mps": 6.0
+          },
+          {
+            "candidate_id": "merge",
+            "expires_frame": 201409,
+            "horizon_seconds": 3.0,
+            "target_lane_id": -2,
+            "target_speed_mps": 6.0
+          }
+        ],
+        "candidates_id": "3fa396e83c27e4086c3ef68365fbb139c676709967180ccc944c773d7276479b",
+        "context": {
+          "actor_id": 41,
+          "candidate_set_id": "afa0622079ba462ed9ec4ce4",
+          "deadline_monotonic": 20452.668497076,
+          "maneuver_generation": 0,
+          "observation_frame": 201389,
+          "phase": "preparing",
+          "revision": 3,
+          "run_id": "34845c7950f6411f88d2989404dc19e3",
+          "world_generation": "c3da49dc6b3b4a2792c7fb62c45dd4f1"
+        },
+        "observation_id": "45e747d661faf99c44979ebe66080603dfc2b8ad23c2e426c031502b482cbe87"
+      },
+      "frame": 201389,
+      "kind": "decision_requested",
+      "monotonic_seconds": 20447.669330408,
+      "run_id": "34845c7950f6411f88d2989404dc19e3",
+      "schema_version": 1,
+      "sequence": 220,
+      "wall_time": "2026-10-03T02:03:31.480900+00:00",
+      "world_generation": "c3da49dc6b3b4a2792c7fb62c45dd4f1"
+    },
+    {
+      "actor_id": 41,
+      "data": {
+        "candidate_set_id": "afa0622079ba462ed9ec4ce4",
+        "candidates_id": "3fa396e83c27e4086c3ef68365fbb139c676709967180ccc944c773d7276479b",
+        "choice_id": "merge",
+        "context": {
+          "actor_id": 41,
+          "candidate_set_id": "afa0622079ba462ed9ec4ce4",
+          "deadline_monotonic": 20452.668497076,
+          "maneuver_generation": 0,
+          "observation_frame": 201389,
+          "phase": "preparing",
+          "revision": 3,
+          "run_id": "34845c7950f6411f88d2989404dc19e3",
+          "world_generation": "c3da49dc6b3b4a2792c7fb62c45dd4f1"
+        },
+        "latency_seconds": 0.1348699209993356,
+        "metadata": {
+          "attempts": 1,
+          "elapsed_seconds": 0.1348699209993356,
+          "input_tokens": 3838,
+          "output_tokens": 33,
+          "probabilities": {
+            "defer": 0.38,
+            "merge": 0.62
+          },
+          "question_version": "carla-merge-choice-v1",
+          "request_id": "req_01a0ff8091d37f3c8b17b7a6fa7b010b",
+          "requested_model": "jev-1.13.0",
+          "returned_model": "jev-1.13.0",
+          "returned_question_version": null,
+          "sdk_version": "0.7.2"
+        },
+        "observation_id": "45e747d661faf99c44979ebe66080603dfc2b8ad23c2e426c031502b482cbe87",
+        "reason": "selected",
+        "source": "jev",
+        "staleness_frames": 0,
+        "usage": {
+          "input_tokens": 3838,
+          "output_tokens": 33
+        }
+      },
+      "frame": 201389,
+      "kind": "decision_received",
+      "monotonic_seconds": 20447.805017617,
+      "run_id": "34845c7950f6411f88d2989404dc19e3",
+      "schema_version": 1,
+      "sequence": 221,
+      "wall_time": "2026-10-03T02:03:31.616587+00:00",
+      "world_generation": "c3da49dc6b3b4a2792c7fb62c45dd4f1"
+    },
+    {
+      "actor_id": 41,
+      "data": {
+        "accepted": true,
+        "reason": null,
+        "request_revision": 3,
+        "requested_choice": "merge"
+      },
+      "frame": 201389,
+      "kind": "validation",
+      "monotonic_seconds": 20447.805182872,
+      "run_id": "34845c7950f6411f88d2989404dc19e3",
+      "schema_version": 1,
+      "sequence": 222,
+      "wall_time": "2026-10-03T02:03:31.616752+00:00",
+      "world_generation": "c3da49dc6b3b4a2792c7fb62c45dd4f1"
+    },
+    {
+      "actor_id": 41,
+      "data": {
+        "controls": {
+          "ego": {
+            "brake": 0.0,
+            "steer": 9.349446242731553e-06,
+            "throttle": 0.6085479070579379
+          },
+          "policy": {
+            "brake": 0.0,
+            "steer": 4.684550542746164e-06,
+            "throttle": 0.65
+          }
+        },
+        "executed_choice": "merge",
+        "frame": 201389,
+        "intervention": {
+          "fallback": false,
+          "reason": null
+        },
+        "maneuver_generation": 1,
+        "outcome": {
+          "completed": false,
+          "status": "running"
+        },
+        "phase": "committed",
+        "requested_choice": "merge",
+        "terminal": false,
+        "tracking_error_m": 2.056830982321103e-06
+      },
+      "frame": 201389,
+      "kind": "execution",
+      "monotonic_seconds": 20447.805510034,
+      "run_id": "34845c7950f6411f88d2989404dc19e3",
+      "schema_version": 1,
+      "sequence": 223,
+      "wall_time": "2026-10-03T02:03:31.617079+00:00",
+      "world_generation": "c3da49dc6b3b4a2792c7fb62c45dd4f1"
+    }
+  ],
+  "projection": "Selected events only. Envelopes and retained data values are exact. Observation history, neighbors and sensor arrays; duplicated serialized evidence_json and metadata_json are omitted. Execution and validation data are complete. Sequence gaps reflect omitted sensor events.",
+  "schema_version": 1,
+  "trace_alias": "private-trace:seed-7-jev/events.jsonl",
+  "trace_sha256": "425b19e01786801ad2d82f93269237f6d0b2fae95355f78a22225e615c005a8c"
+}
