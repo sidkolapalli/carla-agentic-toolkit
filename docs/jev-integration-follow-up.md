@@ -210,6 +210,30 @@ the same decision count. No video was recorded for either this probe or the six
 matched trials. A demonstration recording can show a successful rules run followed
 by this explicitly unsuccessful maneuver and its verified cleanup.
 
+## Independent reproduction and a recorded view
+
+On 2026-10-03, an independent automated operator followed the checked-in
+instructions in a new native WSL checkout, virtual environment and private state
+directory. It reproduced all six declared trials without retries: three eligible
+completed runs per policy, no comparison blockers, verified cleanup, and 36
+actual Jev selections. The [replication evidence](evidence/independent-reproduction-2026-10-03/README.md)
+retains the setup deviation needed to clone the private repository, exact specs,
+trace hashes and final simulator state. This was a separate operator on the same
+host, not an external human or second-machine portability test. Its results form
+a separate cohort rather than enlarging the sample behind the table above.
+
+The [40-second camera demonstration](evidence/managed-demo-2026-10-03/README.md)
+uses two additional instrumented runs. One completed the merge after 12 Jev
+selections. The other allowed one request, then recorded 17 budget-exhausted
+fallbacks before ending with an incomplete `corridor_invalid` maneuver. Both
+restored actors and settings. The original CARLA birdseye images are joined to
+their exact observation frames, with prior provider decisions and current
+controller execution shown separately. Missing images are counted and skipped;
+the slowed video does not stand in for wall-clock performance measurements.
+
+The recording makes the distinction visible: finishing the process and cleaning
+up successfully do not turn an incomplete maneuver into a completed one.
+
 ## Reproduce the experiment
 
 Use the [managed experiment setup](managed-experiments.md), matching CARLA and

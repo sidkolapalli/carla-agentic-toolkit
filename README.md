@@ -74,6 +74,16 @@ recordings, and evidence.
 
 ## Demo
 
+### Recorded managed experiment
+
+Watch the [40-second CARLA/Jev demonstration](docs/evidence/managed-demo-2026-10-03/README.md)
+with frame-linked decisions, a completed merge, and a deliberate budget fallback
+that ends with an incomplete maneuver and verified cleanup. A
+[fresh independent automated reproduction](docs/evidence/independent-reproduction-2026-10-03/README.md)
+also completed all six declared rules/Jev trials using the published instructions.
+These are experimental results; neither a recording nor six trials establishes
+production reliability or safety.
+
 ### Live workflow
 
 A self-cleaning MCP smoke test exercises the complete public path: it spawns and

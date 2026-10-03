@@ -1,0 +1,1584 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-03",
+  "timezone": "America/New_York",
+  "implementation_commit": "660ac45ef0163f8758d2abe51f1b2136dcc9e568",
+  "evaluation_role": "Two new camera-instrumented demonstrations; not part of either six-trial comparison cohort.",
+  "capture_protocol": {
+    "camera": "sensor.camera.rgb",
+    "camera_owner": "ManagedSession; journaled before listening and destroyed by session cleanup",
+    "rendering": "Original CARLA 0.9.16 Town10HD_Opt camera frames, fixed birdseye view",
+    "tick_owner": "Unchanged ExperimentRun; camera observes and never ticks",
+    "capture_script_sha256": "52246060c67ffa4341cdd9c8291cc1983f6ee95e03677bf56874364a495abed2",
+    "script_role": "Original local capture harness; a portable equivalent is supplied in scripts/capture_experiment_demo.py",
+    "raw_frames_included": false,
+    "raw_traces_included": false
+  },
+  "runs": [
+    {
+      "case": "normal-budget",
+      "run_id": "0a1e9a052d97407ba31dc61dc44496fc",
+      "trace_sha256": "f24642ce945144e78758f8ab41dab5ad75f72a681c484069a27d027bee9ef831",
+      "projection_file": "success.json",
+      "spec": {
+        "schema_version": 1,
+        "fixture": "town10-merge-v1",
+        "seed": 7,
+        "policy": "jev",
+        "replay_run_id": null,
+        "timing_mode": "simulation_time",
+        "observation_mode": "range_filtered_ground_truth",
+        "fixed_delta_seconds": 0.05,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_steps": 600,
+        "max_wall_seconds": 180.0,
+        "rpc_timeout_seconds": 5.0,
+        "target_speed_mps": 6.0,
+        "ego_speed_mps": 5.0,
+        "observation_range_m": 80.0,
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "max_requests": 40,
+        "max_trace_bytes": 16777216
+      },
+      "environment": {
+        "carla_client": "0.9.16",
+        "carla_server": "0.9.16",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "python": "3.12.14"
+      },
+      "code_sha256": "85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68",
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "lifecycle_state": "completed",
+      "cleanup_ok": true,
+      "actors_restored": true,
+      "settings_restored": true,
+      "decision_reasons": {
+        "selected": 12
+      },
+      "camera": {
+        "camera_type": "sensor.camera.rgb",
+        "width": 960,
+        "height": 540,
+        "fov": 80,
+        "sensor_tick": 0.05,
+        "view": "fixed birdseye, original CARLA renderer",
+        "dropped_queue_frames": 0,
+        "images": [
+          {
+            "frame": 105222,
+            "timestamp": 495.2946250103414,
+            "sha256": "80e0074da944bf666e885be083a6c4bfc4dafe1e82b9c0f464d3969c143f087d"
+          },
+          {
+            "frame": 105224,
+            "timestamp": 495.3946250118315,
+            "sha256": "32421e1e7d38ddccbbfadb084048b1a7b46e0b063aa3dce829ad4ff5bd44e205"
+          },
+          {
+            "frame": 105225,
+            "timestamp": 495.4446250125766,
+            "sha256": "98833c39d495d863c6bb037472bad80a31bccc8d61d8c8b59e5317330d6e830c"
+          },
+          {
+            "frame": 105226,
+            "timestamp": 495.49462501332164,
+            "sha256": "7576f4d7973a1c1bf1801071fcdeb96ba36271269a55e925b862527b5abe1db8"
+          },
+          {
+            "frame": 105227,
+            "timestamp": 495.5446250140667,
+            "sha256": "abce21dba24e4f5d765c34d7cc1625a5767da20ea5caa8decacf339ecd1abd68"
+          },
+          {
+            "frame": 105228,
+            "timestamp": 495.59462501481175,
+            "sha256": "c3dbe3dad4474828bbda11ab3e29e081a6d1149faf70eb04ceaf5e55dd3e3891"
+          },
+          {
+            "frame": 105229,
+            "timestamp": 495.6446250155568,
+            "sha256": "174e4702fa3fd0d2065885722449b7339100e41f066412f04992bac292c95246"
+          },
+          {
+            "frame": 105230,
+            "timestamp": 495.69462501630187,
+            "sha256": "fdab0d641a9b1bf5561021e8ae48341349c14d75c65621d21712a6654b79947f"
+          },
+          {
+            "frame": 105231,
+            "timestamp": 495.7446250170469,
+            "sha256": "85d091abd31af3a07a40e7f801b4b80a795bd7299d2fff3c89dcd238dd6cbfe8"
+          },
+          {
+            "frame": 105232,
+            "timestamp": 495.794625017792,
+            "sha256": "01279c8bfe72f1e62c78bdcd0ed9f9fdd90db192e661b81a5e0b85a9cbbaa667"
+          },
+          {
+            "frame": 105233,
+            "timestamp": 495.84462501853704,
+            "sha256": "85d21742d901d763e3f3c13b1cbedce0845b47dfbeaac681842945c8864a9726"
+          },
+          {
+            "frame": 105234,
+            "timestamp": 495.8946250192821,
+            "sha256": "1530e49fa89dfcc6a25a4f5829f7b252d7f1758b622a21707c62ddd06fc0eb71"
+          },
+          {
+            "frame": 105235,
+            "timestamp": 495.94462502002716,
+            "sha256": "8d1ab1f7900f152689d156e44e8809d289480807cfb4a02662e537c3151495ca"
+          },
+          {
+            "frame": 105236,
+            "timestamp": 495.9946250207722,
+            "sha256": "d8f54a45fb479d0fa095f5623b6b3d1ad2953031a5ada3a949cee7646724b8c3"
+          },
+          {
+            "frame": 105237,
+            "timestamp": 496.0446250215173,
+            "sha256": "a3a1087fc1c3472ef6b57e3bbd843ddf66fdccf69737700e0e8bc736f53ffca0"
+          },
+          {
+            "frame": 105238,
+            "timestamp": 496.09462502226233,
+            "sha256": "1d4336e626af9d877c921b97089b44311f8b6fa1a46877e146b52cb852884276"
+          },
+          {
+            "frame": 105239,
+            "timestamp": 496.1446250230074,
+            "sha256": "98712b1cdbf68f58b2503a1b2c9f98917cd15626f9ef60e51105b7ca9f0e0bc7"
+          },
+          {
+            "frame": 105240,
+            "timestamp": 496.19462502375245,
+            "sha256": "93b20a41eec890c1919ebfa0c0b894ea4011a8d0186cc0b5591dd6b0846d5b30"
+          },
+          {
+            "frame": 105241,
+            "timestamp": 496.2446250244975,
+            "sha256": "569e636e9f90e8a49229a0dcb684c5d05f2707cbf0457e2e8b091b54c3a7921c"
+          },
+          {
+            "frame": 105242,
+            "timestamp": 496.29462502524257,
+            "sha256": "613185de784f8aa8bd5909368b8549d8754ecbc49f6ee5ede213c5c8906b248c"
+          },
+          {
+            "frame": 105243,
+            "timestamp": 496.3446250259876,
+            "sha256": "f97a8605cd50dd0c6c1e7d91b329af869589cfe5a7eda4925774ff870bb212ac"
+          },
+          {
+            "frame": 105244,
+            "timestamp": 496.3946250267327,
+            "sha256": "c36e2156f516b9a0a6c092d87d46ca01e52bee0d63c1f7653fba9b5e1af8b785"
+          },
+          {
+            "frame": 105245,
+            "timestamp": 496.44462502747774,
+            "sha256": "c74657e905de1edc649c3b8a5a1b9bd3ccab05f08f9b6b0568fc57308924e8d0"
+          },
+          {
+            "frame": 105246,
+            "timestamp": 496.4946250282228,
+            "sha256": "87f0b04204fee7e9c230a86fa45aa7499d11a0d1bd1b6965ea2974ce0c538b6a"
+          },
+          {
+            "frame": 105247,
+            "timestamp": 496.54462502896786,
+            "sha256": "e26867c4be63402265b8f83f268e9c374db96072df390462f8aaaf418af2d6e9"
+          },
+          {
+            "frame": 105248,
+            "timestamp": 496.5946250297129,
+            "sha256": "a50df559dc4ddad6e4966c06182963ac89c0d7de9d614218c5c025d1b60bbe4d"
+          },
+          {
+            "frame": 105249,
+            "timestamp": 496.644625030458,
+            "sha256": "bdaa0379b648399cb3c77b302005255b771cce39f33853b3afd969c12b8cf014"
+          },
+          {
+            "frame": 105250,
+            "timestamp": 496.69462503120303,
+            "sha256": "b6cbe8d772eecad0b1af8479080773071b2e87f8770087b7014c5642594465c9"
+          },
+          {
+            "frame": 105251,
+            "timestamp": 496.7446250319481,
+            "sha256": "eac9167a4cd6d23d1ca2ac48f452e178679951e46a0c3623394866f5d44507d8"
+          },
+          {
+            "frame": 105252,
+            "timestamp": 496.79462503269315,
+            "sha256": "da50ddfb0b16617d3d3ab3e7951450442cea266aa8cd1799e9f2251c173f5a16"
+          },
+          {
+            "frame": 105253,
+            "timestamp": 496.8446250334382,
+            "sha256": "a4a362abbdcc9c79c63ab40d49c40cea4150ea5fb3944987934302739e91c993"
+          },
+          {
+            "frame": 105254,
+            "timestamp": 496.89462503418326,
+            "sha256": "4f3856a5db791a080f52c4f5f29aa5cc801988afba16e00ec6a9c62f8b75dbf7"
+          },
+          {
+            "frame": 105255,
+            "timestamp": 496.9446250349283,
+            "sha256": "ff80043aab9ec087416a15f77a4e9ba6a0f17a2e7599224acca101dc17f28df9"
+          },
+          {
+            "frame": 105256,
+            "timestamp": 496.9946250356734,
+            "sha256": "caf755669a5099f813699a9bea070eba094d5af0910985f9b3ddeff111ae456d"
+          },
+          {
+            "frame": 105257,
+            "timestamp": 497.04462503641844,
+            "sha256": "5759d5fca7ea72edb21c91d4c9938a9bdaaf38b176acb3d3761a3a4c00c21615"
+          },
+          {
+            "frame": 105258,
+            "timestamp": 497.0946250371635,
+            "sha256": "2d20e28e184b0899e7be9a1ef8f375e931af4037a1fd9781a0dea304d93f8f55"
+          },
+          {
+            "frame": 105259,
+            "timestamp": 497.14462503790855,
+            "sha256": "b7d72a7436d92c45548ad876792aa9e0b3d416c0ee8cab7e39ebf1af6083ecea"
+          },
+          {
+            "frame": 105260,
+            "timestamp": 497.1946250386536,
+            "sha256": "7990aca3f332b0dcf231a34032f44ef7bcdb261d3fd14fd8069a1409f87f1736"
+          },
+          {
+            "frame": 105261,
+            "timestamp": 497.24462503939867,
+            "sha256": "923dab9707ff09cbf4f3e9daed9e2620c42797d5c826b426d6dbb910e7a4f245"
+          },
+          {
+            "frame": 105262,
+            "timestamp": 497.2946250401437,
+            "sha256": "94de72330a060afda43e83e493a959e015a2e93123efa53b3a961d0ab914cc8c"
+          },
+          {
+            "frame": 105263,
+            "timestamp": 497.3446250408888,
+            "sha256": "1dbc9e603248805b2f20162c297a16839a1f013669e16e2ff8995a5542d981c5"
+          },
+          {
+            "frame": 105264,
+            "timestamp": 497.39462504163384,
+            "sha256": "3e809d382cb62809aea86790f6b911ad3fb87ddc56c4b3fcbd6fa572c0821362"
+          },
+          {
+            "frame": 105265,
+            "timestamp": 497.4446250423789,
+            "sha256": "97415fcb80f02109942d1b8bbdde2dba93de903caf2e300abb97c7403b12ae2a"
+          },
+          {
+            "frame": 105266,
+            "timestamp": 497.49462504312396,
+            "sha256": "3dafa4d6440af7cc6d0418b73cc1ba266f88618bff497fc13f39a6e1a54d9abd"
+          },
+          {
+            "frame": 105267,
+            "timestamp": 497.544625043869,
+            "sha256": "114a0f6a4dc8838a3cbb919f74c99144c1aeb4ac8abe41fd95dab0699259614f"
+          },
+          {
+            "frame": 105268,
+            "timestamp": 497.5946250446141,
+            "sha256": "27ee3a7b12a8b0f7968db88fd0a1503b1d68448d68dcb23ad0b69ab69367ec60"
+          },
+          {
+            "frame": 105269,
+            "timestamp": 497.64462504535913,
+            "sha256": "1f5f4829f2696e5fd706db835b9606fb562070b9968f9b97cbd6419a332704b1"
+          },
+          {
+            "frame": 105270,
+            "timestamp": 497.6946250461042,
+            "sha256": "f228201b89cd41cdd9fa62434d504ba28a6b556f15ba56ee4ba4f685e9cf9f3f"
+          },
+          {
+            "frame": 105271,
+            "timestamp": 497.74462504684925,
+            "sha256": "f36cd799fca9bf05248ff0c53e4fe75018c2ceff2380178ec54070ed5fdd0f62"
+          },
+          {
+            "frame": 105272,
+            "timestamp": 497.7946250475943,
+            "sha256": "3301693f5a876c7b45b21554f20c4944459b3d4eb9d993078fc0298cb259dd84"
+          },
+          {
+            "frame": 105273,
+            "timestamp": 497.84462504833937,
+            "sha256": "f131143ee832dcce3c8a50782e939b210e7a4779ace66a4d3e1250dbd52a43ef"
+          },
+          {
+            "frame": 105274,
+            "timestamp": 497.8946250490844,
+            "sha256": "3df17ecba5dfa20378b97840be655fe1069069c56fcf4b1a3237daa8ccbc4d7d"
+          },
+          {
+            "frame": 105275,
+            "timestamp": 497.9446250498295,
+            "sha256": "dc8da97481009bd2a2d1310fdf34e5c9680343b9c733af59e12d067d9adffdd4"
+          },
+          {
+            "frame": 105276,
+            "timestamp": 497.99462505057454,
+            "sha256": "5218cde84f31781780904c5f5df50ae34bf6bc42aca792ac4e9404315cc40235"
+          },
+          {
+            "frame": 105277,
+            "timestamp": 498.0446250513196,
+            "sha256": "e1a12a1bb2e2a66c4cc9f5c544bf40532805ada99178538fa23f144865a46b23"
+          },
+          {
+            "frame": 105278,
+            "timestamp": 498.09462505206466,
+            "sha256": "316bd5587b57ce53818daa182eb85fcaef2a6c5084c0499b6d13765cf81ca0f4"
+          },
+          {
+            "frame": 105279,
+            "timestamp": 498.1446250528097,
+            "sha256": "19bbd436ef7d7900005beb03e92c71f2ad1a0df40de814e5e2eec92d90da971d"
+          },
+          {
+            "frame": 105280,
+            "timestamp": 498.1946250535548,
+            "sha256": "ed3bcfeaf2d8c0c1301255fcaf30ad37fc3bb1d46ba85732d14d3dd8467652fa"
+          },
+          {
+            "frame": 105281,
+            "timestamp": 498.24462505429983,
+            "sha256": "9e7c3cba9f82a76c2b60d84cab810e53ea51a5aff31ae12655769f4662bc493b"
+          },
+          {
+            "frame": 105282,
+            "timestamp": 498.2946250550449,
+            "sha256": "a33305b1ff04eaa9276ce263ecc95d00cc78326b9023afb3eeb6fa3559b62d23"
+          },
+          {
+            "frame": 105283,
+            "timestamp": 498.34462505578995,
+            "sha256": "acbc3068a6d18f70ad3a77cf399768daca796f7d540c3e08db8173682de7c323"
+          },
+          {
+            "frame": 105284,
+            "timestamp": 498.394625056535,
+            "sha256": "ecd599f199555ba5048b3c73108ed234109c82cbc0564ca1cb075d074279d1b1"
+          },
+          {
+            "frame": 105285,
+            "timestamp": 498.44462505728006,
+            "sha256": "e2b9cbe3229aba0160dd37a616422dcebbf99f8b9a7dda9e5fc6cf20f28f4e37"
+          },
+          {
+            "frame": 105286,
+            "timestamp": 498.4946250580251,
+            "sha256": "45d79b922aa077830c4d3ae31ad80ed21a11c85bad56219c448aa0a351e9e1a5"
+          },
+          {
+            "frame": 105287,
+            "timestamp": 498.5446250587702,
+            "sha256": "b6d5994c9e052fe8cb3f80348b7c2532dfe791c89aaed6ac0687619e8354bcde"
+          },
+          {
+            "frame": 105288,
+            "timestamp": 498.59462505951524,
+            "sha256": "4d96aa55b838079049f1785eb025284e6b2505b7e269f1439e27c6d1699e5565"
+          },
+          {
+            "frame": 105289,
+            "timestamp": 498.6446250602603,
+            "sha256": "e099e587ee21b22b61b3370f6005b060502ae208444797976d2f8fe49d5c3688"
+          },
+          {
+            "frame": 105290,
+            "timestamp": 498.69462506100535,
+            "sha256": "6bc182a216c4ce645c206aba3e428fe71d21c43f3a3d8f2f4d9ff023180fe7fe"
+          },
+          {
+            "frame": 105291,
+            "timestamp": 498.7446250617504,
+            "sha256": "194eb9876a80310185997789fcf271705a74e9df68f03c9179b1ebca8f38e5ad"
+          },
+          {
+            "frame": 105292,
+            "timestamp": 498.79462506249547,
+            "sha256": "ac203da4602999887cad96876b7f1667cc31fe5ed57a475ee4d8ecf6fc8e74f0"
+          },
+          {
+            "frame": 105293,
+            "timestamp": 498.8446250632405,
+            "sha256": "3713c4ed392683e1c73b115062ca39c129d8ca28b65aa5f81ffb4ad03300ec73"
+          },
+          {
+            "frame": 105294,
+            "timestamp": 498.8946250639856,
+            "sha256": "66b1f8c52ada614c3f414c6924e7e2d06cbe3e6d936614a113aa23d1c624a60b"
+          },
+          {
+            "frame": 105295,
+            "timestamp": 498.94462506473064,
+            "sha256": "10389a84904f7864d198fcac4dd9d6f03ef064936c9b32fc52d1a66b769d00cf"
+          },
+          {
+            "frame": 105296,
+            "timestamp": 498.9946250654757,
+            "sha256": "e6fc9ab3fe1b97398d793439d2000804e1b8d8ca764b6003b8a1e1109dcb0d77"
+          },
+          {
+            "frame": 105297,
+            "timestamp": 499.04462506622076,
+            "sha256": "74705ec09685a5ec9d95ad59fe26b455d9e210740bc2e77d507085f75c0b839b"
+          },
+          {
+            "frame": 105298,
+            "timestamp": 499.0946250669658,
+            "sha256": "53455494ea6b85395d7f62e2664bc0db644ec15b7958659943274dffe0dc53e2"
+          },
+          {
+            "frame": 105299,
+            "timestamp": 499.1446250677109,
+            "sha256": "688ce6327664f8d6cf8a9d16d6286a5cefedbcefeeffe96ed488002c32fbc83c"
+          },
+          {
+            "frame": 105300,
+            "timestamp": 499.19462506845593,
+            "sha256": "4198e3a4b9a28d2583a80b57f683fb862b238d17f65e4618f771f58f44fba29d"
+          },
+          {
+            "frame": 105301,
+            "timestamp": 499.244625069201,
+            "sha256": "4068f201adbe1148f9ed552d24d6b925002f4a40e43b3ff1a79b570f55103f99"
+          },
+          {
+            "frame": 105302,
+            "timestamp": 499.29462506994605,
+            "sha256": "20eb27db330af2529ce8b1e986fcbd11a8116af1122633508ca65da3c097f035"
+          },
+          {
+            "frame": 105303,
+            "timestamp": 499.3446250706911,
+            "sha256": "57fc6835c51cec057fcdaed2c599af334e0be04ae91cb25683b27c1b10cd9644"
+          },
+          {
+            "frame": 105304,
+            "timestamp": 499.39462507143617,
+            "sha256": "99b9af1bc55454400c3052a8b4ee6ff51f96fc4a539769ffb7be83598005d66b"
+          },
+          {
+            "frame": 105305,
+            "timestamp": 499.4446250721812,
+            "sha256": "fb135a995cc51eea261a6b7f00c352dc613e3dc01e47f1fcf4fe5941869e1ed4"
+          },
+          {
+            "frame": 105306,
+            "timestamp": 499.4946250729263,
+            "sha256": "5af65e0ee2c0cece515fb520add01829be080f50158770e3184749c22bbb0ed0"
+          },
+          {
+            "frame": 105307,
+            "timestamp": 499.54462507367134,
+            "sha256": "faf20f191eace423c111c38c26d13dd892b60fadbc21a921f5843cb394d8c4f7"
+          },
+          {
+            "frame": 105308,
+            "timestamp": 499.5946250744164,
+            "sha256": "6c30f9d215dff8af89668858f68542d0edda12b78fa65eea5e96bf468788aa9d"
+          },
+          {
+            "frame": 105309,
+            "timestamp": 499.64462507516146,
+            "sha256": "286cfb6fb72f5157b6eea68c9a5b2602c85ed5f1fbdbd0614b8015875845b8aa"
+          },
+          {
+            "frame": 105310,
+            "timestamp": 499.6946250759065,
+            "sha256": "602165df9d4a8409ad40bfc5344b15918a0967bc0e8c0432a64a4a6a3f1810ac"
+          },
+          {
+            "frame": 105311,
+            "timestamp": 499.7446250766516,
+            "sha256": "9feaaea33c77bebed76ac10529c37b3477c3bf0cbfa16cd792e257e084f5bff7"
+          },
+          {
+            "frame": 105312,
+            "timestamp": 499.79462507739663,
+            "sha256": "7bfdaa29db298a7b8913023334af889d7f2f98d529d1884efe126c344329cecc"
+          },
+          {
+            "frame": 105313,
+            "timestamp": 499.8446250781417,
+            "sha256": "d10e3d5b53eafccce74dbabba4884ce11070c6eaf18bef67ac16732193bbd746"
+          },
+          {
+            "frame": 105314,
+            "timestamp": 499.89462507888675,
+            "sha256": "ae9370cc6939b373e5fa44ae60a022e90a12c0e1f509241551f4adafcd933638"
+          },
+          {
+            "frame": 105315,
+            "timestamp": 499.9446250796318,
+            "sha256": "15cb88341306ba59197f46d172382cd3543247a5067001eb5b1dcc17a22ecc6b"
+          },
+          {
+            "frame": 105316,
+            "timestamp": 499.99462508037686,
+            "sha256": "61437028ad0828143b41f1a8bc082e1ce1da17157982608aacccada2acf3c257"
+          },
+          {
+            "frame": 105317,
+            "timestamp": 500.0446250811219,
+            "sha256": "04a45a9a43618bc35ff724a403f462de79ff0b583fabd1a780d39d54200cc67d"
+          },
+          {
+            "frame": 105318,
+            "timestamp": 500.094625081867,
+            "sha256": "927290b7584343cda44ae0309b6b6fb09ee60100191bd5217cdb93ebfb27d72d"
+          },
+          {
+            "frame": 105319,
+            "timestamp": 500.14462508261204,
+            "sha256": "de4dd5b41233b5d614832e5b5e58f755b6b51648b2a81b7faae961978b77c722"
+          },
+          {
+            "frame": 105320,
+            "timestamp": 500.1946250833571,
+            "sha256": "f8c362b03041a443a26bc12db493b68fd8421455c25196d77d4b598d538afb6e"
+          },
+          {
+            "frame": 105321,
+            "timestamp": 500.24462508410215,
+            "sha256": "aad1d7d42bbccd737ecd0ebe774689f46133329a2d07aa35741c6af622af81e7"
+          },
+          {
+            "frame": 105322,
+            "timestamp": 500.2946250848472,
+            "sha256": "75366b2f528e59ec8f4330514fa56bfccad0ac8097e96f3a27dc3541d68fb59f"
+          },
+          {
+            "frame": 105323,
+            "timestamp": 500.34462508559227,
+            "sha256": "892cad739bc7396b188d9b18b1aa2edc0ddc8a0f48ad71ca7098c8f5b81970a7"
+          },
+          {
+            "frame": 105324,
+            "timestamp": 500.3946250863373,
+            "sha256": "34a1021c0f52ff41b5ec23dd3a1b916069ba507a5fa62594689fa2d205ff6c31"
+          },
+          {
+            "frame": 105325,
+            "timestamp": 500.4446250870824,
+            "sha256": "2f2ddc9fb84ebb56ada98242bf6047f82f506046a69f680126d23565ddf47459"
+          },
+          {
+            "frame": 105326,
+            "timestamp": 500.49462508782744,
+            "sha256": "282e910e8faf90bac8b86f5d6eceda365327d8ed12be948cb71e86363aa2e583"
+          },
+          {
+            "frame": 105327,
+            "timestamp": 500.5446250885725,
+            "sha256": "1ab7e6b4ff400f4c5351699b03c24625416bf81a7aca155806e36b733d06db56"
+          },
+          {
+            "frame": 105328,
+            "timestamp": 500.59462508931756,
+            "sha256": "c11abee94bd2e1c3221d7237bf9f4c928cfa567c678ea9ae66f5e3a6c1061b50"
+          },
+          {
+            "frame": 105329,
+            "timestamp": 500.6446250900626,
+            "sha256": "ac0e055a93caa4cc5839cbc2054699d55c15bb0e1e0209b21b30928146997940"
+          },
+          {
+            "frame": 105330,
+            "timestamp": 500.6946250908077,
+            "sha256": "42998cf6b40fb32c46761c578e6ab47744fa154051e3094541c5e8facec29eb9"
+          },
+          {
+            "frame": 105331,
+            "timestamp": 500.74462509155273,
+            "sha256": "1254f0549951c522c3d97867fc0972732a183f3b9351d9c1362f0bdafea4f6e0"
+          },
+          {
+            "frame": 105332,
+            "timestamp": 500.7946250922978,
+            "sha256": "2f7c9c18875064a06277476f188ece6a166f1ab29ea2b06c56f1fd19ec98face"
+          },
+          {
+            "frame": 105333,
+            "timestamp": 500.84462509304285,
+            "sha256": "f9eaf468d219d63191f342162742d195a7822dfb242f7f0bc5e1573c4e1e0df6"
+          },
+          {
+            "frame": 105334,
+            "timestamp": 500.8946250937879,
+            "sha256": "377c6992dc5adb6069682311c3f02f3d7f50537c02ffa82bf731ab03d39d2c5b"
+          },
+          {
+            "frame": 105335,
+            "timestamp": 500.94462509453297,
+            "sha256": "e057b301367489a2ddc1be225fc6aceb21d4999a5fb4e529f23c8f2e3eedb090"
+          }
+        ]
+      },
+      "missing_observation_frames": [
+        105223,
+        105336
+      ],
+      "unmatched_camera_frames": []
+    },
+    {
+      "case": "restricted-budget",
+      "run_id": "bf15cfc6424448d1bb1b1489dbdc0e80",
+      "trace_sha256": "6dd7db2bef9eaaa77a16643641e4fb0a3514382246de2aa96ffcce6a2e4b7c56",
+      "projection_file": "fallback.json",
+      "spec": {
+        "schema_version": 1,
+        "fixture": "town10-merge-v1",
+        "seed": 7,
+        "policy": "jev",
+        "replay_run_id": null,
+        "timing_mode": "simulation_time",
+        "observation_mode": "range_filtered_ground_truth",
+        "fixed_delta_seconds": 0.05,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_steps": 600,
+        "max_wall_seconds": 180.0,
+        "rpc_timeout_seconds": 5.0,
+        "target_speed_mps": 6.0,
+        "ego_speed_mps": 5.0,
+        "observation_range_m": 80.0,
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "max_requests": 1,
+        "max_trace_bytes": 16777216
+      },
+      "environment": {
+        "carla_client": "0.9.16",
+        "carla_server": "0.9.16",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "python": "3.12.14"
+      },
+      "code_sha256": "85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68",
+      "outcome": {
+        "completed": false,
+        "status": "corridor_invalid"
+      },
+      "lifecycle_state": "completed",
+      "cleanup_ok": true,
+      "actors_restored": true,
+      "settings_restored": true,
+      "decision_reasons": {
+        "selected": 1,
+        "budget_exhausted": 17
+      },
+      "camera": {
+        "camera_type": "sensor.camera.rgb",
+        "width": 960,
+        "height": 540,
+        "fov": 80,
+        "sensor_tick": 0.05,
+        "view": "fixed birdseye, original CARLA renderer",
+        "dropped_queue_frames": 0,
+        "images": [
+          {
+            "frame": 105479,
+            "timestamp": 502.0507181994617,
+            "sha256": "f39ed6af479f4c2666dcc0aa72b733f0ff2946350f5697090a1b29a2f6a34d01"
+          },
+          {
+            "frame": 105481,
+            "timestamp": 502.1507182009518,
+            "sha256": "15e05100d0575ca6845360504a64bdfa2f57e849929f51f30155da370d3c0751"
+          },
+          {
+            "frame": 105482,
+            "timestamp": 502.2007182016969,
+            "sha256": "8947882aeba31e6bf4c64cca28018e7e1c70432cd89109f38f117177a72ab956"
+          },
+          {
+            "frame": 105483,
+            "timestamp": 502.25071820244193,
+            "sha256": "587e84310b9624d4fd7646eb65480b228c76a93a9d755698c67a542d986a67ee"
+          },
+          {
+            "frame": 105484,
+            "timestamp": 502.300718203187,
+            "sha256": "6a9a12213ad5f70c49ff383ce79ad75fa4fbf7bbbe6da17efd5d83d452889aa8"
+          },
+          {
+            "frame": 105485,
+            "timestamp": 502.35071820393205,
+            "sha256": "760b357bcf9990987023a6e14c8e98b5ca08cee1caec4f5f2bfb5778b975b2c5"
+          },
+          {
+            "frame": 105486,
+            "timestamp": 502.4007182046771,
+            "sha256": "ba0bcc026b658ea33ebf545dddef866491b9e5bec12f60580c7b8310c96e6202"
+          },
+          {
+            "frame": 105487,
+            "timestamp": 502.45071820542216,
+            "sha256": "ea61e9ec6569c42317b5fe8e494939379b1527358776aa46fba2d07b73ab2ef5"
+          },
+          {
+            "frame": 105488,
+            "timestamp": 502.5007182061672,
+            "sha256": "8f25c325e0d6b970161d7ca627c4727155eb062b02a112a5c8d73f9796b9a364"
+          },
+          {
+            "frame": 105489,
+            "timestamp": 502.5507182069123,
+            "sha256": "2207ae5ae7f0b83baac825f77c8984b26eed5a009e3b052ccdadee73aeaae36a"
+          },
+          {
+            "frame": 105490,
+            "timestamp": 502.60071820765734,
+            "sha256": "cd7cdcc9da9a77f98d7ed5898cc0b0da5d5be1e6219530ba184d2d585071ff83"
+          },
+          {
+            "frame": 105491,
+            "timestamp": 502.6507182084024,
+            "sha256": "e175cc2a921b61ad744616cd27f034534b0f0fe409ea836b59f09a9b7849de4b"
+          },
+          {
+            "frame": 105492,
+            "timestamp": 502.70071820914745,
+            "sha256": "3403e5f744d12076f3a1cfee8b55f5e77fdf9a5dc3470dbfcfd73725af91a256"
+          },
+          {
+            "frame": 105493,
+            "timestamp": 502.7507182098925,
+            "sha256": "2096b331f948f7ccdff019f08b5b15981b8c513e3dd69bab52aafa8ba64e9fa5"
+          },
+          {
+            "frame": 105494,
+            "timestamp": 502.80071821063757,
+            "sha256": "0a3a80f1357d645306398098d66694b9fde1b16ec7cc2ef239b582cf4fe5b1ea"
+          },
+          {
+            "frame": 105495,
+            "timestamp": 502.8507182113826,
+            "sha256": "5384ee4435b1e688deef9f68aad0dbfdc82c1f67fba7c7236d4530463732eac8"
+          },
+          {
+            "frame": 105496,
+            "timestamp": 502.9007182121277,
+            "sha256": "40f2a9e14ebe28972bd895d77c8f7022f0af149c5aafe2f8d0d4260a9bb52331"
+          },
+          {
+            "frame": 105497,
+            "timestamp": 502.95071821287274,
+            "sha256": "d2f17a21f79eceade797917d380e1ea0ea7c8d4b220657348982aa8892b760d9"
+          },
+          {
+            "frame": 105498,
+            "timestamp": 503.0007182136178,
+            "sha256": "15239fd8e4973804a370fdfadd58b1c7e46f0da4bbe7b6ab917e60211628554b"
+          },
+          {
+            "frame": 105499,
+            "timestamp": 503.05071821436286,
+            "sha256": "a7001826adf21467c1abd8c49087100e171613f31acbffcad2c07adfb4e3ae93"
+          },
+          {
+            "frame": 105500,
+            "timestamp": 503.1007182151079,
+            "sha256": "8b95a5c631bd733ea0c95bedb1a986b5f1b0789c506e9bfa1938d61c0c6a02fc"
+          },
+          {
+            "frame": 105501,
+            "timestamp": 503.150718215853,
+            "sha256": "60ea8d0f6473d457ec7c31a7db122a5d969882e94f954fe8eae97204bf968b4e"
+          },
+          {
+            "frame": 105502,
+            "timestamp": 503.20071821659803,
+            "sha256": "d35974f4a3f321883e8061c3eae4d7e9de208f74d6948c8dd4774cdf6b8efadb"
+          },
+          {
+            "frame": 105503,
+            "timestamp": 503.2507182173431,
+            "sha256": "9f05e6c8c752bcc61d61de6d75d3def7c9e5f4e45751a9770b5a5aa1e0b031e4"
+          },
+          {
+            "frame": 105504,
+            "timestamp": 503.30071821808815,
+            "sha256": "690f95ddd1be661d22cf98f0c70fc3eadb0618493ef86d3f4523d9f38c40ab0a"
+          },
+          {
+            "frame": 105505,
+            "timestamp": 503.3507182188332,
+            "sha256": "d32dae353f224223ee44df61c63cf92c9db14c5db656b389688279de5d653b02"
+          },
+          {
+            "frame": 105506,
+            "timestamp": 503.40071821957827,
+            "sha256": "346078abda70bd31097b6a99cd5e21be700cd1a8b6be20bd3fa5e19f92a79b1e"
+          },
+          {
+            "frame": 105507,
+            "timestamp": 503.4507182203233,
+            "sha256": "f57556be55fa097af105795a2b19989404766fcb03c187031fdb90c1a5e0bf46"
+          },
+          {
+            "frame": 105508,
+            "timestamp": 503.5007182210684,
+            "sha256": "b337227e5cabd40eb9c31b5279f29afac6f47bf5dc89c2d08d156d72b2b491a7"
+          },
+          {
+            "frame": 105509,
+            "timestamp": 503.55071822181344,
+            "sha256": "38594b07227e9ef47a0d89915ff1d622a1cc9ab7561a408b61d20b6c593496fb"
+          },
+          {
+            "frame": 105510,
+            "timestamp": 503.6007182225585,
+            "sha256": "d3a9f4e8e5337b1caf89ef025e824f36a1153e8a94e71df341e6925571841460"
+          },
+          {
+            "frame": 105511,
+            "timestamp": 503.65071822330356,
+            "sha256": "d325815ad633c2721dc9e9d8c60eba11b37b8df4822d1de564fb641d63b4982e"
+          },
+          {
+            "frame": 105512,
+            "timestamp": 503.7007182240486,
+            "sha256": "7504460f7a407597fe4257a0c21c6b906fc3a5e0f50b5e16e56f390a1fc04fb8"
+          },
+          {
+            "frame": 105513,
+            "timestamp": 503.7507182247937,
+            "sha256": "78b0aa438fc956e514a8be54ac83edd8e069defd8842dc17e06e361276f78aa0"
+          },
+          {
+            "frame": 105514,
+            "timestamp": 503.80071822553873,
+            "sha256": "9639d3836d2ffdd70c4ec76b7ffdf5d69a240db7ac8e4b0ddb626e8b95ff4714"
+          },
+          {
+            "frame": 105515,
+            "timestamp": 503.8507182262838,
+            "sha256": "1c98feccc7a9e3441dc775e48d48b411535956d9ef8505d85e734a565050d49e"
+          },
+          {
+            "frame": 105516,
+            "timestamp": 503.90071822702885,
+            "sha256": "4e82aa532d0a82a013e3fe8d5f1f1d600a13081460a1fbb78a5d9cb78a5e32c1"
+          },
+          {
+            "frame": 105517,
+            "timestamp": 503.9507182277739,
+            "sha256": "a1fa50ed92285b5c612142875368c8a39b3a8c6edbbc1d47c551e4013a839a04"
+          },
+          {
+            "frame": 105518,
+            "timestamp": 504.00071822851896,
+            "sha256": "cfc05fa22dfd3e5edae3f96cbb54582eddb09f9ef6303eefefedcc2291936166"
+          },
+          {
+            "frame": 105519,
+            "timestamp": 504.050718229264,
+            "sha256": "9489897515dc545ddb3778233ba958d024ca53d450f33cfc29e59f2aef764b8d"
+          },
+          {
+            "frame": 105520,
+            "timestamp": 504.1007182300091,
+            "sha256": "966fa0a0a42ba5e96ea6f20acf0ac66a8af541e61dee3dad25556681da3cdd53"
+          },
+          {
+            "frame": 105521,
+            "timestamp": 504.15071823075414,
+            "sha256": "a7a350536ddc98f3eb9283859392ca4086eae4af9e85730152c7ebbd675b4b31"
+          },
+          {
+            "frame": 105522,
+            "timestamp": 504.2007182314992,
+            "sha256": "83c653970c56d535c287ae9635797a71310a7914c9ba4e9c4f1ecfb1a4251496"
+          },
+          {
+            "frame": 105523,
+            "timestamp": 504.25071823224425,
+            "sha256": "48d464a7071b6b8da6f78a6d2450517697e23a3cd179cd738f6acc18be23952d"
+          },
+          {
+            "frame": 105524,
+            "timestamp": 504.3007182329893,
+            "sha256": "66141db8e97479de0a6ce200ce4efa13292e7a3d1ed39235462edcaab1f39515"
+          },
+          {
+            "frame": 105525,
+            "timestamp": 504.35071823373437,
+            "sha256": "bc4683571c4ec8546362ea212ecd70ee91c70e9dae060c48d1eb49edb4aa111f"
+          },
+          {
+            "frame": 105526,
+            "timestamp": 504.4007182344794,
+            "sha256": "79fe1175369ee8edaab46ffe475190a289313cbab8482384643ec9b60c9b4336"
+          },
+          {
+            "frame": 105527,
+            "timestamp": 504.4507182352245,
+            "sha256": "b44d85520e199abb0324a04608f38a4cea54a74281f6d1433471f4417fb9eb2c"
+          },
+          {
+            "frame": 105528,
+            "timestamp": 504.50071823596954,
+            "sha256": "eca220de6ad3c350ae62139974a771a22a60489d30dee84ba220f99a454fdf0d"
+          },
+          {
+            "frame": 105529,
+            "timestamp": 504.5507182367146,
+            "sha256": "beb4d460ec6c67151c7a08d59fb7419b939b3af3a50979ff0469da93cde3afec"
+          },
+          {
+            "frame": 105530,
+            "timestamp": 504.60071823745966,
+            "sha256": "5e11820ac316e90b1fd5f4ea2cf48afa27bddb0e6f9e503671e040a9552f369c"
+          },
+          {
+            "frame": 105531,
+            "timestamp": 504.6507182382047,
+            "sha256": "bf597508cf04fb58e84b3100a1afdb3ad9ed604d5460a031768d8cf9f5e647f3"
+          },
+          {
+            "frame": 105532,
+            "timestamp": 504.7007182389498,
+            "sha256": "bcd760b75e9aa653afc5a62ee79e1b576db0d068e29a4a01c671da7565a2acb3"
+          },
+          {
+            "frame": 105533,
+            "timestamp": 504.75071823969483,
+            "sha256": "6e0ba0460cd05b18aeb15c02787b0c25f4b4ce070d9b73094b2d7c4b32a497e1"
+          },
+          {
+            "frame": 105534,
+            "timestamp": 504.8007182404399,
+            "sha256": "95a252124c55d40ac582636c92bb9db1804920f7b95f708d919b0b6fa8161ae2"
+          },
+          {
+            "frame": 105535,
+            "timestamp": 504.85071824118495,
+            "sha256": "cdb602923ff5e523056a175f8d64de87d474d68e898e7d8c6050d4a4d55172e0"
+          },
+          {
+            "frame": 105536,
+            "timestamp": 504.90071824193,
+            "sha256": "029cdc3edff683890e6a94263de9f85d91782d2d9f583ce9789a87c675ea9f3e"
+          },
+          {
+            "frame": 105537,
+            "timestamp": 504.95071824267507,
+            "sha256": "78b798a5e421fdf0c5b80c72998013609023972d0e33ee04413de981483e7b0d"
+          },
+          {
+            "frame": 105538,
+            "timestamp": 505.0007182434201,
+            "sha256": "0ba69382a71dc9c1597c9720f0c24f566f351ea94d7c67afaec8adcf312a8512"
+          },
+          {
+            "frame": 105539,
+            "timestamp": 505.0507182441652,
+            "sha256": "cca7112023cef9b7e2289e9daae99575127d488f23669965047056bd4660533f"
+          },
+          {
+            "frame": 105540,
+            "timestamp": 505.10071824491024,
+            "sha256": "27136657c666d76d66385431fab42946eb1540520ede609f548dbd754dcf8a23"
+          },
+          {
+            "frame": 105541,
+            "timestamp": 505.1507182456553,
+            "sha256": "37aba0413ea19f3d790590550ad3a20512737c459cb7632bdb9a1dbd5ed8b48d"
+          },
+          {
+            "frame": 105542,
+            "timestamp": 505.20071824640036,
+            "sha256": "182bab90c616286287dfd1a6afa8bd9feb00ebecd5d7a01dd69eea29e9a7944a"
+          },
+          {
+            "frame": 105543,
+            "timestamp": 505.2507182471454,
+            "sha256": "984239a26d4db8c52d5acd4a8cb819af7db3167ab2ca5a4154a422b96aad31ad"
+          },
+          {
+            "frame": 105544,
+            "timestamp": 505.3007182478905,
+            "sha256": "1bee4e7606e844f4527316deeb05018a8ec716fa9b592eb4ee842c9cb04159cd"
+          },
+          {
+            "frame": 105545,
+            "timestamp": 505.35071824863553,
+            "sha256": "a53ef7b8c02203e4a2383f898955654e3e3184b2d643ccc7322903c390d2000d"
+          },
+          {
+            "frame": 105546,
+            "timestamp": 505.4007182493806,
+            "sha256": "b04863a701bbbcc85b04e26aa24bea4c2deb61ecd9386d23a674476989458096"
+          },
+          {
+            "frame": 105547,
+            "timestamp": 505.45071825012565,
+            "sha256": "c44b89de39b0d9b651741e9dbff4b53010f243b8389a974d756bb031bd0f4532"
+          },
+          {
+            "frame": 105548,
+            "timestamp": 505.5007182508707,
+            "sha256": "58abafe5f4ab85d2a0f8f9b9396b803cc1fef7e8bb98f3b46deaae2912599202"
+          },
+          {
+            "frame": 105549,
+            "timestamp": 505.55071825161576,
+            "sha256": "3b8b8aa80cd0ac75e61e7e6b6bbb583087bb49ee93478b203f9c5f3ece2da5ce"
+          },
+          {
+            "frame": 105550,
+            "timestamp": 505.6007182523608,
+            "sha256": "274474117daa1259257b5f2d4b8706b88700074d93de3a159326dcf32092d676"
+          },
+          {
+            "frame": 105551,
+            "timestamp": 505.6507182531059,
+            "sha256": "505c12575b2c0fff9240a5d91255dc8396962c61ca079b14071d3f5c06cc9915"
+          },
+          {
+            "frame": 105552,
+            "timestamp": 505.70071825385094,
+            "sha256": "6447e9c1e9414d4e8f3d940984a373f87d85a8967ea95f9e3c6998f098eb34b0"
+          },
+          {
+            "frame": 105553,
+            "timestamp": 505.750718254596,
+            "sha256": "9582ef26b45a4a88e0fad6a9be848ebb8e7d984192e512927b6a8623a4bd4b4c"
+          },
+          {
+            "frame": 105554,
+            "timestamp": 505.80071825534105,
+            "sha256": "87d8dfbede38cc5f2b52440af4b55b59383b9a5d088ad76ff5f2581e14cdcb97"
+          },
+          {
+            "frame": 105555,
+            "timestamp": 505.8507182560861,
+            "sha256": "4d8734bab5aba6d8b03def0c82c797cebb3451658ea84d6d6c2f487c0c62bec7"
+          },
+          {
+            "frame": 105556,
+            "timestamp": 505.90071825683117,
+            "sha256": "dfb24dfda8775d7d25504e63c969464e35be025eba3fe5a6c9758b01a8c75931"
+          },
+          {
+            "frame": 105557,
+            "timestamp": 505.9507182575762,
+            "sha256": "9b5f198622c436e136ab80f7f16e5ffc31685c574cdff6fcee1e482ec3f3f8d0"
+          },
+          {
+            "frame": 105558,
+            "timestamp": 506.0007182583213,
+            "sha256": "a63798a35fcd370d17b2e819d9e434e74af1e306d4c4d13d9cfa3ff835094758"
+          },
+          {
+            "frame": 105559,
+            "timestamp": 506.05071825906634,
+            "sha256": "075db46c45419292f5ffbb9c0f4e2b71b51512f986f5e8ce4b7ade1c96ddfb16"
+          },
+          {
+            "frame": 105560,
+            "timestamp": 506.1007182598114,
+            "sha256": "e149bdd781acd7a4fc1522476f87e504e3d88f9cb7dd19cb81ea4ac59b8b6663"
+          },
+          {
+            "frame": 105561,
+            "timestamp": 506.15071826055646,
+            "sha256": "cbe4624105a86ee90235d5c56b93155b8e763e948c065454abb2d25ca01106f2"
+          },
+          {
+            "frame": 105562,
+            "timestamp": 506.2007182613015,
+            "sha256": "dc91e8ba6a7516ff34b3ced0fbfb46124074080449b057b0f13331b690bf26ff"
+          },
+          {
+            "frame": 105563,
+            "timestamp": 506.2507182620466,
+            "sha256": "a90844c24017faaa266475783abed6209fe99d5da25d42381ca23870dfc96bf6"
+          },
+          {
+            "frame": 105564,
+            "timestamp": 506.30071826279163,
+            "sha256": "880ae905097a87e3eb923718061ccbd25493e7874d162525931ae07c9ae18801"
+          },
+          {
+            "frame": 105565,
+            "timestamp": 506.3507182635367,
+            "sha256": "e26b0d7a2cdb71704c85535e8dc3080eab6d344e4fe457672694fa34dfda9a80"
+          },
+          {
+            "frame": 105566,
+            "timestamp": 506.40071826428175,
+            "sha256": "3405aa2e5ca8de3528002fe6d57ac3e1ba3b0e382f3c40a2e099a4d602034f24"
+          },
+          {
+            "frame": 105567,
+            "timestamp": 506.4507182650268,
+            "sha256": "527174cf18a496c32792f6848ef489cdf1e22bf7ac27f73b5c4e116cb7e5bcb0"
+          },
+          {
+            "frame": 105568,
+            "timestamp": 506.50071826577187,
+            "sha256": "e03184e3a7d7c8ceeee6573113b93701b623ea0bf26ab1e8f2615b7336a15f25"
+          },
+          {
+            "frame": 105569,
+            "timestamp": 506.5507182665169,
+            "sha256": "a35ccccbff9784ea59976cd27795fdb0d1de01a7666bf443220c0c897f1dfdb7"
+          },
+          {
+            "frame": 105570,
+            "timestamp": 506.600718267262,
+            "sha256": "dc79000f03722de32f6925a59518c1a33bae2b88089dd563718c661ac1d2a18e"
+          },
+          {
+            "frame": 105571,
+            "timestamp": 506.65071826800704,
+            "sha256": "7e65202cd5b40ec3a0e7636d3d3951b04976dcaf60131e4f6d35815eb6e41a01"
+          },
+          {
+            "frame": 105572,
+            "timestamp": 506.7007182687521,
+            "sha256": "da662a65ec1c737b327e3ae2a7fd4fc3ae0bc336d70a2d63ad184c1ef55c6081"
+          },
+          {
+            "frame": 105573,
+            "timestamp": 506.75071826949716,
+            "sha256": "4f36feb0389c0d2ee8ca47d43ee497f3a7a554604888b33a72482206ac878ff2"
+          },
+          {
+            "frame": 105574,
+            "timestamp": 506.8007182702422,
+            "sha256": "cd5b705de53969bc0a32dcc669c5ace540a823ba546317b7c897193119bbeaee"
+          },
+          {
+            "frame": 105575,
+            "timestamp": 506.8507182709873,
+            "sha256": "d43dc494dde7b63ed13ab1141bbccb4005910747bb5211380e27ad704045ab72"
+          },
+          {
+            "frame": 105576,
+            "timestamp": 506.90071827173233,
+            "sha256": "a25613baae45777929992ac1acb182f190330302a7963f3d87adc25ad47712ef"
+          },
+          {
+            "frame": 105577,
+            "timestamp": 506.9507182724774,
+            "sha256": "24a4183e666fafeb6a6fdd35008f873006c8c531ba2b7f09c8b9dba22cab2a51"
+          },
+          {
+            "frame": 105578,
+            "timestamp": 507.00071827322245,
+            "sha256": "8d4a0d21c10aaa207a46f78228431aece9a397d844cc4affe19270f38356b497"
+          },
+          {
+            "frame": 105579,
+            "timestamp": 507.0507182739675,
+            "sha256": "599f005eaf335fd44495196c12f0d68dd3157bbac652ad6b1752bee54b3aeb4f"
+          },
+          {
+            "frame": 105580,
+            "timestamp": 507.10071827471256,
+            "sha256": "dda12e3390c86a3c55a6286b5221284d0b3649a68ebb2b7bf09de54e09cba8c3"
+          },
+          {
+            "frame": 105581,
+            "timestamp": 507.1507182754576,
+            "sha256": "6729ddc4e50392ebf40774c50a30baf37d98ff437b725969ea139c059af28585"
+          },
+          {
+            "frame": 105582,
+            "timestamp": 507.2007182762027,
+            "sha256": "042ba819a39e1b0805a52da0805aabc9525cd03284d572fc30b3d05e55b2da66"
+          },
+          {
+            "frame": 105583,
+            "timestamp": 507.25071827694774,
+            "sha256": "02fbd74ce18744b20fdbb198dec1e08ca3a7f4b30b34d088a7bd7277a6410af8"
+          },
+          {
+            "frame": 105584,
+            "timestamp": 507.3007182776928,
+            "sha256": "7bb8cfc928cecc33aa0ce1228573b302cddac782fbe097eb48498d8dbd68e320"
+          },
+          {
+            "frame": 105585,
+            "timestamp": 507.35071827843785,
+            "sha256": "3316dc0dfd03d02772cc2fe8a85ecc4a2abf3d32fc10f6855f4c236da45ad27a"
+          },
+          {
+            "frame": 105586,
+            "timestamp": 507.4007182791829,
+            "sha256": "99880259392de287bc326cf3c0774cf6c0864b3ec3a7a7487477a43c0d7d5f75"
+          },
+          {
+            "frame": 105587,
+            "timestamp": 507.45071827992797,
+            "sha256": "77c6601afed96c0b0b7984cedf04ec5600237190320077b49ab96308424fe082"
+          },
+          {
+            "frame": 105588,
+            "timestamp": 507.500718280673,
+            "sha256": "e6f861997c3f8966d2df20d8e8bf067642319f08ff1d5d36620035b31ed7e297"
+          },
+          {
+            "frame": 105589,
+            "timestamp": 507.5507182814181,
+            "sha256": "587111aec8ae00aeba8e3344f066648a1bb57ea401b55138bb040b5896fd57cc"
+          },
+          {
+            "frame": 105590,
+            "timestamp": 507.60071828216314,
+            "sha256": "818d45106a534925140d5b88889c56fd7a3b039b872a0ceb5f9f02aa5802e0c3"
+          },
+          {
+            "frame": 105591,
+            "timestamp": 507.6507182829082,
+            "sha256": "11657fa7df3fccc6b514cecf848db615602c58c3f0d8e7acdb52b81806b17596"
+          },
+          {
+            "frame": 105592,
+            "timestamp": 507.70071828365326,
+            "sha256": "eecceb1bad5dfa8d4d658b7acaa9b2251e644ca09d2e8e97a97d2c2eaf26115c"
+          },
+          {
+            "frame": 105593,
+            "timestamp": 507.7507182843983,
+            "sha256": "4c361febc0a7ef3dfaff17bc8e4de236281350bc556593b7eb6f89680b16f25c"
+          },
+          {
+            "frame": 105594,
+            "timestamp": 507.8007182851434,
+            "sha256": "7044f42dc6920a34d423e91c0015ff6ab753943c3e50705021d73b4cccb2998d"
+          },
+          {
+            "frame": 105595,
+            "timestamp": 507.85071828588843,
+            "sha256": "5d500c08771499a188a05206994482a01e03f9868266bd4f8c7c54007c145109"
+          },
+          {
+            "frame": 105596,
+            "timestamp": 507.9007182866335,
+            "sha256": "ed579d6c038269a372db26f298f42735df0aa38f38872abd7150b0e40c91b34a"
+          },
+          {
+            "frame": 105597,
+            "timestamp": 507.95071828737855,
+            "sha256": "bd402b4f29a0e3ab617bc8bea58ad1c733523efb30c2e1e58e57413fc6f93db2"
+          },
+          {
+            "frame": 105598,
+            "timestamp": 508.0007182881236,
+            "sha256": "cb03a5b886ce083d861e30afdacfe26aa3c109d6a3cc8e0dd1939bb6a6f696f9"
+          },
+          {
+            "frame": 105599,
+            "timestamp": 508.05071828886867,
+            "sha256": "5aea2e4cfe6a457881c31067b54b28f5b05b71c12c59b9477d32ee175b8d89c5"
+          },
+          {
+            "frame": 105600,
+            "timestamp": 508.1007182896137,
+            "sha256": "12e971723132b5ba04e1500b0ed55e50e148346af0e0296b085e1aeb32f1cc68"
+          },
+          {
+            "frame": 105601,
+            "timestamp": 508.1507182903588,
+            "sha256": "7edfafa6025efe013788753280dcf38afb79b02c98daa13c8ec8aa37a37d9677"
+          },
+          {
+            "frame": 105602,
+            "timestamp": 508.20071829110384,
+            "sha256": "f3bc6a7a55b0ff562e3bfcfe808a4a46b4466202318413803bb8c444ef2a19b1"
+          },
+          {
+            "frame": 105603,
+            "timestamp": 508.2507182918489,
+            "sha256": "6eb499713f8317dc0b677698259e11f98e77f0da49c0de6bea15c4a24823d6a1"
+          },
+          {
+            "frame": 105604,
+            "timestamp": 508.30071829259396,
+            "sha256": "a3b65ab024995ea56084ad7f0532773d11790fcf7a97b0e3744e06c8d2f64ecd"
+          },
+          {
+            "frame": 105605,
+            "timestamp": 508.350718293339,
+            "sha256": "0824890d4d7e66417b6af94bee983ee9136f3d8f392b985324635991eff61c1c"
+          },
+          {
+            "frame": 105606,
+            "timestamp": 508.4007182940841,
+            "sha256": "9eef9a31fc12b68bd3f5b600678992b8e7971aec573d7b6d00f50b967ac7aba3"
+          },
+          {
+            "frame": 105607,
+            "timestamp": 508.45071829482913,
+            "sha256": "bad1c9a9ccd632d96e8c5fbd89125f8a6cc155032c7c1bf916188a0aad509db4"
+          },
+          {
+            "frame": 105608,
+            "timestamp": 508.5007182955742,
+            "sha256": "a2eb9f79da43b4019c79178e8a055768ad1fd55673d4e57828b19e5eab6835eb"
+          },
+          {
+            "frame": 105609,
+            "timestamp": 508.55071829631925,
+            "sha256": "2bb56856f9a7b16d1195e6aee4ef43a8f4665bf5c22c1e2b77290668eaea3e09"
+          },
+          {
+            "frame": 105610,
+            "timestamp": 508.6007182970643,
+            "sha256": "7785021b31113a8a24dc0320bf0aeedf810e5d1cd0ea795846057032ebfa5c97"
+          },
+          {
+            "frame": 105611,
+            "timestamp": 508.65071829780936,
+            "sha256": "c9a6f88f7e66c26ba513ed30b44617f8b0be810ac6e92941631f43fc96d6d390"
+          },
+          {
+            "frame": 105612,
+            "timestamp": 508.7007182985544,
+            "sha256": "250c1d7947709a82d31aeb8e34077464f6429caeb241737f2bcbe5e29e8a18a2"
+          },
+          {
+            "frame": 105613,
+            "timestamp": 508.7507182992995,
+            "sha256": "c40d38f98fd74854dbcf87e66e28332122ea1c18be6bfce69983217390f6131d"
+          },
+          {
+            "frame": 105614,
+            "timestamp": 508.80071830004454,
+            "sha256": "9a4d2368985c71badd926ec360c8bd4b2d76510174a1c43ce1b1b62f222d6724"
+          },
+          {
+            "frame": 105615,
+            "timestamp": 508.8507183007896,
+            "sha256": "2ad11581417a72a42a524991ad6ee2e9074d21eb67f19a9c2c094006338c1c9a"
+          },
+          {
+            "frame": 105616,
+            "timestamp": 508.90071830153465,
+            "sha256": "de347cdf70433e8da66fd1837b7eb06fecc2058f0dfadc9a1bf882cc1eb4f23d"
+          },
+          {
+            "frame": 105617,
+            "timestamp": 508.9507183022797,
+            "sha256": "519c6744f3baa20054ae23ff74e651494c2b5fde1fad10a22d98ac185c189a60"
+          },
+          {
+            "frame": 105618,
+            "timestamp": 509.00071830302477,
+            "sha256": "68271c8bfd10f6cf114e51c596caf6373b851aef535fd6ee49878da1b502ddce"
+          },
+          {
+            "frame": 105619,
+            "timestamp": 509.0507183037698,
+            "sha256": "3792ae81e4f51a09bd600b6e793315fa2faee9855b58e72db437f4ac077d8888"
+          },
+          {
+            "frame": 105620,
+            "timestamp": 509.1007183045149,
+            "sha256": "96998658779512d13f0eb96a992121cc1cc71a859acae024c934cbb0a5db57a3"
+          },
+          {
+            "frame": 105621,
+            "timestamp": 509.15071830525994,
+            "sha256": "3bdf867aa7459fd12422654a6ed00822555dd374963cbb0ca139bea1082d534a"
+          },
+          {
+            "frame": 105622,
+            "timestamp": 509.200718306005,
+            "sha256": "5cbec44232e507e1e656417604f99c6df762824575b4ac5a3b76392601a543dc"
+          },
+          {
+            "frame": 105623,
+            "timestamp": 509.25071830675006,
+            "sha256": "4c8c6eb32d88ac807f9b88fd7e3f38ad6e3429a3addc85f1b62fd554e57ec2da"
+          },
+          {
+            "frame": 105624,
+            "timestamp": 509.3007183074951,
+            "sha256": "74a90da65debae0669493309208d60517d7f64d70661f4f6e51e3effd935b389"
+          },
+          {
+            "frame": 105625,
+            "timestamp": 509.3507183082402,
+            "sha256": "c9e5ed09f2e004020dcf57d8138270ccd3d9aee9c999f5077f1a217d108c6ad4"
+          },
+          {
+            "frame": 105626,
+            "timestamp": 509.40071830898523,
+            "sha256": "f10f2800a0ab325d7d9d5830203570fd05789e1a574f35d00b8ec53f5ad0515b"
+          },
+          {
+            "frame": 105627,
+            "timestamp": 509.4507183097303,
+            "sha256": "0f93dc06339c73919a7418b8baae14b95bf3037764ceaa1a3f34fa9a4f125790"
+          },
+          {
+            "frame": 105628,
+            "timestamp": 509.50071831047535,
+            "sha256": "d070cb6ee8c7325ff00948e4af5b1ecdc83b7299a7176f8e5865c5e3b0df1e3a"
+          },
+          {
+            "frame": 105629,
+            "timestamp": 509.5507183112204,
+            "sha256": "c38fa5edc310ae9a9cde0c667c507c18cf4b4d6b03b5798cb24a7f8d1dbcd5e9"
+          },
+          {
+            "frame": 105630,
+            "timestamp": 509.60071831196547,
+            "sha256": "db3c1fb4c042d6e10632d6932a6faa3c268820cd6cf5918d4bcf81c2eb970559"
+          },
+          {
+            "frame": 105631,
+            "timestamp": 509.6507183127105,
+            "sha256": "353929c991756fda4ca8d4ca6cf85cbf6974e39482322ffba14c529ba11dafb8"
+          },
+          {
+            "frame": 105632,
+            "timestamp": 509.7007183134556,
+            "sha256": "31bc8f670bc0d90a8a6ae34fb3a266d52fb6d45c808b60233e3e7a4fb32f14e6"
+          },
+          {
+            "frame": 105633,
+            "timestamp": 509.75071831420064,
+            "sha256": "55774e753a778eb048fc6519b9536a73553d82f8fa7ac2bac2c1609c5d6723f7"
+          },
+          {
+            "frame": 105634,
+            "timestamp": 509.8007183149457,
+            "sha256": "ebdc0bdbb641fa9cba53fbb9b350a1f153374b84fc159012f072737e9cb8c71f"
+          },
+          {
+            "frame": 105635,
+            "timestamp": 509.85071831569076,
+            "sha256": "2eac6a3e743c820e6823e7a2f8cb4a789f06881ef4727dd75ce1497219c425c2"
+          },
+          {
+            "frame": 105636,
+            "timestamp": 509.9007183164358,
+            "sha256": "d0363c7ba6368a2d006b6dbe4fb123a2025be3c0d0be6e0c1b7b3cd835dd68ac"
+          },
+          {
+            "frame": 105637,
+            "timestamp": 509.9507183171809,
+            "sha256": "b1cbf9daca3bfd6e807b8fb83fefcd066bca71eabdfa3853e12df0131d3176a2"
+          },
+          {
+            "frame": 105638,
+            "timestamp": 510.00071831792593,
+            "sha256": "98dd94fc612359bc482f8d0f99206bd73f9ec773f51f77eeb2ba263cfde0e1be"
+          },
+          {
+            "frame": 105639,
+            "timestamp": 510.050718318671,
+            "sha256": "3a173aa4786d550ce3d9001ad84d4e04ccaf7f6f97728ef0da95db19433d93b7"
+          },
+          {
+            "frame": 105640,
+            "timestamp": 510.10071831941605,
+            "sha256": "dedba5b06c3861dd50b709e83a7cac20396e273a417d268668595eb9652e20d4"
+          },
+          {
+            "frame": 105641,
+            "timestamp": 510.1507183201611,
+            "sha256": "29560838a475ebce29163e90d624156f7861e93a93fb908ce8237ca9f8615c90"
+          },
+          {
+            "frame": 105642,
+            "timestamp": 510.20071832090616,
+            "sha256": "2998eae07403b42e3a77e73a9400a2337934248306d7c6123a5f2c1b6d6f9a6a"
+          },
+          {
+            "frame": 105643,
+            "timestamp": 510.2507183216512,
+            "sha256": "b0b8b65352fc59c7630093dbabcb81806f305274c92b165468f4a15faaa5e474"
+          },
+          {
+            "frame": 105644,
+            "timestamp": 510.3007183223963,
+            "sha256": "21ea8ed94a6369c4d56694d4d7edd0c879046fc1b8e862bf34235e9e58be038f"
+          },
+          {
+            "frame": 105645,
+            "timestamp": 510.35071832314134,
+            "sha256": "b0836ea45d254a9cd87e2cdf520493e10c4dea4515c2fb734e3827fb3bc384ef"
+          },
+          {
+            "frame": 105646,
+            "timestamp": 510.4007183238864,
+            "sha256": "53aabecdd7f03cd6a979bf2baf6abfdb2fae8dfd310fc143eb8f57bcb65f55d6"
+          },
+          {
+            "frame": 105647,
+            "timestamp": 510.45071832463145,
+            "sha256": "0ee6888d7eaf6fe8f6290cffe3f0217eb16779c7c102928d885f4c56a0b7ccaa"
+          },
+          {
+            "frame": 105648,
+            "timestamp": 510.5007183253765,
+            "sha256": "b903c8f8e08e3236dea1afc832f5b3b2ef42fabd915b604c52588bbaa3c27648"
+          },
+          {
+            "frame": 105649,
+            "timestamp": 510.55071832612157,
+            "sha256": "5f1be3d37c79868cfd030d069b646dfc7c71a82de776034759276f22a81f7066"
+          },
+          {
+            "frame": 105650,
+            "timestamp": 510.6007183268666,
+            "sha256": "a8010ce5b101f99d397d5de4b16498ac13752844ed0f23f19b20e58e69bc5c07"
+          },
+          {
+            "frame": 105651,
+            "timestamp": 510.6507183276117,
+            "sha256": "7a7333c9ac922fcee51744d56f95aee75f50bb8626af885981ca5bc159adc2c9"
+          },
+          {
+            "frame": 105652,
+            "timestamp": 510.70071832835674,
+            "sha256": "fff9f56ca20260658f3d1e4a2011696289696a9e78901c14b26861f57282724f"
+          },
+          {
+            "frame": 105653,
+            "timestamp": 510.7507183291018,
+            "sha256": "82a0e13de96d11445e6e60130b72062b105111999466a06512576921e8c1309c"
+          },
+          {
+            "frame": 105654,
+            "timestamp": 510.80071832984686,
+            "sha256": "0b4e46b075b2e1be63d9908634d5d3520a69e5865866aed8ae38aeaf97e5a8a0"
+          }
+        ]
+      },
+      "missing_observation_frames": [
+        105480,
+        105655
+      ],
+      "unmatched_camera_frames": []
+    }
+  ]
+}

@@ -46,8 +46,10 @@ experiments. Those have separate lifecycle and evidence contracts; see
 [managed experiments](managed-experiments.md). The optional Jev adapter passed its
 configured live provider check and a [six-trial matched rules/Jev evaluation](evidence/merge-comparison-2026-10-02/README.md).
 All six trials completed with verified cleanup; the small descriptive comparison
-does not establish improved safety or realism. Its article still requires review
-against the original, and a recorded demo remains part of the separate
+does not establish improved safety or realism. A
+[recorded success/fallback demo](evidence/managed-demo-2026-10-03/README.md) and an
+[independent automated reproduction](evidence/independent-reproduction-2026-10-03/README.md)
+are now retained. The article still requires review against the original under the separate
 [#87](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/87) milestone.
 These managed results are separate from the existing-toolkit alpha's finite demo
 and release conditions.

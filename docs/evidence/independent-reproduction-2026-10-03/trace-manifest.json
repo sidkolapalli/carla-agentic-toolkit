@@ -1,0 +1,276 @@
+{
+  "blockers": [],
+  "code_sha256": "85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68",
+  "comparable": true,
+  "comparison_projection": "Only runs[].source_path changed to stable private-trace aliases; all remaining comparison fields are identical to the complete six-trace CLI output. Raw traces stay in private local state and aliases are not resolvable paths.",
+  "derived_files": {
+    "comparison.html": {
+      "bytes": 115101,
+      "sha256": "8dfffd264e07c2609c13eef7fe55f8eb8c9a2c12e416cd4adeaa5a73a2c27812"
+    },
+    "comparison.json": {
+      "bytes": 86060,
+      "sha256": "36f4f9f7773522c1fff839086cc8634e75a11367a0a5ed4107503d0d8540c777"
+    },
+    "evaluation.json": {
+      "bytes": 5359,
+      "sha256": "d7ce3867a21cc71fa3eafde75578cc7cb00e3bb6f7d8c57f88767c52d5cd1d5e"
+    },
+    "final-simulator-check.json": {
+      "bytes": 376,
+      "sha256": "abaa0bc0ca58a07b1f88f54c8a9f6492dcce8d37edbdd69c6c81d26975ab91e4"
+    }
+  },
+  "environment": {
+    "carla_client": "0.9.16",
+    "carla_server": "0.9.16",
+    "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+    "python": "3.12.14"
+  },
+  "external_human_reproduction": false,
+  "fresh_environment": {
+    "native_wsl_checkout": true,
+    "new_output_directory": true,
+    "new_private_state": true,
+    "new_virtual_environment": true,
+    "shared_package_download_cache": true
+  },
+  "implementation_commit": "660ac45ef0163f8758d2abe51f1b2136dcc9e568",
+  "independence": "Prepared from checked-in README, client setup, managed experiment, evidence and saved evaluation instructions. Used no previous operator harness or private run history. A separate operator supplied the required dedicated simulator and trusted provider credential.",
+  "operator": "Independent automated Codex subagent, not an external human",
+  "original_comparison_sha256": "66b3b571986c215bbef1c165307605e3544bc115fc7799979dbb3c5ec9076f54",
+  "plan": {
+    "policies": [
+      "rules",
+      "jev"
+    ],
+    "replicates_per_seed": 1,
+    "retry_failed_trials": false,
+    "seeds": [
+      7,
+      19,
+      31
+    ]
+  },
+  "provider_selected_decisions": 36,
+  "runs": [
+    {
+      "cleanup_ok": true,
+      "coverage": {
+        "observations": 115,
+        "sensor_events": 928
+      },
+      "decision_reasons": {
+        "Reviewed numerical gap and lane rules.": 12
+      },
+      "decision_sources": {
+        "rules": 12
+      },
+      "event_count": 1213,
+      "first_wall_time": "2026-10-03T13:44:12.619563+00:00",
+      "last_wall_time": "2026-10-03T13:44:15.403187+00:00",
+      "ok": true,
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "policy": "rules",
+      "report_sha256": "bc826f9a65edf38e884b3b95054cc662c4027446f20028e6dfc6ec83d8283dff",
+      "run_id": "d82e77b4dcb841f587dfaea61f17bd26",
+      "seed": 7,
+      "settings_restored": true,
+      "source": "private-trace:seed-7-rules/events.jsonl",
+      "spec_matches_published_except_endpoint": true,
+      "state": "completed",
+      "summary_sha256": "e763b9b7450fc5a21f58194e3b4f66797d6ba25b937a83ebaccd7e9e54fa2b9d",
+      "summary_status": "completed",
+      "terminated": true,
+      "trace_bytes": 1482838,
+      "trace_errors": [],
+      "trace_sha256": "004108d603f898d3d42584349d9e9858f7884528b26d3778eb6cc88ed659f431"
+    },
+    {
+      "cleanup_ok": true,
+      "coverage": {
+        "observations": 115,
+        "sensor_events": 928
+      },
+      "decision_reasons": {
+        "selected": 12
+      },
+      "decision_sources": {
+        "jev": 12
+      },
+      "event_count": 1213,
+      "first_wall_time": "2026-10-03T13:47:05.422950+00:00",
+      "last_wall_time": "2026-10-03T13:47:14.670056+00:00",
+      "ok": true,
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "policy": "jev",
+      "report_sha256": "c6b2defffcb89319b5f96da2a650ed212f54d91f4edc1965dda241edd3135917",
+      "run_id": "8e9399b372664e9c9dc8a51d63989c45",
+      "seed": 7,
+      "settings_restored": true,
+      "source": "private-trace:seed-7-jev/events.jsonl",
+      "spec_matches_published_except_endpoint": true,
+      "state": "completed",
+      "summary_sha256": "de1d528ef49bb9a9300832c552979cf116b5b8cf790037e4ff9614a294daa4a8",
+      "summary_status": "completed",
+      "terminated": true,
+      "trace_bytes": 1490069,
+      "trace_errors": [],
+      "trace_sha256": "a494bdd45381a5ec75346cadda525ed2d7694400156b497c318a0d465502f5bc"
+    },
+    {
+      "cleanup_ok": true,
+      "coverage": {
+        "observations": 115,
+        "sensor_events": 928
+      },
+      "decision_reasons": {
+        "Reviewed numerical gap and lane rules.": 12
+      },
+      "decision_sources": {
+        "rules": 12
+      },
+      "event_count": 1213,
+      "first_wall_time": "2026-10-03T13:47:15.468631+00:00",
+      "last_wall_time": "2026-10-03T13:47:22.331978+00:00",
+      "ok": true,
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "policy": "rules",
+      "report_sha256": "758c198bf2d7b8c93b2a8fc5997ba547ca6b910021c25ce35d8972fb9a86d959",
+      "run_id": "902fbc819eba46cda28862d0316e23f7",
+      "seed": 19,
+      "settings_restored": true,
+      "source": "private-trace:seed-19-rules/events.jsonl",
+      "spec_matches_published_except_endpoint": true,
+      "state": "completed",
+      "summary_sha256": "80e501483a67acfc0f76e77741aecc8c963edef4eeb52653196a4f955cd1fdc3",
+      "summary_status": "completed",
+      "terminated": true,
+      "trace_bytes": 1483876,
+      "trace_errors": [],
+      "trace_sha256": "138f935884ddcbc967375e1595b479ed47166cecb4fa7e4730045f8f05520d5a"
+    },
+    {
+      "cleanup_ok": true,
+      "coverage": {
+        "observations": 115,
+        "sensor_events": 928
+      },
+      "decision_reasons": {
+        "selected": 12
+      },
+      "decision_sources": {
+        "jev": 12
+      },
+      "event_count": 1213,
+      "first_wall_time": "2026-10-03T13:47:23.204600+00:00",
+      "last_wall_time": "2026-10-03T13:47:32.012160+00:00",
+      "ok": true,
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "policy": "jev",
+      "report_sha256": "966ee58a296f062378986b3098804a336ca761dc8492c03e27d8348831d08816",
+      "run_id": "100dad70a3f04f70b278329100755ea2",
+      "seed": 19,
+      "settings_restored": true,
+      "source": "private-trace:seed-19-jev/events.jsonl",
+      "spec_matches_published_except_endpoint": true,
+      "state": "completed",
+      "summary_sha256": "aa939bc14c6b791209466a59bf9d0457841188171d42919bbb2707de7a552803",
+      "summary_status": "completed",
+      "terminated": true,
+      "trace_bytes": 1490633,
+      "trace_errors": [],
+      "trace_sha256": "9617a8da24b106353c097cec590eaa4b6d18eefb803fdf31d6d5dfbd551be7ee"
+    },
+    {
+      "cleanup_ok": true,
+      "coverage": {
+        "observations": 115,
+        "sensor_events": 928
+      },
+      "decision_reasons": {
+        "Reviewed numerical gap and lane rules.": 12
+      },
+      "decision_sources": {
+        "rules": 12
+      },
+      "event_count": 1213,
+      "first_wall_time": "2026-10-03T13:47:32.812037+00:00",
+      "last_wall_time": "2026-10-03T13:47:39.787064+00:00",
+      "ok": true,
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "policy": "rules",
+      "report_sha256": "8ad463d5deb39312a6afe4a20bb5c95e1d0096460b44425e2951831ee4a6ef98",
+      "run_id": "8110769a21d64a68b2fd93ac868824d3",
+      "seed": 31,
+      "settings_restored": true,
+      "source": "private-trace:seed-31-rules/events.jsonl",
+      "spec_matches_published_except_endpoint": true,
+      "state": "completed",
+      "summary_sha256": "5eb093088bcaae69e45f15976f580831f5bc3ff5a5a1abf8c9be387939149165",
+      "summary_status": "completed",
+      "terminated": true,
+      "trace_bytes": 1481351,
+      "trace_errors": [],
+      "trace_sha256": "b3f51662fe1c412c1f8559137d1688bf6f5d9c3314d6998756ee0c238d160694"
+    },
+    {
+      "cleanup_ok": true,
+      "coverage": {
+        "observations": 115,
+        "sensor_events": 928
+      },
+      "decision_reasons": {
+        "selected": 12
+      },
+      "decision_sources": {
+        "jev": 12
+      },
+      "event_count": 1213,
+      "first_wall_time": "2026-10-03T13:47:40.596947+00:00",
+      "last_wall_time": "2026-10-03T13:47:49.515614+00:00",
+      "ok": true,
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "policy": "jev",
+      "report_sha256": "3b18c4380ced878740fc1011a16d2d72486a53e63cd713d99bf9bef92ce7526d",
+      "run_id": "7c0ff9f9053340cb93f597c6dd8ea98d",
+      "seed": 31,
+      "settings_restored": true,
+      "source": "private-trace:seed-31-jev/events.jsonl",
+      "spec_matches_published_except_endpoint": true,
+      "state": "completed",
+      "summary_sha256": "58555e73e288e5b00c7d579b92322c15bfbbea0d2a9f4c8a0159a0d794da7b05",
+      "summary_status": "completed",
+      "terminated": true,
+      "trace_bytes": 1487412,
+      "trace_errors": [],
+      "trace_sha256": "54c5d21d994ed623f5e2f6a64f60b370717d5276802d978d0f2c03c8e5fbe7b3"
+    }
+  ],
+  "sandbox_preflight": {
+    "executed_source": "docs/client-setup.md source setup execute_script('result = 1')",
+    "ok": true,
+    "ruleset_enforced": true
+  },
+  "schema_version": 1,
+  "source_access_deviation": "Anonymous GitHub clone in WSL could not access this private repository; a fresh authenticated Windows GitHub clone was transferred with git clone --no-hardlinks to native WSL.",
+  "source_tracked_changes": ""
+}

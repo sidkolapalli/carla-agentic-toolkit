@@ -26,3 +26,4 @@ docs/evidence/** text eol=lf
 *.jpg binary
 *.jpeg binary
 *.ico binary
+*.mp4 binary
