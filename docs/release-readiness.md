@@ -28,7 +28,13 @@ completed three rules and three Jev trials, with no delivered collision events
 and verified restoration. Local checks passed 594 Python tests (two platform/live
 skips) and nine Rust tests. Weather is an explicit upstream limitation. One earlier
 persistent-close cleanup report was missing; recovery and reruns succeeded, but
-its cause remains unresolved. These results do not replace the public-release
+that source revision left its cause unresolved. The subsequent
+[cleanup worker lifetime fix](evidence/cleanup-worker-2026-10-05/README.md)
+reproduced report loss under fatal native finalization, retained the client through
+report publication, and added explicit worker-exit diagnostics. Its final 24 live
+closes, forced failure/recovery with an unrelated actor, and finite timeout checks
+passed; the local gate passed 599 Python tests and nine Rust tests. These are
+separate lifecycle checks from the earlier merge cohort and do not replace the public-release
 gates above or establish full UE5 support. Later changes still require candidate CI.
 
 - **#42, #77:** tracked controller lifetime, restart exclusion, worker generations,

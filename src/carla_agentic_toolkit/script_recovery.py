@@ -18,6 +18,7 @@ from carla_agentic_toolkit.ownership import OWNERSHIP_FILENAME, RunOwnership, cl
 from carla_agentic_toolkit.simulator_lease import SimulatorLease
 
 if TYPE_CHECKING:
+    from carla_agentic_toolkit.adapter import PythonCarlaAdapter
     from carla_agentic_toolkit.carla_protocols import CarlaWorld
 
 MAX_JOURNAL_BYTES = 65_536
@@ -129,12 +130,28 @@ def _bounded_cleanup(
         )
         process = _spawn_cleanup(job, lease_descriptor)
         try:
-            process.wait(timeout=timeout)
-            return read_control(job / "result.json")
+            exit_code = process.wait(timeout=timeout)
+            return _cleanup_result(job, exit_code)
         except subprocess.TimeoutExpired:
             return _failure("Script actor cleanup exceeded its native-process deadline.")
         finally:
             terminate_tree(process)
+
+
+def _cleanup_result(job: Path, exit_code: int) -> dict[str, object]:
+    path = job / "result.json"
+    worker = {"exit_code": exit_code, "result_available": path.exists()}
+    if exit_code != 0:
+        reason = (
+            f"Script actor cleanup worker exited with status {exit_code}; "
+            "a negative status identifies the terminating signal. Recovery is required."
+        )
+        return _failure(reason) | {"worker": worker}
+    try:
+        return read_control(path)
+    except (OSError, TypeError, ValueError):
+        reason = "Script actor cleanup worker did not publish a readable bounded cleanup report."
+        return _failure(reason) | {"worker": worker}
 
 
 def _spawn_cleanup(job: Path, lease_descriptor: int) -> subprocess.Popen[bytes]:
@@ -160,11 +177,9 @@ def _fresh_cleanup_snapshot(world: CarlaWorld) -> None:
         raise RuntimeError(message)
 
 
-def _cleanup_connected(host: str, port: int, ownership: RunOwnership) -> dict[str, object]:
-    from carla_agentic_toolkit.adapter import PythonCarlaAdapter  # noqa: PLC0415
+def _cleanup_connected(adapter: PythonCarlaAdapter, ownership: RunOwnership) -> dict[str, object]:
     from carla_agentic_toolkit.ownership import cleanup_owned_actors  # noqa: PLC0415
 
-    adapter = PythonCarlaAdapter(host=host, port=port, timeout=5.0)
     # Trusted cleanup retains the same adapter connection through snapshot and destruction.
     world = adapter._client().get_world()  # noqa: SLF001
     original_world = world_identity(world)
@@ -178,12 +193,22 @@ def _cleanup_connected(host: str, port: int, ownership: RunOwnership) -> dict[st
     return cleanup_owned_actors(adapter, ownership)
 
 
-def _worker_cleanup(request: dict[str, object]) -> dict[str, object]:
+def _worker_cleanup(
+    request: dict[str, object],
+) -> tuple[dict[str, object], PythonCarlaAdapter | None]:
+    """Return the result and retain its native client until the worker exits."""
+    from carla_agentic_toolkit.adapter import PythonCarlaAdapter  # noqa: PLC0415
+
+    adapter = None
     try:
         ownership = _ownership(Path(str(request["ownership_path"])))
-        return _cleanup_connected(str(request["host"]), int(str(request["port"])), ownership)
+        adapter = PythonCarlaAdapter(
+            host=str(request["host"]), port=int(str(request["port"])), timeout=5.0
+        )
+        report = _cleanup_connected(adapter, ownership)
     except (OSError, RuntimeError, TypeError, ValueError) as error:
-        return _failure(str(error))
+        report = _failure(str(error))
+    return report, adapter
 
 
 def recover_script_ownership(
@@ -218,7 +243,13 @@ def main() -> None:
     parent_death_guard()
     job = Path(sys.argv[1])
     request = read_control(job / "request.json")
-    write_control(job / "result.json", _worker_cleanup(request))
+    report, _native_client_owner = _worker_cleanup(request)
+    write_control(job / "result.json", report)
+    # The report is flushed, fsynced and atomically published. Native streaming
+    # finalizers can crash during client teardown; this disposable process owns
+    # no further application work. Kernel exit closes its sockets and borrowed
+    # lease descriptor; the supervisor still reaps its entire process group.
+    os._exit(0)
 
 
 if __name__ == "__main__":

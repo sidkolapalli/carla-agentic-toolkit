@@ -37,6 +37,9 @@ steps = []
 result = vehicle
 ```
 
+On CARLA 0.10.0 / UE5, use `vehicle.lincoln.mkz` in place of the Tesla blueprint;
+see [release compatibility](client-setup.md#carla-release-compatibility).
+
 ```python
 # Follow-up execute in the same session.
 steps.append("brake")
@@ -61,6 +64,13 @@ destroys session-created actors, including actors left alive by a successful scr
 Client disconnect triggers the same cleanup for every owned session. `active`
 stays true until the worker is dead and cleanup finishes. Cleanup failure leaves
 durable recovery evidence and prevents another mutation from acquiring the lease.
+
+If a native cleanup worker exits abnormally or does not publish a readable result,
+`cleanup.worker` records its `exit_code` and `result_available`. Negative exit codes
+identify Linux signals; exit 0 without a readable report still requires recovery.
+Raw worker stderr and environment are not included. The worker saves the cleanup
+report before exiting without native client finalization, preventing teardown
+from discarding a completed result. See the [validated lifetime fix](evidence/cleanup-worker-2026-10-05/README.md).
 
 After the previous worker has terminated, run trusted recovery from the same
 Linux/WSL2 environment and private state directory:

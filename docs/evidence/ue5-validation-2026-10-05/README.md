@@ -100,8 +100,11 @@ and managed cancellation with actor/settings restoration.
 
 One earlier persistent close returned a missing cleanup-result file although the
 actors were removed. Explicit recovery cleared the empty journal; subsequent
-instrumented and uninstrumented checks passed. **Its cause remains unresolved**
-and is retained as a reliability limitation. The separate paused-world streaming
+instrumented and uninstrumented checks passed. That source revision left the
+failure unresolved. The subsequent [cleanup worker fix](../cleanup-worker-2026-10-05/README.md)
+reproduces report loss during native client finalization and validates retaining
+the client through publication, explicit exit diagnostics, and live recovery.
+The original failed observation remains in this cohort. The separate paused-world streaming
 timeout was isolated to the temporary relay: the native Windows client passed,
 and preparing relay streaming connections resolved it.
 
