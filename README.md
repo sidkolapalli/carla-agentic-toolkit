@@ -72,6 +72,47 @@ recordings, and evidence.
 - **Opt-in managed experiments.** Run a no-key rules baseline, or select bounded
   maneuvers with Jev, while a trusted supervisor owns timing, cleanup, and traces.
 
+## System One decisions with Jev
+
+[Jev is TypeSafe's System One model](https://typesafe.ai/blog/introducing-system-one-models-and-jev):
+a model built to return typed decisions and probabilities that software can use
+directly. This toolkit puts that decision function inside a driving experiment.
+At each decision boundary, reviewed code supplies the observed state and currently
+feasible maneuvers. Jev selects one; code checks whether it still applies and
+executes it through the shared vehicle controller.
+
+```mermaid
+flowchart LR
+    A[CARLA state] --> B[Code: observations and feasible maneuvers]
+    B --> C[Jev: typed choice and probabilities]
+    C --> D[Code: validate or use fallback]
+    D --> E[Code: trajectory, steering and speed]
+    E --> A
+```
+
+| Component | Responsibility |
+| --- | --- |
+| Host AI coding agent | Requests workflows through MCP; generated scripts run through the sandbox. |
+| Jev | Selects a supplied maneuver such as `defer`, `merge`, `continue`, or `abort`, according to the current phase. |
+| Toolkit planner and supervisor | Build observations and feasible candidates; enforce timing, identity, budgets, validation and fallbacks; own traces and cleanup. |
+| Numerical controller | Turns an accepted maneuver into a trajectory and steering, throttle and brake commands. |
+| CARLA | Simulates the vehicles, road, physics and sensor events. |
+
+**A recorded decision:** at frame 201389, Jev selected `merge` from
+`[defer, merge]` in about 135 ms. Local validation accepted it and the controller
+started crossing. The returned selection probabilities were `defer: 0.38` and
+`merge: 0.62`; they describe the model's choice, not collision risk. See the
+[actual request, selection and control sequence](docs/jev-integration-follow-up.md#one-decision-followed-through-execution)
+and its [retained trace](docs/evidence/merge-comparison-2026-10-02/decision-trace-excerpt.json).
+This single measured response is not a latency guarantee.
+
+The integration uses structured simulator state and one **Choice** question per
+request. Jev supplies no generated driving script, camera perception, or direct
+actuator commands. The current implementation records its probabilities; it does
+not use a confidence threshold as permission to drive. The same experiment also
+runs with a deterministic rules policy, making the selected decision mechanism
+the controlled difference. See [Jev's interface and limits](docs/managed-experiments.md#optional-jev-selection).
+
 ## Demo
 
 ### Recorded managed experiment
@@ -117,6 +158,26 @@ remains available.
 New to CARLA or WSL2? Read the **[prerequisites and platform
 layout](docs/client-setup.md#prerequisites)** before continuing.
 
+### CARLA release compatibility
+
+Checked on **2026-10-05**: GitHub designates
+[CARLA 0.9.16](https://github.com/carla-simulator/carla/releases/tag/0.9.16)
+as its latest published release. This is the Unreal Engine 4.26 line and the
+version used by the original retained live tests and Jev demonstrations. The
+separate UE5 validation below uses the latest published UE5 package.
+
+| CARLA line | Toolkit status |
+| --- | --- |
+| 0.9.16 / UE4.26 | Live-validated with matching server/API, Python 3.12 and Linux/WSL2. |
+| [0.10.0 / UE5.5](https://github.com/carla-simulator/carla/releases/tag/0.10.0) | Experimental live validation: MCP controls/camera, rules/Jev merges, timeout cleanup, persistent sessions and cancellation. Use the explicit Lincoln fixture; weather remains fixed. See [results and limitations](docs/evidence/ue5-validation-2026-10-05/README.md). |
+| Development branches or other releases | No blanket compatibility claim; available API capabilities and actual live behavior must be checked. |
+
+CARLA maintains the UE4 and UE5 lines in parallel. Keep the server and Python
+client matched and keep their evaluation cohorts separate. UE5 changed vehicle
+physics and removed several APIs/assets; this is scoped experimental support,
+not full feature parity or production certification. Follow the
+[compatibility guidance](docs/client-setup.md#carla-release-compatibility).
+
 ### Docker: packaged MCP server
 
 CARLA stays native so its GPU-rendered window remains visible. Docker packages
@@ -127,6 +188,8 @@ installed commands directly. The default image excludes the optional Jev SDK;
 use the source setup below for Jev experiments.
 
 ```bash
+git clone https://github.com/sidkolapalli/carla-agentic-toolkit.git
+cd carla-agentic-toolkit
 docker build --build-arg CARLA_VERSION=0.9.16 -t carla-agentic-toolkit .
 docker volume create carla-agentic-toolkit-output
 

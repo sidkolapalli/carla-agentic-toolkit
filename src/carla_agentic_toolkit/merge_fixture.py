@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import math
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from typing import Any, cast
 
 from carla_agentic_toolkit.errors import UnsupportedFeatureError
 
 FIXTURE_VERSION = "town10-merge-v1"
+FIXTURE_VEHICLES = {
+    FIXTURE_VERSION: "vehicle.tesla.model3",
+    "town10-merge-ue5-v1": "vehicle.lincoln.mkz",
+}
 CORRIDOR_LENGTH_M = 50.0
 CORRIDOR_SAMPLE_M = 2.0
 EGO_INITIAL_LEAD_M = 24.0
@@ -41,6 +45,7 @@ class MergeCorridor:
     source_marking: str
     target_marking: str
     length_m: float = CORRIDOR_LENGTH_M
+    fixture_version: str = FIXTURE_VERSION
 
     def project(self, x: float, y: float) -> tuple[float, float]:
         """Project a point into this verified straight corridor's local coordinates."""
@@ -57,23 +62,25 @@ class MergeCorridor:
         """Record exact fixture poses and bounded reachability assumptions."""
         return {
             **asdict(self),
-            "fixture_version": FIXTURE_VERSION,
             "reachability": "same-road, same-lane, unique nonjunction successors at 2m",
         }
 
 
-def select_corridor(world_map: object) -> MergeCorridor:
+def select_corridor(world_map: object, *, fixture_version: str = FIXTURE_VERSION) -> MergeCorridor:
     """Select the first deterministic corridor satisfying the reviewed fixture."""
+    if fixture_version not in FIXTURE_VEHICLES:
+        msg = f"Unsupported merge fixture: {fixture_version}."
+        raise UnsupportedFeatureError(msg)
     runtime_map = cast("Any", world_map)
     map_name = str(runtime_map.name).rsplit("/", maxsplit=1)[-1]
     if map_name not in {"Town10HD", "Town10HD_Opt"}:
-        msg = f"{FIXTURE_VERSION} requires Town10HD or Town10HD_Opt, received {map_name}."
+        msg = f"{fixture_version} requires Town10HD or Town10HD_Opt, received {map_name}."
         raise UnsupportedFeatureError(msg)
     starts = sorted(runtime_map.generate_waypoints(CORRIDOR_SAMPLE_M), key=_waypoint_key)
     for start in starts[:4096]:
         corridor = _candidate_corridor(start)
         if corridor is not None:
-            return corridor
+            return replace(corridor, fixture_version=fixture_version)
     msg = "No legal, straight, same-direction 50m merge corridor was found in this Town10 map."
     raise UnsupportedFeatureError(msg)
 

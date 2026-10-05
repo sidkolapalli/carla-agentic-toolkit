@@ -31,6 +31,20 @@ def test_live_smoke_requires_explicit_confirmation() -> None:
         _parse_args([])
 
 
+def test_live_smoke_accepts_an_explicit_release_vehicle() -> None:
+    """The live probe can target a UE5 blueprint without changing its UE4 default."""
+    args = _parse_args(["--confirm-live", "--vehicle-blueprint", "vehicle.lincoln.mkz"])
+
+    assert args.vehicle_blueprint == "vehicle.lincoln.mkz"
+    assert _parse_args(["--confirm-live"]).vehicle_blueprint == "vehicle.tesla.model3"
+
+
+def test_weather_skip_requires_an_explicit_option() -> None:
+    """The full weather test remains the default; fixed-weather releases opt out visibly."""
+    assert _parse_args(["--confirm-live"]).skip_weather is False
+    assert _parse_args(["--confirm-live", "--skip-weather"]).skip_weather is True
+
+
 def test_live_smoke_script_tags_and_cleans_only_its_actors() -> None:
     """The generated script should own cleanup through its unique role tag."""
     code = _mutation_script("carla-agentic-toolkit-smoke-test", drive_seconds=8.0)
@@ -156,7 +170,10 @@ def test_live_smoke_rejects_nonboolean_success(ok_value: object) -> None:
         asyncio.run(_call(session, "result = 1", _parse_args(["--confirm-live"])))
 
 
-def test_live_smoke_control_failure_preserves_cause_and_cleans_up(tmp_path: Path) -> None:
+@pytest.mark.parametrize("blueprint", ["vehicle.tesla.model3", "vehicle.lincoln.mkz"])
+def test_live_smoke_control_failure_preserves_cause_and_cleans_up(
+    tmp_path: Path, blueprint: str
+) -> None:
     """Recoverable actuation errors stop the demo and still restore its state."""
     api = Mock()
     api.health_check.return_value = {"connected": True}
@@ -172,7 +189,9 @@ def test_live_smoke_control_failure_preserves_cause_and_cleans_up(tmp_path: Path
         "error": "simulator rejected control",
     }
     script = tmp_path / "smoke.py"
-    script.write_text(_mutation_script("failure-check"), encoding="utf-8")
+    script.write_text(
+        _mutation_script("failure-check", vehicle_blueprint=blueprint), encoding="utf-8"
+    )
 
     with pytest.raises(AssertionError, match="simulator rejected control"):
         runpy.run_path(str(script), init_globals={"api": api})
@@ -181,9 +200,13 @@ def test_live_smoke_control_failure_preserves_cause_and_cleans_up(tmp_path: Path
     api.set_autopilot.assert_not_called()
     api.destroy_actors.assert_called_once_with([7])
     assert api.set_weather.call_args.args == ({"cloudiness": 0.0},)
+    assert api.spawn_actor_batch.call_args.args[0][0]["blueprint_id"] == blueprint
 
 
-def test_live_smoke_cleanup_observation_waits_for_async_cache(tmp_path: Path) -> None:
+@pytest.mark.parametrize("test_weather", [True, False])
+def test_live_smoke_cleanup_observation_waits_for_async_cache(
+    tmp_path: Path, *, test_weather: bool
+) -> None:
     """A stale actor list after successful destruction must refresh before the verdict."""
     api = Mock()
     api.health_check.return_value = {"connected": True}
@@ -208,10 +231,15 @@ def test_live_smoke_cleanup_observation_waits_for_async_cache(tmp_path: Path) ->
         {"actors": []},
     ]
     script = tmp_path / "smoke.py"
-    script.write_text(_mutation_script("cache-check"), encoding="utf-8")
+    script.write_text(_mutation_script("cache-check", test_weather=test_weather), encoding="utf-8")
 
     namespace = runpy.run_path(str(script), init_globals={"api": api})
 
     assert namespace["result"]["leftovers"] == []
     api.wait.assert_called_once_with(0.1)
     api.tick.assert_not_called()
+    if not test_weather:
+        api.set_weather.assert_not_called()
+        api.get_weather.assert_not_called()
+        assert namespace["result"]["weather_changed"] is None
+        assert namespace["result"]["weather_restored"] is None

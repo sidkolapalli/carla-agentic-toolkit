@@ -58,10 +58,13 @@ representative at an online or offline event.
 
 ## Enforcement
 
-Report abusive, harassing, or otherwise unacceptable behavior privately through
-the repository's **Security → Advisories → Report a vulnerability** form and
-prefix the report title with `[Code of Conduct]`. All complaints will be reviewed
-and investigated promptly and fairly.
+While the repository is private, report abusive, harassing, or otherwise
+unacceptable behavior through an existing private channel with the maintainer.
+No public conduct-reporting contact is configured yet. Before opening the
+repository to public contributions, the maintainer must publish and test a
+monitored private contact here. Do not post identifying incident details in a
+public issue or use a vulnerability advisory for a conduct report. All complaints
+will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.

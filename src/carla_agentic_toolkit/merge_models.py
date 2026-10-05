@@ -94,6 +94,7 @@ class PlannerSettings:
     minimum_gap_m: float = 8.0
     minimum_ttc_seconds: float = 3.0
     following_headway_seconds: float = 1.5
+    tracker_heading_gain: float = 0.9
 
 
 @dataclass(frozen=True, slots=True)

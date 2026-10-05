@@ -24,7 +24,7 @@ ENV CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR=/output \
     UV_LINK_MODE=copy
 
 WORKDIR /app
-COPY pyproject.toml uv.lock README.md ./
+COPY pyproject.toml uv.lock README.md LICENSE ./
 COPY src/ ./src/
 RUN uv sync --locked --no-dev \
     && uv pip install --python .venv "carla==$CARLA_VERSION"

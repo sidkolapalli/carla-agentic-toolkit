@@ -1,7 +1,8 @@
 # Managed merge experiments
 
 The managed runtime accepts a validated `ExperimentSpec` and runs the reviewed
-`town10-merge-v1` fixture in a trusted local worker. It is a separate execution mode
+`town10-merge-v1` fixture, or the explicit experimental UE5 variant described below,
+in a trusted local worker. It is a separate execution mode
 from finite generated scripts. Specifications cannot contain code, imports, shell
 commands, provider URLs, credentials, or unknown fields.
 
@@ -15,6 +16,35 @@ It verifies a finite straight corridor with adjacent driving lanes before spawni
 the two vehicles. It does not reload a different map, admit background density, or
 enable Traffic Manager. Use the existing source setup and sandbox preflight in the
 [client guide](client-setup.md) before enabling generated-script tools alongside it.
+
+## UE5 fixture
+
+CARLA 0.10.0 removes `vehicle.tesla.model3` and changes to Chaos vehicle physics.
+Use **`town10-merge-ue5-v1`** with the matching simulator/client. It selects
+`vehicle.lincoln.mkz`, retains the same legal 50 m corridor checks, and uses a
+heading gain of 1.8 for the local steering controller. The original fixture keeps
+its Tesla and heading gain of 0.9. The stronger UE5 heading correction prevents
+the overshoot observed during initial live testing; Jev does not control that gain
+or write steering commands.
+
+The fixture metadata records its identity, exact vehicle, poses and controller
+settings. The comparison tool refuses mismatched fixtures/settings. Missing
+vehicles produce an explicit unsupported-fixture diagnostic instead of silently
+substituting another vehicle or mixing results with the UE4 cohort.
+
+Copy the [rules](examples/merge-rules-ue5-v1.json) or
+[Jev](examples/merge-jev-ue5-v1.json) specification and set the reachable `host`
+and `port`, then use the same lifecycle commands below:
+
+```bash
+uv run --no-sync carla-agentic-toolkit-experiment run \
+  --spec docs/examples/merge-rules-ue5-v1.json
+```
+
+The [2026-10-05 validation](evidence/ue5-validation-2026-10-05/README.md) retains
+initial failures, corrected runs, a bounded provider fallback and cleanup checks.
+It covers one Town10 corridor on one host; it is not arbitrary-map, Traffic
+Manager, production, or road-safety validation.
 
 ## No-key baseline and lifecycle
 
@@ -112,6 +142,30 @@ enable remote transport or arbitrary persistent code. Configure the same private
 state root in the CLI and every local MCP process so their ownership checks agree.
 
 ## Optional Jev selection
+
+Jev is the optional **System One decision model** in this loop. TypeSafe uses
+[System One](https://typesafe.ai/blog/introducing-system-one-models-and-jev) for
+models that return typed decisions and probabilities inside software workflows.
+Here, the integration uses the official **Choice** primitive: reviewed state and
+candidate descriptions go in; one candidate ID and its choice distribution come
+back. The host coding agent can start an experiment through MCP, while the
+trusted worker owns every recurring model call and simulator step.
+
+| Boundary | What happens here |
+| --- | --- |
+| Input to Jev | Bounded, range-filtered numerical simulator state, current phase, recent history and only the locally feasible candidate IDs. Camera images are not supplied to this policy. |
+| Jev output | One of the supplied choices. Before commitment this can be `defer` or `merge`; committed phases use applicable `continue` or `abort` choices. |
+| Local acceptance | Validate returned model, candidate identity and probabilities, then recheck request freshness, phase and applicability before execution. |
+| Control and recovery | Local code computes trajectories and controls, applies a phase-appropriate fallback, enforces budgets, and verifies cleanup. |
+
+This implementation records choice probabilities for inspection, with no
+probability/confidence cutoff controlling actuation. Valid output types alone do
+not establish a correct driving decision. It uses one Choice question per
+request; it does not implement a chain of model reasoning or combine multiple
+System One questions into a larger probabilistic workflow. The shared rules
+baseline isolates the policy selection for comparison. Follow the
+[recorded decision through execution](jev-integration-follow-up.md#one-decision-followed-through-execution)
+to see an actual Jev response, its acceptance and the controller's first action.
 
 The optional dependency is pinned to `typesafe-sdk==0.7.2`. Reviewed code pins model
 `jev-1.13.0`, question version `carla-merge-choice-v1`, and the provider endpoint.

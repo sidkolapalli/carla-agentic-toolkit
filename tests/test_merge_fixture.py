@@ -11,6 +11,7 @@ from carla_agentic_toolkit.errors import UnsupportedFeatureError
 from carla_agentic_toolkit.merge_fixture import select_corridor
 
 TARGET_LANE_ID = -2
+EXPECTED_CORRIDOR_LENGTH_M = 50.0
 
 
 @dataclass
@@ -102,3 +103,19 @@ def test_fixture_does_not_claim_arbitrary_map_support() -> None:
     """A route helper cannot turn another map into the reviewed fixture."""
     with pytest.raises(UnsupportedFeatureError, match="Town10"):
         select_corridor(Map(Waypoint(), name="Town01"))
+
+
+def test_ue5_corridor_retains_its_separate_fixture_identity() -> None:
+    """The same topology checks must not relabel Lincoln runs as Tesla evidence."""
+    corridor = select_corridor(Map(Waypoint()), fixture_version="town10-merge-ue5-v1")
+
+    assert corridor.to_dict()["fixture_version"] == "town10-merge-ue5-v1"
+    assert corridor.length_m == EXPECTED_CORRIDOR_LENGTH_M
+    with pytest.raises(UnsupportedFeatureError, match="corridor"):
+        select_corridor(Map(Waypoint(end=20.0)), fixture_version="town10-merge-ue5-v1")
+
+
+def test_unknown_fixture_cannot_relabel_a_valid_corridor() -> None:
+    """Only the explicitly supported fixture identities may use the route selector."""
+    with pytest.raises(UnsupportedFeatureError, match="fixture"):
+        select_corridor(Map(Waypoint()), fixture_version="unreviewed-variant")

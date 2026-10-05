@@ -44,6 +44,14 @@ def test_spec_is_immutable_and_default_baseline_needs_no_key() -> None:
         spec.seed = 99
 
 
+def test_ue5_fixture_is_explicit_and_preserves_the_original_default() -> None:
+    """Changed vehicle physics must have a different fixture identity in saved specs."""
+    spec = ExperimentSpec.model_validate({"fixture": "town10-merge-ue5-v1"})
+
+    assert spec.fixture == "town10-merge-ue5-v1"
+    assert ExperimentSpec().fixture == "town10-merge-v1"
+
+
 def test_replay_requires_an_explicit_private_run_identity() -> None:
     """A replay mode may not invent a scene or accept an arbitrary file path."""
     with pytest.raises(ValidationError):

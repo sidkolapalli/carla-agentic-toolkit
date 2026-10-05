@@ -54,8 +54,10 @@ filesystem access, network access, process limits, or the Rust runner must show
 that unsafe behavior remains rejected.
 
 Update `uv.lock` or `sandbox-runner/Cargo.lock` only when dependencies change.
-Never commit CARLA assets, recordings, generated captures, credentials, or local
-configuration.
+Never commit credentials, local configuration, private traces, audit reports, or
+CARLA asset packages. Raw recordings and generated captures stay local. A reviewed
+demonstration may be retained under `docs/evidence/` only with scene attribution,
+applicable license notices, a privacy review, and source/outcome provenance.
 
 ## Pull Requests
 

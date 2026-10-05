@@ -15,7 +15,7 @@ class ExperimentSpec(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True, allow_inf_nan=False)
 
     schema_version: Literal[1] = 1
-    fixture: Literal["town10-merge-v1"] = "town10-merge-v1"
+    fixture: Literal["town10-merge-v1", "town10-merge-ue5-v1"] = "town10-merge-v1"
     host: str = Field(default="127.0.0.1", min_length=1, max_length=253)
     port: int = Field(default=2000, ge=1, le=65533)
     seed: int = Field(default=7, ge=0, le=2**31 - 1)

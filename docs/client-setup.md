@@ -37,6 +37,61 @@ RTX 2070 with at least 8 GB VRAM recommended. Download CARLA from its
 [official release page](https://carla.readthedocs.io/en/0.9.16/download/), not
 from this repository.
 
+## CARLA release compatibility
+
+Release inventory checked on **2026-10-05**. CARLA has parallel engine lines:
+[0.9.16 is GitHub's latest published release](https://github.com/carla-simulator/carla/releases/tag/0.9.16)
+on UE4.26; [0.10.0 is the published UE5.5 release](https://github.com/carla-simulator/carla/releases/tag/0.10.0).
+The larger version number alone does not describe this toolkit's compatibility.
+
+The retained installation, MCP, managed rules/Jev, sensor, cancellation and cleanup
+validation used **CARLA server/API 0.9.16 and Python 3.12**, with the toolkit on
+Linux/WSL2. Docker defaults to `CARLA_VERSION=0.9.16`. That is the demonstrated
+configuration; see the [release evidence](release-readiness.md).
+
+**UE5 has scoped experimental validation.** The 2026-10-05
+[live report](evidence/ue5-validation-2026-10-05/README.md) covers the official
+Windows 0.10.0 simulator and matching Linux client in WSL2. Core MCP driving,
+camera/resource delivery, managed rules/Jev merges, persistent follow-ups,
+cancellation and final cleanup checks passed after compatibility fixes.
+One earlier persistent close returned a missing cleanup report; recovery and
+reruns succeeded, but its cause remains unresolved. This is not full production
+support or a claim that every CARLA API works on UE5.
+
+Install the matching **Linux** Python 3.12 wheel inside Linux/WSL2, even when the
+simulator runs on Windows. Obtain it from the matching Linux simulator package;
+the Windows wheel cannot run inside WSL. Follow the
+[official client-installation guide](https://carla-ue5.readthedocs.io/en/latest/start_quickstart/#install-client-library):
+
+```bash
+uv pip install --python .venv /path/to/Carla-0.10.0-Linux-Shipping/PythonAPI/carla/dist/carla-0.10.0-cp312-cp312-linux_x86_64.whl
+```
+
+Keep the existing Rust/Landlock setup and private state directory. Start
+`CarlaUnreal.exe` on a free RPC/streaming port block and make those ports reachable
+from the toolkit. This machine's validation used a temporary local stdio relay
+because Windows blocked inbound WSL connections to the new executable; that relay
+is a test harness, not a shipped networking feature. Direct UE5 WSL-to-Windows
+networking still needs local configuration and verification.
+
+For a dedicated instance, replace the host/port below with its reachable endpoint:
+
+```bash
+uv run --no-sync python scripts/live_mcp_smoke.py --confirm-live \
+  --host 127.0.0.1 --port 3200 --vehicle-blueprint vehicle.lincoln.mkz --skip-weather
+```
+
+`--skip-weather` reports `weather_tested: false`; it does not claim a weather pass.
+CARLA 0.10.0 has fixed daylight weather, no Light Manager and other
+[documented upstream limitations](https://carla.org/2024/12/19/release-0.10.0/).
+Capability reports inspect method presence, which alone does not prove behavior.
+
+Use `town10-merge-ue5-v1` and the
+[UE5 experiment specifications](managed-experiments.md#ue5-fixture) for managed
+experiments. The original Tesla fixture remains unchanged; its vehicle is absent
+from UE5. Keep UE4 and UE5 results in separate comparisons. Docker continues to
+default to 0.9.16; changing its version argument is not a validated UE5 image.
+
 ## Docker MCP server
 
 The image contains the MCP server, CARLA Python API, and compiled Rust sandbox.
@@ -52,6 +107,8 @@ Build the image with the Python API version matching the simulator, create its
 durable output volume, and run the real sandbox preflight:
 
 ```bash
+git clone https://github.com/sidkolapalli/carla-agentic-toolkit.git
+cd carla-agentic-toolkit
 docker build --build-arg CARLA_VERSION=0.9.16 -t carla-agentic-toolkit .
 docker volume create carla-agentic-toolkit-output
 
@@ -258,10 +315,9 @@ command -v uv
 pwd
 ```
 
-The helper command above reuses an authenticated Git for Windows installation.
-If it is installed elsewhere, update the path or authenticate Git inside WSL by
-another method. Keep the working checkout in the WSL filesystem rather than
-running it under `/mnt/c`.
+The clone command runs Git inside WSL. While this repository is private,
+authenticate Git inside WSL with an account that has repository access. Keep the
+working checkout in the WSL filesystem rather than running it under `/mnt/c`.
 
 On Windows, prepare a second checkout for the small launcher:
 
