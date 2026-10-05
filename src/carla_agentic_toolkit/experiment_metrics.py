@@ -10,6 +10,8 @@ from itertools import pairwise
 from statistics import fmean
 from typing import TYPE_CHECKING, Any, cast
 
+from carla_agentic_toolkit.route_metrics import route_metrics
+
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -37,6 +39,14 @@ METRIC_DEFINITIONS = {
         "Gap and TTC require numerical positions, declared reference points, and positive closing "
         "speed along the same path. No TTC is inferred from semantic scores or unsigned speed. "
         "Crossing-path and acceleration predictions are outside this metric version."
+    ),
+    "route_metrics": (
+        "Optional route-observed-metrics-v1: last measured route progress and goal in metres; "
+        "minimum visible-actor separating-axis box clearance is a 2D lower bound, not exact "
+        "distance or safety proof. Guard counts are frames, including signal stops. Choice "
+        "counts include only context-accepted replies, grouped by their recorded source. "
+        "Constant-velocity crossing predictions in route observations are approximate and "
+        "separate from the physical-metrics-v1 gap/TTC definition."
     ),
 }
 
@@ -77,6 +87,7 @@ def _metrics(
         **_motion_metrics(observations),
         **_decision_metrics(events, decisions),
         **_duration_metrics(events, observations),
+        **route_metrics(events),
         "completed": _completed(outcomes),
     }
 

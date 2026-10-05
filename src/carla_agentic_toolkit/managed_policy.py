@@ -3,6 +3,13 @@
 from dataclasses import dataclass
 
 
+def fallback_choice(phase: str) -> str:
+    """Stop on an unanswered route choice; preserve committed merge semantics."""
+    if phase == "route_following":
+        return "yield"
+    return "continue" if phase in {"committed", "settling"} else "defer"
+
+
 @dataclass(frozen=True, slots=True)
 class DecisionContext:
     """Identity and freshness envelope captured at the observation boundary."""

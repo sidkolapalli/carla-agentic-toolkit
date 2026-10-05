@@ -10,8 +10,7 @@ from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.experiment_trace import identity_digest
 from carla_agentic_toolkit.managed_decisions import decision_metadata, decision_rejection
-from carla_agentic_toolkit.managed_policy import PolicyDecision
-from carla_agentic_toolkit.merge_planner import fallback_choice
+from carla_agentic_toolkit.managed_policy import PolicyDecision, fallback_choice
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -20,6 +19,7 @@ if TYPE_CHECKING:
     from carla_agentic_toolkit.managed_policy import PolicyRequest
     from carla_agentic_toolkit.managed_spec import ExperimentSpec
     from carla_agentic_toolkit.merge_planner import MergeObservation
+    from carla_agentic_toolkit.route_models import RouteObservation
 
 
 @dataclass(slots=True)
@@ -32,13 +32,13 @@ class PendingDecision:
     failure_reason: str | None = None
 
 
-class DecisionScheduler:
+class DecisionScheduler[ObservationT: MergeObservation | RouteObservation]:
     """Retain at most one provider task until completion, cancellation, or owner cleanup."""
 
     def __init__(
         self,
         spec: ExperimentSpec,
-        experiment: Experiment,
+        experiment: Experiment[ObservationT],
         policy: Policy,
         event: Callable[[str, dict[str, object]], None],
         should_stop: Callable[[], bool],
@@ -57,7 +57,7 @@ class DecisionScheduler:
             self.pending = None
         await self.policy.aclose()
 
-    async def choose(self, observation: MergeObservation, step: int) -> PolicyDecision | None:
+    async def choose(self, observation: ObservationT, step: int) -> PolicyDecision | None:
         """Return a currently valid reply or explicit fallback without owning simulator ticks."""
         if self.pending is None and step % self.spec.decision_interval_steps == 0:
             self._request_decision(observation)
@@ -69,7 +69,7 @@ class DecisionScheduler:
             await asyncio.sleep(0)
         return self._take_decision(observation)
 
-    def _request_decision(self, observation: MergeObservation) -> None:
+    def _request_decision(self, observation: ObservationT) -> None:
         experiment = self.experiment
         self.revision += 1
         request = experiment.policy_request(
@@ -100,7 +100,7 @@ class DecisionScheduler:
                 return
             await asyncio.wait((pending.task,), timeout=min(0.05, remaining))
 
-    def _take_decision(self, observation: MergeObservation) -> PolicyDecision | None:
+    def _take_decision(self, observation: ObservationT) -> PolicyDecision | None:
         pending = cast("PendingDecision", self.pending)
         if self.should_stop():
             return None
@@ -110,7 +110,7 @@ class DecisionScheduler:
         return self._resolved_decision(observation, pending)
 
     def _resolved_decision(
-        self, observation: MergeObservation, pending: PendingDecision
+        self, observation: ObservationT, pending: PendingDecision
     ) -> PolicyDecision | None:
         try:
             decision = pending.task.result()
@@ -126,7 +126,7 @@ class DecisionScheduler:
         return self._received_decision(observation, pending, decision)
 
     def _pending_fallback(
-        self, observation: MergeObservation, pending: PendingDecision
+        self, observation: ObservationT, pending: PendingDecision
     ) -> PolicyDecision | None:
         if time.monotonic() >= pending.request.context.deadline_monotonic:
             if pending.failure_reason is None:
@@ -136,7 +136,7 @@ class DecisionScheduler:
         return self._fallback(observation, "pending")
 
     def _policy_failure(
-        self, observation: MergeObservation, pending: PendingDecision, reason: str
+        self, observation: ObservationT, pending: PendingDecision, reason: str
     ) -> PolicyDecision | None:
         reason = pending.failure_reason or reason
         self.event(
@@ -151,7 +151,7 @@ class DecisionScheduler:
         return self._fallback(observation, reason)
 
     def _received_decision(
-        self, observation: MergeObservation, pending: PendingDecision, decision: PolicyDecision
+        self, observation: ObservationT, pending: PendingDecision, decision: PolicyDecision
     ) -> PolicyDecision | None:
         if pending.failure_reason is not None:
             return self._policy_failure(observation, pending, pending.failure_reason)
@@ -165,7 +165,7 @@ class DecisionScheduler:
 
     def _validated_decision(
         self,
-        observation: MergeObservation,
+        observation: ObservationT,
         pending: PendingDecision,
         decision: PolicyDecision,
         metadata: dict[str, object],
@@ -209,7 +209,7 @@ class DecisionScheduler:
         )
         return decision if reason is None else self._fallback(observation, f"rejected:{reason}")
 
-    def _fallback(self, observation: MergeObservation, reason: str) -> PolicyDecision | None:
+    def _fallback(self, observation: ObservationT, reason: str) -> PolicyDecision | None:
         current = self.experiment.policy_request(
             observation,
             revision=self.revision,

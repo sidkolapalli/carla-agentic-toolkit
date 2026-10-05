@@ -1,4 +1,4 @@
-"""Reviewed, immutable input for the dedicated-instance merge experiment."""
+"""Reviewed, immutable input for dedicated-instance driving experiments."""
 
 from __future__ import annotations
 
@@ -15,7 +15,10 @@ class ExperimentSpec(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True, allow_inf_nan=False)
 
     schema_version: Literal[1] = 1
-    fixture: Literal["town10-merge-v1", "town10-merge-ue5-v1"] = "town10-merge-v1"
+    fixture: Literal["town10-merge-v1", "town10-merge-ue5-v1", "town10-route-ue5-v1"] = (
+        "town10-merge-v1"
+    )
+    scenario: Literal["lead_brake", "cut_in", "pedestrian_crossing"] | None = None
     host: str = Field(default="127.0.0.1", min_length=1, max_length=253)
     port: int = Field(default=2000, ge=1, le=65533)
     seed: int = Field(default=7, ge=0, le=2**31 - 1)
@@ -36,6 +39,14 @@ class ExperimentSpec(BaseModel):
     decision_timeout_seconds: float = Field(default=5.0, ge=0.1, le=30.0)
     max_requests: int = Field(default=40, ge=1, le=200)
     max_trace_bytes: int = Field(default=16_777_216, ge=65_536, le=67_108_864)
+
+    @model_validator(mode="after")
+    def explicit_route_scenario(self) -> Self:
+        """Require a reviewed scenario exactly when using the route fixture."""
+        if (self.fixture == "town10-route-ue5-v1") != (self.scenario is not None):
+            message = "scenario is required exactly for town10-route-ue5-v1"
+            raise ValueError(message)
+        return self
 
     @model_validator(mode="after")
     def coherent_timing(self) -> Self:

@@ -1,0 +1,849 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-05",
+  "status": "exploratory route trials, not production validation",
+  "platform": "Official Windows CARLA 0.10.0 UE5.5 server; matching Linux Python client in WSL2 through a local test relay.",
+  "jev_trials": [
+    {
+      "run_id": "ef40448a56434b63b700274dc72ee7a4",
+      "trace_sha256": "9ee4999b249acbe6febc57062057b57faf8b4a589aba0bdf878df7d63cf66a53",
+      "code_sha256": "ce471671ddad8b897ade9e28c7aa24086254bcc3072cf738ac36a7eaeaddc5bc",
+      "fixture_version": "town10-route-ue5-v1",
+      "planner_version": "route-tactics-v1",
+      "controller_version": "route-pure-pursuit-v1",
+      "environment": {
+        "carla_client": "0.10.0",
+        "carla_server": "0.10.0",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "python": "3.12.14"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "route_completed"
+      },
+      "error": null,
+      "cleanup_ok": true,
+      "settings_restored": true,
+      "observations": 1037,
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": 0.17411464453471126,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 3.6000000536441803,
+        "interventions": 0,
+        "lane_invasion_events": 0,
+        "real_time_factor": 0.8309135855942128,
+        "reversal_count": 0,
+        "route_accepted_choices_by_source": {
+          "jev": {
+            "caution": 19,
+            "cruise": 5,
+            "yield": 2
+          }
+        },
+        "route_goal_m": 135.0,
+        "route_local_guard_frames": {},
+        "route_metric_version": "route-observed-metrics-v1",
+        "route_minimum_observed_box_clearance_m": 1.6381722079979661,
+        "route_progress_m": 134.75705106836185,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 0,
+        "simulation_duration_seconds": 51.80000077188015,
+        "tracking_error_rmse_m": 0.28718493804963696,
+        "wall_duration_seconds": 62.34102037799312
+      },
+      "max_tracking_error_m": 1.1343019016619729,
+      "provider_fallbacks": {},
+      "scenario": "lead_brake",
+      "spec": {
+        "schema_version": 1,
+        "fixture": "town10-route-ue5-v1",
+        "scenario": "lead_brake",
+        "seed": 7,
+        "policy": "jev",
+        "replay_run_id": null,
+        "timing_mode": "simulation_time",
+        "observation_mode": "range_filtered_ground_truth",
+        "fixed_delta_seconds": 0.05,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_steps": 2400,
+        "max_wall_seconds": 240.0,
+        "rpc_timeout_seconds": 5.0,
+        "target_speed_mps": 6.0,
+        "ego_speed_mps": 5.0,
+        "observation_range_m": 80.0,
+        "decision_interval_steps": 40,
+        "decision_timeout_seconds": 8.0,
+        "max_requests": 28,
+        "max_trace_bytes": 33554432
+      },
+      "capture_ok": true,
+      "actors_restored": true,
+      "camera_images": 259,
+      "camera_queue_drops": 0,
+      "projection_sha256": "5d8f4ec56ec0c6c2be9e69509c3a9f0ef6b3b7df2edb57a02c1ed19d3b148aef",
+      "hazard_trigger_simulation_seconds": 4300.025353487581,
+      "hazard_decisions": [
+        {
+          "seconds_relative_trigger": -0.7500000111758709,
+          "frame": 444135,
+          "choice": "caution",
+          "source": "jev",
+          "reason": "selected",
+          "latency_seconds": 0.23973739799112082,
+          "question_version": "carla-route-choice-v1",
+          "returned_model": "jev-1.13.0"
+        },
+        {
+          "seconds_relative_trigger": 1.2500000186264515,
+          "frame": 444175,
+          "choice": "caution",
+          "source": "jev",
+          "reason": "selected",
+          "latency_seconds": 0.16843330199480988,
+          "question_version": "carla-route-choice-v1",
+          "returned_model": "jev-1.13.0"
+        },
+        {
+          "seconds_relative_trigger": 3.250000048428774,
+          "frame": 444215,
+          "choice": "caution",
+          "source": "jev",
+          "reason": "selected",
+          "latency_seconds": 0.13690696899720933,
+          "question_version": "carla-route-choice-v1",
+          "returned_model": "jev-1.13.0"
+        },
+        {
+          "seconds_relative_trigger": 5.250000078231096,
+          "frame": 444255,
+          "choice": "caution",
+          "source": "jev",
+          "reason": "selected",
+          "latency_seconds": 0.13441992399748415,
+          "question_version": "carla-route-choice-v1",
+          "returned_model": "jev-1.13.0"
+        },
+        {
+          "seconds_relative_trigger": 7.250000108033419,
+          "frame": 444295,
+          "choice": "caution",
+          "source": "jev",
+          "reason": "selected",
+          "latency_seconds": 0.16655207899748348,
+          "question_version": "carla-route-choice-v1",
+          "returned_model": "jev-1.13.0"
+        }
+      ]
+    },
+    {
+      "run_id": "e2dfa2af0ca44788a020d2c47cad2fd7",
+      "trace_sha256": "b103464d8362b5c9ce6e7640c8b2840acf957c3e991d553bea8672300a39d951",
+      "code_sha256": "ce471671ddad8b897ade9e28c7aa24086254bcc3072cf738ac36a7eaeaddc5bc",
+      "fixture_version": "town10-route-ue5-v1",
+      "planner_version": "route-tactics-v1",
+      "controller_version": "route-pure-pursuit-v1",
+      "environment": {
+        "carla_client": "0.10.0",
+        "carla_server": "0.10.0",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "python": "3.12.14"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "route_completed"
+      },
+      "error": null,
+      "cleanup_ok": true,
+      "settings_restored": true,
+      "observations": 927,
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": 0.1612035000416654,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 0.20000000298023224,
+        "interventions": 0,
+        "lane_invasion_events": 0,
+        "real_time_factor": 0.825143093414705,
+        "reversal_count": 0,
+        "route_accepted_choices_by_source": {
+          "jev": {
+            "caution": 18,
+            "cruise": 6
+          }
+        },
+        "route_goal_m": 135.0,
+        "route_local_guard_frames": {},
+        "route_metric_version": "route-observed-metrics-v1",
+        "route_minimum_observed_box_clearance_m": 1.6374450184277394,
+        "route_progress_m": 134.7518806235826,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 0,
+        "simulation_duration_seconds": 46.30000068992376,
+        "tracking_error_rmse_m": 0.25609278319281553,
+        "wall_duration_seconds": 56.11148061401036
+      },
+      "max_tracking_error_m": 0.9529420650614112,
+      "provider_fallbacks": {},
+      "scenario": "cut_in",
+      "spec": {
+        "schema_version": 1,
+        "fixture": "town10-route-ue5-v1",
+        "scenario": "cut_in",
+        "seed": 7,
+        "policy": "jev",
+        "replay_run_id": null,
+        "timing_mode": "simulation_time",
+        "observation_mode": "range_filtered_ground_truth",
+        "fixed_delta_seconds": 0.05,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_steps": 2400,
+        "max_wall_seconds": 240.0,
+        "rpc_timeout_seconds": 5.0,
+        "target_speed_mps": 6.0,
+        "ego_speed_mps": 5.0,
+        "observation_range_m": 80.0,
+        "decision_interval_steps": 40,
+        "decision_timeout_seconds": 8.0,
+        "max_requests": 28,
+        "max_trace_bytes": 33554432
+      },
+      "capture_ok": true,
+      "actors_restored": true,
+      "camera_images": 231,
+      "camera_queue_drops": 0,
+      "projection_sha256": "e4ac388e6665e9eeb9d81213af9ec677ff9c8a1fbb0168e85067ae037d145b8d",
+      "hazard_trigger_simulation_seconds": 4351.990183144808,
+      "hazard_decisions": [
+        {
+          "seconds_relative_trigger": -1.5000000223517418,
+          "frame": 445266,
+          "choice": "cruise",
+          "source": "jev",
+          "reason": "selected",
+          "latency_seconds": 0.17893921300128568,
+          "question_version": "carla-route-choice-v1",
+          "returned_model": "jev-1.13.0"
+        },
+        {
+          "seconds_relative_trigger": 0.5000000074505806,
+          "frame": 445306,
+          "choice": "caution",
+          "source": "jev",
+          "reason": "selected",
+          "latency_seconds": 0.16394259700609837,
+          "question_version": "carla-route-choice-v1",
+          "returned_model": "jev-1.13.0"
+        },
+        {
+          "seconds_relative_trigger": 2.500000037252903,
+          "frame": 445346,
+          "choice": "caution",
+          "source": "jev",
+          "reason": "selected",
+          "latency_seconds": 0.16795336600625888,
+          "question_version": "carla-route-choice-v1",
+          "returned_model": "jev-1.13.0"
+        },
+        {
+          "seconds_relative_trigger": 4.500000067055225,
+          "frame": 445386,
+          "choice": "caution",
+          "source": "jev",
+          "reason": "selected",
+          "latency_seconds": 0.13343341799918562,
+          "question_version": "carla-route-choice-v1",
+          "returned_model": "jev-1.13.0"
+        },
+        {
+          "seconds_relative_trigger": 6.500000096857548,
+          "frame": 445426,
+          "choice": "caution",
+          "source": "jev",
+          "reason": "selected",
+          "latency_seconds": 0.14038903299660888,
+          "question_version": "carla-route-choice-v1",
+          "returned_model": "jev-1.13.0"
+        }
+      ]
+    },
+    {
+      "run_id": "787ed3433419402191404e7367f769ee",
+      "trace_sha256": "865b11e7cd3d3b42a9917a7076d1d9eb3c52a27e5f39561cfbbc615c9766cc7e",
+      "code_sha256": "ce471671ddad8b897ade9e28c7aa24086254bcc3072cf738ac36a7eaeaddc5bc",
+      "fixture_version": "town10-route-ue5-v1",
+      "planner_version": "route-tactics-v1",
+      "controller_version": "route-pure-pursuit-v1",
+      "environment": {
+        "carla_client": "0.10.0",
+        "carla_server": "0.10.0",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "python": "3.12.14"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "route_completed"
+      },
+      "error": null,
+      "cleanup_ok": true,
+      "settings_restored": true,
+      "observations": 1574,
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": 0.16257606265286956,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 714,
+        "hesitation_seconds": 36.40000054240227,
+        "interventions": 759,
+        "lane_invasion_events": 0,
+        "real_time_factor": 0.8574943702071822,
+        "reversal_count": 0,
+        "route_accepted_choices_by_source": {
+          "fallback": {
+            "yield": 1
+          },
+          "jev": {
+            "caution": 12,
+            "cruise": 10
+          }
+        },
+        "route_goal_m": 135.0,
+        "route_local_guard_frames": {
+          "traffic_light_stop": 683
+        },
+        "route_metric_version": "route-observed-metrics-v1",
+        "route_minimum_observed_box_clearance_m": 1.6371789449577605,
+        "route_progress_m": 134.74406734488565,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 0,
+        "simulation_duration_seconds": 78.65000117197633,
+        "tracking_error_rmse_m": 0.26837144887000014,
+        "wall_duration_seconds": 91.72072016399761
+      },
+      "max_tracking_error_m": 1.18789890562243,
+      "provider_fallbacks": {
+        "invalid_response": 1
+      },
+      "scenario": "pedestrian_crossing",
+      "spec": {
+        "schema_version": 1,
+        "fixture": "town10-route-ue5-v1",
+        "scenario": "pedestrian_crossing",
+        "seed": 7,
+        "policy": "jev",
+        "replay_run_id": null,
+        "timing_mode": "simulation_time",
+        "observation_mode": "range_filtered_ground_truth",
+        "fixed_delta_seconds": 0.05,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_steps": 2400,
+        "max_wall_seconds": 240.0,
+        "rpc_timeout_seconds": 5.0,
+        "target_speed_mps": 6.0,
+        "ego_speed_mps": 5.0,
+        "observation_range_m": 80.0,
+        "decision_interval_steps": 40,
+        "decision_timeout_seconds": 8.0,
+        "max_requests": 28,
+        "max_trace_bytes": 33554432
+      },
+      "capture_ok": true,
+      "actors_restored": true,
+      "camera_images": 393,
+      "camera_queue_drops": 0,
+      "projection_sha256": "5f7f37bcbb25f4d0eb22be00da0d7b3b1d90d17ea29620649b1423681e3b3992",
+      "hazard_trigger_simulation_seconds": 4399.7658948376775,
+      "hazard_decisions": [
+        {
+          "seconds_relative_trigger": -1.5000000223517418,
+          "frame": 446335,
+          "choice": "cruise",
+          "source": "jev",
+          "reason": "selected",
+          "latency_seconds": 0.2799269520037342,
+          "question_version": "carla-route-choice-v1",
+          "returned_model": "jev-1.13.0"
+        },
+        {
+          "seconds_relative_trigger": 0.5000000074505806,
+          "frame": 446375,
+          "choice": "yield",
+          "source": "fallback",
+          "reason": "invalid_response",
+          "latency_seconds": 0.148627734000911,
+          "question_version": "carla-route-choice-v1",
+          "returned_model": "jev-1.13.0"
+        },
+        {
+          "seconds_relative_trigger": 2.500000037252903,
+          "frame": 446415,
+          "choice": "caution",
+          "source": "jev",
+          "reason": "selected",
+          "latency_seconds": 0.14752603799570352,
+          "question_version": "carla-route-choice-v1",
+          "returned_model": "jev-1.13.0"
+        },
+        {
+          "seconds_relative_trigger": 4.500000067055225,
+          "frame": 446455,
+          "choice": "caution",
+          "source": "jev",
+          "reason": "selected",
+          "latency_seconds": 0.13606019200233277,
+          "question_version": "carla-route-choice-v1",
+          "returned_model": "jev-1.13.0"
+        },
+        {
+          "seconds_relative_trigger": 6.500000096857548,
+          "frame": 446495,
+          "choice": "caution",
+          "source": "jev",
+          "reason": "selected",
+          "latency_seconds": 0.18096050299936906,
+          "question_version": "carla-route-choice-v1",
+          "returned_model": "jev-1.13.0"
+        }
+      ]
+    }
+  ],
+  "calibration_trials": [
+    {
+      "run_id": "3f89923841804b6ba86ac0550f1fb85f",
+      "trace_sha256": "548ffa1d1849a2bf55876475d235ee3a8c4266dac34eb21c381b10d778ccc5e7",
+      "code_sha256": "a4aab8257d372360d03197ff3b179cf6f66e7e66d48733b5c55b967819585a0e",
+      "fixture_version": "town10-route-ue5-v1",
+      "planner_version": "route-tactics-v1",
+      "controller_version": "route-pure-pursuit-v1",
+      "environment": {
+        "carla_client": "0.10.0",
+        "carla_server": "0.10.0",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "python": "3.12.14"
+      },
+      "outcome": {
+        "completed": false,
+        "status": "collision"
+      },
+      "error": null,
+      "cleanup_ok": true,
+      "settings_restored": true,
+      "observations": 556,
+      "metrics": {
+        "collision_events": 1,
+        "collision_impulse_magnitude_sum_kg_mps": 356.5379943847656,
+        "completed": false,
+        "decision_latency_mean_seconds": null,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 44,
+        "hesitation_seconds": 2.450000036507845,
+        "interventions": 56,
+        "lane_invasion_events": 0,
+        "real_time_factor": 3.4782392208906163,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 0,
+        "simulation_duration_seconds": 27.750000413507223,
+        "tracking_error_rmse_m": 0.11864944015237276,
+        "wall_duration_seconds": 7.978174774994841
+      },
+      "max_tracking_error_m": 0.28644203219644804,
+      "provider_fallbacks": {},
+      "label": "lead-brake-rules-initial"
+    },
+    {
+      "run_id": "8f8ac48ad0114110b21f12ab12d6e51d",
+      "trace_sha256": "cdf8f90999c990f31d10c37da319d5016ec8a5c9bc2b2e24a26cabe5ef0c0160",
+      "code_sha256": "a4aab8257d372360d03197ff3b179cf6f66e7e66d48733b5c55b967819585a0e",
+      "fixture_version": "town10-route-ue5-v1",
+      "planner_version": "route-tactics-v1",
+      "controller_version": "route-pure-pursuit-v1",
+      "environment": {
+        "carla_client": "0.10.0",
+        "carla_server": "0.10.0",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "python": "3.12.14"
+      },
+      "outcome": {
+        "completed": false,
+        "status": "collision"
+      },
+      "error": null,
+      "cleanup_ok": true,
+      "settings_restored": true,
+      "observations": 556,
+      "metrics": {
+        "collision_events": 1,
+        "collision_impulse_magnitude_sum_kg_mps": 356.5379943847656,
+        "completed": false,
+        "decision_latency_mean_seconds": null,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 50,
+        "hesitation_seconds": 2.550000037997961,
+        "interventions": 62,
+        "lane_invasion_events": 0,
+        "real_time_factor": 2.8260763592170375,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 0,
+        "simulation_duration_seconds": 27.750000413507223,
+        "tracking_error_rmse_m": 0.11864752052017907,
+        "wall_duration_seconds": 9.819267735991161
+      },
+      "max_tracking_error_m": 0.28621770829384574,
+      "provider_fallbacks": {},
+      "label": "lead-brake-rules-steering"
+    },
+    {
+      "run_id": "cb46e84fc9b04431abab117390fd6391",
+      "trace_sha256": "95c2d44534dcbe293b25cc77507e002765a5523008451c2da8b648ee2f2700db",
+      "code_sha256": "838be0d14e64855fa9c0ff2f4e071e4cb8e8fce56675b3f95822f949e2560030",
+      "fixture_version": "town10-route-ue5-v1",
+      "planner_version": "route-tactics-v1",
+      "controller_version": "route-pure-pursuit-v1",
+      "environment": {
+        "carla_client": "0.10.0",
+        "carla_server": "0.10.0",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "python": "3.12.14"
+      },
+      "outcome": {
+        "completed": false,
+        "status": "frame_limit"
+      },
+      "error": null,
+      "cleanup_ok": true,
+      "settings_restored": true,
+      "observations": 1200,
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": false,
+        "decision_latency_mean_seconds": null,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 619,
+        "hesitation_seconds": 31.20000046491623,
+        "interventions": 631,
+        "lane_invasion_events": 0,
+        "real_time_factor": 3.208257333964616,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 0,
+        "simulation_duration_seconds": 59.950000893324614,
+        "tracking_error_rmse_m": 0.16098351834807756,
+        "wall_duration_seconds": 18.68615720399248
+      },
+      "max_tracking_error_m": 0.3184567104871805,
+      "provider_fallbacks": {},
+      "label": "lead-brake-rules-calibrated"
+    },
+    {
+      "run_id": "f477b5d699aa42df89767ade3eedd07d",
+      "trace_sha256": "b72261f25155bcbe51b46f148afc043a1a9d04b8c215a02d88d6ed2685bc9835",
+      "code_sha256": "838be0d14e64855fa9c0ff2f4e071e4cb8e8fce56675b3f95822f949e2560030",
+      "fixture_version": "town10-route-ue5-v1",
+      "planner_version": "route-tactics-v1",
+      "controller_version": "route-pure-pursuit-v1",
+      "environment": {
+        "carla_client": "0.10.0",
+        "carla_server": "0.10.0",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "python": "3.12.14"
+      },
+      "outcome": {
+        "completed": false,
+        "status": "collision"
+      },
+      "error": null,
+      "cleanup_ok": true,
+      "settings_restored": true,
+      "observations": 1023,
+      "metrics": {
+        "collision_events": 1,
+        "collision_impulse_magnitude_sum_kg_mps": 5156.785739966125,
+        "completed": false,
+        "decision_latency_mean_seconds": null,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 497,
+        "hesitation_seconds": 25.900000385940075,
+        "interventions": 513,
+        "lane_invasion_events": 0,
+        "real_time_factor": 3.2196334641853177,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 0,
+        "simulation_duration_seconds": 51.10000076144934,
+        "tracking_error_rmse_m": 0.14043019163630466,
+        "wall_duration_seconds": 15.871372107998468
+      },
+      "max_tracking_error_m": 0.18566754842878358,
+      "provider_fallbacks": {},
+      "label": "lead-brake-rules-long"
+    },
+    {
+      "run_id": "1697862420284dd79af99b3db707e668",
+      "trace_sha256": "9f8f92e9cd7692ab1573fc0cc5b550f6a6926c870524cfb8b7377712984dd039",
+      "code_sha256": "d75fa6affc94bd4933c393bf528ca8f7807c34a7edb0354622ac5689f359a180",
+      "fixture_version": "town10-route-ue5-v1",
+      "planner_version": "route-tactics-v1",
+      "controller_version": "route-pure-pursuit-v1",
+      "environment": {
+        "carla_client": "0.10.0",
+        "carla_server": "0.10.0",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "python": "3.12.14"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "route_completed"
+      },
+      "error": null,
+      "cleanup_ok": true,
+      "settings_restored": true,
+      "observations": 1335,
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": null,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 23.850000355392694,
+        "interventions": 380,
+        "lane_invasion_events": 0,
+        "real_time_factor": 3.514257927022566,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 0,
+        "simulation_duration_seconds": 66.70000099390745,
+        "tracking_error_rmse_m": 0.2541831444102585,
+        "wall_duration_seconds": 18.97982515199692
+      },
+      "max_tracking_error_m": 0.9407905063204529,
+      "provider_fallbacks": {},
+      "label": "lead-brake-rules-bounded"
+    },
+    {
+      "run_id": "f7544fa353ac4e5e9c58cb1256117e7a",
+      "trace_sha256": "7b44a6221155d66bc17dfb745f6e239c8ec5368088b80969e8a14c94dcee9a7c",
+      "code_sha256": "d75fa6affc94bd4933c393bf528ca8f7807c34a7edb0354622ac5689f359a180",
+      "fixture_version": "town10-route-ue5-v1",
+      "planner_version": "route-tactics-v1",
+      "controller_version": "route-pure-pursuit-v1",
+      "environment": {
+        "carla_client": "0.10.0",
+        "carla_server": "0.10.0",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "python": "3.12.14"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "route_completed"
+      },
+      "error": null,
+      "cleanup_ok": true,
+      "settings_restored": true,
+      "observations": 1029,
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": null,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 11.750000175088644,
+        "interventions": 14,
+        "lane_invasion_events": 0,
+        "real_time_factor": 3.431361693692571,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 0,
+        "simulation_duration_seconds": 51.400000765919685,
+        "tracking_error_rmse_m": 0.25630051676954896,
+        "wall_duration_seconds": 14.979476182998042
+      },
+      "max_tracking_error_m": 0.817125434847533,
+      "provider_fallbacks": {},
+      "label": "cut_in-rules-initial"
+    },
+    {
+      "run_id": "d65baba22d8b4483a93a7fc817f8c457",
+      "trace_sha256": "c8201ced45a8c03dc062cef3bc62d0f8ca5beb1369a7ea8e01cf4fe421f1f972",
+      "code_sha256": "d75fa6affc94bd4933c393bf528ca8f7807c34a7edb0354622ac5689f359a180",
+      "fixture_version": "town10-route-ue5-v1",
+      "planner_version": "route-tactics-v1",
+      "controller_version": "route-pure-pursuit-v1",
+      "environment": {
+        "carla_client": "0.10.0",
+        "carla_server": "0.10.0",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "python": "3.12.14"
+      },
+      "outcome": {
+        "completed": false,
+        "status": "partial"
+      },
+      "error": "RuntimeError: std::exception",
+      "cleanup_ok": true,
+      "settings_restored": true,
+      "observations": 0,
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": null,
+        "decision_latency_mean_seconds": null,
+        "decision_staleness_max_frames": null,
+        "fallbacks": 0,
+        "hesitation_seconds": 0,
+        "interventions": 0,
+        "lane_invasion_events": 0,
+        "real_time_factor": null,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 0,
+        "simulation_duration_seconds": null,
+        "tracking_error_rmse_m": null,
+        "wall_duration_seconds": 2.3261992939951597
+      },
+      "max_tracking_error_m": null,
+      "provider_fallbacks": {},
+      "label": "pedestrian_crossing-rules-initial"
+    },
+    {
+      "run_id": "e088d524efd3437fa0fab71388933f95",
+      "trace_sha256": "b606b2fea1a03510960e74bbb7faf5f8b8378584e44e8ece274c87de100f55ea",
+      "code_sha256": "38b7355cd058718815034161f439cff30c11e5047f2ffb850c855c7edab4788d",
+      "fixture_version": "town10-route-ue5-v1",
+      "planner_version": "route-tactics-v1",
+      "controller_version": "route-pure-pursuit-v1",
+      "environment": {
+        "carla_client": "0.10.0",
+        "carla_server": "0.10.0",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "python": "3.12.14"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "route_completed"
+      },
+      "error": null,
+      "cleanup_ok": true,
+      "settings_restored": true,
+      "observations": 1112,
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": null,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 23.050000343471766,
+        "interventions": 407,
+        "lane_invasion_events": 0,
+        "real_time_factor": 3.281552570906881,
+        "reversal_count": 0,
+        "route_accepted_choices_by_source": {
+          "rules": {
+            "caution": 4,
+            "cruise": 12,
+            "yield": 12
+          }
+        },
+        "route_goal_m": 135.0,
+        "route_local_guard_frames": {
+          "imminent_obstacle": 407
+        },
+        "route_metric_version": "route-observed-metrics-v1",
+        "route_minimum_observed_box_clearance_m": 1.4888714298048318,
+        "route_progress_m": 134.7551244119001,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 0,
+        "simulation_duration_seconds": 55.550000827759504,
+        "tracking_error_rmse_m": 0.31453090690459196,
+        "wall_duration_seconds": 16.927963099005865
+      },
+      "max_tracking_error_m": 1.1849960308705854,
+      "provider_fallbacks": {},
+      "label": "pedestrian-rules-cleared"
+    },
+    {
+      "run_id": "6ab2c9bb7e4941aebd3d01f0349d6ae5",
+      "trace_sha256": "345d7cf06184b2657510068ec87d03f8f66e925d117e07be37e1698081870440",
+      "code_sha256": "d75fa6affc94bd4933c393bf528ca8f7807c34a7edb0354622ac5689f359a180",
+      "fixture_version": "town10-route-ue5-v1",
+      "planner_version": "route-tactics-v1",
+      "controller_version": "route-pure-pursuit-v1",
+      "environment": {
+        "carla_client": "0.10.0",
+        "carla_server": "0.10.0",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "python": "3.12.14"
+      },
+      "outcome": {
+        "completed": false,
+        "status": "partial"
+      },
+      "error": "RuntimeError: std::exception",
+      "cleanup_ok": false,
+      "settings_restored": true,
+      "observations": 0,
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": null,
+        "decision_latency_mean_seconds": null,
+        "decision_staleness_max_frames": null,
+        "fallbacks": 0,
+        "hesitation_seconds": 0,
+        "interventions": 0,
+        "lane_invasion_events": 0,
+        "real_time_factor": null,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 0,
+        "simulation_duration_seconds": null,
+        "tracking_error_rmse_m": null,
+        "wall_duration_seconds": 2.2681709610042162
+      },
+      "max_tracking_error_m": null,
+      "provider_fallbacks": {},
+      "label": "pedestrian-spawn-diagnostic"
+    }
+  ],
+  "diagnostic_recovery": {
+    "world_replaced": false,
+    "settings_restored": true,
+    "recovery_frame": 392000,
+    "ok": true,
+    "failures": [],
+    "trailing": []
+  },
+  "limits": [
+    "one camera-instrumented Jev run per scenario, seed 7",
+    "fixed 135m Town10 route and scripted owned traffic, no general route planning",
+    "range-filtered ground truth, no occlusion or camera perception",
+    "simulation paused during inference; not a real-time latency benchmark",
+    "traffic-light phases not reset; trials are not a matched performance comparison",
+    "one invalid provider response preserved as a yield fallback; reason subcategory unavailable",
+    "clearance lower bound includes adjacent traffic, not just the hazard actor",
+    "native Windows-to-WSL networking without the test relay is not claimed"
+  ],
+  "validation": {
+    "python_passed": 630,
+    "expected_skips": 2,
+    "rust_passed": 9,
+    "tdd_route_cases": 31,
+    "cleanup_pr_ci": "https://github.com/sidkolapalli/carla-agentic-toolkit/actions/runs/37370705768"
+  }
+}

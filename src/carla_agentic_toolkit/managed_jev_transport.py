@@ -4,10 +4,10 @@ from http import HTTPStatus
 from typing import Protocol
 
 from carla_agentic_toolkit.managed_jev_questions import (
-    INSTRUCTIONS,
     MODEL,
     QUESTION_ID,
     JevReply,
+    question_instructions,
 )
 
 
@@ -60,7 +60,11 @@ class TypeSafeTransport:
         try:
             response = await self._client.system_one(
                 state=state_json,
-                questions={QUESTION_ID: Choice(instructions=INSTRUCTIONS, criteria=criteria)},
+                questions={
+                    QUESTION_ID: Choice(
+                        instructions=question_instructions(state_json), criteria=criteria
+                    )
+                },
                 model=MODEL,
             )
         except TypeSafeAPIError as error:
