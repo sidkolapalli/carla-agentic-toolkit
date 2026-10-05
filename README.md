@@ -45,7 +45,7 @@ The CARLA Agentic Toolkit gives local AI coding agents a constrained path into
 small tools, its default interface provides one composable tool,
 `execute_carla_script`, that runs a complete Python workflow against a curated
 CARLA API. Optional managed experiments add bounded start/status/stop/result
-controls for a reviewed merge fixture.
+controls for reviewed merge and route-driving fixtures.
 
 Agent-authored code is validated, launched through a Rust subprocess, restricted
 with Linux Landlock, and given a dedicated place for durable captures,
@@ -110,8 +110,8 @@ The integration uses structured simulator state and one **Choice** question per
 request. Jev supplies no generated driving script, camera perception, or direct
 actuator commands. The current implementation records its probabilities; it does
 not use a confidence threshold as permission to drive. The same experiment also
-runs with a deterministic rules policy, making the selected decision mechanism
-the controlled difference. See [Jev's interface and limits](docs/managed-experiments.md#optional-jev-selection).
+runs with a deterministic rules policy using the same observation and controller
+interfaces. See [Jev's interface and limits](docs/managed-experiments.md#optional-jev-selection).
 
 ## Demo
 
