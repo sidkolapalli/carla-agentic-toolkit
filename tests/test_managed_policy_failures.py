@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, cast
 
 import pytest
 
-from carla_agentic_toolkit import managed_engine
+from carla_agentic_toolkit import managed_engine, managed_selection
 from carla_agentic_toolkit.experiment_trace import load_trace
 from carla_agentic_toolkit.managed_policy import PolicyDecision
 from carla_agentic_toolkit.managed_selection import DecisionScheduler
@@ -86,9 +86,24 @@ def test_paced_owner_cancels_expired_pending_request(
 ) -> None:
     """Continuing frames must also expire an inference request independently of its adapter."""
     spec = ExperimentSpec(policy="jev", timing_mode="paced", decision_timeout_seconds=0.1)
-    result = asyncio.run(_run(tmp_path, monkeypatch, PendingPolicy(), spec))
+    clock = SimpleNamespace(now=0.0)
+    timer = SimpleNamespace(monotonic=lambda: clock.now)
+    monkeypatch.setattr(managed_engine, "time", timer)
+    monkeypatch.setattr(managed_selection, "time", timer)
+
+    async def pace(_owner: managed_engine.ExperimentRun, step: int) -> None:
+        # The final fake frame lands exactly on the request deadline. Real wall-clock
+        # scheduling can land just before it because request setup takes time.
+        clock.now = (step + 1) * spec.fixed_delta_seconds
+        await asyncio.sleep(0)
+
+    monkeypatch.setattr(managed_engine.ExperimentRun, "_pace", pace)
+    policy = PendingPolicy()
+    result = asyncio.run(_run(tmp_path, monkeypatch, policy, spec))
     assert result["state"] == "completed"
     assert "deadline_expired" in _reasons(tmp_path)
+    assert policy.entered.is_set()
+    assert policy.closed
 
 
 @pytest.mark.parametrize("policy_type", [FailingPolicy, CancelledPolicy])
