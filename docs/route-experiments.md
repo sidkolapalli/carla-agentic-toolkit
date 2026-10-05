@@ -2,15 +2,21 @@
 
 [Watch the recorded trials and read the results](evidence/route-hazards-2026-10-05/README.md).
 
+**Known validation gap:** the recorded pedestrian moved only 0.59m in six
+seconds and never entered the driving lane. Route completion did not establish
+a successful crossing test. The [full-frame analytical study](evidence/route-study-2026-10-05/README.md)
+contains six graphs and reproducible data; [issue #96](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/96)
+tracks physical hazard completion and the walker-speed diagnosis.
+
 The experimental `town10-route-ue5-v1` fixture takes a vehicle along a 135m
 Town10HD route, including a junction turn, while interacting with owned traffic.
-It supports three physical scenarios on CARLA 0.10.0 / UE5.5:
+It provides three scenario commands on CARLA 0.10.0 / UE5.5:
 
-| Scenario | What happens | Rules / Jev specifications |
+| Scenario | Command and observed limits | Rules / Jev specifications |
 | --- | --- | --- |
 | `lead_brake` | A leading vehicle brakes for three simulation seconds, then resumes. | [Rules](examples/route-lead-brake-rules-ue5-v1.json) / [Jev](examples/route-lead-brake-jev-ue5-v1.json) |
-| `cut_in` | A vehicle in the adjacent lane physically steers into the route over 2.5 seconds. | [Rules](examples/route-cut-in-rules-ue5-v1.json) / [Jev](examples/route-cut-in-jev-ue5-v1.json) |
-| `pedestrian_crossing` | A pedestrian walks across the road at 2m/s, with surrounding vehicle traffic. | [Rules](examples/route-pedestrian-crossing-rules-ue5-v1.json) / [Jev](examples/route-pedestrian-crossing-jev-ue5-v1.json) |
+| `cut_in` | An adjacent vehicle steers toward a lateral target that transitions over 2.5s. Its centre entered the lane at +3.50s in the retained Jev trial. | [Rules](examples/route-cut-in-rules-ue5-v1.json) / [Jev](examples/route-cut-in-jev-ue5-v1.json) |
+| `pedestrian_crossing` | Commands a 2m/s crossing for six seconds with surrounding traffic. The retained walker moved at about 0.098m/s and never entered the lane; crossing behavior remains unvalidated. | [Rules](examples/route-pedestrian-crossing-rules-ue5-v1.json) / [Jev](examples/route-pedestrian-crossing-jev-ue5-v1.json) |
 
 Each hazard starts after the policy car has travelled 12m. The fixture uses
 `vehicle.lincoln.mkz` and `walker.pedestrian.0015`. The scenario controller owns
@@ -106,6 +112,7 @@ original PNGs and hashes. Capture and restoration checks are reported separately
 from whether the route completed. The simulator, camera and native client must
 remain available until cleanup finishes.
 
-This is a fixed-route test harness with three controlled hazards. Arbitrary
+This is a fixed-route test harness with three intended hazard scenarios. Their
+physical completion must be checked separately from route outcome. Arbitrary
 destinations, dense general traffic, occlusion-aware perception and unrestricted
 autonomous driving are outside its validated scope.

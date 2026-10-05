@@ -1,8 +1,17 @@
-# Jev drives a route through three traffic hazards
+# Jev route recordings and intended traffic hazards
+
+**Correction from the full-frame study:** the recorded pedestrian crossing
+was not achieved. The walker moved only 0.59m in six seconds and remained outside
+the driving lane. The video retains its original intended-scenario labels;
+they do not verify a crossing. The cut-in also physically lagged its 2.5s
+target, entering the lane at +3.50s. See the [six analytical graphs and numerical
+evidence](../route-study-2026-10-05/README.md) and
+[open defect #96](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/96).
+Original video, projections and summary hashes are preserved.
 
 [Watch the 80-second recording](demo.mp4). The camera follows the controlled
 car while the panel shows the selected tactic and the controls issued after
-that frame. The video includes each hazard and the later route end; time jumps
+that frame. The video includes each commanded scenario and the later route end; time jumps
 are labeled. It uses original CARLA frames at five playback frames per second.
 Inference pauses and most traffic-light waiting are omitted.
 
@@ -16,7 +25,7 @@ validation.
 | --- | --- | --- | --- |
 | Braking lead vehicle | 5 cruise, 19 caution, 2 yield | Route completed | No emergency or signal-braking override recorded |
 | Vehicle cutting in | 6 cruise, 18 caution | Route completed | No emergency or signal-braking override recorded |
-| Pedestrian crossing | 10 cruise, 12 caution | Route completed | One invalid provider reply caused a yield fallback; 683 frames of local traffic-light braking |
+| Pedestrian attempt | 10 cruise, 12 caution | Route completed; crossing not achieved | One invalid provider reply caused a yield fallback; 683 frames of local traffic-light braking |
 
 There were **72 accepted Jev selections from 73 attempts**. The pedestrian
 fallback is visible in the video and is not credited to Jev as a successful
@@ -81,10 +90,12 @@ and insufficient pedestrian spawn clearance. The corresponding fixes were
 checked with regressions before repeating the physical scenarios. The failed
 pedestrian diagnostic's pre-frame cleanup needed explicit journal recovery;
 the recovery succeeded and is retained. No failed calibration run is relabeled
-as one of the three final Jev successes.
+as one of the three final Jev route completions. Hazard validity is a separate
+measurement, and the later study identified the unachieved pedestrian crossing.
 
-The no-key baseline completed all three scenarios after these fixes. A separate
-no-key pedestrian camera check also completed with restored state. The full
+The no-key baseline completed the route under all three scenario commands after
+these fixes; physical crossing completion was not checked. A separate no-key
+pedestrian camera check also completed the route with restored state. The full
 local quality gate passed 630 Python tests, with two expected skips, and nine
 Rust tests, plus lint, typing, complexity, formatting and build checks. The
 route suite has 31 cases. The independent cleanup fix in PR #92 also passed

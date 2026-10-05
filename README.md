@@ -118,8 +118,8 @@ interfaces. See [Jev's interface and limits](docs/managed-experiments.md#optiona
 ### Route driving and dangerous scenarios
 
 The experimental UE5 [route scenarios](docs/route-experiments.md) extend Jev to
-repeated driving decisions over a 135m route with a junction turn. A lead vehicle
-brakes, another cuts in, or a pedestrian crosses. Jev selects cruising, slowing
+repeated driving decisions over a 135m route with a junction turn. The fixtures
+command lead braking, a cut-in or a pedestrian crossing. Jev selects cruising, slowing
 or yielding from measured traffic observations. Local code follows the route
 and records any emergency-braking or traffic-light override separately.
 Each scenario also has a no-key rules baseline and a camera capture command.
@@ -127,7 +127,10 @@ Each scenario also has a no-key rules baseline and a camera capture command.
 [Watch the 80-second route and hazard demo](docs/evidence/route-hazards-2026-10-05/README.md):
 all three recorded Jev trials reached the destination with zero delivered
 collision events. The pedestrian trial includes a rejected reply and a visible
-fallback stop. Full evidence and limitations are retained with the recording.
+fallback stop. **The pedestrian never entered the driving lane:** full-frame
+analysis found only 0.59m of motion during its six-second command. That trial
+does not validate crossing avoidance. The [analytical study and six graphs](docs/evidence/route-study-2026-10-05/README.md)
+document scenario validity, response timing, latency, signal waits and tracking.
 
 ### Recorded managed experiment
 
@@ -183,7 +186,7 @@ separate UE5 validation below uses the latest published UE5 package.
 | CARLA line | Toolkit status |
 | --- | --- |
 | 0.9.16 / UE4.26 | Live-validated with matching server/API, Python 3.12 and Linux/WSL2. |
-| [0.10.0 / UE5.5](https://github.com/carla-simulator/carla/releases/tag/0.10.0) | Experimental live validation: MCP controls/camera, rules/Jev merges, [route driving with three traffic hazards](docs/route-experiments.md), timeout cleanup, persistent sessions and cancellation. Use the explicit Lincoln fixtures; weather remains fixed. See [UE5 results and limitations](docs/evidence/ue5-validation-2026-10-05/README.md). |
+| [0.10.0 / UE5.5](https://github.com/carla-simulator/carla/releases/tag/0.10.0) | Experimental live validation: MCP controls/camera, rules/Jev merges, [route driving with controlled traffic](docs/route-experiments.md), timeout cleanup, persistent sessions and cancellation. The pedestrian crossing was not achieved; see the [route study](docs/evidence/route-study-2026-10-05/README.md). Use the explicit Lincoln fixtures; weather remains fixed. See [UE5 results and limitations](docs/evidence/ue5-validation-2026-10-05/README.md). |
 | Development branches or other releases | No blanket compatibility claim; available API capabilities and actual live behavior must be checked. |
 
 CARLA maintains the UE4 and UE5 lines in parallel. Keep the server and Python
@@ -521,7 +524,8 @@ one JSON report. Never run it against a shared simulator without permission.
 | --- | --- |
 | [Client setup](docs/client-setup.md) | Client configuration, preflight checks, and troubleshooting |
 | [Managed experiments](docs/managed-experiments.md) | No-key baseline, optional Jev, lifecycle, limits, and comparison procedure |
-| [Route driving with traffic](docs/route-experiments.md) | Jev's tactical role, three UE5 hazards, replayable video evidence, and limits |
+| [Route driving with traffic](docs/route-experiments.md) | Jev's tactical role, UE5 scenario commands, replayable video evidence, and limits |
+| [Route analytical study](docs/evidence/route-study-2026-10-05/README.md) | Six graphs, full-frame numerical data, scenario validity, response timing and latency |
 | [Managed architecture](docs/managed-architecture.md) | Ownership, timing, decisions, recovery, and evidence invariants |
 | [Release readiness](docs/release-readiness.md) | Candidate evidence and remaining acceptance/publication gates |
 | [Alpha release notes](docs/alpha-release-notes.md) | Source-only changes, supported workflows, and known limitations |
