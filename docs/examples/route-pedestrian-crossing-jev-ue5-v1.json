@@ -1,0 +1,17 @@
+{
+  "fixture": "town10-route-ue5-v1",
+  "scenario": "pedestrian_crossing",
+  "policy": "jev",
+  "seed": 7,
+  "host": "127.0.0.1",
+  "port": 2000,
+  "timing_mode": "simulation_time",
+  "fixed_delta_seconds": 0.05,
+  "max_steps": 2400,
+  "max_wall_seconds": 240.0,
+  "target_speed_mps": 6.0,
+  "decision_interval_steps": 40,
+  "decision_timeout_seconds": 8.0,
+  "max_requests": 28,
+  "max_trace_bytes": 33554432
+}

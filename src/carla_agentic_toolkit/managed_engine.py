@@ -8,7 +8,7 @@ import platform
 import time
 from importlib import import_module
 from pathlib import Path
-from typing import TYPE_CHECKING, Protocol, cast
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 from carla_agentic_toolkit import __version__
 from carla_agentic_toolkit.experiment_trace import (
@@ -27,6 +27,9 @@ from carla_agentic_toolkit.merge_planner import (
     TRACKER_VERSION,
     rules_decision,
 )
+from carla_agentic_toolkit.route_geometry import TRACKER_VERSION as ROUTE_TRACKER_VERSION
+from carla_agentic_toolkit.route_policy import PLANNER_VERSION as ROUTE_PLANNER_VERSION
+from carla_agentic_toolkit.route_policy import rules_decision as route_rules_decision
 from carla_agentic_toolkit.simulator_lease import SimulatorLease
 
 if TYPE_CHECKING:
@@ -35,7 +38,6 @@ if TYPE_CHECKING:
     from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaSnapshot
     from carla_agentic_toolkit.managed_policy import PolicyDecision, PolicyRequest
     from carla_agentic_toolkit.managed_spec import ExperimentSpec
-    from carla_agentic_toolkit.merge_planner import MergeObservation
 
 
 class Policy(Protocol):
@@ -48,18 +50,18 @@ class Policy(Protocol):
         """Cancel outstanding inference and close retained resources."""
 
 
-class Experiment(Protocol):
+class Experiment[ObservationT](Protocol):
     """A fixture can observe/actuate but never owns frame advancement."""
 
     def prepare(self) -> None:
         """Spawn and subscribe without ticking."""
 
-    def observe(self, snapshot: CarlaSnapshot) -> MergeObservation:
+    def observe(self, snapshot: CarlaSnapshot) -> ObservationT:
         """Read actor state from exactly this snapshot."""
 
     def policy_request(
         self,
-        observation: MergeObservation,
+        observation: ObservationT,
         *,
         revision: int,
         deadline_monotonic: float,
@@ -68,7 +70,7 @@ class Experiment(Protocol):
 
     def advance(
         self,
-        observation: MergeObservation,
+        observation: ObservationT,
         decision: PolicyDecision | None = None,
     ) -> dict[str, object]:
         """Apply local controls and return evidence without advancing the world."""
@@ -80,6 +82,8 @@ class RulesPolicy:
     async def choose(self, request: PolicyRequest, fallback_id: str) -> PolicyDecision:
         """Choose the deterministic baseline action."""
         del fallback_id
+        if request.context.phase == "route_following":
+            return route_rules_decision(request)
         return rules_decision(request)
 
     async def aclose(self) -> None:
@@ -93,8 +97,10 @@ def connect_client(spec: ExperimentSpec) -> CarlaClient:
     return client
 
 
-def build_experiment(session: ManagedSession) -> Experiment:
+def build_experiment(session: ManagedSession) -> Experiment[Any]:
     """Load only the reviewed fixed experiment implementation."""
+    if session.spec.fixture == "town10-route-ue5-v1":
+        return import_module("carla_agentic_toolkit.route_experiment").RouteExperiment(session)
     return import_module("carla_agentic_toolkit.merge_experiment").MergeExperiment(session)
 
 
@@ -130,7 +136,7 @@ class ExperimentRun:
         self.started = time.monotonic()
         self.pace_origin = self.started
         self.session: ManagedSession | None = None
-        self.experiment: Experiment | None = None
+        self.experiment: Experiment[Any] | None = None
         self.policy: Policy | None = None
         self.selection: DecisionScheduler | None = None
         self.frame: int | None = None
@@ -199,8 +205,7 @@ class ExperimentRun:
                 "spec": self.spec.model_dump(),
                 "fixture_version": self.spec.fixture,
                 "policy_version": self.spec.policy,
-                "planner_version": PLANNER_VERSION,
-                "controller_version": TRACKER_VERSION,
+                **_implementation_versions(self.spec.fixture),
                 "package_version": __version__,
                 "code_sha256": _source_digest(),
                 "seed": self.spec.seed,
@@ -252,7 +257,7 @@ class ExperimentRun:
         return False
 
     async def _iteration(self, snapshot: CarlaSnapshot, step: int) -> bool:
-        experiment = cast("Experiment", self.experiment)
+        experiment = cast("Experiment[Any]", self.experiment)
         observation = experiment.observe(snapshot)
         self.frame, self.actor_id = observation.frame, observation.policy.actor_id
         data = observation.to_dict()
@@ -412,3 +417,12 @@ def run_experiment(
             publish_status=publish_status,
         )
     )
+
+
+def _implementation_versions(fixture: str) -> dict[str, str]:
+    if fixture == "town10-route-ue5-v1":
+        return {
+            "planner_version": ROUTE_PLANNER_VERSION,
+            "controller_version": ROUTE_TRACKER_VERSION,
+        }
+    return {"planner_version": PLANNER_VERSION, "controller_version": TRACKER_VERSION}

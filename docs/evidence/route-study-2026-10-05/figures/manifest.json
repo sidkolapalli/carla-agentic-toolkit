@@ -1,0 +1,27 @@
+{
+  "matplotlib": "3.11.2",
+  "numpy": "2.5.3",
+  "python": "3.12.14",
+  "platform": "Windows",
+  "renderer_sha256": "25f63b27c7d4a977be3c6d29b598780cd7f5e5907b99cedeee106fc53de82db2",
+  "analyzer_sha256": "027f757c38efc6534cd758b2b4c97e176a370a1adb25944f091cf8eacc2517f4",
+  "font_sha256": "3fdf69cabf06049ea70a00b5919340e2ce1e6d02b0cc3c4b44fb6801bd1e0d22",
+  "inputs": {
+    "trials.json": "f7361a29b273f946f893750a49456a302d487c5ffcb3d0a21f691f9ad44023dc",
+    "analysis.json": "000647707ce204ad9cf445f32732a58c8dcd8d453472a9d7588b26b578cccf7a"
+  },
+  "figures": {
+    "01_hazard_response.png": "1a8d6d703f17b90233a22c476507da2d4ed9b481c6f6292c12e4d29ef485dd6b",
+    "01_hazard_response.svg": "95676417493a32e5e78571cdaa422fc2df9667ffcbc22f84d176f3165349b383",
+    "02_route_progress.png": "5c880a07e0d57370275d75503d4255d4dbcafd5c10e6df6b5b2a253fbf8f6b14",
+    "02_route_progress.svg": "f1ad5e7a2016211cc9d7c03714e9094db30c189ceaa947474d2d6b810572f47c",
+    "03_decisions_latency.png": "f6ec29f595ab1a9c32a326239fd5b4bb9184b10bbb2e9124db45c7f38b643240",
+    "03_decisions_latency.svg": "9a833edc5b8f615e17eee47b2d40b27298f4beb273417c1d8d00582ec7f721d8",
+    "04_tracking_clearance.png": "898aa2494d6f275b3518c68ca1e97291b45c2e364ebcd7e50cd4d7faebfaf4c8",
+    "04_tracking_clearance.svg": "2078e753ecc68839ecff82a3e78bdd882692f801110723de232c1b264e197155",
+    "05_route_paths.png": "70f9e27e360bc89e9ce4dc1fff875c3ddad6b81499f47c008047a3a2c71faaa6",
+    "05_route_paths.svg": "65c5f7ec3bb3c6f1080a01f03f23f861790746d53d24c393debc3ccfa343ae46",
+    "06_scenario_fidelity.png": "0510d08e5987d6fa4e5cb545128c493ae2437758aa743efc16af06067fcd2834",
+    "06_scenario_fidelity.svg": "cb1b870fdbcde9618460ce495470f4ef8629aad524e3aec5a9d22d1a0e40b8b0"
+  }
+}

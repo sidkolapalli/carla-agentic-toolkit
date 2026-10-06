@@ -45,7 +45,7 @@ The CARLA Agentic Toolkit gives local AI coding agents a constrained path into
 small tools, its default interface provides one composable tool,
 `execute_carla_script`, that runs a complete Python workflow against a curated
 CARLA API. Optional managed experiments add bounded start/status/stop/result
-controls for a reviewed merge fixture.
+controls for reviewed merge and route-driving fixtures.
 
 Agent-authored code is validated, launched through a Rust subprocess, restricted
 with Linux Landlock, and given a dedicated place for durable captures,
@@ -77,13 +77,13 @@ recordings, and evidence.
 [Jev is TypeSafe's System One model](https://typesafe.ai/blog/introducing-system-one-models-and-jev):
 a model built to return typed decisions and probabilities that software can use
 directly. This toolkit puts that decision function inside a driving experiment.
-At each decision boundary, reviewed code supplies the observed state and currently
-feasible maneuvers. Jev selects one; code checks whether it still applies and
+At each decision boundary, reviewed code supplies the observed state and reviewed
+maneuver choices. Jev selects one; code checks whether it still applies and
 executes it through the shared vehicle controller.
 
 ```mermaid
 flowchart LR
-    A[CARLA state] --> B[Code: observations and feasible maneuvers]
+    A[CARLA state] --> B[Code: observations and reviewed choices]
     B --> C[Jev: typed choice and probabilities]
     C --> D[Code: validate or use fallback]
     D --> E[Code: trajectory, steering and speed]
@@ -93,8 +93,8 @@ flowchart LR
 | Component | Responsibility |
 | --- | --- |
 | Host AI coding agent | Requests workflows through MCP; generated scripts run through the sandbox. |
-| Jev | Selects a supplied maneuver such as `defer`, `merge`, `continue`, or `abort`, according to the current phase. |
-| Toolkit planner and supervisor | Build observations and feasible candidates; enforce timing, identity, budgets, validation and fallbacks; own traces and cleanup. |
+| Jev | Selects a supplied maneuver: merge-phase choices, or `cruise`, `caution`, and `yield` repeatedly along a route with traffic. |
+| Toolkit planner and supervisor | Build observations and typed candidates; enforce timing, identity, budgets, validation and fallbacks; own traces and cleanup. |
 | Numerical controller | Turns an accepted maneuver into a trajectory and steering, throttle and brake commands. |
 | CARLA | Simulates the vehicles, road, physics and sensor events. |
 
@@ -110,10 +110,27 @@ The integration uses structured simulator state and one **Choice** question per
 request. Jev supplies no generated driving script, camera perception, or direct
 actuator commands. The current implementation records its probabilities; it does
 not use a confidence threshold as permission to drive. The same experiment also
-runs with a deterministic rules policy, making the selected decision mechanism
-the controlled difference. See [Jev's interface and limits](docs/managed-experiments.md#optional-jev-selection).
+runs with a deterministic rules policy using the same observation and controller
+interfaces. See [Jev's interface and limits](docs/managed-experiments.md#optional-jev-selection).
 
 ## Demo
+
+### Route driving and dangerous scenarios
+
+The experimental UE5 [route scenarios](docs/route-experiments.md) extend Jev to
+repeated driving decisions over a 135m route with a junction turn. The fixtures
+command lead braking, a cut-in or a pedestrian crossing. Jev selects cruising, slowing
+or yielding from measured traffic observations. Local code follows the route
+and records any emergency-braking or traffic-light override separately.
+Each scenario also has a no-key rules baseline and a camera capture command.
+
+[Watch the 80-second route and hazard demo](docs/evidence/route-hazards-2026-10-05/README.md):
+all three recorded Jev trials reached the destination with zero delivered
+collision events. The pedestrian trial includes a rejected reply and a visible
+fallback stop. **The pedestrian never entered the driving lane:** full-frame
+analysis found only 0.59m of motion during its six-second command. That trial
+does not validate crossing avoidance. The [analytical study and six graphs](docs/evidence/route-study-2026-10-05/README.md)
+document scenario validity, response timing, latency, signal waits and tracking.
 
 ### Recorded managed experiment
 
@@ -169,7 +186,7 @@ separate UE5 validation below uses the latest published UE5 package.
 | CARLA line | Toolkit status |
 | --- | --- |
 | 0.9.16 / UE4.26 | Live-validated with matching server/API, Python 3.12 and Linux/WSL2. |
-| [0.10.0 / UE5.5](https://github.com/carla-simulator/carla/releases/tag/0.10.0) | Experimental live validation: MCP controls/camera, rules/Jev merges, timeout cleanup, persistent sessions and cancellation. Use the explicit Lincoln fixture; weather remains fixed. See [results and limitations](docs/evidence/ue5-validation-2026-10-05/README.md). |
+| [0.10.0 / UE5.5](https://github.com/carla-simulator/carla/releases/tag/0.10.0) | Experimental live validation: MCP controls/camera, rules/Jev merges, [route driving with controlled traffic](docs/route-experiments.md), timeout cleanup, persistent sessions and cancellation. The pedestrian crossing was not achieved; see the [route study](docs/evidence/route-study-2026-10-05/README.md). Use the explicit Lincoln fixtures; weather remains fixed. See [UE5 results and limitations](docs/evidence/ue5-validation-2026-10-05/README.md). |
 | Development branches or other releases | No blanket compatibility claim; available API capabilities and actual live behavior must be checked. |
 
 CARLA maintains the UE4 and UE5 lines in parallel. Keep the server and Python
@@ -507,6 +524,8 @@ one JSON report. Never run it against a shared simulator without permission.
 | --- | --- |
 | [Client setup](docs/client-setup.md) | Client configuration, preflight checks, and troubleshooting |
 | [Managed experiments](docs/managed-experiments.md) | No-key baseline, optional Jev, lifecycle, limits, and comparison procedure |
+| [Route driving with traffic](docs/route-experiments.md) | Jev's tactical role, UE5 scenario commands, replayable video evidence, and limits |
+| [Route analytical study](docs/evidence/route-study-2026-10-05/README.md) | Six graphs, full-frame numerical data, scenario validity, response timing and latency |
 | [Managed architecture](docs/managed-architecture.md) | Ownership, timing, decisions, recovery, and evidence invariants |
 | [Release readiness](docs/release-readiness.md) | Candidate evidence and remaining acceptance/publication gates |
 | [Alpha release notes](docs/alpha-release-notes.md) | Source-only changes, supported workflows, and known limitations |

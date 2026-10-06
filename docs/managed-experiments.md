@@ -1,8 +1,15 @@
 # Managed merge experiments
 
-The managed runtime accepts a validated `ExperimentSpec` and runs the reviewed
-`town10-merge-v1` fixture, or the explicit experimental UE5 variant described below,
-in a trusted local worker. It is a separate execution mode
+For repeated route driving with lead braking, cut-in traffic and an intended
+pedestrian crossing, see [Route driving with Jev and traffic](route-experiments.md).
+The recorded crossing was not achieved; the [analytical study](evidence/route-study-2026-10-05/README.md)
+documents measured hazard motion and the remaining validation gap.
+Those scenarios use the same managed owner and a distinct fixture, controller,
+question version and route-specific metrics.
+
+The managed runtime accepts a validated `ExperimentSpec` in a trusted local worker.
+This guide covers the reviewed `town10-merge-v1` fixture and the explicit
+experimental UE5 merge variant described below. It is a separate execution mode
 from finite generated scripts. Specifications cannot contain code, imports, shell
 commands, provider URLs, credentials, or unknown fields.
 

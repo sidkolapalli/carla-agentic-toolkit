@@ -13,9 +13,9 @@ from carla_agentic_toolkit.managed_jev_budget import PersistentAccountBudget
 from carla_agentic_toolkit.managed_jev_config import JevConfig, ReservationBudget
 from carla_agentic_toolkit.managed_jev_questions import (
     MODEL,
-    QUESTION_VERSION,
     SDK_VERSION,
     build_query,
+    question_version,
     response_metadata,
     valid_reply,
     validate_fallback,
@@ -45,7 +45,7 @@ class _Attempt:
     def decision(self, reason: str, choice: str | None = None) -> PolicyDecision:
         metadata = {
             "requested_model": MODEL,
-            "question_version": QUESTION_VERSION,
+            "question_version": question_version(self.request.context.phase),
             "returned_question_version": None,
             "sdk_version": SDK_VERSION,
             "request_id": None,

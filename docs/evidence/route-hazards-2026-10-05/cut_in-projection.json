@@ -1,0 +1,6049 @@
+{
+  "run_id": "e2dfa2af0ca44788a020d2c47cad2fd7",
+  "scenario": "cut_in",
+  "policy": "jev",
+  "trace_sha256": "b103464d8362b5c9ce6e7640c8b2840acf957c3e991d553bea8672300a39d951",
+  "capture_ok": true,
+  "outcome": {
+    "completed": true,
+    "status": "route_completed"
+  },
+  "metrics": {
+    "collision_events": 0,
+    "collision_impulse_magnitude_sum_kg_mps": 0,
+    "lane_invasion_events": 0,
+    "sensor_dropped_samples": 0,
+    "sensor_trailing_events": 0,
+    "hesitation_seconds": 0.20000000298023224,
+    "reversal_count": 0,
+    "tracking_error_rmse_m": 0.25609278319281553,
+    "interventions": 0,
+    "fallbacks": 0,
+    "decision_latency_mean_seconds": 0.1612035000416654,
+    "decision_staleness_max_frames": 0.0,
+    "simulation_duration_seconds": 46.30000068992376,
+    "wall_duration_seconds": 56.11148061401036,
+    "real_time_factor": 0.825143093414705,
+    "route_metric_version": "route-observed-metrics-v1",
+    "route_progress_m": 134.7518806235826,
+    "route_goal_m": 135.0,
+    "route_minimum_observed_box_clearance_m": 1.6374450184277394,
+    "route_accepted_choices_by_source": {
+      "jev": {
+        "cruise": 6,
+        "caution": 18
+      }
+    },
+    "route_local_guard_frames": {},
+    "completed": true
+  },
+  "provider_fallbacks": {},
+  "samples": [
+    {
+      "frame": 445226,
+      "simulation_seconds": 4348.490183092654,
+      "speed_mps": 1.1456102168584413e-38,
+      "progress_m": 0.0,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 4.278382419381753e-06,
+        "throttle": 0.65
+      },
+      "sha256": "3a6a45770d5562dcb2f430a2b27803f1f7b59137512737abe00934639f2a32ca"
+    },
+    {
+      "frame": 445231,
+      "simulation_seconds": 4348.740183096379,
+      "speed_mps": 0.3661850273690147,
+      "progress_m": 0.03150561033194082,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.00020796407745639678,
+        "throttle": 0.65
+      },
+      "sha256": "ea10ed527a0d432e84850c52c424ba4578b3c70de4fce2c8ec5ebc99169f6b44"
+    },
+    {
+      "frame": 445235,
+      "simulation_seconds": 4348.940183099359,
+      "speed_mps": 0.8136785567113589,
+      "progress_m": 0.14697005807641336,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.0007818194636710671,
+        "throttle": 0.65
+      },
+      "sha256": "116f46b9c936b934425d2efc00e5f4ea165110265fe69fac3a640fff03f84370"
+    },
+    {
+      "frame": 445239,
+      "simulation_seconds": 4349.1401831023395,
+      "speed_mps": 1.2653417872059798,
+      "progress_m": 0.35870082426200506,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.0005203908029644755,
+        "throttle": 0.65
+      },
+      "sha256": "9b212ec7475bb30f720fa355ef5565e7746cb7516c6a6bd081f8e88c2337f05c"
+    },
+    {
+      "frame": 445243,
+      "simulation_seconds": 4349.34018310532,
+      "speed_mps": 1.7149572706337464,
+      "progress_m": 0.6594782057498125,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.0003861421010208921,
+        "throttle": 0.65
+      },
+      "sha256": "1d261e412c297552ef08a5edb2c7e14a8d2f8ae2dfbb1fae70f0f577ee618ba9"
+    },
+    {
+      "frame": 445247,
+      "simulation_seconds": 4349.5401831083,
+      "speed_mps": 2.1611621477234517,
+      "progress_m": 1.0484705043101026,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.0003281482198423429,
+        "throttle": 0.65
+      },
+      "sha256": "f2739484c22ef3a4fd12db98a986c91048b3f7e45bf6ade6fe626e1bdad532e2"
+    },
+    {
+      "frame": 445251,
+      "simulation_seconds": 4349.74018311128,
+      "speed_mps": 2.60568833590383,
+      "progress_m": 1.5270127852921986,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.00024108880264339221,
+        "throttle": 0.65
+      },
+      "sha256": "dc2c35a8b89112c536af5b46012a8273a0715d060bab2c00dfbf2497db1e8fd3"
+    },
+    {
+      "frame": 445255,
+      "simulation_seconds": 4349.94018311426,
+      "speed_mps": 3.0482060989882767,
+      "progress_m": 2.0943115576536218,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.00013101418482830375,
+        "throttle": 0.65
+      },
+      "sha256": "db7ea4dea5a88b8c279c6f8226aa6dd8a26412b9274268a9b021106f9b4eb93c"
+    },
+    {
+      "frame": 445259,
+      "simulation_seconds": 4350.140183117241,
+      "speed_mps": 3.492952837955238,
+      "progress_m": 2.7499434597986596,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 3.031235520435862e-05,
+        "throttle": 0.65
+      },
+      "sha256": "9f27d4f54dfd679859ea6d930b1c4940e958c84826effcad074bea3cab863693"
+    },
+    {
+      "frame": 445263,
+      "simulation_seconds": 4350.340183120221,
+      "speed_mps": 3.9872694376610327,
+      "progress_m": 3.498753224330547,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -2.5943752810057217e-05,
+        "throttle": 0.65
+      },
+      "sha256": "2ac7b69860c2f7c6d7fecd8867bda3d4c52721d872b1fe98c2a1d524a6008a95"
+    },
+    {
+      "frame": 445267,
+      "simulation_seconds": 4350.540183123201,
+      "speed_mps": 4.543364081677894,
+      "progress_m": 4.352776061300166,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -9.483791035090004e-05,
+        "throttle": 0.5826543673288423
+      },
+      "sha256": "d06a7afbba94002ca6056f73ffc3513b8009f7cc9d33e239fd154547a88fc14d"
+    },
+    {
+      "frame": 445271,
+      "simulation_seconds": 4350.740183126181,
+      "speed_mps": 4.934743465068834,
+      "progress_m": 5.304573264947563,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.00022139206991771867,
+        "throttle": 0.42610261397246635
+      },
+      "sha256": "93ea4003f31bf2ed6f95c962b5a4c7468a3105b8615984eb5a617a2992864145"
+    },
+    {
+      "frame": 445275,
+      "simulation_seconds": 4350.940183129162,
+      "speed_mps": 5.177707298662943,
+      "progress_m": 6.317527755459215,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.00031705431081488847,
+        "throttle": 0.32891708053482277
+      },
+      "sha256": "6e18cae5cd2d282306d7683257113dc9c86b7327a19d01940776a08a4a74b2e2"
+    },
+    {
+      "frame": 445279,
+      "simulation_seconds": 4351.140183132142,
+      "speed_mps": 5.326732443263897,
+      "progress_m": 7.369079374602106,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0003935684426655159,
+        "throttle": 0.26930702269444107
+      },
+      "sha256": "07d9d9edc94e81dd39b4ee8fcfa0e3ab9c8336359fd9ab2a2284810366312051"
+    },
+    {
+      "frame": 445283,
+      "simulation_seconds": 4351.340183135122,
+      "speed_mps": 5.434384390717916,
+      "progress_m": 8.445358036865217,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.000354381165177545,
+        "throttle": 0.22624624371283347
+      },
+      "sha256": "f75f49ac321941bf7b98aaa1fb547ce67017b9f1301f3471e334f148a79ffce2"
+    },
+    {
+      "frame": 445287,
+      "simulation_seconds": 4351.540183138102,
+      "speed_mps": 5.513880415565845,
+      "progress_m": 9.539962540635122,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.00031496269766839393,
+        "throttle": 0.19444783377366193
+      },
+      "sha256": "2d44a601eb5a737e2d3c66942226c5c058f8310e659e1f8a24ffe9ebce79e03c"
+    },
+    {
+      "frame": 445291,
+      "simulation_seconds": 4351.7401831410825,
+      "speed_mps": 5.574171131750436,
+      "progress_m": 10.648166613414254,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0003383112805599271,
+        "throttle": 0.17033154729982558
+      },
+      "sha256": "3e473fe0a6f9e51c98876afd8a6bf0fc8aee29d347c4474735e8e05e90b255e1"
+    },
+    {
+      "frame": 445295,
+      "simulation_seconds": 4351.940183144063,
+      "speed_mps": 5.625048030164851,
+      "progress_m": 11.768364211733596,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 0.0,
+        "scenario": "cut_in",
+        "started_seconds": null
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.00034403951963500503,
+        "throttle": 0.14998078793405975
+      },
+      "sha256": "39b5930f0782d003f992b399fe2e4df957912a1f6e93156b58462ae20f892c03"
+    },
+    {
+      "frame": 445299,
+      "simulation_seconds": 4352.140183147043,
+      "speed_mps": 5.666903577951578,
+      "progress_m": 12.897739784062892,
+      "collision": false,
+      "hazard": {
+        "active": true,
+        "elapsed_seconds": 0.15000000223517418,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.00042115893349996904,
+        "throttle": 0.1332385688193689
+      },
+      "sha256": "1f386f060f9c60208b77fb49bd2cdaddb6a72b0ff64ef12eb33c8f3f2f443416"
+    },
+    {
+      "frame": 445303,
+      "simulation_seconds": 4352.340183150023,
+      "speed_mps": 5.701087989456464,
+      "progress_m": 14.034618908884925,
+      "collision": false,
+      "hazard": {
+        "active": true,
+        "elapsed_seconds": 0.3500000052154064,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0004223545348449669,
+        "throttle": 0.11956480421741454
+      },
+      "sha256": "064a5ea699bf3099dde2cbfbb4cdde2e9d10aa0b9ac09a4961fcbf914a92e3d3"
+    },
+    {
+      "frame": 445307,
+      "simulation_seconds": 4352.540183153003,
+      "speed_mps": 5.602001207419915,
+      "progress_m": 15.174263505262674,
+      "collision": false,
+      "hazard": {
+        "active": true,
+        "elapsed_seconds": 0.5500000081956387,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 1.0,
+        "steer": -0.0004906955621431884,
+        "throttle": 0.0
+      },
+      "sha256": "ed895236eabc1ae9bc2c849b60a43c7e96d9beaf9bbaf32de62d813f7ae6bbf3"
+    },
+    {
+      "frame": 445311,
+      "simulation_seconds": 4352.740183155984,
+      "speed_mps": 4.370661274242312,
+      "progress_m": 16.175800819570316,
+      "collision": false,
+      "hazard": {
+        "active": true,
+        "elapsed_seconds": 0.7500000111758709,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.8353306371211557,
+        "steer": -0.0005760730924501108,
+        "throttle": 0.0
+      },
+      "sha256": "96b512690ffe993837e9782bf7357f85e4ab5b818d9ce7c736450d6aef314d83"
+    },
+    {
+      "frame": 445315,
+      "simulation_seconds": 4352.940183158964,
+      "speed_mps": 3.4618499309619972,
+      "progress_m": 16.94609116441432,
+      "collision": false,
+      "hazard": {
+        "active": true,
+        "elapsed_seconds": 0.9500000141561031,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.3809249654809985,
+        "steer": -0.0006957096723604965,
+        "throttle": 0.0
+      },
+      "sha256": "b31f836d474f21c895af6d3f7a5542eeeda5c27f17ef7fce1d3205d2a3e94f01"
+    },
+    {
+      "frame": 445319,
+      "simulation_seconds": 4353.140183161944,
+      "speed_mps": 3.026946544747787,
+      "progress_m": 17.590389657981262,
+      "collision": false,
+      "hazard": {
+        "active": true,
+        "elapsed_seconds": 1.1500000171363354,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.16347327237389342,
+        "steer": -0.0008222619461654509,
+        "throttle": 0.0
+      },
+      "sha256": "93c57215122872c344cd3f6a7c392c5605874d1229d91fe75cb609a9317674d5"
+    },
+    {
+      "frame": 445323,
+      "simulation_seconds": 4353.340183164924,
+      "speed_mps": 2.82088208204355,
+      "progress_m": 18.172485700002436,
+      "collision": false,
+      "hazard": {
+        "active": true,
+        "elapsed_seconds": 1.3500000201165676,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.06044104102177483,
+        "steer": -0.0009105893130021622,
+        "throttle": 0.0
+      },
+      "sha256": "4fec1c0966c481b60220404ad64d5e3e7eea1173ef410bd3791266ff6a796058"
+    },
+    {
+      "frame": 445327,
+      "simulation_seconds": 4353.540183167905,
+      "speed_mps": 2.725000858440354,
+      "progress_m": 18.72584561434489,
+      "collision": false,
+      "hazard": {
+        "active": true,
+        "elapsed_seconds": 1.5500000230967999,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.012500429220176912,
+        "steer": -0.0009916542070800601,
+        "throttle": 0.0
+      },
+      "sha256": "2381de29b6ae2e6916445ca8d50af06c94c0b23a4dcdc2899fed31cdf57812bd"
+    },
+    {
+      "frame": 445331,
+      "simulation_seconds": 4353.740183170885,
+      "speed_mps": 2.6948242189414655,
+      "progress_m": 19.26678488476747,
+      "collision": false,
+      "hazard": {
+        "active": true,
+        "elapsed_seconds": 1.750000026077032,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0010588483947662653,
+        "throttle": 0.0020703124234138673
+      },
+      "sha256": "a1c7e8f4b92795616378495c5e65ad27e38d0528c2f2fb8f6e494ac7063f401b"
+    },
+    {
+      "frame": 445335,
+      "simulation_seconds": 4353.940183173865,
+      "speed_mps": 2.6867349154853724,
+      "progress_m": 19.805153055675415,
+      "collision": false,
+      "hazard": {
+        "active": true,
+        "elapsed_seconds": 1.9500000290572643,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0011202114288071533,
+        "throttle": 0.00530603380585113
+      },
+      "sha256": "df0d37b87df299e60196c46e85532856eff7231fc300f0feef9329a0552b9575"
+    },
+    {
+      "frame": 445339,
+      "simulation_seconds": 4354.140183176845,
+      "speed_mps": 2.6781866550450664,
+      "progress_m": 20.34164820181486,
+      "collision": false,
+      "hazard": {
+        "active": true,
+        "elapsed_seconds": 2.1500000320374966,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.001176120046155443,
+        "throttle": 0.008725337981973525
+      },
+      "sha256": "f79cc9e296252f924df8c80f4a34f6ab17d63ac8e1a9496228c663b739730934"
+    },
+    {
+      "frame": 445343,
+      "simulation_seconds": 4354.3401831798255,
+      "speed_mps": 2.6698544025460134,
+      "progress_m": 20.876468700494144,
+      "collision": false,
+      "hazard": {
+        "active": true,
+        "elapsed_seconds": 2.350000035017729,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0012431854998913798,
+        "throttle": 0.012058238981594728
+      },
+      "sha256": "080e2cfbf9b7316054c27808bb09908d970fcfece2129b6d9efe17d46765e551"
+    },
+    {
+      "frame": 445347,
+      "simulation_seconds": 4354.540183182806,
+      "speed_mps": 2.661632537968397,
+      "progress_m": 21.409648873201988,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 2.550000037997961,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0013157550646483373,
+        "throttle": 0.015346984812641296
+      },
+      "sha256": "9906bfc8de31b3a1f26007542511b161bd69059869d5043ee04ba98598b2f753"
+    },
+    {
+      "frame": 445351,
+      "simulation_seconds": 4354.740183185786,
+      "speed_mps": 2.653297424505783,
+      "progress_m": 21.94119255035141,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 2.7500000409781933,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.001381066286809039,
+        "throttle": 0.01868103019768679
+      },
+      "sha256": "6f1682c399444a90f853a59e625172e3b007c148ef9c0847a5ae384e725ccab5"
+    },
+    {
+      "frame": 445355,
+      "simulation_seconds": 4354.940183188766,
+      "speed_mps": 2.6440973282326006,
+      "progress_m": 22.470954816890657,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 2.9500000439584255,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.00142380803673965,
+        "throttle": 0.022361068706959843
+      },
+      "sha256": "dfd28a26bfa65f6fa3406a63913d23498e922c7de05f9f3df26ba9743c47c20d"
+    },
+    {
+      "frame": 445359,
+      "simulation_seconds": 4355.1401831917465,
+      "speed_mps": 2.6350424289703627,
+      "progress_m": 22.998905100259773,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 3.1500000469386578,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.001455970957989032,
+        "throttle": 0.025983028411855003
+      },
+      "sha256": "c96b60356784e09951c36314f73325e9f831e6f1740b5a4e6f07a3c743d860e3"
+    },
+    {
+      "frame": 445363,
+      "simulation_seconds": 4355.340183194727,
+      "speed_mps": 2.6262426379165698,
+      "progress_m": 23.525073913926025,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 3.35000004991889,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0014899940111560916,
+        "throttle": 0.02950294483337217
+      },
+      "sha256": "71fe043a6533745e582c62b56d05cdc48d87cfa245815f6b9952f423b780ca77"
+    },
+    {
+      "frame": 445367,
+      "simulation_seconds": 4355.540183197707,
+      "speed_mps": 2.617172718101309,
+      "progress_m": 24.04949561507482,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 3.5500000528991222,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0015144488621336466,
+        "throttle": 0.03313091275947642
+      },
+      "sha256": "910538c516a988b48d277f455aef063d0acf8fdab4d549ca9b194161f67524ca"
+    },
+    {
+      "frame": 445371,
+      "simulation_seconds": 4355.740183200687,
+      "speed_mps": 2.6082055568695335,
+      "progress_m": 24.572139686130573,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 3.7500000558793545,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0015244801408305505,
+        "throttle": 0.03671777725218668
+      },
+      "sha256": "46b9a5bfc34b084191b473fd0ed6f93c9e5ab881076a154072016438cdf26cbe"
+    },
+    {
+      "frame": 445375,
+      "simulation_seconds": 4355.940183203667,
+      "speed_mps": 2.599308013933438,
+      "progress_m": 25.092971782364316,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 3.9500000588595867,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0015272125634318901,
+        "throttle": 0.04027679442662482
+      },
+      "sha256": "da694d4e440d5471d1f4fbd078e2b33ab5c11d44fa5c1e41a4dae177ab8042af"
+    },
+    {
+      "frame": 445379,
+      "simulation_seconds": 4356.140183206648,
+      "speed_mps": 2.5912959636694675,
+      "progress_m": 25.611995696674228,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 4.150000061839819,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0015594904157971738,
+        "throttle": 0.04348161453221309
+      },
+      "sha256": "563ef53415780babc4d5a0499573165bcac3228f99fd6d2d7a24e4d16947d38e"
+    },
+    {
+      "frame": 445383,
+      "simulation_seconds": 4356.340183209628,
+      "speed_mps": 2.5819881155490156,
+      "progress_m": 26.1293983305261,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 4.350000064820051,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0016228117216615006,
+        "throttle": 0.04720475378039382
+      },
+      "sha256": "2f30649043c7bfcb9585901ec09c9488ef04cdf7e9c0aaac61482c20dccc7037"
+    },
+    {
+      "frame": 445387,
+      "simulation_seconds": 4356.540183212608,
+      "speed_mps": 2.5704999260374746,
+      "progress_m": 26.644988973985413,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 4.550000067800283,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0017070524345640097,
+        "throttle": 0.051800029585010246
+      },
+      "sha256": "a59704fe64fb91ecc799b6eff0de13688141e0d7dc7acfa85e91ee65fd3ce603"
+    },
+    {
+      "frame": 445391,
+      "simulation_seconds": 4356.740183215588,
+      "speed_mps": 2.5597653714414874,
+      "progress_m": 27.158294607744743,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 4.750000070780516,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0017860160202148078,
+        "throttle": 0.05609385142340511
+      },
+      "sha256": "b1fef88cd226bf8357f92edf34a69c6a99a3c55adf16097c379051f827e6eb4d"
+    },
+    {
+      "frame": 445395,
+      "simulation_seconds": 4356.940183218569,
+      "speed_mps": 2.549576560744466,
+      "progress_m": 27.669448739969045,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 4.950000073760748,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0018712792812044408,
+        "throttle": 0.06016937570221366
+      },
+      "sha256": "5993bf23e24f65a088b3e81ed851d4dea81a47c537d1646b1a69ec0f8c66351e"
+    },
+    {
+      "frame": 445399,
+      "simulation_seconds": 4357.140183221549,
+      "speed_mps": 2.5401519030974065,
+      "progress_m": 28.178642105505716,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 5.15000007674098,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0019620231024991357,
+        "throttle": 0.06393923876103749
+      },
+      "sha256": "fe27f6494d5a840dce1334aee842e930e1a5733268361421e3588b1ec0ec931b"
+    },
+    {
+      "frame": 445403,
+      "simulation_seconds": 4357.340183224529,
+      "speed_mps": 2.5330963955361208,
+      "progress_m": 28.68621799905307,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 5.350000079721212,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0020709653888594877,
+        "throttle": 0.06676144178555177
+      },
+      "sha256": "53462f624fbe057ed3d6ee26fe50a0e036b2df52ea9711570a0a925027f9bf0b"
+    },
+    {
+      "frame": 445407,
+      "simulation_seconds": 4357.540183227509,
+      "speed_mps": 2.523784269563773,
+      "progress_m": 29.191936132072712,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 5.550000082701445,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0021681567116975677,
+        "throttle": 0.07048629217449083
+      },
+      "sha256": "bd13ef547fe214c5b5541f3bd39549204b55d5daa2d528ece4538bc536d8d5b2"
+    },
+    {
+      "frame": 445411,
+      "simulation_seconds": 4357.7401832304895,
+      "speed_mps": 2.5146502158271438,
+      "progress_m": 29.695495121706994,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 5.750000085681677,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0022731437302986237,
+        "throttle": 0.07413991366914256
+      },
+      "sha256": "cc3580766f98d497060c85b45b516ad0a63ff57344f4ee757aa491dbf68019c9"
+    },
+    {
+      "frame": 445415,
+      "simulation_seconds": 4357.94018323347,
+      "speed_mps": 2.5064042815076792,
+      "progress_m": 30.19740994270456,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 5.950000088661909,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0024103132608735015,
+        "throttle": 0.07743828739692837
+      },
+      "sha256": "a9d2217ff5d6a1571ae00fe0962a51928c9f43f0534f289464ee85a6943a4cd9"
+    },
+    {
+      "frame": 445419,
+      "simulation_seconds": 4358.14018323645,
+      "speed_mps": 2.500159899865192,
+      "progress_m": 30.697753111670895,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 6.150000091642141,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.002549493576241003,
+        "throttle": 0.07993604005392321
+      },
+      "sha256": "4664655f1a2bbb89786682aa73d5671c46108f940634ae55c935cc8b7a44b8e7"
+    },
+    {
+      "frame": 445423,
+      "simulation_seconds": 4358.34018323943,
+      "speed_mps": 2.496946274496601,
+      "progress_m": 31.196906107645923,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 6.350000094622374,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0026883158368178482,
+        "throttle": 0.08122149020135971
+      },
+      "sha256": "21c47a66b753daf14647061004c93b067d34821ddcbff141982ac024c388ec1f"
+    },
+    {
+      "frame": 445427,
+      "simulation_seconds": 4358.54018324241,
+      "speed_mps": 2.4942383487240534,
+      "progress_m": 31.695597568887756,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 6.550000097602606,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0027978991386278184,
+        "throttle": 0.08230466051037873
+      },
+      "sha256": "e033e47615e5ddcf4dab40a28afc6fb076f10bb6e74a2410f3ff4efcc10285ab"
+    },
+    {
+      "frame": 445431,
+      "simulation_seconds": 4358.740183245391,
+      "speed_mps": 2.4917628770137257,
+      "progress_m": 32.19384843885669,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 6.750000100582838,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0029089491271330537,
+        "throttle": 0.0832948491945098
+      },
+      "sha256": "0f9ec9374f4dfdccfeeda82967e67e3435f5c08cd11880051e67115dee670c50"
+    },
+    {
+      "frame": 445435,
+      "simulation_seconds": 4358.940183248371,
+      "speed_mps": 2.4894993626309323,
+      "progress_m": 32.691630085534,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 6.95000010356307,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0030302591024173255,
+        "throttle": 0.08420025494762716
+      },
+      "sha256": "fd2377eaa624b7fc196bc80d9c8105254ef2b073869dbcb3d062f91724019647"
+    },
+    {
+      "frame": 445439,
+      "simulation_seconds": 4359.140183251351,
+      "speed_mps": 2.489127685130101,
+      "progress_m": 33.18901118903179,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 7.1500001065433025,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.003146783676920027,
+        "throttle": 0.08434892594795969
+      },
+      "sha256": "efbe80f571b338e2d5500136ccaace5b65be475568266ad8b95677af2a02973e"
+    },
+    {
+      "frame": 445443,
+      "simulation_seconds": 4359.340183254331,
+      "speed_mps": 2.4914623223271666,
+      "progress_m": 33.686541075052865,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 7.350000109523535,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.003243084750294456,
+        "throttle": 0.08341507106913344
+      },
+      "sha256": "402945df18f8e6e9c76d7d59164eddf4e11fcfb59b11c3297972903dd71bc07f"
+    },
+    {
+      "frame": 445447,
+      "simulation_seconds": 4359.540183257312,
+      "speed_mps": 2.4946337939954777,
+      "progress_m": 34.1849883956899,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 7.550000112503767,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.003334236530985779,
+        "throttle": 0.082146482401809
+      },
+      "sha256": "8ae7cd919509a5f030d2cc06f50ad36b121bf653b9aeff6e7f3b09088094b1d6"
+    },
+    {
+      "frame": 445451,
+      "simulation_seconds": 4359.740183260292,
+      "speed_mps": 2.497570935811214,
+      "progress_m": 34.68396596854502,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 7.750000115483999,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.003415286989200238,
+        "throttle": 0.08097162567551451
+      },
+      "sha256": "080b616b2cda39c59258ec6ca5a20315735a99276066542563faa468f1c462d6"
+    },
+    {
+      "frame": 445455,
+      "simulation_seconds": 4359.940183263272,
+      "speed_mps": 2.5006048028864614,
+      "progress_m": 35.18347375313479,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 7.9500001184642315,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0035200564482798275,
+        "throttle": 0.07975807884541553
+      },
+      "sha256": "046b2a5052598c90c2468aad60c893ab5969aa00706e65d986cda096e64c24d6"
+    },
+    {
+      "frame": 445459,
+      "simulation_seconds": 4360.140183266252,
+      "speed_mps": 2.5043000294543716,
+      "progress_m": 35.68359951551601,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 8.150000121444464,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0036063970769178097,
+        "throttle": 0.07827998821825144
+      },
+      "sha256": "11d6e8b920526a1729eb85e1bdacfdafef992fbf4b6900a1b28a30bb4efe434a"
+    },
+    {
+      "frame": 445463,
+      "simulation_seconds": 4360.3401832692325,
+      "speed_mps": 2.5094362862219066,
+      "progress_m": 36.18478006963029,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 8.350000124424696,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0036815513748896613,
+        "throttle": 0.07622548551123742
+      },
+      "sha256": "10ca7dbcbc6a4723111ee9ef8069b03c5f5a3f0343c5bf28d472bfa8b914bccb"
+    },
+    {
+      "frame": 445467,
+      "simulation_seconds": 4360.540183272213,
+      "speed_mps": 2.5140010611200347,
+      "progress_m": 36.687057380258175,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 8.550000127404928,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0037451065963007325,
+        "throttle": 0.07439957555198617
+      },
+      "sha256": "498fbe303b1c037fa21491f95394845c07905b9c66001dc37d8a63fbd9d62167"
+    },
+    {
+      "frame": 445471,
+      "simulation_seconds": 4360.740183275193,
+      "speed_mps": 2.5182907019054945,
+      "progress_m": 37.190200620865006,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 8.75000013038516,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.003811645969748841,
+        "throttle": 0.07268371923780226
+      },
+      "sha256": "edc7abf3cfcafefbe712b107529a64202ce3348afa682c699bdef3031e7fa314"
+    },
+    {
+      "frame": 445475,
+      "simulation_seconds": 4360.940183278173,
+      "speed_mps": 2.5219056208052177,
+      "progress_m": 37.69424598747425,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 8.950000133365393,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.003898090516418809,
+        "throttle": 0.07123775167791298
+      },
+      "sha256": "c23e4b143924d8566e19e0c1ef42e4c483b4ef10bdc9d0fc26351a2ff2f7e909"
+    },
+    {
+      "frame": 445479,
+      "simulation_seconds": 4361.140183281153,
+      "speed_mps": 2.5250171283313096,
+      "progress_m": 38.199075221366414,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 9.150000136345625,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0040212095849255945,
+        "throttle": 0.06999314866747622
+      },
+      "sha256": "bea0e44be262b50c63070fc837fdcf14736855798688614fe86508d425467909"
+    },
+    {
+      "frame": 445483,
+      "simulation_seconds": 4361.340183284134,
+      "speed_mps": 2.5297816535067263,
+      "progress_m": 38.704701655296155,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 9.350000139325857,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.004178264690361555,
+        "throttle": 0.06808733859730953
+      },
+      "sha256": "e789cb7b0a960162bb38ab18de59d47e953100ba36e55329e476db54c4fd57fb"
+    },
+    {
+      "frame": 445487,
+      "simulation_seconds": 4361.540183287114,
+      "speed_mps": 2.533842624097493,
+      "progress_m": 39.21111583971618,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 9.55000014230609,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.004311860521445671,
+        "throttle": 0.0664629503610028
+      },
+      "sha256": "8d1bfffed7e40f1342913a6bcd0e9705c5be8fecaae63f8b89763566d028699f"
+    },
+    {
+      "frame": 445491,
+      "simulation_seconds": 4361.740183290094,
+      "speed_mps": 2.5376260672745055,
+      "progress_m": 39.71829297909632,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 9.750000145286322,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.004431708547808189,
+        "throttle": 0.06494957309019789
+      },
+      "sha256": "155515dd3ff55fa7511c6b2cd3223adea3ee5349e4cb4121d9682602666ffafa"
+    },
+    {
+      "frame": 445495,
+      "simulation_seconds": 4361.940183293074,
+      "speed_mps": 2.5422623202457615,
+      "progress_m": 40.22625017134879,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 9.950000148266554,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.004542297912639787,
+        "throttle": 0.06309507190169548
+      },
+      "sha256": "a81dc71583408bcfb3178dc4cf7ef135946612ff37dc48874d3c95de7617cb91"
+    },
+    {
+      "frame": 445499,
+      "simulation_seconds": 4362.140183296055,
+      "speed_mps": 2.545445187452928,
+      "progress_m": 40.73484254518419,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 10.150000151246786,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.004678934050148068,
+        "throttle": 0.06182192501882895
+      },
+      "sha256": "df4b8c584c77f9efd08aabb9019597fd4e2b2e5df7b2a60da9cbc77f0c202596"
+    },
+    {
+      "frame": 445503,
+      "simulation_seconds": 4362.340183299035,
+      "speed_mps": 2.548807571848672,
+      "progress_m": 41.24398802178725,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 10.350000154227018,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.004849046358161384,
+        "throttle": 0.06047697126053127
+      },
+      "sha256": "060d4b860e7574202c05480a0e7b03dcbe97703aa084879cae9b1097b1314b0f"
+    },
+    {
+      "frame": 445507,
+      "simulation_seconds": 4362.540183302015,
+      "speed_mps": 2.5515769662877505,
+      "progress_m": 41.754020402856455,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 10.55000015720725,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.005025941053799073,
+        "throttle": 0.05936921348489985
+      },
+      "sha256": "620d4d8f596eb5c3138e8e74d3adacb739f000aafcd9c66bf9f85bd13c751296"
+    },
+    {
+      "frame": 445511,
+      "simulation_seconds": 4362.740183304995,
+      "speed_mps": 2.5554865846902333,
+      "progress_m": 42.264663236666024,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 10.750000160187483,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0051796570094039965,
+        "throttle": 0.05780536612390677
+      },
+      "sha256": "4ac2fd0495d2e470638a68595c60545f0b41be69447ac37777a153821e8902ae"
+    },
+    {
+      "frame": 445515,
+      "simulation_seconds": 4362.9401833079755,
+      "speed_mps": 2.5613733417242726,
+      "progress_m": 42.77605934678953,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 10.950000163167715,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.005360592882264051,
+        "throttle": 0.055450663310291054
+      },
+      "sha256": "7eb86cd658bdcba5701c00f20bf92da1f2827c28232abea443134ed704478eff"
+    },
+    {
+      "frame": 445519,
+      "simulation_seconds": 4363.140183310956,
+      "speed_mps": 2.567586521052357,
+      "progress_m": 43.288758182148946,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 11.150000166147947,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.005536633371674229,
+        "throttle": 0.0529653915790572
+      },
+      "sha256": "617e92f4121130c292e70db512f9e327adc21783798d006a946cd0155b6c3a90"
+    },
+    {
+      "frame": 445523,
+      "simulation_seconds": 4363.340183313936,
+      "speed_mps": 2.5731444962408028,
+      "progress_m": 43.80270444209497,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 11.35000016912818,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0057002100214935455,
+        "throttle": 0.05074220150367897
+      },
+      "sha256": "2a48efe5c8ef65fbf2e2b5974b972a7fe5e65542aaad13ca573630bd9dd7b521"
+    },
+    {
+      "frame": 445527,
+      "simulation_seconds": 4363.540183316916,
+      "speed_mps": 2.577460790804746,
+      "progress_m": 44.31770746029061,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 11.550000172108412,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.00580875074429416,
+        "throttle": 0.049015683678101676
+      },
+      "sha256": "f49c76d67dc5dc7f10e31bdd1cbbc9252720abb2d3fb9573b164040a07630fc0"
+    },
+    {
+      "frame": 445531,
+      "simulation_seconds": 4363.7401833198965,
+      "speed_mps": 2.577194464988107,
+      "progress_m": 44.83321604728212,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 11.750000175088644,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.005765329941513116,
+        "throttle": 0.04912221400475723
+      },
+      "sha256": "64d734c041065a3aee59054c752770c53cd9ff0c21461d924e43619d98f35304"
+    },
+    {
+      "frame": 445535,
+      "simulation_seconds": 4363.940183322877,
+      "speed_mps": 2.579453514377536,
+      "progress_m": 45.349203363170034,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 11.950000178068876,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.005723201243186774,
+        "throttle": 0.04821859424898563
+      },
+      "sha256": "89a4079e3cee5ef9509d28aed79e808285af017f18da808369be4f2af8be748d"
+    },
+    {
+      "frame": 445539,
+      "simulation_seconds": 4364.140183325857,
+      "speed_mps": 2.582262601746079,
+      "progress_m": 45.865856303191926,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 12.150000181049109,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.005698888423412127,
+        "throttle": 0.047094959301568554
+      },
+      "sha256": "6d8ac4785764b37620c88c972eb92abb15cd767e519d5fbfc2bff00d132f6e2a"
+    },
+    {
+      "frame": 445543,
+      "simulation_seconds": 4364.340183328837,
+      "speed_mps": 2.5849710838600513,
+      "progress_m": 46.38303569007728,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 12.35000018402934,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0056627131334283645,
+        "throttle": 0.04601156645597957
+      },
+      "sha256": "e41969f3848ff2e8052ddb554524b5d4e348e5eab43c0807795f886e8c7a04bd"
+    },
+    {
+      "frame": 445547,
+      "simulation_seconds": 4364.540183331817,
+      "speed_mps": 2.585939020214577,
+      "progress_m": 46.90060806548689,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 12.550000187009573,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.005586546636135991,
+        "throttle": 0.04562439191416932
+      },
+      "sha256": "e8cc77ebebfa3094a21cac8fbc943679d109424f9a209329b40801f2ad0bd15a"
+    },
+    {
+      "frame": 445551,
+      "simulation_seconds": 4364.740183334798,
+      "speed_mps": 2.5844127370885386,
+      "progress_m": 47.41817288001302,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 12.750000189989805,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.005516473059669303,
+        "throttle": 0.046234905164584644
+      },
+      "sha256": "e29c7f66d93d95c6454d1482ac8a8657c44804090dca4a595224df61245c3c6f"
+    },
+    {
+      "frame": 445555,
+      "simulation_seconds": 4364.940183337778,
+      "speed_mps": 2.581149008375452,
+      "progress_m": 47.934857484359526,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 12.950000192970037,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0054882937539636805,
+        "throttle": 0.04754039664981935
+      },
+      "sha256": "93c6b1e5118f6bf0526a18f0cfa5dc6930d02ebba7020c3569828bc98305c561"
+    },
+    {
+      "frame": 445559,
+      "simulation_seconds": 4365.140183340758,
+      "speed_mps": 2.578291560130698,
+      "progress_m": 48.45095747394233,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 13.15000019595027,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.00547359634017787,
+        "throttle": 0.0486833759477209
+      },
+      "sha256": "5faee938ae42ea6956a9bacbfe6cfd63ba8a03e59c330263bdac78bbf879e0ab"
+    },
+    {
+      "frame": 445563,
+      "simulation_seconds": 4365.340183343738,
+      "speed_mps": 2.575383844894298,
+      "progress_m": 48.966538670968454,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 13.350000198930502,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.005454886001293337,
+        "throttle": 0.049846462042280854
+      },
+      "sha256": "40ae7b0242cc809f4904f125e65cd759f72f7669a45e793c43202240b46ace26"
+    },
+    {
+      "frame": 445567,
+      "simulation_seconds": 4365.540183346719,
+      "speed_mps": 2.568326507696699,
+      "progress_m": 49.48141317670033,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 13.550000201910734,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.005433128598372214,
+        "throttle": 0.052669396921320555
+      },
+      "sha256": "4cfe5ff341d67db27c0d7d9452bf47c550c534e8dbc1f21de6514e6e1d239007"
+    },
+    {
+      "frame": 445571,
+      "simulation_seconds": 4365.740183349699,
+      "speed_mps": 2.560242975491778,
+      "progress_m": 49.99483238800304,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 13.750000204890966,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.005260277323807104,
+        "throttle": 0.055902809803288815
+      },
+      "sha256": "ace57d640fe90d1ac873481d5b1dda9016603c35ed322d5c404bbbd249bbb3fa"
+    },
+    {
+      "frame": 445575,
+      "simulation_seconds": 4365.940183352679,
+      "speed_mps": 2.5524347794504862,
+      "progress_m": 50.506523550930694,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 13.950000207871199,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.004961296958397476,
+        "throttle": 0.059026088219805574
+      },
+      "sha256": "25e4afd1c885446e3ab9ee9d90cfed38d11a04b1f1f47529ff6905370065548a"
+    },
+    {
+      "frame": 445579,
+      "simulation_seconds": 4366.140183355659,
+      "speed_mps": 2.544728174356527,
+      "progress_m": 51.016697443060224,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 14.150000210851431,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.004636970418258003,
+        "throttle": 0.062108730257389236
+      },
+      "sha256": "6cf376a97ad498bf459335aae0ef4301ded3ce784019eea06d5922b1deb2642b"
+    },
+    {
+      "frame": 445583,
+      "simulation_seconds": 4366.3401833586395,
+      "speed_mps": 2.5392775485493053,
+      "progress_m": 51.5253845819672,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 14.350000213831663,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.004287524760629004,
+        "throttle": 0.06428898058027795
+      },
+      "sha256": "5fb019ae705231f91df4d1e42aec2315d9a06d88456943b6efe0a271840bbaa3"
+    },
+    {
+      "frame": 445587,
+      "simulation_seconds": 4366.54018336162,
+      "speed_mps": 2.534305862284389,
+      "progress_m": 52.03280143613288,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 14.550000216811895,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.003448105866312747,
+        "throttle": 0.06627765508624446
+      },
+      "sha256": "1bb68123e9297a290b5fd2643736f7def3a8c2176333c66910309a36d05dced8"
+    },
+    {
+      "frame": 445591,
+      "simulation_seconds": 4366.7401833646,
+      "speed_mps": 2.5274661898233353,
+      "progress_m": 52.53857033810297,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 14.750000219792128,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.002319264289045874,
+        "throttle": 0.06901352407066597
+      },
+      "sha256": "2063cbb1ad1cbb9266b6fd028087b5c801ff44155d182f561d547a1fec6214eb"
+    },
+    {
+      "frame": 445595,
+      "simulation_seconds": 4366.94018336758,
+      "speed_mps": 2.5210773322671423,
+      "progress_m": 53.043037484081935,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 14.95000022277236,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.0011861400210403013,
+        "throttle": 0.07156906709314317
+      },
+      "sha256": "ba0e2f9ea5939e4662b0235256dea4a250884746cc4ce650d629888eb6e6a7eb"
+    },
+    {
+      "frame": 445599,
+      "simulation_seconds": 4367.14018337056,
+      "speed_mps": 2.5150082342931714,
+      "progress_m": 53.54627630698602,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 15.150000225752592,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -4.8961689442542506e-05,
+        "throttle": 0.0739967062827315
+      },
+      "sha256": "b9a37f88f9ead2eaedfb57e0734d68900184e101183e499a36b22c822ace398e"
+    },
+    {
+      "frame": 445603,
+      "simulation_seconds": 4367.340183373541,
+      "speed_mps": 2.512381638257424,
+      "progress_m": 54.04838508819939,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 15.350000228732824,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.0016089636773111958,
+        "throttle": 0.0750473446970304
+      },
+      "sha256": "50627f6a2cb4cbfbac1f15ab1f03fb2f81d38ce88d82f9d635c7dc6b101eb3fd"
+    },
+    {
+      "frame": 445607,
+      "simulation_seconds": 4367.540183376521,
+      "speed_mps": 2.5128332600159315,
+      "progress_m": 54.55031746459395,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 15.550000231713057,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.0035359228722057334,
+        "throttle": 0.07486669599362746
+      },
+      "sha256": "66a24ed9813a2317e474aec5d36aa37932d826899d8562a0c228d8b85e08394b"
+    },
+    {
+      "frame": 445611,
+      "simulation_seconds": 4367.740183379501,
+      "speed_mps": 2.5136054994633747,
+      "progress_m": 55.05265133784228,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 15.750000234693289,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.005465536641562698,
+        "throttle": 0.07455780021465018
+      },
+      "sha256": "f7eaacb00fd51febfc1cf42b85ec2c424fdf266d7b922f6e40822eae70afcc33"
+    },
+    {
+      "frame": 445615,
+      "simulation_seconds": 4367.940183382481,
+      "speed_mps": 2.5150146067716324,
+      "progress_m": 55.555117740668436,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 15.950000237673521,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.007351164543222296,
+        "throttle": 0.07399415729134713
+      },
+      "sha256": "72e22003d994a25c87b5021446843f9b9ea329cf6fe0eb62c770e8acd4b4c13d"
+    },
+    {
+      "frame": 445619,
+      "simulation_seconds": 4368.140183385462,
+      "speed_mps": 2.515958218500463,
+      "progress_m": 56.057857843085976,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 16.150000240653753,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.009308845084107096,
+        "throttle": 0.07361671259981488
+      },
+      "sha256": "2810b76e6be8595980f5ddb1ec7b48d039d775b318da649b0c167d8292a0ba0d"
+    },
+    {
+      "frame": 445623,
+      "simulation_seconds": 4368.340183388442,
+      "speed_mps": 2.516984060718534,
+      "progress_m": 56.56080011588857,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 16.350000243633986,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.011310228027178749,
+        "throttle": 0.07320637571258644
+      },
+      "sha256": "d21bf184d552edceb800d009a4aeaa2b1ac6a424c504451fabcd59be31de7ce7"
+    },
+    {
+      "frame": 445627,
+      "simulation_seconds": 4368.540183391422,
+      "speed_mps": 2.5199520341324897,
+      "progress_m": 57.06451994321985,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 16.550000246614218,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.013336131189940856,
+        "throttle": 0.0720191863470042
+      },
+      "sha256": "8fc4e45bb2611e744b8c6dcbd9df89f9ea7ac205c7eb121153357f22323faec7"
+    },
+    {
+      "frame": 445631,
+      "simulation_seconds": 4368.740183394402,
+      "speed_mps": 2.522722581744292,
+      "progress_m": 57.56884824137029,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 16.75000024959445,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.01534766554300526,
+        "throttle": 0.07091096730228319
+      },
+      "sha256": "92a3935e616e541bebf8dc79c876b5b501720166d1f6a0ea783b8500d017c865"
+    },
+    {
+      "frame": 445635,
+      "simulation_seconds": 4368.9401833973825,
+      "speed_mps": 2.525430109836804,
+      "progress_m": 58.07379562994958,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 16.950000252574682,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.017317804450350704,
+        "throttle": 0.0698279560652784
+      },
+      "sha256": "cf36b396648a4f050b5d69b781d9b7a00097e38b84c1804feff6482627f8283f"
+    },
+    {
+      "frame": 445639,
+      "simulation_seconds": 4369.140183400363,
+      "speed_mps": 2.528398915240953,
+      "progress_m": 58.57930842916491,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 17.150000255554914,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.019208242712362614,
+        "throttle": 0.06864043390361889
+      },
+      "sha256": "d7ac49bfcf7a7576ae3726c1c9d9a33272d50fe2aec35f55c62d2138a1616577"
+    },
+    {
+      "frame": 445643,
+      "simulation_seconds": 4369.340183403343,
+      "speed_mps": 2.5303552510091234,
+      "progress_m": 59.08530800946127,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 17.350000258535147,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.02104844187334613,
+        "throttle": 0.06785789959635072
+      },
+      "sha256": "249a8b0d71b4d49485b214ff1ab4c9fe7a272a44503f5ed3f5e9b677846d9928"
+    },
+    {
+      "frame": 445647,
+      "simulation_seconds": 4369.540183406323,
+      "speed_mps": 2.531916052461264,
+      "progress_m": 59.591549723867935,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 17.55000026151538,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.022855818894273842,
+        "throttle": 0.06723357901549445
+      },
+      "sha256": "f60a20f6f584c687ebd292f30e4270e7a2a55dbc9995b5dfa7c34bc3931b9c60"
+    },
+    {
+      "frame": 445651,
+      "simulation_seconds": 4369.740183409303,
+      "speed_mps": 2.533293306732123,
+      "progress_m": 60.09806792939213,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 17.75000026449561,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.02433952856563544,
+        "throttle": 0.06668267730715094
+      },
+      "sha256": "2cbc67dc6643991a046b40b4ad3b68a04fe9f9e42b88060595fba57b34e127e2"
+    },
+    {
+      "frame": 445655,
+      "simulation_seconds": 4369.940183412284,
+      "speed_mps": 2.53380966449871,
+      "progress_m": 60.60484555749158,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 17.950000267475843,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.02569904587154765,
+        "throttle": 0.06647613420051605
+      },
+      "sha256": "c5ee23cbebfd9fdd9f548cfc46ca3d3b1c23d7e5bb18b8a8bfe432c4e288e575"
+    },
+    {
+      "frame": 445659,
+      "simulation_seconds": 4370.140183415264,
+      "speed_mps": 2.533602978987347,
+      "progress_m": 61.11173433179868,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 18.150000270456076,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.027024081478482873,
+        "throttle": 0.06655880840506133
+      },
+      "sha256": "be06978449629830d86f26ea8a9cdb000a64fe49a4aa4e657b982ae9822b7ff2"
+    },
+    {
+      "frame": 445663,
+      "simulation_seconds": 4370.340183418244,
+      "speed_mps": 2.532951721423408,
+      "progress_m": 61.61852613535419,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 18.350000273436308,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.028322768555541403,
+        "throttle": 0.06681931143063694
+      },
+      "sha256": "a0ed5eed6538e8f060e088d8f3a742078d94f84bd4c3a456a6ce1c8fc9ef380d"
+    },
+    {
+      "frame": 445667,
+      "simulation_seconds": 4370.540183421224,
+      "speed_mps": 2.5675381063611558,
+      "progress_m": 62.126217420070546,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 18.55000027641654,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.029258589585641696,
+        "throttle": 0.65
+      },
+      "sha256": "67798175b7408011fac55d3cda5a8baf345b619b41bd35f6eecaff206939a0eb"
+    },
+    {
+      "frame": 445671,
+      "simulation_seconds": 4370.740183424205,
+      "speed_mps": 3.021152644505951,
+      "progress_m": 62.68869285900859,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 18.750000279396772,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.02883190730746781,
+        "throttle": 0.65
+      },
+      "sha256": "bd6ffc8c9c7a305b4936fff6822e240eecdf626a6304c4dc4366c11fe6c1f34f"
+    },
+    {
+      "frame": 445675,
+      "simulation_seconds": 4370.940183427185,
+      "speed_mps": 3.482395308458263,
+      "progress_m": 63.34068878577502,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 18.950000282377005,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.02837440049494895,
+        "throttle": 0.65
+      },
+      "sha256": "5b8dedb0818d67246f4cf7ca8c7d2a8914c09a0516f313a77306640c50075fd8"
+    },
+    {
+      "frame": 445679,
+      "simulation_seconds": 4371.140183430165,
+      "speed_mps": 3.9916878383592516,
+      "progress_m": 64.08847671391405,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 19.150000285357237,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.02782436120252566,
+        "throttle": 0.65
+      },
+      "sha256": "e1787e3138c3a4f6fadee8851d6eba49b8207b4afa392a7cfb407a91a5f1e2d9"
+    },
+    {
+      "frame": 445683,
+      "simulation_seconds": 4371.340183433145,
+      "speed_mps": 4.558186932026433,
+      "progress_m": 64.9445128370296,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 19.35000028833747,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.02724175087183342,
+        "throttle": 0.5767252271894269
+      },
+      "sha256": "0ba81bce6ec4d69d0d0887fbaafe18e7ae8a646b025272452890f0f6ff68229b"
+    },
+    {
+      "frame": 445687,
+      "simulation_seconds": 4371.5401834361255,
+      "speed_mps": 4.955484036106658,
+      "progress_m": 65.89922085864784,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 19.5500002913177,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.027322448815329616,
+        "throttle": 0.4178063855573367
+      },
+      "sha256": "85948163fa34998fc72d9554104536531e69b76991ff3121a6e2baf8765cc7e7"
+    },
+    {
+      "frame": 445691,
+      "simulation_seconds": 4371.740183439106,
+      "speed_mps": 5.193426499913171,
+      "progress_m": 66.9163805078109,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 19.750000294297934,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.027728832109615142,
+        "throttle": 0.3226294000347316
+      },
+      "sha256": "3ca3f035f9176f4072350b8184f2ff1865580255c8b50b62e1111134a86e2cd2"
+    },
+    {
+      "frame": 445695,
+      "simulation_seconds": 4371.940183442086,
+      "speed_mps": 5.348741494895838,
+      "progress_m": 67.972455302738,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 19.950000297278166,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.028345405100606336,
+        "throttle": 0.26050340204166494
+      },
+      "sha256": "c47a7097a79d29c3f187820fa03eeea43626cc41e800e20c5724ae759030b8f1"
+    },
+    {
+      "frame": 445699,
+      "simulation_seconds": 4372.140183445066,
+      "speed_mps": 5.450019510070248,
+      "progress_m": 69.05374226763031,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 20.150000300258398,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.02911599593965097,
+        "throttle": 0.21999219597190064
+      },
+      "sha256": "7a20cc24e4ca7c2e1c63bad86a94754128fe86e09ef5dc550afbe525ff146d16"
+    },
+    {
+      "frame": 445703,
+      "simulation_seconds": 4372.340183448046,
+      "speed_mps": 5.522155948193953,
+      "progress_m": 70.15200411333971,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 20.35000030323863,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.02983741644760834,
+        "throttle": 0.1911376207224187
+      },
+      "sha256": "1db8ed7a8e90b29b7cd71f761b6ce41bb4035e588dbce2f2483c25ad0effb00a"
+    },
+    {
+      "frame": 445707,
+      "simulation_seconds": 4372.540183451027,
+      "speed_mps": 5.444126045555795,
+      "progress_m": 71.2583986378274,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 20.550000306218863,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 1.0,
+        "steer": 0.03103541320263339,
+        "throttle": 0.0
+      },
+      "sha256": "ac5f7ca973d982e622ce42a8cdb07e3a612a35a8a8b40889822b650efa8707e8"
+    },
+    {
+      "frame": 445711,
+      "simulation_seconds": 4372.740183454007,
+      "speed_mps": 4.229696772939706,
+      "progress_m": 72.2276619950613,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 20.750000309199095,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.7648483864698528,
+        "steer": 0.036572255862419654,
+        "throttle": 0.0
+      },
+      "sha256": "6bf0a3de0480bd6392bd5b91dcae61c8c56c079c92d1ed0e8f524eaee1df36a0"
+    },
+    {
+      "frame": 445715,
+      "simulation_seconds": 4372.940183456987,
+      "speed_mps": 3.3860174985524947,
+      "progress_m": 72.9774371095339,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 20.950000312179327,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.34300874927624725,
+        "steer": 0.04108447438471417,
+        "throttle": 0.0
+      },
+      "sha256": "e1d084f48002a80f0b072c6ece6217aac31f07e6597cf487c9244ca47bc34f99"
+    },
+    {
+      "frame": 445719,
+      "simulation_seconds": 4373.140183459967,
+      "speed_mps": 2.9714747592756368,
+      "progress_m": 73.60788105774226,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 21.15000031515956,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.1357373796378183,
+        "steer": 0.043667550771272566,
+        "throttle": 0.0
+      },
+      "sha256": "e612b7a5a272aa3f456c6b8220ef5f0c5d3997ac2ce5149c428616a9b7f8c736"
+    },
+    {
+      "frame": 445723,
+      "simulation_seconds": 4373.340183462948,
+      "speed_mps": 2.786003954388382,
+      "progress_m": 74.18132152781719,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 21.35000031813979,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.043001977194190966,
+        "steer": 0.04495670618655092,
+        "throttle": 0.0
+      },
+      "sha256": "54d698c4f45d27b722487a57de22603a89af6048cf7765c24bc7160882f3ace9"
+    },
+    {
+      "frame": 445727,
+      "simulation_seconds": 4373.540183465928,
+      "speed_mps": 2.7070350486138723,
+      "progress_m": 74.72948825854343,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 21.550000321120024,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0035175243069360818,
+        "steer": 0.04552790773662438,
+        "throttle": 0.0
+      },
+      "sha256": "9a633f79ded057e3f5d4521b234e96ab417a75c9bfb51694858738c8743215d7"
+    },
+    {
+      "frame": 445731,
+      "simulation_seconds": 4373.740183468908,
+      "speed_mps": 2.6887044380906646,
+      "progress_m": 75.26777212243714,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 21.750000324100256,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.04563494866027181,
+        "throttle": 0.004518224763734225
+      },
+      "sha256": "4419ac747784c3af760ff3d128c50bdddea8c4785e746daf584edea59930b397"
+    },
+    {
+      "frame": 445735,
+      "simulation_seconds": 4373.940183471888,
+      "speed_mps": 2.680049651207979,
+      "progress_m": 75.80397939414091,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 21.950000327080488,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.04559965028934582,
+        "throttle": 0.007980139516808472
+      },
+      "sha256": "640ff1f53eaf80c365b2270390b6a42303f7314e9349937153c94b3c6ecf04db"
+    },
+    {
+      "frame": 445739,
+      "simulation_seconds": 4374.1401834748685,
+      "speed_mps": 2.6708575805486627,
+      "progress_m": 76.33844940847821,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 22.15000033006072,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.04560011115791657,
+        "throttle": 0.011656967780534978
+      },
+      "sha256": "df990844cf681fddbb51371fd412505e24c60d2d1dbc189a4ffb73456748c8b6"
+    },
+    {
+      "frame": 445743,
+      "simulation_seconds": 4374.340183477849,
+      "speed_mps": 2.664764802305942,
+      "progress_m": 76.87114362111437,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 22.350000333040953,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.045581554604718,
+        "throttle": 0.014094079077623257
+      },
+      "sha256": "ab51ae79ff70ebcb5cd76ba1b517df7ec3a6f49714e039a4527f9e074c1b7e41"
+    },
+    {
+      "frame": 445747,
+      "simulation_seconds": 4374.540183480829,
+      "speed_mps": 2.6642805587541125,
+      "progress_m": 77.4032049456134,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 22.550000336021185,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.04543882228806668,
+        "throttle": 0.014287776498355066
+      },
+      "sha256": "0b53e7dbd37dad5418a880fb891c32c6b64c3306591530247db8274edf316829"
+    },
+    {
+      "frame": 445751,
+      "simulation_seconds": 4374.740183483809,
+      "speed_mps": 2.6648361503460913,
+      "progress_m": 77.93575547814342,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 22.750000339001417,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.04518199091958899,
+        "throttle": 0.014065539861563538
+      },
+      "sha256": "4c2ce4e7c7cb6125e415385637dec7d32aafc387fa7d434abc3e8b68d82f6975"
+    },
+    {
+      "frame": 445755,
+      "simulation_seconds": 4374.9401834867895,
+      "speed_mps": 2.6648692274105183,
+      "progress_m": 78.46839119899984,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 22.95000034198165,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.04490603391497086,
+        "throttle": 0.014052309035792732
+      },
+      "sha256": "5b04b549c3c0e887dad584e8fdc7eb7d8ebae5c53a7e1c8b5fe6a3627c9887a7"
+    },
+    {
+      "frame": 445759,
+      "simulation_seconds": 4375.14018348977,
+      "speed_mps": 2.6636254409481595,
+      "progress_m": 79.00099076335711,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 23.15000034496188,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.0446442276279655,
+        "throttle": 0.014549823620736292
+      },
+      "sha256": "4f59060d8ccf2ad35f2254d86276caecec7ffa20a9cc69e9c5babf9cea052add"
+    },
+    {
+      "frame": 445763,
+      "simulation_seconds": 4375.34018349275,
+      "speed_mps": 2.662146018917119,
+      "progress_m": 79.53337218631894,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 23.350000347942114,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.04436122331255517,
+        "throttle": 0.015141592433152518
+      },
+      "sha256": "e35331718a43a76c1518c9b40395a9c3d38dabd99a972dceef358f18439b7fd7"
+    },
+    {
+      "frame": 445767,
+      "simulation_seconds": 4375.54018349573,
+      "speed_mps": 2.662927774888733,
+      "progress_m": 80.06619696448651,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 23.550000350922346,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.043984407454681726,
+        "throttle": 0.014828890044506871
+      },
+      "sha256": "82ff58bfe04606bc0a5b3186b79663782f03e7435c84d794753e1fba0125fe68"
+    },
+    {
+      "frame": 445771,
+      "simulation_seconds": 4375.74018349871,
+      "speed_mps": 2.6637097351339047,
+      "progress_m": 80.59919132733883,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 23.75000035390258,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.043581329111714424,
+        "throttle": 0.014516105946438174
+      },
+      "sha256": "8388918a02b407d0c2082af49fc954c83155257541d8cc32eca4344753643e3a"
+    },
+    {
+      "frame": 445775,
+      "simulation_seconds": 4375.940183501691,
+      "speed_mps": 2.664239063205211,
+      "progress_m": 81.13231125019853,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 23.95000035688281,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.043150737304532324,
+        "throttle": 0.014304374717915637
+      },
+      "sha256": "4e527f72a47db4626617a0c5aa0e250f9bbb8cf15353165e3f327b2b425e1f55"
+    },
+    {
+      "frame": 445779,
+      "simulation_seconds": 4376.140183504671,
+      "speed_mps": 2.6627352878208637,
+      "progress_m": 81.66535281709807,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 24.150000359863043,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.0427475282046115,
+        "throttle": 0.014905884871654607
+      },
+      "sha256": "a6184cfcfe1d280265f0f9c91f6e75af2edc198f941fced53138a51d89a21822"
+    },
+    {
+      "frame": 445783,
+      "simulation_seconds": 4376.340183507651,
+      "speed_mps": 2.659401362396359,
+      "progress_m": 82.19784628918197,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 24.350000362843275,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.042336961303529236,
+        "throttle": 0.016239455041456453
+      },
+      "sha256": "7759651cd9f23e22c7bd9ffeef16bf8f49217712c2efeead1553f662d6ee567c"
+    },
+    {
+      "frame": 445787,
+      "simulation_seconds": 4376.540183510631,
+      "speed_mps": 2.65591905322489,
+      "progress_m": 82.72952902278685,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 24.550000365823507,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.04189445390227258,
+        "throttle": 0.017632378710043996
+      },
+      "sha256": "49121d19173197122e28d82bd01180dc962f755baa4916ae5b30ad978a6a6ec7"
+    },
+    {
+      "frame": 445791,
+      "simulation_seconds": 4376.740183513612,
+      "speed_mps": 2.652746653995724,
+      "progress_m": 83.26053857792756,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 24.75000036880374,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.04141391269314519,
+        "throttle": 0.018901338401710533
+      },
+      "sha256": "6d05f85171a40ec718e02bd851bcac6c021807d0fae0950bee4f271207691efb"
+    },
+    {
+      "frame": 445795,
+      "simulation_seconds": 4376.940183516592,
+      "speed_mps": 2.6484350287332954,
+      "progress_m": 83.7908972853722,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 24.950000371783972,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.04091951447753472,
+        "throttle": 0.020625988506681917
+      },
+      "sha256": "f40a38f1e069c63542e24ed4455962edcd103d84bb1278e8afb94f6db77c0b9c"
+    },
+    {
+      "frame": 445799,
+      "simulation_seconds": 4377.140183519572,
+      "speed_mps": 2.641882213223645,
+      "progress_m": 84.32034067402768,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 25.150000374764204,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.04045023982178494,
+        "throttle": 0.023247114710542152
+      },
+      "sha256": "b1346ea0c4f5601c09f52012c190048ca341f8a2e8734bd2ac81d9ddaad8fc65"
+    },
+    {
+      "frame": 445803,
+      "simulation_seconds": 4377.340183522552,
+      "speed_mps": 2.634721439089281,
+      "progress_m": 84.84824388254953,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 25.350000377744436,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.03996964360918045,
+        "throttle": 0.02611142436428775
+      },
+      "sha256": "ef24028763924d03222f534ac3355d1a0a5b16c084046c5a8a3b20a27a78ae84"
+    },
+    {
+      "frame": 445807,
+      "simulation_seconds": 4377.5401835255325,
+      "speed_mps": 2.628015874672574,
+      "progress_m": 85.37471824624056,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 25.55000038072467,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.039455456731795,
+        "throttle": 0.028793650130970506
+      },
+      "sha256": "89be12dff184975caac654b3238da93f086582953d38d3a5048907b83213e8af"
+    },
+    {
+      "frame": 445811,
+      "simulation_seconds": 4377.740183528513,
+      "speed_mps": 2.6219775016659237,
+      "progress_m": 85.89988487499001,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 25.7500003837049,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.038887966396568184,
+        "throttle": 0.031208999333630597
+      },
+      "sha256": "0f6bccde42d83573541d8e68ffad72bb97fb205d7c0480763b66f007a04bf8b5"
+    },
+    {
+      "frame": 445815,
+      "simulation_seconds": 4377.940183531493,
+      "speed_mps": 2.6173514132024938,
+      "progress_m": 86.42394050904383,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 25.950000386685133,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.03828003888848092,
+        "throttle": 0.03305943471900257
+      },
+      "sha256": "401e48dfa081c6976c9189f1606882224d03ba6471d00b037c050d631931b2b2"
+    },
+    {
+      "frame": 445819,
+      "simulation_seconds": 4378.140183534473,
+      "speed_mps": 2.610508592793264,
+      "progress_m": 86.94659315382883,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 26.150000389665365,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.03769965602525213,
+        "throttle": 0.03579656288269444
+      },
+      "sha256": "a3dd0576ecd026187b2a7053ed0ce3aaec567a2810b1315a4872900073a48223"
+    },
+    {
+      "frame": 445823,
+      "simulation_seconds": 4378.340183537453,
+      "speed_mps": 2.6038657693928826,
+      "progress_m": 87.46779716662651,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 26.350000392645597,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.03710852395528769,
+        "throttle": 0.03845369224284703
+      },
+      "sha256": "859433f6a385406e4c4960ad9fc802f6b42c236c3ca80038d87262dbea996157"
+    },
+    {
+      "frame": 445827,
+      "simulation_seconds": 4378.540183540434,
+      "speed_mps": 2.5975618478743483,
+      "progress_m": 87.98772325697573,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 26.55000039562583,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.03649351267717928,
+        "throttle": 0.04097526085026076
+      },
+      "sha256": "85486eef424939ed40d9f9fbaacba31bf34e22d1a00bb754392573bdd791f475"
+    },
+    {
+      "frame": 445831,
+      "simulation_seconds": 4378.740183543414,
+      "speed_mps": 2.5923455595711857,
+      "progress_m": 88.50650649386105,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 26.750000398606062,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.035832521957618456,
+        "throttle": 0.04306177617152578
+      },
+      "sha256": "85399b6b00261aeaacab75c808239af1495b00ce684008507077464c47b5b790"
+    },
+    {
+      "frame": 445835,
+      "simulation_seconds": 4378.940183546394,
+      "speed_mps": 2.5882224131665885,
+      "progress_m": 89.02434715398815,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 26.950000401586294,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.03514677562770156,
+        "throttle": 0.044711034733364664
+      },
+      "sha256": "54ee3e677d331ec4bd7d60925822930841a08ab347bf9aa79c7aafbeba775248"
+    },
+    {
+      "frame": 445839,
+      "simulation_seconds": 4379.140183549374,
+      "speed_mps": 2.5847240797928683,
+      "progress_m": 89.54153227794063,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 27.150000404566526,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.034455911568820934,
+        "throttle": 0.04611036808285274
+      },
+      "sha256": "7e1ba6d0dda3673acacb23a2512839e134693e2a2cf5c68f47835c839d62e378"
+    },
+    {
+      "frame": 445843,
+      "simulation_seconds": 4379.340183552355,
+      "speed_mps": 2.5814767503259315,
+      "progress_m": 90.05805637120129,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 27.35000040754676,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.0334535552600206,
+        "throttle": 0.047409299869627476
+      },
+      "sha256": "7985768d4f4c142fc4f04c9dac9d0255e3b122280bbbcbc9623f142fa22218a2"
+    },
+    {
+      "frame": 445847,
+      "simulation_seconds": 4379.540183555335,
+      "speed_mps": 2.579669713796008,
+      "progress_m": 90.575074450493,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 27.55000041052699,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.03225291695227693,
+        "throttle": 0.04813211448159685
+      },
+      "sha256": "1bf0d7d8b81c0e71ec985e1d033e635918f7d79af301e70e0137daefc56e7de1"
+    },
+    {
+      "frame": 445851,
+      "simulation_seconds": 4379.740183558315,
+      "speed_mps": 2.5782103412873068,
+      "progress_m": 91.08974240731347,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 27.750000413507223,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.03116223787527137,
+        "throttle": 0.04871586348507737
+      },
+      "sha256": "02d7b26c7140be582b0ecd28557bcbd82ee9637444154cd59f448da8a30b5f1d"
+    },
+    {
+      "frame": 445855,
+      "simulation_seconds": 4379.940183561295,
+      "speed_mps": 2.577729296451819,
+      "progress_m": 91.60489178399074,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 27.950000416487455,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.03002334450481823,
+        "throttle": 0.04890828141927255
+      },
+      "sha256": "3ead29f6956085ccb4985f721512251e3b68bd9552ed56084ef9708f9a558b4d"
+    },
+    {
+      "frame": 445859,
+      "simulation_seconds": 4380.1401835642755,
+      "speed_mps": 2.577343833110913,
+      "progress_m": 92.12026678468612,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 28.150000419467688,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.01882286974469727,
+        "throttle": 0.04906246675563484
+      },
+      "sha256": "a525b017d8d7a0f92e50d687531b561e1494214694dceef3751fb91917f4cab5"
+    },
+    {
+      "frame": 445863,
+      "simulation_seconds": 4380.340183567256,
+      "speed_mps": 2.5771534257324933,
+      "progress_m": 92.63581398301667,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 28.35000042244792,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": 0.00386313854841823,
+        "throttle": 0.04913862970700276
+      },
+      "sha256": "a5f0e501d1247568a6a1a6ab891ed3337bcf427d75c155e787abd5e1796ade3d"
+    },
+    {
+      "frame": 445867,
+      "simulation_seconds": 4380.540183570236,
+      "speed_mps": 2.577002207059083,
+      "progress_m": 93.15060607007462,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 28.550000425428152,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.011162016321961692,
+        "throttle": 0.04919911717636687
+      },
+      "sha256": "ada43e3c786a5f118d1bfdb4da88d526b6d767d76e43071ec228db84f9a80d7b"
+    },
+    {
+      "frame": 445871,
+      "simulation_seconds": 4380.740183573216,
+      "speed_mps": 2.57674725596451,
+      "progress_m": 93.6658277633035,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 28.750000428408384,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.026285367220192115,
+        "throttle": 0.049301097614196016
+      },
+      "sha256": "78cea32de3d13fde733387f7650f915f1199d1df2bf4666037d32065291611ef"
+    },
+    {
+      "frame": 445875,
+      "simulation_seconds": 4380.940183576196,
+      "speed_mps": 2.576091220643806,
+      "progress_m": 94.18191463479171,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 28.950000431388617,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.046413955972782056,
+        "throttle": 0.04956351174247775
+      },
+      "sha256": "d87c640ea221ac1859467bbf6246c142def0d2a7241b7d1debe27fdc4379790b"
+    },
+    {
+      "frame": 445879,
+      "simulation_seconds": 4381.140183579177,
+      "speed_mps": 2.5745349929882324,
+      "progress_m": 94.6972350309141,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 29.15000043436885,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.08148527714143772,
+        "throttle": 0.050186002804707114
+      },
+      "sha256": "eeb4e7540cbf346bdbda9070e1769670cbb10e320c32e20b11a893686b8e95ac"
+    },
+    {
+      "frame": 445883,
+      "simulation_seconds": 4381.340183582157,
+      "speed_mps": 2.5738716861180886,
+      "progress_m": 95.21202752029333,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 29.35000043734908,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.11496735089644315,
+        "throttle": 0.05045132555276464
+      },
+      "sha256": "bb06d68216c77242ca453f2e9dfb4f0a7c4ff44ddef8ee0c87df156199794873"
+    },
+    {
+      "frame": 445887,
+      "simulation_seconds": 4381.540183585137,
+      "speed_mps": 2.5727001231361037,
+      "progress_m": 95.7265010295521,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 29.550000440329313,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.1457783295907055,
+        "throttle": 0.05091995074555858
+      },
+      "sha256": "53a70b5c3d653329d06fa4678dd3e8f6af1a13524b4f5d9add90f9b0bbbf2ed8"
+    },
+    {
+      "frame": 445891,
+      "simulation_seconds": 4381.740183588117,
+      "speed_mps": 2.570443197393896,
+      "progress_m": 96.24159525126056,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 29.750000443309546,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.1736582189251146,
+        "throttle": 0.051822721042441705
+      },
+      "sha256": "eb2dea012ddd321e28153bed3ef636a11944c5f0afda142d00430aa1be89076e"
+    },
+    {
+      "frame": 445895,
+      "simulation_seconds": 4381.940183591098,
+      "speed_mps": 2.5679259583339498,
+      "progress_m": 96.75550262521782,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 29.950000446289778,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.2138964694408801,
+        "throttle": 0.052829616666420165
+      },
+      "sha256": "4878a111ec25c9785dd4ef11f275ed149083a37ccbd81d832b78fdb2df9b85e1"
+    },
+    {
+      "frame": 445899,
+      "simulation_seconds": 4382.140183594078,
+      "speed_mps": 2.5632298701463405,
+      "progress_m": 97.26836865059299,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 30.15000044927001,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.2523623133221073,
+        "throttle": 0.054708051941463866
+      },
+      "sha256": "91e509aa061660e5c2f6fe5c8063d3ebc7b42087ec0f783398c55a69ef6b3192"
+    },
+    {
+      "frame": 445903,
+      "simulation_seconds": 4382.340183597058,
+      "speed_mps": 2.5581479928748303,
+      "progress_m": 97.77977852058847,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 30.350000452250242,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.2838091826712837,
+        "throttle": 0.05674080285006795
+      },
+      "sha256": "ee7390354c44baf8ead3851f2b470125027604663bcdedb60289def37db5fb94"
+    },
+    {
+      "frame": 445907,
+      "simulation_seconds": 4382.540183600038,
+      "speed_mps": 2.552506316801233,
+      "progress_m": 98.31756200958917,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 30.550000455230474,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.30864463678271475,
+        "throttle": 0.058997473279506885
+      },
+      "sha256": "64cb7323869397dab68f72a278c2aeddf617e37148204a1ae0d9816102aa15e6"
+    },
+    {
+      "frame": 445911,
+      "simulation_seconds": 4382.7401836030185,
+      "speed_mps": 2.546531151813143,
+      "progress_m": 98.82753074265912,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 30.750000458210707,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.333177964324305,
+        "throttle": 0.06138753927474294
+      },
+      "sha256": "816e5fb2104eb68c62b0e4834be9d90343c65d3544ad240226a54cb6c7e8184f"
+    },
+    {
+      "frame": 445915,
+      "simulation_seconds": 4382.940183605999,
+      "speed_mps": 2.540313483675463,
+      "progress_m": 99.33620385338403,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 30.95000046119094,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.36378415717987483,
+        "throttle": 0.06387460652981485
+      },
+      "sha256": "a83fec35f5f60f71dcf93c0deb26556b1ceb78655c704fa65e301f6590b8afec"
+    },
+    {
+      "frame": 445919,
+      "simulation_seconds": 4383.140183608979,
+      "speed_mps": 2.534702024068294,
+      "progress_m": 99.84321959953014,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 31.15000046417117,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.38567708166191833,
+        "throttle": 0.06611919037268255
+      },
+      "sha256": "acc695b1b3cb14fd4babb5cfe96deb46efbad3656a6d628e61d228c98fbde119"
+    },
+    {
+      "frame": 445923,
+      "simulation_seconds": 4383.340183611959,
+      "speed_mps": 2.5299338593341014,
+      "progress_m": 100.39587243630498,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 31.350000467151403,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.3996128035288361,
+        "throttle": 0.0680264562663595
+      },
+      "sha256": "e7f9e782a89161b1ea238a07453e78e6180dfc3339b9b2e4c7f37d8d3dc2098e"
+    },
+    {
+      "frame": 445927,
+      "simulation_seconds": 4383.540183614939,
+      "speed_mps": 2.5264010204022815,
+      "progress_m": 100.89991613024306,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 31.550000470131636,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.407484422545039,
+        "throttle": 0.06943959183908746
+      },
+      "sha256": "c21fcac8ed53c49ac71bb31babe251d3a3b0cd09dba77d263fc70562a1e37f59"
+    },
+    {
+      "frame": 445931,
+      "simulation_seconds": 4383.74018361792,
+      "speed_mps": 2.5220370543012622,
+      "progress_m": 101.40381699726298,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 31.750000473111868,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.4263039345216355,
+        "throttle": 0.07118517827949518
+      },
+      "sha256": "3dc574ace57efeb212534b21697465865e32230615c6f49aee665dee4d8f3135"
+    },
+    {
+      "frame": 445935,
+      "simulation_seconds": 4383.9401836209,
+      "speed_mps": 2.5178010221839187,
+      "progress_m": 101.90705275594146,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 31.9500004760921,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.4403140789541615,
+        "throttle": 0.07287959112643261
+      },
+      "sha256": "477d6b7a5d5408c8336a4d85dc9e6922a32ed91cd49be75914f2d7041b22e3b4"
+    },
+    {
+      "frame": 445939,
+      "simulation_seconds": 4384.14018362388,
+      "speed_mps": 2.514545429767337,
+      "progress_m": 102.40909519099833,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 32.15000047907233,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.44769147235036,
+        "throttle": 0.07418182809306532
+      },
+      "sha256": "0fc0d97548fff74d961d7faa4e53e9acdac1d943479e97ecf33594bb0f46d3af"
+    },
+    {
+      "frame": 445943,
+      "simulation_seconds": 4384.34018362686,
+      "speed_mps": 2.5131131367232302,
+      "progress_m": 102.95430100943304,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 32.350000482052565,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.44865625321463476,
+        "throttle": 0.07475474531070798
+      },
+      "sha256": "9a0d75d6f8f081c8a406367f603d0476583c4aa592a9995391bfd544e23069ff"
+    },
+    {
+      "frame": 445947,
+      "simulation_seconds": 4384.540183629841,
+      "speed_mps": 2.512489762265163,
+      "progress_m": 103.45527313232874,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 32.5500004850328,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.45218456490219805,
+        "throttle": 0.0750040950939349
+      },
+      "sha256": "7d65f384dea0ee03eefe4f8bf1c450ec5a44a82c4be9b011e883e5aee04f2b25"
+    },
+    {
+      "frame": 445951,
+      "simulation_seconds": 4384.740183632821,
+      "speed_mps": 2.5114503688076266,
+      "progress_m": 103.95689963227404,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 32.75000048801303,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.46187997866905106,
+        "throttle": 0.07541985247694943
+      },
+      "sha256": "cc340e642d3773b3661fbc6c4728abf3e4315d8191b14fc12b8638731db59448"
+    },
+    {
+      "frame": 445955,
+      "simulation_seconds": 4384.940183635801,
+      "speed_mps": 2.5114148167418575,
+      "progress_m": 104.45843536769708,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 32.95000049099326,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.4654427514861974,
+        "throttle": 0.07543407330325708
+      },
+      "sha256": "8374b88c0531bebdaadaae2550f285c8f0052559c45b5e719226579150151a9e"
+    },
+    {
+      "frame": 445959,
+      "simulation_seconds": 4385.140183638781,
+      "speed_mps": 2.511600171392167,
+      "progress_m": 104.99860635779322,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 33.150000493973494,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.46336237705241573,
+        "throttle": 0.0753599314431332
+      },
+      "sha256": "8435fe4e85bb5946067ba2c99c917ec0b9f6a29655613f063ae6b515682ca92b"
+    },
+    {
+      "frame": 445963,
+      "simulation_seconds": 4385.3401836417615,
+      "speed_mps": 2.511763590479591,
+      "progress_m": 105.49873341108295,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 33.350000496953726,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.4587684002115536,
+        "throttle": 0.0752945638081636
+      },
+      "sha256": "a33cfd0e9437606d869c46a8483667d88d10cedf80a1a666d9e011c3d4bcf2eb"
+    },
+    {
+      "frame": 445967,
+      "simulation_seconds": 4385.540183644742,
+      "speed_mps": 2.511514578757619,
+      "progress_m": 106.00013947291335,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 33.55000049993396,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.4626285859669899,
+        "throttle": 0.07539416849695241
+      },
+      "sha256": "3c37d1719090094dd41d65915b366bd3a09661c7c9a03a7372ac9d79c5c6e40c"
+    },
+    {
+      "frame": 445971,
+      "simulation_seconds": 4385.740183647722,
+      "speed_mps": 2.5103453581147135,
+      "progress_m": 106.50195284773926,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 33.75000050291419,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.4619928541976064,
+        "throttle": 0.07586185675411468
+      },
+      "sha256": "f1f81f0229ef9a90bd7bfa41aa214014ad026b7c804381b1ac9ca4334d232fba"
+    },
+    {
+      "frame": 445975,
+      "simulation_seconds": 4385.940183650702,
+      "speed_mps": 2.5096073191637855,
+      "progress_m": 107.00341875322012,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 33.95000050589442,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.45768092705738184,
+        "throttle": 0.07615707233448586
+      },
+      "sha256": "dbd8da67d9d3d9daccf6c26c01928425f0cbe436e23d8e81497857ce2add4b89"
+    },
+    {
+      "frame": 445979,
+      "simulation_seconds": 4386.1401836536825,
+      "speed_mps": 2.5086332683154384,
+      "progress_m": 107.53428271424568,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 34.150000508874655,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.44970326113777026,
+        "throttle": 0.0765466926738247
+      },
+      "sha256": "ae6791ed573af10c9fbcdb15de51ea50dffc5dd1f96aa558067642332a929576"
+    },
+    {
+      "frame": 445983,
+      "simulation_seconds": 4386.340183656663,
+      "speed_mps": 2.5074634502611612,
+      "progress_m": 108.03389093227483,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 34.35000051185489,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.44836103562626684,
+        "throttle": 0.07701461989553558
+      },
+      "sha256": "a7803f36e91a602b304ff78fbef691525893c52d1f85665872b90a2f5ae4f827"
+    },
+    {
+      "frame": 445987,
+      "simulation_seconds": 4386.540183659643,
+      "speed_mps": 2.5050329335583053,
+      "progress_m": 108.53412532043004,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 34.55000051483512,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.4470871580086813,
+        "throttle": 0.07798682657667798
+      },
+      "sha256": "46e926af65497001cd0bea3d2664f0b755633d7b179fa7fe8993bdf4456bd5d5"
+    },
+    {
+      "frame": 445991,
+      "simulation_seconds": 4386.740183662623,
+      "speed_mps": 2.502899859748933,
+      "progress_m": 109.03441658800458,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 34.75000051781535,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.44256986714346624,
+        "throttle": 0.07884005610042683
+      },
+      "sha256": "6d21067974faea0f61d8aaa0804dadb2ca5e43db3d5d5986739cbe9daa014a5a"
+    },
+    {
+      "frame": 445995,
+      "simulation_seconds": 4386.940183665603,
+      "speed_mps": 2.5010323554335403,
+      "progress_m": 109.53421153313855,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 34.950000520795584,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.435562507954555,
+        "throttle": 0.07958705782658396
+      },
+      "sha256": "49f093178e031328cabe33cbf30f2eb3c6d969e898870c53abf60369ff4ccbf2"
+    },
+    {
+      "frame": 445999,
+      "simulation_seconds": 4387.140183668584,
+      "speed_mps": 2.499305758758845,
+      "progress_m": 110.0451705796883,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 35.150000523775816,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.4299583719335809,
+        "throttle": 0.08027769649646199
+      },
+      "sha256": "0af25fbaf790300f7ba55ae6f7048506f7c77d2faf6c8744e91cccd0a889099a"
+    },
+    {
+      "frame": 446003,
+      "simulation_seconds": 4387.340183671564,
+      "speed_mps": 2.497196880762803,
+      "progress_m": 110.54282961174428,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 35.35000052675605,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.42992808967104046,
+        "throttle": 0.08112124769487893
+      },
+      "sha256": "1ddea4ed5ba4e46f54d86eaedb136ee38efa1362560a160219d2521fcf21375f"
+    },
+    {
+      "frame": 446007,
+      "simulation_seconds": 4387.540183674544,
+      "speed_mps": 2.4956513942336604,
+      "progress_m": 111.04109160887663,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 35.55000052973628,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.42663124923308793,
+        "throttle": 0.0817394423065359
+      },
+      "sha256": "f8fc3e5ca648cd2fe2945d4402403c12f50403e65b453ce77a1199a771bfba97"
+    },
+    {
+      "frame": 446011,
+      "simulation_seconds": 4387.740183677524,
+      "speed_mps": 2.494563186766767,
+      "progress_m": 111.5395624838604,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 35.75000053271651,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.42083463837177226,
+        "throttle": 0.08217472529329335
+      },
+      "sha256": "b067ba49baab9875ece4f89407e680b52016f80abebe8bcd7cfbc3cf1ac62ef9"
+    },
+    {
+      "frame": 446015,
+      "simulation_seconds": 4387.940183680505,
+      "speed_mps": 2.493837104328888,
+      "progress_m": 112.03284092352767,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 35.950000535696745,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.41339236280733394,
+        "throttle": 0.08246515826844494
+      },
+      "sha256": "5dc81c023cfa890387d01f8fa2fc3a6d4c568276fee776ef5fefaaff986c36e9"
+    },
+    {
+      "frame": 446019,
+      "simulation_seconds": 4388.140183683485,
+      "speed_mps": 2.4931884581815313,
+      "progress_m": 112.52975679240313,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 36.15000053867698,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.4143683534831341,
+        "throttle": 0.08272461672738754
+      },
+      "sha256": "09b365e39e2cc8bf48624db74d6d51ecdbe3a573933f08e280ce42ec1f570c96"
+    },
+    {
+      "frame": 446023,
+      "simulation_seconds": 4388.340183686465,
+      "speed_mps": 2.4940304864266696,
+      "progress_m": 113.0272566918714,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 36.35000054165721,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.4128294479206068,
+        "throttle": 0.08238780542933224
+      },
+      "sha256": "7b23a61d1aa68466401fa7e802e255f5fea19cb25836911d64b248bc76a33da9"
+    },
+    {
+      "frame": 446027,
+      "simulation_seconds": 4388.540183689445,
+      "speed_mps": 2.4957926629827636,
+      "progress_m": 113.52540802199536,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 36.55000054463744,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.4085919277613547,
+        "throttle": 0.08168293480689465
+      },
+      "sha256": "71cc470c46ce429a6d1c92bc5ecc556a8a0d4d7cccfc50254105802ffa2693c0"
+    },
+    {
+      "frame": 446031,
+      "simulation_seconds": 4388.7401836924255,
+      "speed_mps": 2.498534024731142,
+      "progress_m": 114.01108550056372,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 36.750000547617674,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.40272959150842164,
+        "throttle": 0.08058639010754334
+      },
+      "sha256": "7ece1aaac1625e4c74355073130c8cd9643263b9747d8bec3b8744395f16a82a"
+    },
+    {
+      "frame": 446035,
+      "simulation_seconds": 4388.940183695406,
+      "speed_mps": 2.5010402545394914,
+      "progress_m": 114.50924580357481,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 36.950000550597906,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.40076598135481883,
+        "throttle": 0.07958389818420351
+      },
+      "sha256": "214482d91b9ae3c3a02f1f79d90a30504bfea229a0349b495ca1b0229c0a0101"
+    },
+    {
+      "frame": 446039,
+      "simulation_seconds": 4389.140183698386,
+      "speed_mps": 2.503631847087638,
+      "progress_m": 115.0085921393364,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 37.15000055357814,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.40116118139592466,
+        "throttle": 0.0785472611649448
+      },
+      "sha256": "70cf69147134ae49c9eedf3c7cfc013f70931fb028112cf09c8f95ddd10cac06"
+    },
+    {
+      "frame": 446043,
+      "simulation_seconds": 4389.340183701366,
+      "speed_mps": 2.507749769495453,
+      "progress_m": 115.50898395438988,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 37.35000055655837,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.3985445280083731,
+        "throttle": 0.07690009220181881
+      },
+      "sha256": "0b15e4bae3bc1533f30709b4b018770be304ff809330ea53496c617b03927cb8"
+    },
+    {
+      "frame": 446047,
+      "simulation_seconds": 4389.540183704346,
+      "speed_mps": 2.512877494929251,
+      "progress_m": 116.01052924458652,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 37.5500005595386,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.39365785772661,
+        "throttle": 0.0748490020282997
+      },
+      "sha256": "6d223ec66f10dacfe69b62a6fb2d30983945ccf2fd271c55bb02dfee00f5ca2b"
+    },
+    {
+      "frame": 446051,
+      "simulation_seconds": 4389.740183707327,
+      "speed_mps": 2.5188361762598728,
+      "progress_m": 116.49396723925075,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 37.750000562518835,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.3888272863403093,
+        "throttle": 0.07246552949605096
+      },
+      "sha256": "cd70a5ee6f0c9a21451e1d490946cb6c510b1a7069f7cbd77a5c2c5c96564503"
+    },
+    {
+      "frame": 446055,
+      "simulation_seconds": 4389.940183710307,
+      "speed_mps": 2.5245166025041264,
+      "progress_m": 116.9974851187976,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 37.95000056549907,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.387638840043465,
+        "throttle": 0.07019335899834954
+      },
+      "sha256": "d0de1e75232e30896fb0835806b57fbe131793a28bd81b1b2dbf71a144b35075"
+    },
+    {
+      "frame": 446059,
+      "simulation_seconds": 4390.140183713287,
+      "speed_mps": 2.5305880179039892,
+      "progress_m": 117.50261692152323,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 38.1500005684793,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.38393204244259665,
+        "throttle": 0.06776479283840438
+      },
+      "sha256": "efdbb475e088f9b221ae251eeba306159ec5dcc76f214b59e396ae5097816ed0"
+    },
+    {
+      "frame": 446063,
+      "simulation_seconds": 4390.340183716267,
+      "speed_mps": 2.5373272506946285,
+      "progress_m": 118.0090069421915,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 38.35000057145953,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "caution",
+      "source": "jev",
+      "executed_choice": "caution",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.3782624005501967,
+        "throttle": 0.06506909972214868
+      },
+      "sha256": "df89709e27e8b2d8e0ba61e5c611ed47ed1885701b439f8fe313f6e2f3543320"
+    },
+    {
+      "frame": 446067,
+      "simulation_seconds": 4390.540183719248,
+      "speed_mps": 2.5793603242359557,
+      "progress_m": 118.49477612137015,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 38.550000574439764,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.3713186926495079,
+        "throttle": 0.65
+      },
+      "sha256": "472eab4be92e1e8be5ceb93023f2efa59212798fdf5069204e536655dc9e35b0"
+    },
+    {
+      "frame": 446071,
+      "simulation_seconds": 4390.740183722228,
+      "speed_mps": 3.041605602276009,
+      "progress_m": 119.05867960774961,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 38.750000577419996,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.35129091941141144,
+        "throttle": 0.65
+      },
+      "sha256": "c3d7c89d0b6374aa2b8ba259e7a9d4f9e983e3f98a79c28c8e6d33a7346356a3"
+    },
+    {
+      "frame": 446075,
+      "simulation_seconds": 4390.940183725208,
+      "speed_mps": 3.52646663186308,
+      "progress_m": 119.71612973737379,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 38.95000058040023,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.33047496588775793,
+        "throttle": 0.65
+      },
+      "sha256": "e52b91a1a174fbefd9a8869f0960bde53319145e0aaad9361a69c8f433a32490"
+    },
+    {
+      "frame": 446079,
+      "simulation_seconds": 4391.140183728188,
+      "speed_mps": 4.070943988395761,
+      "progress_m": 120.4767861393853,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 39.15000058338046,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.3085460488866396,
+        "throttle": 0.65
+      },
+      "sha256": "b01733b13848e3c1342d17e18ff003f572263a199bebd39afc2eea17242233ef"
+    },
+    {
+      "frame": 446083,
+      "simulation_seconds": 4391.3401837311685,
+      "speed_mps": 4.658736120904268,
+      "progress_m": 121.31916828352266,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 39.35000058636069,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.2875719554837991,
+        "throttle": 0.5365055516382927
+      },
+      "sha256": "d035742dfab0c6ce83501ebc7da089ff8f10a3008ac574bcd7f8e82f9d94f410"
+    },
+    {
+      "frame": 446087,
+      "simulation_seconds": 4391.540183734149,
+      "speed_mps": 5.027617064163858,
+      "progress_m": 122.28884994004963,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 39.550000589340925,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.2707162424314436,
+        "throttle": 0.388953174334457
+      },
+      "sha256": "2efe25f012ba8a6e19d4b420d6058787afd1264da05c55d6b0c6906d083c0730"
+    },
+    {
+      "frame": 446091,
+      "simulation_seconds": 4391.740183737129,
+      "speed_mps": 5.244161679056458,
+      "progress_m": 123.28048028345103,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 39.75000059232116,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.2581788838481174,
+        "throttle": 0.3023353283774167
+      },
+      "sha256": "46df74192a29c64eb8e91f4a3b84d4893a4339ef47c6746935dd6684b7669a5f"
+    },
+    {
+      "frame": 446095,
+      "simulation_seconds": 4391.940183740109,
+      "speed_mps": 5.384919846340448,
+      "progress_m": 124.34052482652604,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 39.95000059530139,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.24526655824163293,
+        "throttle": 0.24603206146382064
+      },
+      "sha256": "5fe36a57a98ffcf40b23156385eaeb360bb7520f62a4f2a4c39d259817496cb1"
+    },
+    {
+      "frame": 446099,
+      "simulation_seconds": 4392.140183743089,
+      "speed_mps": 5.4784971736679,
+      "progress_m": 125.42411885184318,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 40.15000059828162,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.23266306299744607,
+        "throttle": 0.20860113053284018
+      },
+      "sha256": "1e40e95780642a06aee1e7fd052149fdd468bb412f7e9c1933c7c191bac23c82"
+    },
+    {
+      "frame": 446103,
+      "simulation_seconds": 4392.34018374607,
+      "speed_mps": 5.511142220988809,
+      "progress_m": 126.52264733278844,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 40.350000601261854,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.0,
+        "steer": -0.220918662590001,
+        "throttle": 0.05507972494257416
+      },
+      "sha256": "fce37eb544c6594f682230b85664f2075b6739a4137d0dc8758c42ce5561ebda"
+    },
+    {
+      "frame": 446107,
+      "simulation_seconds": 4392.54018374905,
+      "speed_mps": 5.436118660679378,
+      "progress_m": 127.61887369936395,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 40.550000604242086,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.09486923035912254,
+        "steer": -0.21113578930205304,
+        "throttle": 0.0
+      },
+      "sha256": "9424f63fe2c625f60c4c35b42e7db77fea96feed3f9ae516d6c80428802c1736"
+    },
+    {
+      "frame": 446111,
+      "simulation_seconds": 4392.74018375203,
+      "speed_mps": 5.183651831642385,
+      "progress_m": 128.68068370020177,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 40.75000060722232,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.1795000050458202,
+        "steer": -0.20484553360698357,
+        "throttle": 0.0
+      },
+      "sha256": "fb330d12510d5c6689007348f38dbc0fc708a0897f08978b86ba914cd1dab091"
+    },
+    {
+      "frame": 446115,
+      "simulation_seconds": 4392.94018375501,
+      "speed_mps": 4.843349708111052,
+      "progress_m": 129.68232836315084,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 40.95000061020255,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.22675534827652033,
+        "steer": -0.20001926798739988,
+        "throttle": 0.0
+      },
+      "sha256": "f8a004db463385ad2934c8534ad0d56fe5012994cfab43cfbaf25c99e953d876"
+    },
+    {
+      "frame": 446119,
+      "simulation_seconds": 4393.140183757991,
+      "speed_mps": 4.456904246672782,
+      "progress_m": 130.6118339629639,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 41.15000061318278,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.25660881388300405,
+        "steer": -0.19626535671346998,
+        "throttle": 0.0
+      },
+      "sha256": "9b9ce169cdb3a5d72fbad5f152bc500ebc6bf1c2e2dd2e3d27b2f2b96f24e880"
+    },
+    {
+      "frame": 446123,
+      "simulation_seconds": 4393.340183760971,
+      "speed_mps": 4.039312154383707,
+      "progress_m": 131.45977388702707,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 41.350000616163015,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.2760316586392426,
+        "steer": -0.19322246392767062,
+        "throttle": 0.0
+      },
+      "sha256": "48456c1b6c66f12e750a0017fa4d286f5a1aeff27c991d287eca710a67e6db6a"
+    },
+    {
+      "frame": 446127,
+      "simulation_seconds": 4393.540183763951,
+      "speed_mps": 3.604285054749669,
+      "progress_m": 132.22208183688815,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 41.55000061914325,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.2928651628351524,
+        "steer": -0.19086525292297735,
+        "throttle": 0.0
+      },
+      "sha256": "546faaeefa5186bc40cfb882e153ad5685bd9ab2aef9f4c2c9fcfa3bf240bc1b"
+    },
+    {
+      "frame": 446131,
+      "simulation_seconds": 4393.740183766931,
+      "speed_mps": 3.152173691453303,
+      "progress_m": 132.8949614106734,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 41.75000062212348,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.30918566989382557,
+        "steer": -0.19014821754753952,
+        "throttle": 0.0
+      },
+      "sha256": "8ebc45d1ff1c58474fb98589c2eb6cee9db889bcf37a1dd409abde99af05a6ef"
+    },
+    {
+      "frame": 446135,
+      "simulation_seconds": 4393.9401837699115,
+      "speed_mps": 2.684671303426526,
+      "progress_m": 133.47662876250212,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 41.95000062510371,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.3307175234168769,
+        "steer": -0.1910835501411171,
+        "throttle": 0.0
+      },
+      "sha256": "eae102e1d5728faa099a7a14fae4532f6c745a5c260617ae7d86ca4df8300772"
+    },
+    {
+      "frame": 446139,
+      "simulation_seconds": 4394.140183772892,
+      "speed_mps": 2.1895814021981974,
+      "progress_m": 133.96237514777872,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 42.150000628083944,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.3615616426042211,
+        "steer": -0.19444572857166623,
+        "throttle": 0.0
+      },
+      "sha256": "3e12c40acf335a2e8035dfb09d6224edefa3c11d8fd74ec3be3464e88cf325ef"
+    },
+    {
+      "frame": 446143,
+      "simulation_seconds": 4394.340183775872,
+      "speed_mps": 1.6465906415727531,
+      "progress_m": 134.3445822103311,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 42.35000063106418,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.4290646907373044,
+        "steer": -0.20204419305947574,
+        "throttle": 0.0
+      },
+      "sha256": "65bf393641dfd1d28524517bd559514506ed3db14e6261d4f5707d046ffeb82b"
+    },
+    {
+      "frame": 446147,
+      "simulation_seconds": 4394.540183778852,
+      "speed_mps": 0.9444132366179607,
+      "progress_m": 134.6050564891951,
+      "collision": false,
+      "hazard": {
+        "active": false,
+        "elapsed_seconds": 42.55000063404441,
+        "scenario": "cut_in",
+        "started_seconds": 4351.990183144808
+      },
+      "requested_choice": "cruise",
+      "source": "jev",
+      "executed_choice": "cruise",
+      "intervention": {
+        "fallback": false,
+        "reason": null
+      },
+      "control": {
+        "brake": 0.47220661830898036,
+        "steer": -0.22064117817009118,
+        "throttle": 0.0
+      },
+      "sha256": "9de2478c445bb7b63e7b5814138c03e837d4cfb1dd39592b36b1de4de00ef534"
+    }
+  ]
+}
