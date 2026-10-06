@@ -56,6 +56,12 @@ recordings, and evidence.
 > project. Windows clients run it inside WSL2. It is not affiliated with or
 > endorsed by CARLA, and it is not a production multi-user security boundary.
 
+The initial open-source distribution is an **experimental source-checkout
+alpha**. Build the Rust runner as described in [Quick start](#quick-start).
+The Python wheel alone is incomplete. See the [alpha release notes](docs/alpha-release-notes.md)
+for supported workflows and known issues, including the unachieved pedestrian
+crossing. Contributions and fixes will continue in public.
+
 ## Overview
 
 - **One tool, complete workflows.** Combine world inspection, traffic,
