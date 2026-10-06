@@ -20,6 +20,9 @@ branch remains `main`. Read the [GitFlow guide](docs/gitflow.md) for fork comman
 all accepted branch prefixes, release steps and the maintainer review exception.
 Upstream Dependabot security-update PRs may target `main`; scheduled version
 updates target `develop`.
+Merged PR branches are deleted automatically. `main` and `develop` remain
+protected; contributors should prune deleted remote refs and safely delete their
+merged local branches using the [cleanup steps](docs/gitflow.md#maintainer-release-and-hotfix-steps).
 
 ## Development Setup
 
