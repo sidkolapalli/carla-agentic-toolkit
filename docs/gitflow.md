@@ -15,7 +15,7 @@ or autonomous-driving safety.
 | Automated dependency update | `develop` | `dependabot/*` | `develop` |
 | Release stabilization | `develop` | `release/<version>` | `main` |
 | Urgent fix for released code | `main` | `hotfix/<issue>-<description>` | `main` |
-| Release/hotfix back-merge | Upstream `main` | Upstream `main` | `develop` |
+| Release/hotfix back-merge | `develop`, then merge upstream `main` | `chore/backmerge-<version>` | `develop` |
 
 Every prefix needs a descriptive suffix. Existing and agent-created `WIP/*`
 branches may target `develop`; `WIP/release/*` and `WIP/hotfix/*` may also target
@@ -112,9 +112,27 @@ GitHub documents [how rulesets and bypasses work](https://docs.github.com/en/rep
 4. For a release, verify CI on the merged `main` commit. Tag that exact commit and
    publish the release notes. Alpha releases remain prereleases and source-only;
    do not publish a wheel until Rust runner packaging is solved and tested.
-5. Open `main` → `develop` in the upstream repository and merge after checks pass.
-   If there is an active release branch, merge the hotfix into it as well before
-   completing that release. Record the back-merge PR in the release/hotfix PR.
+5. Back-merge through a temporary topic branch so the strict up-to-date rule works
+   even when `develop` already contains unreleased features:
+
+   ```bash
+   git fetch upstream
+   git switch -c chore/backmerge-VERSION upstream/develop
+   git merge upstream/main
+   # Resolve conflicts on this topic branch, then run the quality gate.
+   make check
+   git push -u origin chore/backmerge-VERSION
+   gh pr create --repo sidkolapalli/carla-agentic-toolkit --base develop \
+     --head YOUR_USERNAME:chore/backmerge-VERSION
+   ```
+
+   Substitute the version/description and your GitHub username. Merge this PR
+   with a merge commit after its checks and review pass. A direct upstream
+   `main` → `develop` PR also works when `develop` is already an ancestor of
+   `main`, as during initial setup. Do not merge unreleased `develop` work into
+   `main` merely to make a back-merge PR up to date. If there is an active release
+   branch, merge the hotfix into it as well before completing that release.
+   Record the back-merge PR in the release/hotfix PR.
 6. Delete a completed topic/release/hotfix branch only after its work is preserved
    in both long-lived branches. Automatic branch deletion is disabled so a
    release branch is retained until this is verified.
