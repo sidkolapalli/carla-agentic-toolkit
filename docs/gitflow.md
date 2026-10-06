@@ -80,6 +80,9 @@ conflicts on the topic branch. Do not force-push either long-lived branch.
   ancestry. Squash and rebase merging are disabled.
 - Force pushes and deletion of `main` and `develop` are blocked. Existing `v*`
   release tags cannot be rewritten or deleted.
+- GitHub automatically deletes merged PR head branches. Protected `main` and
+  `develop` remain. Finish a release/hotfix back-merge from `main`; the original
+  topic branch is no longer needed after its PR is merged.
 
 The sole-maintainer exception applies **only to the review ruleset**: repository
 administrators may bypass approval through a PR for their own work, recording why
@@ -133,9 +136,23 @@ GitHub documents [how rulesets and bypasses work](https://docs.github.com/en/rep
    `main` merely to make a back-merge PR up to date. If there is an active release
    branch, merge the hotfix into it as well before completing that release.
    Record the back-merge PR in the release/hotfix PR.
-6. Delete a completed topic/release/hotfix branch only after its work is preserved
-   in both long-lived branches. Automatic branch deletion is disabled so a
-   release branch is retained until this is verified.
+6. Verify the PR head branch was automatically deleted. If GitHub retains it
+   because another open PR still needs it, finish that PR before cleanup. Only
+   delete a retained branch after its tip is reachable from `main` or `develop`
+   and no open PR uses it as a head or base. Do not delete branches with unmerged
+   commits. Fork owners manage deletion in their own forks.
+
+   Clean up your local copy after switching off the merged branch:
+
+   ```bash
+   git fetch --prune origin
+   git fetch upstream
+   git switch --detach upstream/develop  # or upstream/main for a merged hotfix
+   git branch -d YOUR_MERGED_BRANCH
+   ```
+
+   Use the safe `-d` form. If Git refuses deletion, check ancestry and preserve
+   any unmerged commits. Do not force deletion just to remove a warning.
 
 Do not use `git flow ... finish` commands that push directly to protected
 branches. Perform release and hotfix integration through GitHub PRs instead.
