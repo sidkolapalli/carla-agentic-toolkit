@@ -2,13 +2,32 @@
 
 Thank you for helping improve CARLA Agentic Toolkit.
 
+## Branching and Pull Request Targets
+
+We use **classic GitFlow**. `main` contains released work; `develop` integrates
+the next release. Both branches require pull requests, passing CI and resolved
+review conversations. Direct pushes, force pushes and deletion are blocked.
+
+| Work | Start from | Branch | PR target |
+| --- | --- | --- | --- |
+| Features, fixes, documentation, dependencies | `develop` | `feature/*`, `fix/*`, `docs/*`, `chore/*` | `develop` |
+| Release preparation | `develop` | `release/<version>` | `main`, then back-merge `main` into `develop` |
+| Urgent released-version fix | `main` | `hotfix/<description>` | `main`, then back-merge `main` into `develop` |
+
+The required **Branch policy** check enforces the target. Fork contributors should
+select `develop` explicitly in GitHub's PR form because the repository's default
+branch remains `main`. Read the [GitFlow guide](docs/gitflow.md) for fork commands,
+all accepted branch prefixes, release steps and the maintainer review exception.
+Upstream Dependabot security-update PRs may target `main`; scheduled version
+updates target `develop`.
+
 ## Development Setup
 
 The local gate requires Linux, Python 3.12+, uv, and Rust. CARLA itself is only
 required for manual live testing.
 
 ```bash
-git clone https://github.com/sidkolapalli/carla-agentic-toolkit.git
+git clone --branch develop https://github.com/sidkolapalli/carla-agentic-toolkit.git
 cd carla-agentic-toolkit
 uv sync --locked
 cargo build --locked --manifest-path sandbox-runner/Cargo.toml --release
@@ -48,6 +67,10 @@ layers it actually needs:
 3. The single `CarlaScriptApi` facade path and snapshot policy
 4. A small mock-backed facade behavior test
 5. User-facing documentation when the public contract changes
+
+Use test-driven development for behavior changes: add a regression test, confirm
+it fails for the reported reason, implement the fix, and rerun the focused test
+and `make check`. Documentation-only changes do not need artificial tests.
 
 Security boundaries require tests. In particular, changes to script validation,
 filesystem access, network access, process limits, or the Rust runner must show

@@ -7,13 +7,24 @@ candidate, visibility transition, reporting checks and prerelease receipt are
 tracked in [#82](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/82).
 PyPI/wheel publication and production-readiness claims remain outside this scope.
 
+**Published 2026-10-06:** the repository is public and
+[`v0.1.0-alpha.1`](https://github.com/sidkolapalli/carla-agentic-toolkit/releases/tag/v0.1.0-alpha.1)
+points to `f02b732bbca4eeee898f0c7c0a76b384d8ed4abd`.
+[Final publication CI](https://github.com/sidkolapalli/carla-agentic-toolkit/actions/runs/37525439873)
+passed 643 Python tests (one opt-in skip), nine Rust tests and all quality,
+dependency, history, build and container gates. Unauthenticated checks confirmed
+public repository/release access, the tag commit, published security/conduct
+contacts, private vulnerability reporting enabled and the visible reporting
+entry point. External-account report submission and inbox delivery were not
+independently tested; #82 retains that verification gap.
+
 ## Release acceptance gates
 
 | Gate | Required evidence |
 | --- | --- |
-| Candidate and CI (#81, #82) | PRs #92 and #95 are merged. Their combined source/evidence tree `02ac49e` passed [CI 37384683695](https://github.com/sidkolapalli/carla-agentic-toolkit/actions/runs/37384683695): 643 Python tests, one opt-in skip, nine Rust tests, and quality, dependency, history, package and container gates. The final publication commit requires its own successful CI; record that commit and run in #82 before tagging. |
-| Public release (#82) | Owner authorized the experimental public alpha on 2026-10-06. Publish only the tested final candidate and record its prerelease tag. Distribution remains a source checkout; the wheel does not bundle the Rust runner. |
-| Private reporting (#82) | The owner selected `akon2997@gmail.com` for private security and conduct reports and confirmed access on 2026-10-06. Inbox delivery was not independently tested. Enable GitHub private vulnerability reporting during publication and verify API configuration and the public reporting route. Record what was actually checked in #82; a maintainer API response or visible link does not prove submission from an external researcher's account. Email remains available independently of that form. |
+| Candidate and CI (#81, #82) | PRs #92, #95 and #97 are merged. The exact publication commit and successful final CI are recorded above. Later changes require their own checks. |
+| Public release (#82) | Owner-authorized public source-only alpha published as `v0.1.0-alpha.1` on 2026-10-06. The wheel does not bundle the Rust runner. |
+| Private reporting (#82) | The owner selected `akon2997@gmail.com` for security/conduct reports and confirmed access. Public contact links and the enabled GitHub private-reporting endpoint/entry point were checked without authentication. External report submission and inbox delivery remain unverified. Email remains available independently of GitHub's form. |
 | Live provider (#86) | Passed the separately opted-in live Jev check using the existing Windows Credential Manager entry through private process input. The key was neither printed nor copied to configuration or report files. |
 | Matched evaluation (#87) | Six declared trials completed: one rules and one Jev run for each seed 7, 19 and 31. Strict matching accepted all pairs; all runs verified actor cleanup and world restoration. The [saved comparison](evidence/merge-comparison-2026-10-02/README.md) records sample counts, metrics, versions and limitations. |
 | Follow-on article (#87) | Read the current original article before preparing its follow-up. Its URL or file path is still required. |
@@ -70,7 +81,8 @@ gates above or establish full UE5 support. Later changes still require candidate
   recorded camera demo and independent automated reproduction are delivered.
   The original-article review remains incomplete until its URL/path is supplied.
 - **#81, #82:** the workflow pins, full-history scan, source packaging, container
-  runtime, and local release checks have been repaired. Publication remains gated.
+  runtime, and local release checks have been repaired. The source alpha is public;
+  the remaining reporting verification is recorded above.
 
 ## Reproduction
 
