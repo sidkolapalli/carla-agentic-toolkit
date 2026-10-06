@@ -58,13 +58,12 @@ representative at an online or offline event.
 
 ## Enforcement
 
-While the repository is private, report abusive, harassing, or otherwise
-unacceptable behavior through an existing private channel with the maintainer.
-No public conduct-reporting contact is configured yet. Before opening the
-repository to public contributions, the maintainer must publish and test a
-monitored private contact here. Do not post identifying incident details in a
-public issue or use a vulnerability advisory for a conduct report. All complaints
-will be reviewed and investigated promptly and fairly.
+Report abusive, harassing, or otherwise unacceptable behavior privately to the
+maintainer at [akon2997@gmail.com](mailto:akon2997@gmail.com), with a subject
+beginning `[CARLA Agentic Toolkit conduct]`. Include relevant links and enough
+context to investigate. Do not post identifying incident details in a public
+issue or use a vulnerability advisory for a conduct report. All complaints will
+be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
