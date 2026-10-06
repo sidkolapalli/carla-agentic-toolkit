@@ -2,7 +2,10 @@
 
 ## Supported Versions
 
-Security fixes are developed on `main`. Experimental alpha tags are snapshots;
+Security fixes reach `main` through reviewed `hotfix/*` pull requests, then are
+back-merged into `develop`. Coordinate undisclosed fixes privately with the
+maintainer before opening any public branch or pull request.
+Experimental alpha tags are snapshots;
 update to the latest `main` when a fix is published. There is no long-term
 support branch for an alpha release.
 
