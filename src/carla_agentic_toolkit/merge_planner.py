@@ -87,12 +87,16 @@ def _candidate(choice: str, value: MergeObservation, settings: PlannerSettings) 
 
 
 def tracking_control(
-    actor: ActorObservation, *, target_speed_mps: float, target_lateral_m: float
+    actor: ActorObservation,
+    *,
+    target_speed_mps: float,
+    target_lateral_m: float,
+    heading_gain: float = 0.9,
 ) -> LocalControl:
     """Track a numerical speed/lateral target with bounded proportional actuation."""
     speed_error = target_speed_mps - actor.speed_mps
     heading = math.radians(actor.yaw_error_degrees)
-    steer = (target_lateral_m - actor.lateral_m) * 0.18 - heading * 0.9
+    steer = (target_lateral_m - actor.lateral_m) * 0.18 - heading * heading_gain
     return LocalControl(
         throttle=min(max(speed_error * 0.35, 0.0), 0.65),
         brake=min(max(-speed_error * 0.5, 0.0), 1.0),

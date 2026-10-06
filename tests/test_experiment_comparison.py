@@ -116,11 +116,13 @@ def test_comparison_matches_saved_trials_and_keeps_exact_policy_metadata(tmp_pat
     [
         {"spec": {"seed": 8}},
         {"spec": {"timing_mode": "paced"}},
+        {"spec": {"fixture": "town10-merge-ue5-v1"}},
         {"metadata": {"code_sha256": "b" * 64}},
         {"metadata": {"environment": {"carla_server": "changed"}}},
         {"metadata": {"controller_version": "changed"}},
         {"metadata": {"planner_version": "changed"}},
         {"fixture": {"policy_start": {"x": 2.0}}},
+        {"fixture": {"vehicle_blueprint": "vehicle.lincoln.mkz"}},
     ],
 )
 def test_mismatched_trials_refuse_comparative_metrics(

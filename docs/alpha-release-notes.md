@@ -6,15 +6,17 @@ It is not a production release. Build the Rust runner from the checkout; do not
 publish the Python wheel, which does not bundle that runner
 ([#52](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/52)).
 
-The implementation at
-[`49a739ebab377f04161afd2201d93fab1a4bd8d7`](https://github.com/sidkolapalli/carla-agentic-toolkit/commit/49a739ebab377f04161afd2201d93fab1a4bd8d7)
-passed [CI run 37078825584](https://github.com/sidkolapalli/carla-agentic-toolkit/actions/runs/37078825584).
-That run passed 528 Python tests, skipped the explicitly configured live Jev
-test, passed nine Rust tests, and completed the dependency, history, build,
-hardened-container and container-vulnerability checks. Documentation and example
-follow-ups must pass CI on their own final commit before it becomes a tagged
-candidate. [PR #88](https://github.com/sidkolapalli/carla-agentic-toolkit/pull/88)
-contains the candidate work.
+The merged implementation and evidence at
+[`d891f4df124ba8b7117f5e02afc466338f9c0e09`](https://github.com/sidkolapalli/carla-agentic-toolkit/commit/d891f4df124ba8b7117f5e02afc466338f9c0e09)
+passed [main CI run 37130509549](https://github.com/sidkolapalli/carla-agentic-toolkit/actions/runs/37130509549).
+Its byte-identical pre-merge candidate passed 579 Python tests, one explicitly
+configured live-provider skip, and nine Rust tests in
+[CI run 37129889937](https://github.com/sidkolapalli/carla-agentic-toolkit/actions/runs/37129889937).
+Main CI also passed the quality, dependency, history, package, hardened-container,
+and container-vulnerability gates. [PR #88](https://github.com/sidkolapalli/carla-agentic-toolkit/pull/88)
+contains the implementation; [PR #89](https://github.com/sidkolapalli/carla-agentic-toolkit/pull/89)
+adds the recorded demo and independent reproduction. Any later changes need
+their own successful CI run before a release is tagged.
 
 ## Changes in this candidate
 

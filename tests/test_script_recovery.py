@@ -17,6 +17,7 @@ from carla_agentic_toolkit.simulator_lease import SimulatorLease
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from carla_agentic_toolkit.adapter import PythonCarlaAdapter
     from carla_agentic_toolkit.carla_protocols import CarlaWorld
     from carla_agentic_toolkit.ownership import RunOwnership
 
@@ -104,7 +105,7 @@ def test_cleanup_never_confuses_empty_cache_with_absent_actor(
     monkeypatch: pytest.MonkeyPatch, *, same_episode: bool
 ) -> None:
     """Refresh before destruction, and never destroy recycled IDs in another world."""
-    from carla_agentic_toolkit import adapter, ownership  # noqa: PLC0415
+    from carla_agentic_toolkit import ownership  # noqa: PLC0415
 
     events: list[str] = []
     state = {"frame": 10}
@@ -121,9 +122,7 @@ def test_cleanup_never_confuses_empty_cache_with_absent_actor(
         tick=tick,
     )
     client = SimpleNamespace(get_world=lambda: world)
-    monkeypatch.setattr(
-        adapter, "PythonCarlaAdapter", lambda **_kwargs: SimpleNamespace(_client=lambda: client)
-    )
+    adapter = SimpleNamespace(_client=lambda: client)
     record = SimpleNamespace(world_id=lambda: 7, clear=lambda: events.append("clear"))
 
     def clean(_adapter: object, _record: object) -> dict[str, object]:
@@ -132,7 +131,7 @@ def test_cleanup_never_confuses_empty_cache_with_absent_actor(
 
     monkeypatch.setattr(ownership, "cleanup_owned_actors", clean)
     report = script_recovery._cleanup_connected(  # noqa: SLF001 - isolate native RPC boundary.
-        "localhost", 3000, cast("RunOwnership", record)
+        cast("PythonCarlaAdapter", adapter), cast("RunOwnership", record)
     )
     assert report["failures"] == []
     assert events == (["snapshot", "destroy"] if same_episode else ["clear"])

@@ -10,9 +10,9 @@ been made by this validation work.
 
 | Gate | Required evidence |
 | --- | --- |
-| Candidate and CI (#81, #82) | Merged implementation `660ac45ef0163f8758d2abe51f1b2136dcc9e568` passed [hosted CI](https://github.com/sidkolapalli/carla-agentic-toolkit/actions/runs/37090466781): 533 Python tests, one expected live-provider skip and nine Rust tests, plus quality/security/container gates. Later artifact-tool changes require their own successful candidate run. |
+| Candidate and CI (#81, #82) | Merged implementation and evidence `d891f4df124ba8b7117f5e02afc466338f9c0e09` passed [main CI](https://github.com/sidkolapalli/carla-agentic-toolkit/actions/runs/37130509549), including quality, dependency, history, package and container gates. The byte-identical [pre-merge candidate](https://github.com/sidkolapalli/carla-agentic-toolkit/actions/runs/37129889937) passed 579 Python tests, one expected live-provider skip and nine Rust tests. Changes after that commit need their own successful CI before tagging. |
 | Public release (#82) | Owner approval of the concrete candidate and visibility/publication changes, followed by a prerelease tag. Distribution remains a source checkout; the wheel does not bundle the Rust runner. |
-| Security reporting (#82) | The repository is private; the private-vulnerability-reporting endpoint returned 404 on 2026-10-02. Configure and verify a public-release reporting route before publication. The owner's public profile currently lists no email or website fallback. |
+| Private reporting (#82) | The repository is private; the private-vulnerability-reporting endpoint still returned 404 on 2026-10-03. Publish and test a monitored private security/conduct contact before opening the repository. GitHub private vulnerability reporting is a public-repository feature; enable and externally verify it during the visibility transition before announcing the release. Replace the current contact placeholders with the verified routes. |
 | Live provider (#86) | Passed the separately opted-in live Jev check using the existing Windows Credential Manager entry through private process input. The key was neither printed nor copied to configuration or report files. |
 | Matched evaluation (#87) | Six declared trials completed: one rules and one Jev run for each seed 7, 19 and 31. Strict matching accepted all pairs; all runs verified actor cleanup and world restoration. The [saved comparison](evidence/merge-comparison-2026-10-02/README.md) records sample counts, metrics, versions and limitations. |
 | Follow-on article (#87) | Read the current original article before preparing its follow-up. Its URL or file path is still required. |
@@ -20,6 +20,22 @@ been made by this validation work.
 | Reproduction (#87) | An [independent automated operator](evidence/independent-reproduction-2026-10-03/README.md), starting from the checked-in instructions in a fresh checkout/venv/state, reproduced all six trials with no retries or comparison blockers. This is not an external-human or second-machine validation claim. |
 
 ## Delivered implementation
+
+The [2026-10-05 UE5 validation](evidence/ue5-validation-2026-10-05/README.md)
+adds a separate Lincoln fixture for CARLA 0.10.0, corrects its steering overshoot,
+and fixes destruction of an actor before its first snapshot. The final cohort
+completed three rules and three Jev trials, with no delivered collision events
+and verified restoration. Local checks passed 594 Python tests (two platform/live
+skips) and nine Rust tests. Weather is an explicit upstream limitation. One earlier
+persistent-close cleanup report was missing; recovery and reruns succeeded, but
+that source revision left its cause unresolved. The subsequent
+[cleanup worker lifetime fix](evidence/cleanup-worker-2026-10-05/README.md)
+reproduced report loss under fatal native finalization, retained the client through
+report publication, and added explicit worker-exit diagnostics. Its final 24 live
+closes, forced failure/recovery with an unrelated actor, and finite timeout checks
+passed; the local gate passed 599 Python tests and nine Rust tests. These are
+separate lifecycle checks from the earlier merge cohort and do not replace the public-release
+gates above or establish full UE5 support. Later changes still require candidate CI.
 
 - **#42, #77:** tracked controller lifetime, restart exclusion, worker generations,
   and desired/applied revisions prevent overlap and lost newer requests.

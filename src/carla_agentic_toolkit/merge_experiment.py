@@ -9,8 +9,14 @@ from dataclasses import asdict, replace
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, cast
 
-from carla_agentic_toolkit.errors import CarlaAdapterError
-from carla_agentic_toolkit.merge_fixture import MergeCorridor, Pose, select_corridor, yaw_difference
+from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
+from carla_agentic_toolkit.merge_fixture import (
+    FIXTURE_VEHICLES,
+    MergeCorridor,
+    Pose,
+    select_corridor,
+    yaw_difference,
+)
 from carla_agentic_toolkit.merge_planner import (
     PLANNER_VERSION,
     TERMINAL_PHASES,
@@ -54,6 +60,7 @@ class MergeExperiment:
             target_speed_mps=self.spec.target_speed_mps,
             ego_speed_mps=self.spec.ego_speed_mps,
             expiry_frames=max(1, round(1.0 / self.spec.fixed_delta_seconds)),
+            tracker_heading_gain=1.8 if self.spec.fixture == "town10-merge-ue5-v1" else 0.9,
         )
         self.state = ManeuverState()
         self.corridor: MergeCorridor | None = None
@@ -69,7 +76,7 @@ class MergeExperiment:
         if self._actors:
             message = "Merge fixture is already prepared."
             raise CarlaAdapterError(message)
-        self.corridor = select_corridor(self.session.map)
+        self.corridor = select_corridor(self.session.map, fixture_version=self.spec.fixture)
         self.session.on_close(self.close)
         self._actors["policy"] = self._spawn_vehicle("policy", self.corridor.policy_start)
         self._actors["ego"] = self._spawn_vehicle("ego", self.corridor.ego_start)
@@ -85,11 +92,20 @@ class MergeExperiment:
             "controller_version": TRACKER_VERSION,
             "settings": asdict(self.settings),
             "observation_mode": self.spec.observation_mode,
+            "vehicle_blueprint": FIXTURE_VEHICLES[self.spec.fixture],
             "actor_ids": {role: int(cast("Any", actor).id) for role, actor in self._actors.items()},
         }
 
     def _spawn_vehicle(self, role: str, pose: Pose) -> object:
-        blueprint = self.session.world.get_blueprint_library().find("vehicle.tesla.model3")
+        blueprint_id = FIXTURE_VEHICLES[self.spec.fixture]
+        try:
+            blueprint = self.session.world.get_blueprint_library().find(blueprint_id)
+        except (RuntimeError, IndexError) as error:
+            message = (
+                f"{self.spec.fixture} requires {blueprint_id}, which this simulator does not "
+                "provide. Select a fixture matching the simulator's vehicle catalog."
+            )
+            raise UnsupportedFeatureError(message) from error
         blueprint.set_attribute("role_name", f"managed:{self.session.run_id}:{role}")
         actor = self.session.world.spawn_actor(blueprint, _transform(pose))
         self.session.own(actor, controller=f"{role}:{TRACKER_VERSION}", protected=True)
@@ -235,11 +251,13 @@ class MergeExperiment:
                 value.policy,
                 target_speed_mps=self.settings.target_speed_mps,
                 target_lateral_m=lateral_target(self.state, value, self.settings),
+                heading_gain=self.settings.tracker_heading_gain,
             ),
             "ego": tracking_control(
                 value.ego,
                 target_speed_mps=self.settings.ego_speed_mps,
                 target_lateral_m=value.lane.target_offset_m,
+                heading_gain=self.settings.tracker_heading_gain,
             ),
         }
 

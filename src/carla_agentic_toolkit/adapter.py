@@ -205,7 +205,7 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
         """Use created sensor handles even before the next snapshot exposes their IDs."""
         if actor_id not in self._sensor_handles:
             result = destroy_actor(world, actor_id)
-            if result.error == "Actor was not found.":
+            if not result.destroyed and result.error in (None, "Actor was not found."):
                 return self._destroy_uncached_actor(world, actor_id)
             return result
         try:

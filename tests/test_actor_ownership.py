@@ -146,14 +146,30 @@ def test_legacy_unknown_episode_cleanup_fails_closed(tmp_path: Path) -> None:
     assert ownership.actor_ids() == (ACTOR_ID,)
 
 
+@pytest.mark.parametrize("resolved_handle", [False, True])
+@pytest.mark.parametrize("server_error", [None, "server refused destruction"])
 def test_fresh_actor_cleanup_uses_server_destroy_when_snapshot_omits_it(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
+    server_error: str | None,
+    *,
+    resolved_handle: bool,
 ) -> None:
-    """A missing cached actor description is not proof that a just-spawned actor is gone."""
+    """Missing snapshots can omit a handle or make UE5's handle refuse destruction."""
     adapter = PythonCarlaAdapter()
+    handle = SimpleNamespace(
+        id=ACTOR_ID,
+        type_id="vehicle.lincoln.mkz",
+        attributes={},
+        get_transform=lambda: None,
+        get_velocity=lambda: None,
+        destroy=lambda: False,
+    )
     world = SimpleNamespace(
-        id=17, get_actors=lambda _actor_ids=None: SimpleNamespace(find=lambda _actor_id: None)
+        id=17,
+        get_actors=lambda _actor_ids=None: SimpleNamespace(
+            find=lambda _actor_id: handle if resolved_handle else None
+        ),
     )
     client = SimpleNamespace(get_world=lambda: world)
     monkeypatch.setattr(adapter, "_client", lambda: client)
@@ -161,15 +177,23 @@ def test_fresh_actor_cleanup_uses_server_destroy_when_snapshot_omits_it(
 
     def batch(commands: list[dict[str, object]], *, do_tick: bool = True) -> dict[str, object]:
         batches.append((commands, do_tick))
-        return {"responses": [{"actor_id": ACTOR_ID, "error": None}]}
+        return {"responses": [{"actor_id": ACTOR_ID, "error": server_error}]}
 
     monkeypatch.setattr(adapter, "apply_batch", batch)
     ownership = RunOwnership(tmp_path / OWNERSHIP_FILENAME)
     ownership.add((ACTOR_ID,), world_id=world.id)
     result = cleanup_owned_actors(adapter, ownership)
-    assert batches == [([{"action": "destroy_actor", "actor_id": ACTOR_ID}], False)]
-    assert result["destroyed_actor_ids"] == [ACTOR_ID]
-    assert ownership.actor_ids() == ()
+    assert (
+        batches,
+        result["destroyed_actor_ids"],
+        ownership.actor_ids(),
+        bool(result["failures"]),
+    ) == (
+        [([{"action": "destroy_actor", "actor_id": ACTOR_ID}], False)],
+        [] if server_error else [ACTOR_ID],
+        (ACTOR_ID,) if server_error else (),
+        bool(server_error),
+    )
 
 
 def test_replaced_episode_cleanup_clears_old_ids_without_destroy(tmp_path: Path) -> None:

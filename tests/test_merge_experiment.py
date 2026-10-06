@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, cast
 
 import pytest
 
 from carla_agentic_toolkit import merge_experiment
-from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
 from carla_agentic_toolkit.managed_spec import ExperimentSpec
-from carla_agentic_toolkit.merge_planner import rules_decision
+from carla_agentic_toolkit.merge_planner import ManeuverState, rules_decision
 from tests.test_merge_fixture import Map, Waypoint
 
 if TYPE_CHECKING:
@@ -116,7 +116,9 @@ class Session:
         self.callbacks.append(callback)
 
 
-def _prepare(monkeypatch: pytest.MonkeyPatch) -> tuple[Session, merge_experiment.MergeExperiment]:
+def _prepare(
+    monkeypatch: pytest.MonkeyPatch, spec: ExperimentSpec | None = None
+) -> tuple[Session, merge_experiment.MergeExperiment]:
     module = SimpleNamespace(
         Location=SimpleNamespace,
         Rotation=SimpleNamespace,
@@ -126,7 +128,7 @@ def _prepare(monkeypatch: pytest.MonkeyPatch) -> tuple[Session, merge_experiment
         VehicleControl=SimpleNamespace,
     )
     monkeypatch.setattr(merge_experiment, "import_module", lambda _name: module)
-    session = Session()
+    session = Session(spec=spec or ExperimentSpec())
     experiment = merge_experiment.MergeExperiment(session)
     experiment.prepare()
     return session, experiment
@@ -156,6 +158,67 @@ def test_prepare_assigns_unique_controllers_and_disables_autopilot(
     assert [actor.autopilot for actor in vehicles] == [[False], [False]]
     assert len({item[0] for item in session.owned}) == len(session.world.actors)
     assert all(actor.role.startswith("managed:run-test:") for actor in session.world.actors)
+
+
+@pytest.mark.parametrize(
+    ("fixture", "blueprint"),
+    [
+        ("town10-merge-v1", "vehicle.tesla.model3"),
+        ("town10-merge-ue5-v1", "vehicle.lincoln.mkz"),
+    ],
+)
+def test_fixture_selects_and_records_the_exact_vehicle(
+    monkeypatch: pytest.MonkeyPatch, fixture: str, blueprint: str
+) -> None:
+    """A fixture selects one known vehicle and records it for reproducible comparisons."""
+    spec = ExperimentSpec.model_validate({"fixture": fixture})
+    session, experiment = _prepare(monkeypatch, spec)
+
+    assert [actor.type_id for actor in session.world.actors[:2]] == [blueprint, blueprint]
+    metadata = experiment.fixture_metadata()
+    assert (metadata["fixture_version"], metadata["vehicle_blueprint"]) == (fixture, blueprint)
+
+
+def test_missing_fixture_vehicle_reports_the_required_blueprint_before_spawn(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A release with a different catalog must fail clearly without substituting physics."""
+
+    def missing(_blueprint: str) -> None:
+        message = "std::exception"
+        raise RuntimeError(message)
+
+    world = World()
+    monkeypatch.setattr(
+        World, "get_blueprint_library", lambda _world: SimpleNamespace(find=missing)
+    )
+    experiment = merge_experiment.MergeExperiment(Session(world=world))
+
+    with pytest.raises(UnsupportedFeatureError, match=r"town10-merge-v1.*vehicle\.tesla\.model3"):
+        experiment.prepare()
+    assert world.actors == []
+
+
+def test_ue5_tracker_countersteers_before_overshooting_the_lane(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The Lincoln needs heading damping before its body reaches the far lane boundary."""
+    spec = ExperimentSpec.model_validate({"fixture": "town10-merge-ue5-v1"})
+    session, experiment = _prepare(monkeypatch, spec)
+    value = experiment.observe(_snapshot(session, frame=100))
+    value = replace(
+        value,
+        policy=replace(value.policy, lateral_m=2.5, yaw_error_degrees=10.0, speed_mps=6.0),
+    )
+    experiment.state = ManeuverState(phase="committed", first_frame=0, committed_frame=0)
+
+    result = experiment.advance(value)
+
+    controls = cast("dict[str, dict[str, float]]", result["controls"])
+    settings = cast("dict[str, float]", experiment.fixture_metadata()["settings"])
+    assert controls["policy"]["steer"] < 0
+    assert settings["tracker_heading_gain"] == pytest.approx(1.8)
+    assert _prepare(monkeypatch)[1].settings.tracker_heading_gain == pytest.approx(0.9)
 
 
 def test_observation_uses_one_snapshot_and_empty_events_never_block(

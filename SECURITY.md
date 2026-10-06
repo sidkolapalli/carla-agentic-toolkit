@@ -16,10 +16,16 @@ The repository is currently private. Report suspected vulnerabilities through an
 existing private channel with the repository maintainer; do not disclose them in
 a public issue. No public security contact is configured yet.
 
-Before a public release, the maintainer must enable GitHub private vulnerability
-reporting and verify **Security → Advisories → Report a vulnerability** from an
-external account. That route is a release prerequisite, not a currently available
-reporting channel. Do not disclose a vulnerability publicly before a fix is ready.
+Before making the repository public, the maintainer must publish and test a
+monitored private contact that a person without repository access can use.
+[GitHub private vulnerability reporting](https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/configure-vulnerability-reporting/configure-for-a-repository)
+is available for public repositories. Enable it during the visibility transition
+and verify **Security → Advisories → Report a vulnerability** from an external
+account before announcing the release. Keep the private contact available until
+that route is verified, then update this policy with the actual reporting route.
+Neither a private-repository API 404 nor an administrator's settings view verifies
+that an external researcher can submit a report. Do not disclose a vulnerability
+publicly before a fix is ready.
 
 Include the affected commit, Linux distribution and kernel, reproduction steps,
 impact, and any proposed mitigation. Remove credentials, CARLA recordings, and

@@ -1,0 +1,1114 @@
+{
+  "schema_version": 1,
+  "validated_on": "2026-10-05",
+  "scope": "Single-machine experimental UE5 workflow validation; not production certification.",
+  "environment": {
+    "carla_server": "0.10.0",
+    "carla_linux_client": "0.10.0",
+    "engine": "Unreal Engine 5.5",
+    "server_platform": "Windows",
+    "toolkit_platform": "Ubuntu 26.04 on WSL2",
+    "python": "3.12.14",
+    "gpu": "AMD Radeon RX 7900 XTX",
+    "map": "Carla/Maps/Town10HD_Opt",
+    "rendering": "RenderOffScreen, Low quality, 960x540 spectator",
+    "transport": "Temporary local stdio relay with prepared streaming connections; direct inbound WSL path was blocked by Windows firewall.",
+    "model": "jev-1.13.0",
+    "typesafe_sdk": "0.7.2"
+  },
+  "download_provenance": [
+    {
+      "download_url": "https://downloads.carlasim.com/Windows/Carla-0.10.0-Win64-Shipping.zip",
+      "archive_bytes": 10203028286,
+      "sha256": "0e02b7dd1f12ec5f2517adf73f2944cc77adbc6c34896da0c604bc1e096c5682",
+      "verification": "Locally computed digest; no independently published digest was provided."
+    },
+    {
+      "url": "https://downloads.carlasim.com/Linux/Carla-0.10.0-Linux-Shipping.tar.gz",
+      "archive_member": "Carla-0.10.0-Linux-Shipping/PythonAPI/carla/dist/carla-0.10.0-cp312-cp312-linux_x86_64.whl",
+      "filename": "carla-0.10.0-cp312-cp312-linux_x86_64.whl",
+      "bytes": 3109609,
+      "sha256": "b9a215f49f4e6c57160b53d95aa6507338d486a0171e744a31834cc5edc95d24"
+    }
+  ],
+  "regressions": {
+    "python_passed": 594,
+    "python_skipped": 2,
+    "rust_passed": 9,
+    "ruff": "passed",
+    "format": "passed",
+    "types": "passed",
+    "complexity": "passed",
+    "maintainability": "passed"
+  },
+  "mcp_smoke": {
+    "ok": true,
+    "movement": {
+      "after_mps": 2.1135649658964466,
+      "before_mps": 0.08490864932537079
+    },
+    "image_content": true,
+    "resource_read": true,
+    "landlock_enforced": true,
+    "weather_tested": false,
+    "weather_restored": null,
+    "spectator_restored": true,
+    "leftovers": [],
+    "validator_rejected": true,
+    "timeout_cleaned": true
+  },
+  "lifecycle": {
+    "finite": {
+      "ok": true,
+      "actors_restored": true,
+      "timeout_cleanup_failures": [],
+      "destroy_before_tick": true
+    },
+    "persistent": {
+      "ok": true,
+      "followup_requests": 3,
+      "telemetry_received": true,
+      "restored": true
+    },
+    "managed_cancellation": {
+      "ok": true,
+      "state": "cancelled",
+      "cleanup_ok": true,
+      "dynamic_actors": []
+    }
+  },
+  "comparison": {
+    "comparable": true,
+    "blockers": [],
+    "policies": {
+      "rules": {
+        "sample_count": 3,
+        "eligible_count": 3,
+        "excluded_count": 0,
+        "status_counts": {
+          "completed": 3
+        },
+        "metrics": {
+          "completion": {
+            "numerator": 3,
+            "denominator": 3,
+            "rate": 1.0
+          },
+          "observed_collision": {
+            "numerator": 0,
+            "denominator": 3,
+            "rate": 0.0
+          },
+          "collision_events": {
+            "mean": 0.0,
+            "denominator": 3
+          },
+          "collision_impulse_magnitude_sum_kg_mps": {
+            "mean": 0.0,
+            "denominator": 3
+          },
+          "lane_invasion_events": {
+            "mean": 4.0,
+            "denominator": 3
+          },
+          "hesitation_seconds": {
+            "mean": 0.0,
+            "denominator": 3
+          },
+          "reversal_count": {
+            "mean": 0.0,
+            "denominator": 3
+          },
+          "tracking_error_rmse_m": {
+            "mean": 1.331575137572852,
+            "denominator": 3
+          },
+          "interventions": {
+            "mean": 0.0,
+            "denominator": 3
+          },
+          "fallbacks": {
+            "mean": 0.0,
+            "denominator": 3
+          },
+          "decision_latency_mean_seconds": {
+            "mean": null,
+            "denominator": 0
+          },
+          "decision_staleness_max_frames": {
+            "mean": 0.0,
+            "denominator": 3
+          },
+          "sensor_dropped_samples": {
+            "mean": 0.0,
+            "denominator": 3
+          },
+          "sensor_trailing_events": {
+            "mean": 0.6666666666666666,
+            "denominator": 3
+          },
+          "real_time_factor": {
+            "mean": 1.3593914583578368,
+            "denominator": 3
+          }
+        }
+      },
+      "jev": {
+        "sample_count": 3,
+        "eligible_count": 3,
+        "excluded_count": 0,
+        "status_counts": {
+          "completed": 3
+        },
+        "metrics": {
+          "completion": {
+            "numerator": 3,
+            "denominator": 3,
+            "rate": 1.0
+          },
+          "observed_collision": {
+            "numerator": 0,
+            "denominator": 3,
+            "rate": 0.0
+          },
+          "collision_events": {
+            "mean": 0.0,
+            "denominator": 3
+          },
+          "collision_impulse_magnitude_sum_kg_mps": {
+            "mean": 0.0,
+            "denominator": 3
+          },
+          "lane_invasion_events": {
+            "mean": 4.0,
+            "denominator": 3
+          },
+          "hesitation_seconds": {
+            "mean": 0.0,
+            "denominator": 3
+          },
+          "reversal_count": {
+            "mean": 0.0,
+            "denominator": 3
+          },
+          "tracking_error_rmse_m": {
+            "mean": 1.331575137572852,
+            "denominator": 3
+          },
+          "interventions": {
+            "mean": 0.0,
+            "denominator": 3
+          },
+          "fallbacks": {
+            "mean": 0.0,
+            "denominator": 3
+          },
+          "decision_latency_mean_seconds": {
+            "mean": 0.15218507496047096,
+            "denominator": 3
+          },
+          "decision_staleness_max_frames": {
+            "mean": 0.0,
+            "denominator": 3
+          },
+          "sensor_dropped_samples": {
+            "mean": 0.0,
+            "denominator": 3
+          },
+          "sensor_trailing_events": {
+            "mean": 2.0,
+            "denominator": 3
+          },
+          "real_time_factor": {
+            "mean": 0.9517938381088139,
+            "denominator": 3
+          }
+        }
+      }
+    }
+  },
+  "runs": [
+    {
+      "label": "rules-1",
+      "phase": "before_heading_fix",
+      "run_id": "ec511e1ed55d4c189ad7b07b6389ba06",
+      "code_sha256": "98f387244d8e4a03d410767bbda2f0bf1b53f0ecf065975d833a13dccc889450",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-ue5-v1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "rules",
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      },
+      "outcome": {
+        "completed": false,
+        "status": "collision"
+      },
+      "metrics": {
+        "collision_events": 1,
+        "collision_impulse_magnitude_sum_kg_mps": 6651.0418625518,
+        "completed": false,
+        "decision_latency_mean_seconds": null,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 0.0,
+        "interventions": 0,
+        "lane_invasion_events": 6,
+        "real_time_factor": 2.1391493821100496,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 0,
+        "simulation_duration_seconds": 7.250000108033419,
+        "tracking_error_rmse_m": 1.220773207437749,
+        "wall_duration_seconds": 3.3891976729937596
+      },
+      "actual_jev_responses": 0,
+      "budget_fallbacks": 0,
+      "actors_restored": true,
+      "settings_restored": true,
+      "trace_sha256": "50f6e3dea9a37d25be9d8d5e9e12e258456960de3427c7fa3ded8fdef17ae009"
+    },
+    {
+      "label": "jev-1",
+      "phase": "before_heading_fix",
+      "run_id": "c325b2bae2074362886279bcbe6af45d",
+      "code_sha256": "98f387244d8e4a03d410767bbda2f0bf1b53f0ecf065975d833a13dccc889450",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-ue5-v1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "jev",
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      },
+      "outcome": {
+        "completed": false,
+        "status": "collision"
+      },
+      "metrics": {
+        "collision_events": 1,
+        "collision_impulse_magnitude_sum_kg_mps": 6651.0418625518,
+        "completed": false,
+        "decision_latency_mean_seconds": 0.15060429166575584,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 0.0,
+        "interventions": 0,
+        "lane_invasion_events": 6,
+        "real_time_factor": 0.9461149302244098,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 0,
+        "simulation_duration_seconds": 7.250000108033419,
+        "tracking_error_rmse_m": 1.220773207437749,
+        "wall_duration_seconds": 7.662916921006399
+      },
+      "actual_jev_responses": 15,
+      "budget_fallbacks": 0,
+      "actors_restored": true,
+      "settings_restored": true,
+      "trace_sha256": "adaf0603c0da125aa34f3da95e3afb40d5d7ca43cf881b97ff23952d20466259"
+    },
+    {
+      "label": "rules-2",
+      "phase": "after_heading_fix",
+      "run_id": "0a66076bf2e84d9fbb3f30fd27cf19f0",
+      "code_sha256": "4e2b03cb6f40eb78373907e03abe63d73db1bf491cffeecce4c500c0e7850229",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-ue5-v1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "rules",
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": null,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 0.0,
+        "interventions": 0,
+        "lane_invasion_events": 4,
+        "real_time_factor": 1.3439862192469905,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 2,
+        "simulation_duration_seconds": 7.500000111758709,
+        "tracking_error_rmse_m": 1.331575137572852,
+        "wall_duration_seconds": 5.580414444993949
+      },
+      "actual_jev_responses": 0,
+      "budget_fallbacks": 0,
+      "actors_restored": true,
+      "settings_restored": true,
+      "trace_sha256": "ca43dd56fcbc0ec72f69a25744b2f2d3b9cfcd9c74e78fd9a9861851d7fc4abb"
+    },
+    {
+      "label": "jev-2",
+      "phase": "after_heading_fix",
+      "run_id": "ac408361525c4ba29a95a4e4599fda73",
+      "code_sha256": "4e2b03cb6f40eb78373907e03abe63d73db1bf491cffeecce4c500c0e7850229",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-ue5-v1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "jev",
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": 0.17356291706164484,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 0.0,
+        "interventions": 0,
+        "lane_invasion_events": 4,
+        "real_time_factor": 0.9103736539026708,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 2,
+        "simulation_duration_seconds": 7.500000111758709,
+        "tracking_error_rmse_m": 1.331575137572852,
+        "wall_duration_seconds": 8.238375615997938
+      },
+      "actual_jev_responses": 16,
+      "budget_fallbacks": 0,
+      "actors_restored": true,
+      "settings_restored": true,
+      "trace_sha256": "3f72425ced079454b05d0f3f6371c0bc3049c996f783ee9ea0efbaecf0642ffa"
+    },
+    {
+      "label": "rules-3",
+      "phase": "after_heading_fix",
+      "run_id": "396735b691ad4c4db2db2fccba149f41",
+      "code_sha256": "4e2b03cb6f40eb78373907e03abe63d73db1bf491cffeecce4c500c0e7850229",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-ue5-v1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "rules",
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": null,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 0.0,
+        "interventions": 0,
+        "lane_invasion_events": 4,
+        "real_time_factor": 1.371611411016111,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 2,
+        "simulation_duration_seconds": 7.500000111758709,
+        "tracking_error_rmse_m": 1.331575137572852,
+        "wall_duration_seconds": 5.468021082007908
+      },
+      "actual_jev_responses": 0,
+      "budget_fallbacks": 0,
+      "actors_restored": true,
+      "settings_restored": true,
+      "trace_sha256": "01733c253f0c70ba5356dbcb4273654dcc1c3b53c184739fc2db158d6973be54"
+    },
+    {
+      "label": "jev-3",
+      "phase": "after_heading_fix",
+      "run_id": "530a6c520ec149e4877da6802fcd730d",
+      "code_sha256": "4e2b03cb6f40eb78373907e03abe63d73db1bf491cffeecce4c500c0e7850229",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-ue5-v1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "jev",
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": 0.16036480512593698,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 0.0,
+        "interventions": 0,
+        "lane_invasion_events": 4,
+        "real_time_factor": 0.9330196332813542,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 1,
+        "simulation_duration_seconds": 7.500000111758709,
+        "tracking_error_rmse_m": 1.331575137572852,
+        "wall_duration_seconds": 8.03841617499711
+      },
+      "actual_jev_responses": 16,
+      "budget_fallbacks": 0,
+      "actors_restored": true,
+      "settings_restored": true,
+      "trace_sha256": "99a53875267c09361a08b309422b7655e1f06205d4f7b7cb9c61185d3c318889"
+    },
+    {
+      "label": "rules-4",
+      "phase": "after_heading_fix",
+      "run_id": "a4a334fda4d0423cab14799870c7bc84",
+      "code_sha256": "4e2b03cb6f40eb78373907e03abe63d73db1bf491cffeecce4c500c0e7850229",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-ue5-v1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "rules",
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": null,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 0.0,
+        "interventions": 0,
+        "lane_invasion_events": 4,
+        "real_time_factor": 1.3308653940489372,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 2,
+        "simulation_duration_seconds": 7.500000111758709,
+        "tracking_error_rmse_m": 1.331575137572852,
+        "wall_duration_seconds": 5.635431009999593
+      },
+      "actual_jev_responses": 0,
+      "budget_fallbacks": 0,
+      "actors_restored": true,
+      "settings_restored": true,
+      "trace_sha256": "03e26dffa2f32544bfe9944189473dec62c08af4472a55a620f7aa110e7091c2"
+    },
+    {
+      "label": "jev-4",
+      "phase": "after_heading_fix",
+      "run_id": "67d9782bb87248debab02aa1fe92d8f4",
+      "code_sha256": "4e2b03cb6f40eb78373907e03abe63d73db1bf491cffeecce4c500c0e7850229",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-ue5-v1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "jev",
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": 0.15223661681466183,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 0.0,
+        "interventions": 0,
+        "lane_invasion_events": 4,
+        "real_time_factor": 0.9407334497131808,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 1,
+        "simulation_duration_seconds": 7.500000111758709,
+        "tracking_error_rmse_m": 1.331575137572852,
+        "wall_duration_seconds": 7.972502853008336
+      },
+      "actual_jev_responses": 16,
+      "budget_fallbacks": 0,
+      "actors_restored": true,
+      "settings_restored": true,
+      "trace_sha256": "3bf6d1296b2d6f8545c1f6e7d4eed483c4d74db9d59bcecfd2f76cb94a4a44dc"
+    },
+    {
+      "label": "rules-5",
+      "phase": "final_source",
+      "run_id": "e5d19206f8a24d64bb208cc0b8d2a680",
+      "code_sha256": "24640591021fc4c2d9e9b7ffd94e9d5adbd0949c63fff0feebe9cdadada0d3b8",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-ue5-v1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "rules",
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": null,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 0.0,
+        "interventions": 0,
+        "lane_invasion_events": 4,
+        "real_time_factor": 1.3543259823311053,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 0,
+        "simulation_duration_seconds": 7.500000111758709,
+        "tracking_error_rmse_m": 1.331575137572852,
+        "wall_duration_seconds": 5.537810105990502
+      },
+      "actual_jev_responses": 0,
+      "budget_fallbacks": 0,
+      "actors_restored": true,
+      "settings_restored": true,
+      "trace_sha256": "c83698b4cd4599383059a05f636169a94a2b40217412c518881496660a3b282d"
+    },
+    {
+      "label": "jev-5",
+      "phase": "final_source",
+      "run_id": "1fe3855ad3f0430ea0fad861559bb42d",
+      "code_sha256": "24640591021fc4c2d9e9b7ffd94e9d5adbd0949c63fff0feebe9cdadada0d3b8",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-ue5-v1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "jev",
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": 0.15509859794110525,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 0.0,
+        "interventions": 0,
+        "lane_invasion_events": 4,
+        "real_time_factor": 0.9385712421669224,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 2,
+        "simulation_duration_seconds": 7.500000111758709,
+        "tracking_error_rmse_m": 1.331575137572852,
+        "wall_duration_seconds": 7.990869286004454
+      },
+      "actual_jev_responses": 16,
+      "budget_fallbacks": 0,
+      "actors_restored": true,
+      "settings_restored": true,
+      "trace_sha256": "8843d6a89c1e55168c2215828a38211a279a541ef31bbfb15b242cde4f7df844"
+    },
+    {
+      "label": "rules-6",
+      "phase": "final_source",
+      "run_id": "2ac62efa6402452ba675446f05a7c69e",
+      "code_sha256": "24640591021fc4c2d9e9b7ffd94e9d5adbd0949c63fff0feebe9cdadada0d3b8",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-ue5-v1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "rules",
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": null,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 0.0,
+        "interventions": 0,
+        "lane_invasion_events": 4,
+        "real_time_factor": 1.3642320679500977,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 0,
+        "simulation_duration_seconds": 7.500000111758709,
+        "tracking_error_rmse_m": 1.331575137572852,
+        "wall_duration_seconds": 5.497598457004642
+      },
+      "actual_jev_responses": 0,
+      "budget_fallbacks": 0,
+      "actors_restored": true,
+      "settings_restored": true,
+      "trace_sha256": "1b8794eb451ab605342799176b603b90081fb38a4bee7658f44ca2ee1295c8cb"
+    },
+    {
+      "label": "jev-6",
+      "phase": "final_source",
+      "run_id": "5700f469ce2245f8aad3dc2965224e17",
+      "code_sha256": "24640591021fc4c2d9e9b7ffd94e9d5adbd0949c63fff0feebe9cdadada0d3b8",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-ue5-v1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "jev",
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": 0.15093781768791814,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 0.0,
+        "interventions": 0,
+        "lane_invasion_events": 4,
+        "real_time_factor": 0.9544476886923899,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 2,
+        "simulation_duration_seconds": 7.500000111758709,
+        "tracking_error_rmse_m": 1.331575137572852,
+        "wall_duration_seconds": 7.857947796001099
+      },
+      "actual_jev_responses": 16,
+      "budget_fallbacks": 0,
+      "actors_restored": true,
+      "settings_restored": true,
+      "trace_sha256": "3252844a4ad110332517868d5c23b9061c865be115424cf9b9562f93cbd3f3bd"
+    },
+    {
+      "label": "rules-7",
+      "phase": "final_source",
+      "run_id": "69d3765361874f7f9faf0d4017710dc1",
+      "code_sha256": "24640591021fc4c2d9e9b7ffd94e9d5adbd0949c63fff0feebe9cdadada0d3b8",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-ue5-v1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "rules",
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": null,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 0.0,
+        "interventions": 0,
+        "lane_invasion_events": 4,
+        "real_time_factor": 1.3596163247923074,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 2,
+        "simulation_duration_seconds": 7.500000111758709,
+        "tracking_error_rmse_m": 1.331575137572852,
+        "wall_duration_seconds": 5.516262179997284
+      },
+      "actual_jev_responses": 0,
+      "budget_fallbacks": 0,
+      "actors_restored": true,
+      "settings_restored": true,
+      "trace_sha256": "5870890bb77acd7fc93a798ccde026cfa789f2f3cc67d53207c9eb3e26c8fc7f"
+    },
+    {
+      "label": "jev-7",
+      "phase": "final_source",
+      "run_id": "fa45f326203748cfb312f19e0d9f04e8",
+      "code_sha256": "24640591021fc4c2d9e9b7ffd94e9d5adbd0949c63fff0feebe9cdadada0d3b8",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-ue5-v1",
+        "max_requests": 40,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "jev",
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      },
+      "outcome": {
+        "completed": true,
+        "status": "completed"
+      },
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": true,
+        "decision_latency_mean_seconds": 0.15051880925238947,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 0,
+        "hesitation_seconds": 0.0,
+        "interventions": 0,
+        "lane_invasion_events": 4,
+        "real_time_factor": 0.9623625834671294,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 2,
+        "simulation_duration_seconds": 7.500000111758709,
+        "tracking_error_rmse_m": 1.331575137572852,
+        "wall_duration_seconds": 7.793320564000169
+      },
+      "actual_jev_responses": 16,
+      "budget_fallbacks": 0,
+      "actors_restored": true,
+      "settings_restored": true,
+      "trace_sha256": "8ebfd13ff09e6985ebb12e5e3fb27d38aa5989a77b05f3135a6127ce9593d32f"
+    }
+  ],
+  "fallback_runs": [
+    {
+      "label": "fallback-2",
+      "phase": "after_heading_fix",
+      "run_id": "ea3c9c68f5e747668b404904cd4128c4",
+      "code_sha256": "4e2b03cb6f40eb78373907e03abe63d73db1bf491cffeecce4c500c0e7850229",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-ue5-v1",
+        "max_requests": 1,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "jev",
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      },
+      "outcome": {
+        "completed": false,
+        "status": "corridor_invalid"
+      },
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": false,
+        "decision_latency_mean_seconds": 0.010481782766873948,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 16,
+        "hesitation_seconds": 0.0,
+        "interventions": 16,
+        "lane_invasion_events": 0,
+        "real_time_factor": 1.3737432730373613,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 0,
+        "simulation_duration_seconds": 8.450000125914812,
+        "tracking_error_rmse_m": 0.004012174506002713,
+        "wall_duration_seconds": 6.151076617999934
+      },
+      "actual_jev_responses": 1,
+      "budget_fallbacks": 16,
+      "actors_restored": true,
+      "settings_restored": true,
+      "trace_sha256": "959c044c97fe2c906ae4990a1fe3310d82f643bfe03e1ebf7860007832c9db70"
+    },
+    {
+      "label": "fallback-5",
+      "phase": "final_source",
+      "run_id": "d8da8e33a2af446b865fc34579debb7e",
+      "code_sha256": "24640591021fc4c2d9e9b7ffd94e9d5adbd0949c63fff0feebe9cdadada0d3b8",
+      "spec": {
+        "decision_interval_steps": 10,
+        "decision_timeout_seconds": 5.0,
+        "ego_speed_mps": 5.0,
+        "fixed_delta_seconds": 0.05,
+        "fixture": "town10-merge-ue5-v1",
+        "max_requests": 1,
+        "max_steps": 600,
+        "max_substep_delta_time": 0.01,
+        "max_substeps": 10,
+        "max_trace_bytes": 16777216,
+        "max_wall_seconds": 180.0,
+        "observation_mode": "range_filtered_ground_truth",
+        "observation_range_m": 80.0,
+        "policy": "jev",
+        "rpc_timeout_seconds": 5.0,
+        "schema_version": 1,
+        "seed": 7,
+        "target_speed_mps": 6.0,
+        "timing_mode": "simulation_time"
+      },
+      "outcome": {
+        "completed": false,
+        "status": "corridor_invalid"
+      },
+      "metrics": {
+        "collision_events": 0,
+        "collision_impulse_magnitude_sum_kg_mps": 0,
+        "completed": false,
+        "decision_latency_mean_seconds": 0.011505543825264527,
+        "decision_staleness_max_frames": 0.0,
+        "fallbacks": 16,
+        "hesitation_seconds": 0.0,
+        "interventions": 16,
+        "lane_invasion_events": 0,
+        "real_time_factor": 1.4180134674488365,
+        "reversal_count": 0,
+        "sensor_dropped_samples": 0,
+        "sensor_trailing_events": 1,
+        "simulation_duration_seconds": 8.450000125914812,
+        "tracking_error_rmse_m": 0.004012174506002713,
+        "wall_duration_seconds": 5.9590408130025025
+      },
+      "actual_jev_responses": 1,
+      "budget_fallbacks": 16,
+      "actors_restored": true,
+      "settings_restored": true,
+      "trace_sha256": "9699b7618025eb3f6e46cd77dcf822b0a6c4530b4a26295d58a11dcce602e2be"
+    }
+  ],
+  "retained_failures": [
+    "Original Tesla fixture failed because its blueprint is absent in UE5; no actors remained.",
+    "Original full smoke failed its weather-change assertion; direct native API checks confirmed fixed weather, matching upstream release notes.",
+    "Both initial Lincoln runs collided with the environment before the heading-damping fix.",
+    "Destruction before the first snapshot returned false and left a probe actor; fixed with authoritative non-ticking destruction and tested server-refusal ownership retention.",
+    "Temporary relay delayed first streaming subscription in a paused world; native Windows passed. Preparing relay streaming connections resolved the timeout; quarantined cleanup was recovered.",
+    "One persistent close returned a missing cleanup result file although actor restoration succeeded. Explicit recovery cleared the empty journal; instrumented and uninstrumented reruns passed. Its cause remains unresolved."
+  ],
+  "limitations": [
+    "Three final repeats per policy use the same seed 7, same host, same map and same vehicle; no statistical, realism or road-safety claim.",
+    "Jev selects bounded maneuvers from simulator ground truth. The local controller owns steering, throttle, braking and safety checks.",
+    "Fixed daylight weather, removed Light Manager and other upstream UE5 gaps remain. API method presence does not prove functional support.",
+    "No UE5 Traffic Manager/density, recorder/replay, ROS2, arbitrary-map or native Linux server certification.",
+    "Local test relay is not a shipped transport. Native UE5 networking and cleanup need broader validation before production support.",
+    "Raw traces and diagnostics remain in ignored local validation storage. Public summary and trace digests are not a complete independent replay dataset."
+  ]
+}

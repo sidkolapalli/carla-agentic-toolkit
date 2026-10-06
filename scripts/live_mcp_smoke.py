@@ -50,6 +50,12 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", default=2000, type=int)
     parser.add_argument("--timeout-seconds", default=20.0, type=float)
+    parser.add_argument("--vehicle-blueprint", default="vehicle.tesla.model3")
+    parser.add_argument(
+        "--skip-weather",
+        action="store_true",
+        help="report weather as untested for releases with fixed weather, such as CARLA 0.10.0",
+    )
     args = parser.parse_args(argv)
     if not args.confirm_live:
         parser.error("--confirm-live is required because this test mutates the simulator")
@@ -78,7 +84,16 @@ async def run_live_smoke(
             "tool mismatch",
             condition=[tool.name for tool in tools.tools] == ["execute_carla_script"],
         )
-        mutation = await _call(session, _mutation_script(tag, drive_seconds=drive_seconds), args)
+        mutation = await _call(
+            session,
+            _mutation_script(
+                tag,
+                drive_seconds=drive_seconds,
+                vehicle_blueprint=args.vehicle_blueprint,
+                test_weather=not args.skip_weather,
+            ),
+            args,
+        )
         _require(
             "capture did not return native MCP image content",
             condition=mutation.pop("_image_content") is True,
@@ -126,8 +141,11 @@ async def run_live_smoke(
             and after_speed > before_speed
         ),
     )
-    _require("weather change failed", condition=mutation_result.get("weather_changed") is True)
-    _require("weather restore failed", condition=mutation_result.get("weather_restored") is True)
+    if not args.skip_weather:
+        _require("weather change failed", condition=mutation_result.get("weather_changed") is True)
+        _require(
+            "weather restore failed", condition=mutation_result.get("weather_restored") is True
+        )
     _require(
         "spectator restore failed", condition=mutation_result.get("spectator_restored") is True
     )
@@ -151,6 +169,7 @@ async def run_live_smoke(
         "resource_read": True,
         "saved_image": str(save_image) if save_image is not None else None,
         "landlock_enforced": landlock.get("ruleset_enforced") is True,
+        "weather_tested": not args.skip_weather,
         "weather_restored": mutation_result.get("weather_restored"),
         "spectator_restored": mutation_result.get("spectator_restored"),
         "leftovers": mutation_result["leftovers"],
@@ -214,7 +233,13 @@ def _launcher(*, windows: bool) -> Path:
     return Path(sys.executable).with_name(name + suffix)
 
 
-def _mutation_script(tag: str, *, drive_seconds: float = 1.0) -> str:
+def _mutation_script(
+    tag: str,
+    *,
+    drive_seconds: float = 1.0,
+    vehicle_blueprint: str = "vehicle.tesla.model3",
+    test_weather: bool = True,
+) -> str:
     """Return one self-cleaning live mutation script for a unique actor tag."""
     quoted_tag = json.dumps(tag)
     return f"""
@@ -222,9 +247,12 @@ tag = {quoted_tag}
 health = api.health_check()
 assert health.get("connected") is True, health
 capabilities = api.list_capabilities()
-weather = api.get_weather()
-assert "weather" in weather, weather
-weather_before = weather["weather"]
+test_weather = {test_weather!r}
+weather_before = None
+if test_weather:
+    weather = api.get_weather()
+    assert "weather" in weather, weather
+    weather_before = weather["weather"]
 spectator_restored = True
 actor_ids = []
 sensor_ids = []
@@ -232,7 +260,8 @@ cleanup_results = []
 capture = None
 before_speed = 0.0
 after_speed = 0.0
-weather_changed = False
+weather_changed = None
+weather_restored = None
 try:
     spawn_points = api.get_spawn_points()
     assert "spawn_points" in spawn_points, spawn_points
@@ -240,7 +269,7 @@ try:
     actor_id = None
     for point in points[:10]:
         batch = api.spawn_actor_batch([{{
-            "blueprint_id": "vehicle.tesla.model3",
+            "blueprint_id": {json.dumps(vehicle_blueprint)},
             "transform": point,
             "attributes": {{"role_name": tag, "color": "255,0,0"}},
         }}])
@@ -254,16 +283,17 @@ try:
     before = api.get_vehicle_telemetry(actor_id)
     assert "speed_mps" in before, before
     before_speed = before["speed_mps"]
-    weather_set = api.set_weather({{
-        "cloudiness": 50.0,
-        "precipitation": 15.0,
-        "wetness": 35.0,
-        "sun_altitude_angle": 45.0,
-    }})
-    assert weather_set.get("ok") is not False, weather_set
-    weather_now = api.get_weather()
-    assert "weather" in weather_now, weather_now
-    weather_changed = weather_now["weather"]["cloudiness"] == 50.0
+    if test_weather:
+        weather_set = api.set_weather({{
+            "cloudiness": 50.0,
+            "precipitation": 15.0,
+            "wetness": 35.0,
+            "sun_altitude_angle": 45.0,
+        }})
+        assert weather_set.get("ok") is not False, weather_set
+        weather_now = api.get_weather()
+        assert "weather" in weather_now, weather_now
+        weather_changed = weather_now["weather"]["cloudiness"] == 50.0
     lights = api.set_vehicle_lights(actor_id, "Position|LowBeam")
     assert lights.get("actor_id") == actor_id, lights
     driving = api.apply_vehicle_control(actor_id, throttle=0.65, brake=0.0, hand_brake=False)
@@ -296,7 +326,8 @@ finally:
         cleanup_results.append(api.detach_sensor(sensor_id))
     if actor_ids:
         cleanup_results.append(api.destroy_actors(actor_ids))
-    cleanup_results.append(api.set_weather(weather_before))
+    if test_weather:
+        cleanup_results.append(api.set_weather(weather_before))
 for cleanup in cleanup_results:
     assert cleanup.get("ok") is not False, cleanup
 leftovers = actor_ids
@@ -308,15 +339,17 @@ for observation_attempt in range(11):
     if not leftovers or observation_attempt == 10:
         break
     api.wait(0.1)
-weather_after = api.get_weather()
-assert "weather" in weather_after, weather_after
+if test_weather:
+    weather_after = api.get_weather()
+    assert "weather" in weather_after, weather_after
+    weather_restored = weather_after["weather"]["cloudiness"] == weather_before["cloudiness"]
 result = {{
     "health": health,
     "capabilities": capabilities,
     "movement": {{"before_mps": before_speed, "after_mps": after_speed}},
     "capture": capture,
     "weather_changed": weather_changed,
-    "weather_restored": weather_after["weather"]["cloudiness"] == weather_before["cloudiness"],
+    "weather_restored": weather_restored,
     "spectator_restored": spectator_restored,
     "leftovers": leftovers,
 }}
