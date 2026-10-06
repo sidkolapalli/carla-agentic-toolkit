@@ -2,8 +2,9 @@
 
 ## Supported Versions
 
-Until tagged releases exist, only the latest commit on `main` receives security
-fixes.
+Security fixes are developed on `main`. Experimental alpha tags are snapshots;
+update to the latest `main` when a fix is published. There is no long-term
+support branch for an alpha release.
 
 | Version | Supported |
 | --- | --- |
@@ -12,20 +13,17 @@ fixes.
 
 ## Reporting a Vulnerability
 
-The repository is currently private. Report suspected vulnerabilities through an
-existing private channel with the repository maintainer; do not disclose them in
-a public issue. No public security contact is configured yet.
+Email the maintainer privately at
+[akon2997@gmail.com](mailto:akon2997@gmail.com), with a subject beginning
+`[CARLA Agentic Toolkit security]`. Do not open a public issue or include
+vulnerability details in a public pull request.
 
-Before making the repository public, the maintainer must publish and test a
-monitored private contact that a person without repository access can use.
-[GitHub private vulnerability reporting](https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/configure-vulnerability-reporting/configure-for-a-repository)
-is available for public repositories. Enable it during the visibility transition
-and verify **Security → Advisories → Report a vulnerability** from an external
-account before announcing the release. Keep the private contact available until
-that route is verified, then update this policy with the actual reporting route.
-Neither a private-repository API 404 nor an administrator's settings view verifies
-that an external researcher can submit a report. Do not disclose a vulnerability
-publicly before a fix is ready.
+You may also use GitHub's private **Report a vulnerability** form under
+[Security → Advisories](https://github.com/sidkolapalli/carla-agentic-toolkit/security/advisories).
+If the form is unavailable or you do not have a GitHub account, use the email
+address above. Email remains an available reporting route independently of
+GitHub's form. Please allow the maintainer time to investigate and coordinate a
+fix before disclosing details publicly.
 
 Include the affected commit, Linux distribution and kernel, reproduction steps,
 impact, and any proposed mitigation. Remove credentials, CARLA recordings, and

@@ -1,22 +1,43 @@
 # Experimental alpha release notes
 
-This is an unpublished source-checkout candidate for the local CARLA toolkit,
-tracked in [#82](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/82).
+This experimental source-checkout alpha is for the local CARLA toolkit. The
+publication record, exact commit and final CI result are tracked in
+[#82](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/82).
 It is not a production release. Build the Rust runner from the checkout; do not
 publish the Python wheel, which does not bundle that runner
 ([#52](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/52)).
 
-The merged implementation and evidence at
-[`d891f4df124ba8b7117f5e02afc466338f9c0e09`](https://github.com/sidkolapalli/carla-agentic-toolkit/commit/d891f4df124ba8b7117f5e02afc466338f9c0e09)
-passed [main CI run 37130509549](https://github.com/sidkolapalli/carla-agentic-toolkit/actions/runs/37130509549).
-Its byte-identical pre-merge candidate passed 579 Python tests, one explicitly
-configured live-provider skip, and nine Rust tests in
-[CI run 37129889937](https://github.com/sidkolapalli/carla-agentic-toolkit/actions/runs/37129889937).
-Main CI also passed the quality, dependency, history, package, hardened-container,
-and container-vulnerability gates. [PR #88](https://github.com/sidkolapalli/carla-agentic-toolkit/pull/88)
-contains the implementation; [PR #89](https://github.com/sidkolapalli/carla-agentic-toolkit/pull/89)
-adds the recorded demo and independent reproduction. Any later changes need
-their own successful CI run before a release is tagged.
+The code and evidence from [PR #92](https://github.com/sidkolapalli/carla-agentic-toolkit/pull/92)
+and [PR #95](https://github.com/sidkolapalli/carla-agentic-toolkit/pull/95)
+are merged into `main`. The combined implementation and study at
+[`02ac49e`](https://github.com/sidkolapalli/carla-agentic-toolkit/commit/02ac49e09acf9fdea2f0ff3fb1102f121c5129a7)
+passed [CI run 37384683695](https://github.com/sidkolapalli/carla-agentic-toolkit/actions/runs/37384683695):
+**643 Python tests passed, one opt-in provider test skipped, and nine Rust tests
+passed**. That run also passed formatting, dependency audits, the history secret
+scan, package builds, hardened-container checks and the container vulnerability
+scan. Publication documentation has its own final candidate CI, recorded in #82;
+an earlier green implementation run does not stand in for that result.
+
+## Scope of the public alpha
+
+- Local stdio MCP, Linux Landlock sandboxing, owned-actor cleanup, captures and
+  evidence. Windows clients use the documented WSL2 path.
+- Optional managed rules/Jev merge experiments, persistent script sessions and
+  reproducible recorded demos. Jev selects supplied tactics; local code owns
+  steering, braking, per-frame guards and cleanup.
+- Experimental CARLA 0.10.0 / UE5.5 fixtures and validated cleanup fixes.
+  The container remains pinned to the CARLA 0.9.16 client; client/server versions
+  must match. Weather and other UE5 limitations remain explicit.
+- A fixed 135m route, controlled traffic commands and
+  [six analytical graphs](evidence/route-study-2026-10-05/README.md).
+  **The pedestrian crossing was not achieved.** The recorded walker moved only
+  0.59m during a six-second command and stayed outside the driving lane.
+  [#96](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/96) remains open;
+  route completion does not validate pedestrian avoidance.
+
+Open feature work and documented limitations can continue after publication.
+This alpha does not claim general autonomous driving, real-time model response,
+production deployment or a safety advantage over the no-key baseline.
 
 ## Changes in this candidate
 
@@ -101,9 +122,8 @@ system. The local report is `target/fresh-install-validation.json`.
 - MIT licensing, [contribution guidance](../CONTRIBUTING.md), and the
   [security policy](../SECURITY.md) remain in place. The accepted history decision
   in [#51](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/51)
-  is preserved. No visibility change, history rewrite, publication or tag is part
-  of these notes.
-- Before publication, the owner must authorize the concrete candidate and verify
-  a working vulnerability-reporting route. The currently private repository's
-  route has not been verified for public reporting. A passing CI run alone does
-  not satisfy these release conditions.
+  is preserved; no history rewrite is needed for this publication.
+- Security and conduct reports go privately to
+  [akon2997@gmail.com](mailto:akon2997@gmail.com). GitHub's private vulnerability
+  form provides an additional security-reporting route when enabled; conduct
+  reports use email. Configuration and verification are recorded in #82.
