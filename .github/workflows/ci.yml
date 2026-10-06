@@ -2,22 +2,42 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, edited]
 
 permissions:
   contents: read
-  checks: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  branch-policy:
+    name: Branch policy
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Check GitFlow target
+        env:
+          GITHUB_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          GITHUB_PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: python3 scripts/check_branch_policy.py
+
   check:
     name: Linux quality gate
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    permissions:
+      contents: read
+      # audit-check falls back to stdout for read-only fork PR tokens.
+      checks: write
 
     steps:
       - name: Check out repository
