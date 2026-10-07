@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "created_on": "2026-10-07",
+  "purpose": "Small README previews derived from published recordings; no synthesized scene, chat, result or decision imagery.",
+  "path_base": "repository root",
+  "tool": "FFmpeg 7.1",
+  "artifacts": [
+    {
+      "file": "docs/assets/readme/drive-preview.gif",
+      "sha256": "750e7fd68e6c3c844ae05632a73298ed396b597423fbdf97120c6caf80dbd799",
+      "bytes": 3740323,
+      "dimensions": [
+        720,
+        405
+      ],
+      "nominal_fps": 6,
+      "frames": 104,
+      "duration_seconds": 17.34,
+      "loops": "indefinitely",
+      "palette_max_colors": 32,
+      "dither": "none",
+      "source": "docs/evidence/codex-demos-2026-10-06/drive.mp4",
+      "source_sha256": "ee89ae698ae3bc2890b1c679ab2604a249e574e8078b92f2d6ae88745f47ce46",
+      "source_dimensions": [
+        1920,
+        1080
+      ],
+      "excerpt_intervals_are": "seconds in the published source video; end exclusive; crop is x,y,width,height in source pixels",
+      "excerpts": [
+        {
+          "scene": "prompt",
+          "source_start": 4,
+          "source_end": 8,
+          "crop_xywh": [
+            250,
+            100,
+            1280,
+            720
+          ],
+          "output_duration_seconds": 4.0
+        },
+        {
+          "scene": "working",
+          "source_start": 10,
+          "source_end": 12.375,
+          "crop_xywh": [
+            0,
+            0,
+            1920,
+            1080
+          ],
+          "output_duration_seconds": 2.33
+        },
+        {
+          "scene": "vehicle_motion",
+          "source_start": 19,
+          "source_end": 26,
+          "crop_xywh": [
+            0,
+            0,
+            1920,
+            1080
+          ],
+          "output_duration_seconds": 7.0
+        },
+        {
+          "scene": "result",
+          "source_start": 39,
+          "source_end": 43,
+          "crop_xywh": [
+            300,
+            250,
+            1120,
+            630
+          ],
+          "output_duration_seconds": 4.01
+        }
+      ],
+      "transformation": "Concatenate selected clips; crop prompt/result; Lanczos resize; sample at 6fps; global palette and GIF encoding. Existing labels are retained; no new overlays.",
+      "timing_disclosure": "Intervals between excerpts are omitted. No additional playback acceleration is applied. The source already labels agent work as 8x and motion as 1x; the seven-second motion excerpt remains seven seconds. 6fps frame selection and GIF centisecond delays quantize the 17.375 seconds selected to 17.34 seconds. This preview is not a response-latency measurement.",
+      "context": "Prepared simulator and named vehicle. Actual owner-authorized Codex messages and MCP calls, not a claim of on-camera manual typing. Jev is not used in this scene. The result reports endpoint displacement, not integrated trajectory length.",
+      "evidence": [
+        "docs/evidence/codex-demos-2026-10-06/README.md",
+        "docs/evidence/codex-demos-2026-10-06/export-manifest.json",
+        "docs/evidence/codex-demos-2026-10-06/evidence-motion-take.json"
+      ],
+      "verification": {
+        "full_decode_passed": true,
+        "representative_frames_reviewed_at_seconds": [
+          1,
+          4.5,
+          9,
+          15
+        ]
+      }
+    },
+    {
+      "file": "docs/assets/readme/route-poster.jpg",
+      "sha256": "33430f4cf14db1613931f24719e7157b12c0ebb46f2c302cf4541be33a90e731",
+      "bytes": 194579,
+      "dimensions": [
+        1280,
+        720
+      ],
+      "kind": "single original video frame encoded as JPEG; no crop or new overlays",
+      "source": "docs/evidence/route-hazards-2026-10-05/demo.mp4",
+      "source_sha256": "ac7995b83283d450c56a4a9b6c4fd433a914e07aedfdc9cddabbfd759a7406c0",
+      "source_time_seconds": 33,
+      "source_video_fps": 5,
+      "source_video_frame_zero_based": 165,
+      "simulator_frame": 445359,
+      "recorded_run_id": "e2dfa2af0ca44788a020d2c47cad2fd7",
+      "context": "Cut-in trial; actual Jev caution selection and local control panel. Original video omits inference pauses and some waiting. The separate pedestrian attempt never entered the driving lane. These exploratory trials do not establish safety or production reliability.",
+      "evidence": [
+        "docs/evidence/route-hazards-2026-10-05/README.md",
+        "docs/evidence/route-hazards-2026-10-05/demo.manifest.json",
+        "docs/evidence/route-study-2026-10-05/README.md"
+      ],
+      "verification": {
+        "decoded_and_visually_reviewed": true
+      }
+    }
+  ],
+  "attribution": {
+    "scene": "CARLA Simulator contributors, CARLA 0.10.0, Town10HD_Opt",
+    "upstream_license_notice": "https://github.com/carla-simulator/carla/blob/0.10.0/README.md#licenses",
+    "terms": "CARLA-specific scene assets retain their upstream CC-BY terms independently of this toolkit's MIT license. Previews are selections, cropping, resizing and encoding of the credited recordings. Codex and Recordly interfaces are shown as tools used. No CARLA, OpenAI, Recordly or TypeSafe endorsement is implied."
+  },
+  "github_video_attachments": [
+    {
+      "name": "drive",
+      "url": "https://github.com/user-attachments/assets/2d9712dc-3e64-4e0c-b905-f31241eaeda0",
+      "source": "docs/evidence/codex-demos-2026-10-06/drive.mp4",
+      "source_sha256": "ee89ae698ae3bc2890b1c679ab2604a249e574e8078b92f2d6ae88745f47ce46",
+      "uploaded_sha256": "fb3c5ef4d8d01fb70e6dda3d64892c17e08a8f64600e39d194f6ae0d0ed50092",
+      "uploaded_bytes": 3937901,
+      "dimensions": [
+        1280,
+        720
+      ],
+      "duration_seconds": 47.366667,
+      "transformation": "Full recording resized to 1280x720 and compressed with libx264 CRF23, medium preset, yuv420p and faststart; all 1421 frames and original timing retained.",
+      "hosting_context": "https://github.com/sidkolapalli/carla-agentic-toolkit/pull/111"
+    },
+    {
+      "name": "cameras",
+      "url": "https://github.com/user-attachments/assets/a3b3001c-5793-45de-bc6d-b84e142cdfad",
+      "source": "docs/evidence/codex-demos-2026-10-06/cameras.mp4",
+      "source_sha256": "bacb9913c4e4967ad3a1ac463d0d2085ac7ae3ad3917b00f11bab8a9f9f41030",
+      "uploaded_sha256": "bacb9913c4e4967ad3a1ac463d0d2085ac7ae3ad3917b00f11bab8a9f9f41030",
+      "uploaded_bytes": 3437736,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "duration_seconds": 36.966667,
+      "transformation": "Byte-identical copy of the published source.",
+      "hosting_context": "https://github.com/sidkolapalli/carla-agentic-toolkit/pull/111"
+    },
+    {
+      "name": "route",
+      "url": "https://github.com/user-attachments/assets/2749e704-e5ab-4de7-9a24-bb70a2bd3442",
+      "source": "docs/evidence/route-hazards-2026-10-05/demo.mp4",
+      "source_sha256": "ac7995b83283d450c56a4a9b6c4fd433a914e07aedfdc9cddabbfd759a7406c0",
+      "uploaded_sha256": "ac7995b83283d450c56a4a9b6c4fd433a914e07aedfdc9cddabbfd759a7406c0",
+      "uploaded_bytes": 8204095,
+      "dimensions": [
+        1280,
+        720
+      ],
+      "duration_seconds": 80.0,
+      "transformation": "Byte-identical copy of the published source.",
+      "hosting_context": "https://github.com/sidkolapalli/carla-agentic-toolkit/pull/111"
+    }
+  ]
+}
