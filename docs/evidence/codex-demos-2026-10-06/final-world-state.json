@@ -1,0 +1,148 @@
+{
+  "recorded_at": "2026-10-07T00:04:50.631013+00:00",
+  "world_id": 11145660909693684896,
+  "actor_count": 24,
+  "actors": [
+    {
+      "id": 1,
+      "type": "spectator"
+    },
+    {
+      "id": 2,
+      "type": "traffic.stop"
+    },
+    {
+      "id": 3,
+      "type": "traffic.stop"
+    },
+    {
+      "id": 4,
+      "type": "traffic.stop"
+    },
+    {
+      "id": 5,
+      "type": "traffic.yield"
+    },
+    {
+      "id": 6,
+      "type": "traffic.yield"
+    },
+    {
+      "id": 7,
+      "type": "traffic.unknown"
+    },
+    {
+      "id": 8,
+      "type": "traffic.unknown"
+    },
+    {
+      "id": 9,
+      "type": "traffic.unknown"
+    },
+    {
+      "id": 10,
+      "type": "traffic.traffic_light"
+    },
+    {
+      "id": 11,
+      "type": "traffic.traffic_light"
+    },
+    {
+      "id": 12,
+      "type": "traffic.traffic_light"
+    },
+    {
+      "id": 13,
+      "type": "traffic.traffic_light"
+    },
+    {
+      "id": 14,
+      "type": "traffic.traffic_light"
+    },
+    {
+      "id": 15,
+      "type": "traffic.traffic_light"
+    },
+    {
+      "id": 16,
+      "type": "traffic.traffic_light"
+    },
+    {
+      "id": 17,
+      "type": "traffic.traffic_light"
+    },
+    {
+      "id": 18,
+      "type": "traffic.traffic_light"
+    },
+    {
+      "id": 19,
+      "type": "traffic.traffic_light"
+    },
+    {
+      "id": 20,
+      "type": "traffic.traffic_light"
+    },
+    {
+      "id": 21,
+      "type": "traffic.traffic_light"
+    },
+    {
+      "id": 22,
+      "type": "traffic.traffic_light"
+    },
+    {
+      "id": 23,
+      "type": "traffic.traffic_light"
+    },
+    {
+      "id": 24,
+      "type": "traffic.traffic_light"
+    }
+  ],
+  "before_settings": {
+    "synchronous_mode": false,
+    "fixed_delta_seconds": null,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substeps": 10,
+    "max_substep_delta_time": 0.01
+  },
+  "before_spectator": {
+    "location": {
+      "x": -172.1965789794922,
+      "y": 183.85911560058594,
+      "z": 27.638051986694336
+    },
+    "rotation": {
+      "pitch": 0.0,
+      "yaw": -45.592105865478516,
+      "roll": 0.0
+    }
+  },
+  "restored": true,
+  "after_settings": {
+    "synchronous_mode": false,
+    "fixed_delta_seconds": null,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substeps": 10,
+    "max_substep_delta_time": 0.01
+  },
+  "after_spectator": {
+    "location": {
+      "x": -172.1965789794922,
+      "y": 183.85911560058594,
+      "z": 27.638051986694336
+    },
+    "rotation": {
+      "pitch": 0.0,
+      "yaw": -45.592105865478516,
+      "roll": 0.0
+    }
+  },
+  "actors_unchanged": true,
+  "settings_match": true,
+  "spectator_matches": true,
+  "ok": true
+}

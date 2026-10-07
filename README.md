@@ -121,6 +121,22 @@ interfaces. See [Jev's interface and limits](docs/managed-experiments.md#optiona
 
 ## Demo
 
+### Ask Codex. Watch CARLA respond.
+
+Two recorded Codex conversations show the toolkit in use: zoom into the request,
+fast-forward through the labeled working section, then see the simulator result.
+
+| Drive and stop | Inspect camera views |
+| --- | --- |
+| [![Codex drives a CARLA vehicle](docs/evidence/codex-demos-2026-10-06/drive-poster.jpg)](docs/evidence/codex-demos-2026-10-06/drive.mp4) | [![Codex retrieves CARLA camera images](docs/evidence/codex-demos-2026-10-06/cameras-poster.jpg)](docs/evidence/codex-demos-2026-10-06/cameras.mp4) |
+| Six seconds of driving, braking, and measured displacement. | Actual front and chase sensor images, followed by camera cleanup. |
+
+These Recordly edits use real messages, MCP calls and CARLA 0.10.0 footage.
+The simulator and named car were prepared before recording; vehicle motion plays
+at its original recording speed. These scenes use Codex-generated scripts.
+The Jev experiments below show the separate tactical decision integration.
+See [recording details, exact requests and verified results](docs/evidence/codex-demos-2026-10-06/README.md).
+
 ### Route driving and dangerous scenarios
 
 The experimental UE5 [route scenarios](docs/route-experiments.md) extend Jev to

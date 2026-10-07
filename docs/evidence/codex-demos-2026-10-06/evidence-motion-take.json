@@ -1,0 +1,1242 @@
+{
+  "schema_version": 1,
+  "take_kind": "motion",
+  "captured_at": "2026-10-07T00:02:10.154324+00:00",
+  "source": {
+    "kind": "exact local Codex demo chat rollout",
+    "snapshot_sha256": "1bf2e1bbe7f8fa74d1904272c62334aada1170801ce9d706913016f3d08ec8da",
+    "snapshot_byte_count": 232519,
+    "last_record_at": "2026-10-07T00:01:24.592Z"
+  },
+  "scope": "Exact user-visible demo prompts and all completed CARLA execute_carla_script calls through the recorded cutoff. Hidden reasoning, system/developer instructions, non-CARLA tools, other chats, local absolute paths and image bytes are excluded.",
+  "prompt_provenance": "Prompts were submitted to the real Codex demo chat by the owner-authorized recording orchestrator; this does not assert manual keyboard typing.",
+  "publication_status": "Machine-readable evidence verified; final video export checks are recorded separately.",
+  "editing_disclosure": "This receipt covers the separate fresh scene take. Earlier rehearsal attempts and failures are retained in evidence-chat.json. The video is an edited selection; export timing and playback rates are recorded separately.",
+  "interpretation_notes": [
+    "No Jev requests are made by these CARLA scripts.",
+    "The named car and simulator endpoint were prepared before this take; full setup instructions are retained in the exact initial prompt.",
+    "Successful finite calls intentionally retain the vehicle; final removal is recorded in evidence-cleanup.json and independently verified in final-world-state.json.",
+    "The prompt requests a ten-second wait before motion. Reported driving and total distances are 3D endpoint displacements, not sampled path lengths."
+  ],
+  "prompts": [
+    {
+      "id": "prompt-01",
+      "timestamp": "2026-10-07T00:00:19.100Z",
+      "origin": "owner-authorized demo orchestration message",
+      "text": "Drive demo-car for six seconds, brake, and report the distance.\n\nUse the CARLA MCP execute_carla_script tool at host127.0.0.1 port3200 (CARLA0.10.0 UE5). The existing parked actor is named demo-car; resolve it, do not spawn a replacement. This is a genuine recorded demo with prepared simulator setup. Keep the world asynchronous. Use api.describe_api() for discovery if necessary, not dir(api). Use api.wait(10) immediately before motion to allow the recording view to switch. Apply gentle throttle0.4, gear1, manual_gear_shift=True, brake0, hand_brake=False; api.watch_actor(actor_id,seconds=6.0) follows it. Brake in finally, follow during stopping, engage the handbrake, then report measured displacement and final speed. Leave the actor parked. Do not edit files or use Jev. Keep replies concise."
+    }
+  ],
+  "calls": [
+    {
+      "id": "exec-35544033-6d8c-4b90-84e0-17a0082f1d61",
+      "completed_at": "2026-10-07T00:00:30.112Z",
+      "prompt_id": "prompt-01",
+      "tool": "carla.execute_carla_script",
+      "status": "completed",
+      "duration": {
+        "secs": 0,
+        "nanos": 116286700
+      },
+      "arguments": {
+        "host": "127.0.0.1",
+        "port": 3200,
+        "code": "result = api.describe_api()",
+        "timeout_seconds": 30
+      },
+      "original_code_sha256": "2cf7ccf95ce65d4a89defdd5d1f4aefdd577d4c4d7a224f9d5907afecb34b542",
+      "code_sanitized": false,
+      "is_error": false,
+      "result": {
+        "ok": true,
+        "result": {
+          "methods": {
+            "apply_actor_physics": {
+              "doc": "Apply impulse, force, torque, or target angular velocity to an actor.",
+              "signature": "(actor_id: 'int', action: 'str', vector: 'dict[str, object]') -> 'JsonObject'"
+            },
+            "apply_batch": {
+              "doc": "Apply supported bulk CARLA commands, such as destroy_actor.",
+              "signature": "(commands: 'list[dict[str, object]]', *, do_tick: 'bool' = True) -> 'JsonObject'"
+            },
+            "apply_vehicle_control": {
+              "doc": "Apply direct throttle, steer, brake, and gear control to a vehicle.",
+              "signature": "(actor_id: 'int', **control: 'object') -> 'JsonObject'"
+            },
+            "apply_walker_control": {
+              "doc": "Apply manual direction and speed control to a walker.",
+              "signature": "(actor_id: 'int', direction: 'dict[str, object]', speed: 'float') -> 'JsonObject'"
+            },
+            "attach_camera": {
+              "doc": "Attach a camera sensor.",
+              "signature": "(request: 'dict[str, object]') -> 'JsonObject'"
+            },
+            "attach_event_sensor": {
+              "doc": "Attach a collision, lane-invasion, or obstacle event sensor.",
+              "signature": "(kind: 'str', parent_id: 'int', attributes: 'dict[str, str] | None' = None) -> 'JsonObject'"
+            },
+            "attach_sensor": {
+              "doc": "Attach any supported CARLA sensor kind to an actor.",
+              "signature": "(kind: 'str', parent_id: 'int | None', transform: 'dict[str, object]', attributes: 'dict[str, str] | None' = None) -> 'JsonObject'"
+            },
+            "capture_sensor_frame": {
+              "doc": "Capture one sensor frame to disk and optionally publish it through MCP.",
+              "signature": "(sensor_id: 'int', output_path: 'str', *, publish: 'bool' = False) -> 'JsonObject'"
+            },
+            "cleanup_owned_actors": {
+              "doc": "Destroy every actor created by this script execution.",
+              "signature": "() -> 'JsonObject'"
+            },
+            "close_sensor_subscription": {
+              "doc": "Stop one subscription when the owner finishes reading its sensor.",
+              "signature": "(sensor_id: 'int') -> 'JsonObject'"
+            },
+            "configure_actor_physics": {
+              "doc": "Toggle physics simulation and gravity for one actor.",
+              "signature": "(actor_id: 'int', *, simulate_physics: 'bool | None' = None, gravity: 'bool | None' = None) -> 'JsonObject'"
+            },
+            "configure_traffic_manager": {
+              "doc": "Configure global Traffic Manager behavior.",
+              "signature": "(request: 'dict[str, object]') -> 'JsonObject'"
+            },
+            "describe_api": {
+              "doc": "Return the script API method catalog for runtime discovery.",
+              "signature": "() -> 'JsonObject'"
+            },
+            "destroy_actors": {
+              "doc": "Destroy explicit actors by ID.",
+              "signature": "(actor_ids: 'list[int]') -> 'JsonObject'"
+            },
+            "detach_sensor": {
+              "doc": "Stop and destroy a sensor actor.",
+              "signature": "(sensor_id: 'int') -> 'JsonObject'"
+            },
+            "drain_sensor": {
+              "doc": "Drain by owner frame, exposing missing/late/dropped samples without ticking.",
+              "signature": "(sensor_id: 'int', frame: 'int', *, timeout_seconds: 'float' = 0.0, output_dir: 'str | None' = None) -> 'JsonObject'"
+            },
+            "enable_environment_objects": {
+              "doc": "Enable or disable explicit static environment object IDs.",
+              "signature": "(object_ids: 'list[int]', *, enabled: 'bool') -> 'JsonObject'"
+            },
+            "export_evidence_packet": {
+              "doc": "Export a compact evidence manifest from script-created snapshots.",
+              "signature": "(output_dir: 'str') -> 'JsonObject'"
+            },
+            "forget_actor": {
+              "doc": "Forget one conversational actor name without destroying the actor.",
+              "signature": "(name: 'str') -> 'JsonObject'"
+            },
+            "freeze_traffic_lights": {
+              "doc": "Freeze or unfreeze all traffic lights.",
+              "signature": "(*, enabled: 'bool') -> 'JsonObject'"
+            },
+            "generate_opendrive_world": {
+              "doc": "Replace the world from bounded OpenDRIVE text and known parameters.",
+              "signature": "(opendrive: 'str', parameters: 'dict[str, object] | None' = None, *, reset_settings: 'bool' = True) -> 'JsonObject'"
+            },
+            "generate_route": {
+              "doc": "Generate a waypoint route between two locations.",
+              "signature": "(start: 'dict[str, object]', end: 'dict[str, object]', step_meters: 'float' = 2.0, max_steps: 'int' = 200) -> 'JsonObject'"
+            },
+            "get_environment_objects": {
+              "doc": "Return bounded objects and optional level bounds by semantic label.",
+              "signature": "(label: 'str' = 'Any', max_count: 'int' = 200, *, include_level_bounds: 'bool' = False) -> 'JsonObject'"
+            },
+            "get_landmarks": {
+              "doc": "Return landmarks, optionally filtered by type or OpenDRIVE ID.",
+              "signature": "(max_count: 'int' = 200, *, landmark_type: 'str | None' = None, landmark_id: 'str | None' = None) -> 'JsonObject'"
+            },
+            "get_spawn_points": {
+              "doc": "Return legal vehicle spawn transforms from the current map.",
+              "signature": "() -> 'JsonObject'"
+            },
+            "get_topology": {
+              "doc": "Return a compact road topology graph.",
+              "signature": "(max_segments: 'int' = 200) -> 'JsonObject'"
+            },
+            "get_vehicle_physics": {
+              "doc": "Return a bounded common subset of vehicle physics control.",
+              "signature": "(actor_id: 'int') -> 'JsonObject'"
+            },
+            "get_vehicle_telemetry": {
+              "doc": "Return transform, speed, control, and traffic-light telemetry.",
+              "signature": "(actor_id: 'int') -> 'JsonObject'"
+            },
+            "get_waypoint": {
+              "doc": "Return waypoint metadata for a world location.",
+              "signature": "(location: 'dict[str, object]', lane_type: 'str' = 'Driving', *, project_to_road: 'bool' = True) -> 'JsonObject'"
+            },
+            "get_weather": {
+              "doc": "Return weather parameters when supported.",
+              "signature": "() -> 'JsonObject'"
+            },
+            "get_world_state": {
+              "doc": "Return the current CARLA world state.",
+              "signature": "() -> 'JsonObject'"
+            },
+            "health_check": {
+              "doc": "Return CARLA connection health.",
+              "signature": "() -> 'JsonObject'"
+            },
+            "list_actors": {
+              "doc": "List current actors matching a wildcard filter.",
+              "signature": "(filter_pattern: 'str' = '*') -> 'JsonObject'"
+            },
+            "list_blueprints": {
+              "doc": "List actor blueprints matching a wildcard filter.",
+              "signature": "(filter_pattern: 'str' = '*') -> 'JsonObject'"
+            },
+            "list_capabilities": {
+              "doc": "Return live CARLA version and feature probes.",
+              "signature": "() -> 'JsonObject'"
+            },
+            "list_named_actors": {
+              "doc": "List persistent actor names for this CARLA endpoint.",
+              "signature": "() -> 'JsonObject'"
+            },
+            "list_worlds": {
+              "doc": "Return available CARLA maps.",
+              "signature": "() -> 'JsonObject'"
+            },
+            "load_world": {
+              "doc": "Load a CARLA map by name.",
+              "signature": "(map_name: 'str') -> 'JsonObject'"
+            },
+            "name_actor": {
+              "doc": "Assign a conversational name to one live CARLA actor.",
+              "signature": "(name: 'str', actor_id: 'int') -> 'JsonObject'"
+            },
+            "populate_traffic": {
+              "doc": "Spawn Traffic Manager-controlled vehicles.",
+              "signature": "(request: 'dict[str, object]') -> 'JsonObject'"
+            },
+            "query_recording_actors_blocked": {
+              "doc": "Return recorder blocked-actor report text.",
+              "signature": "(path: 'str', min_time: 'float' = 30.0, min_distance: 'float' = 10.0) -> 'JsonObject'"
+            },
+            "query_recording_collisions": {
+              "doc": "Return recorder collision report text.",
+              "signature": "(path: 'str', actor_type: 'str' = 'a', other_type: 'str' = 'a') -> 'JsonObject'"
+            },
+            "read_sensor_stream": {
+              "doc": "Collect sensor frames server-side and return digests plus paths.",
+              "signature": "(sensor_id: 'int', frames: 'int' = 1, output_dir: 'str | None' = None) -> 'JsonObject'"
+            },
+            "record_episode": {
+              "doc": "Start the CARLA recorder at a path.",
+              "signature": "(output_path: 'str') -> 'JsonObject'"
+            },
+            "reload_world": {
+              "doc": "Reload the current world for a clean scenario reset.",
+              "signature": "(*, reset_settings: 'bool' = False) -> 'JsonObject'"
+            },
+            "replay_recording": {
+              "doc": "Replay a CARLA recorder file.",
+              "signature": "(path: 'str', start: 'float' = 0.0, duration: 'float' = 0.0, follow_id: 'int' = 0, *, replay_sensors: 'bool' = False, do_tick: 'bool' = True) -> 'JsonObject'"
+            },
+            "resolve_actor": {
+              "doc": "Resolve a conversational actor name and verify that it is still live.",
+              "signature": "(name: 'str') -> 'JsonObject'"
+            },
+            "save_screenshot": {
+              "doc": "Capture a spectator RGB frame and optionally publish it through MCP.",
+              "signature": "(output_path: 'str', attributes: 'dict[str, str] | None' = None, *, publish: 'bool' = False) -> 'JsonObject'"
+            },
+            "set_actor_transform": {
+              "doc": "Teleport an actor to a scenario start transform.",
+              "signature": "(actor_id: 'int', transform: 'dict[str, object]') -> 'JsonObject'"
+            },
+            "set_autopilot": {
+              "doc": "Toggle Traffic Manager autopilot for existing vehicles.",
+              "signature": "(request: 'dict[str, object]') -> 'JsonObject'"
+            },
+            "set_map_layer": {
+              "doc": "Load or unload one runtime MapLayer by name.",
+              "signature": "(layer: 'str', *, loaded: 'bool') -> 'JsonObject'"
+            },
+            "set_spectator": {
+              "doc": "Move the spectator viewpoint.",
+              "signature": "(transform: 'dict[str, object]') -> 'JsonObject'"
+            },
+            "set_sync_mode": {
+              "doc": "Configure synchronous mode and fixed timestep.",
+              "signature": "(*, enabled: 'bool', fixed_delta_seconds: 'float | None' = 0.05) -> 'JsonObject'"
+            },
+            "set_target_velocity": {
+              "doc": "Set an actor target velocity vector.",
+              "signature": "(actor_id: 'int', velocity: 'dict[str, object]') -> 'JsonObject'"
+            },
+            "set_traffic_density": {
+              "doc": "Converge in-script traffic to a requested density.",
+              "signature": "(request: 'dict[str, object]') -> 'JsonObject'"
+            },
+            "set_traffic_light_state": {
+              "doc": "Set one traffic light state, such as Red, Yellow, or Green.",
+              "signature": "(actor_id: 'int', state: 'str') -> 'JsonObject'"
+            },
+            "set_traffic_vehicle_path": {
+              "doc": "Upload request.path locations or request.route option strings for one vehicle.",
+              "signature": "(actor_id: 'int', request: 'dict[str, object]') -> 'JsonObject'"
+            },
+            "set_vehicle_behavior": {
+              "doc": "Apply a behavior profile to explicit vehicle actors.",
+              "signature": "(request: 'dict[str, object]') -> 'JsonObject'"
+            },
+            "set_vehicle_lights": {
+              "doc": "Set vehicle light state by integer mask or pipe-separated names.",
+              "signature": "(actor_id: 'int', state: 'str | int') -> 'JsonObject'"
+            },
+            "set_walker_destination": {
+              "doc": "Send a walker controller to a destination.",
+              "signature": "(controller_id: 'int', location: 'dict[str, object]') -> 'JsonObject'"
+            },
+            "set_weather": {
+              "doc": "Set weather parameters when supported by this CARLA build.",
+              "signature": "(parameters: 'dict[str, float]') -> 'JsonObject'"
+            },
+            "spawn_actor_batch": {
+              "doc": "Spawn actors from JSON-compatible spawn requests.",
+              "signature": "(requests: 'list[dict[str, object]]') -> 'JsonObject'"
+            },
+            "spawn_walkers": {
+              "doc": "Spawn pedestrians and AI walker controllers.",
+              "signature": "(count: 'int', speed: 'float' = 1.4, seed: 'int | None' = None) -> 'JsonObject'"
+            },
+            "start_traffic_controller": {
+              "doc": "Start an in-script persistent Traffic Manager controller.",
+              "signature": "(request: 'dict[str, object]') -> 'JsonObject'"
+            },
+            "stop_recording": {
+              "doc": "Stop the active CARLA recorder.",
+              "signature": "() -> 'JsonObject'"
+            },
+            "stop_traffic_controller": {
+              "doc": "Stop the in-script Traffic Manager controller.",
+              "signature": "() -> 'JsonObject'"
+            },
+            "subscribe_sensor": {
+              "doc": "Listen before the owner ticks; event sensors never require an event each frame.",
+              "signature": "(sensor_id: 'int', *, event_sensor: 'bool | None' = None, capacity: 'int' = 32) -> 'JsonObject'"
+            },
+            "tick": {
+              "doc": "Advance the simulation by one frame.",
+              "signature": "() -> 'JsonObject'"
+            },
+            "tick_n": {
+              "doc": "Advance the simulation by several frames inside the sandbox.",
+              "signature": "(count: 'int') -> 'JsonObject'"
+            },
+            "traffic_controller_status": {
+              "doc": "Return in-script Traffic Manager controller status.",
+              "signature": "() -> 'JsonObject'"
+            },
+            "tune_traffic_vehicle": {
+              "doc": "Set auto_lane_change, force_lane_change, speed, distance, or ignore percentages.",
+              "signature": "(actor_id: 'int', settings: 'dict[str, object]', traffic_manager_port: 'int' = 8000) -> 'JsonObject'"
+            },
+            "update_vehicle_physics": {
+              "doc": "Update supported scalar and center-of-mass vehicle physics fields.",
+              "signature": "(actor_id: 'int', changes: 'dict[str, object]') -> 'JsonObject'"
+            },
+            "wait": {
+              "doc": "Sleep inside the sandbox while CARLA async mode advances.",
+              "signature": "(seconds: 'float') -> 'JsonObject'"
+            },
+            "watch_actor": {
+              "doc": "Show an actor through a bounded simulator-tick chase camera.",
+              "signature": "(actor_id: 'int', seconds: 'float' = 8.0) -> 'JsonObject'"
+            }
+          }
+        },
+        "stdout": "",
+        "snapshots": {
+          "carla-snapshot://api": {
+            "methods": {
+              "apply_actor_physics": {
+                "doc": "Apply impulse, force, torque, or target angular velocity to an actor.",
+                "signature": "(actor_id: 'int', action: 'str', vector: 'dict[str, object]') -> 'JsonObject'"
+              },
+              "apply_batch": {
+                "doc": "Apply supported bulk CARLA commands, such as destroy_actor.",
+                "signature": "(commands: 'list[dict[str, object]]', *, do_tick: 'bool' = True) -> 'JsonObject'"
+              },
+              "apply_vehicle_control": {
+                "doc": "Apply direct throttle, steer, brake, and gear control to a vehicle.",
+                "signature": "(actor_id: 'int', **control: 'object') -> 'JsonObject'"
+              },
+              "apply_walker_control": {
+                "doc": "Apply manual direction and speed control to a walker.",
+                "signature": "(actor_id: 'int', direction: 'dict[str, object]', speed: 'float') -> 'JsonObject'"
+              },
+              "attach_camera": {
+                "doc": "Attach a camera sensor.",
+                "signature": "(request: 'dict[str, object]') -> 'JsonObject'"
+              },
+              "attach_event_sensor": {
+                "doc": "Attach a collision, lane-invasion, or obstacle event sensor.",
+                "signature": "(kind: 'str', parent_id: 'int', attributes: 'dict[str, str] | None' = None) -> 'JsonObject'"
+              },
+              "attach_sensor": {
+                "doc": "Attach any supported CARLA sensor kind to an actor.",
+                "signature": "(kind: 'str', parent_id: 'int | None', transform: 'dict[str, object]', attributes: 'dict[str, str] | None' = None) -> 'JsonObject'"
+              },
+              "capture_sensor_frame": {
+                "doc": "Capture one sensor frame to disk and optionally publish it through MCP.",
+                "signature": "(sensor_id: 'int', output_path: 'str', *, publish: 'bool' = False) -> 'JsonObject'"
+              },
+              "cleanup_owned_actors": {
+                "doc": "Destroy every actor created by this script execution.",
+                "signature": "() -> 'JsonObject'"
+              },
+              "close_sensor_subscription": {
+                "doc": "Stop one subscription when the owner finishes reading its sensor.",
+                "signature": "(sensor_id: 'int') -> 'JsonObject'"
+              },
+              "configure_actor_physics": {
+                "doc": "Toggle physics simulation and gravity for one actor.",
+                "signature": "(actor_id: 'int', *, simulate_physics: 'bool | None' = None, gravity: 'bool | None' = None) -> 'JsonObject'"
+              },
+              "configure_traffic_manager": {
+                "doc": "Configure global Traffic Manager behavior.",
+                "signature": "(request: 'dict[str, object]') -> 'JsonObject'"
+              },
+              "describe_api": {
+                "doc": "Return the script API method catalog for runtime discovery.",
+                "signature": "() -> 'JsonObject'"
+              },
+              "destroy_actors": {
+                "doc": "Destroy explicit actors by ID.",
+                "signature": "(actor_ids: 'list[int]') -> 'JsonObject'"
+              },
+              "detach_sensor": {
+                "doc": "Stop and destroy a sensor actor.",
+                "signature": "(sensor_id: 'int') -> 'JsonObject'"
+              },
+              "drain_sensor": {
+                "doc": "Drain by owner frame, exposing missing/late/dropped samples without ticking.",
+                "signature": "(sensor_id: 'int', frame: 'int', *, timeout_seconds: 'float' = 0.0, output_dir: 'str | None' = None) -> 'JsonObject'"
+              },
+              "enable_environment_objects": {
+                "doc": "Enable or disable explicit static environment object IDs.",
+                "signature": "(object_ids: 'list[int]', *, enabled: 'bool') -> 'JsonObject'"
+              },
+              "export_evidence_packet": {
+                "doc": "Export a compact evidence manifest from script-created snapshots.",
+                "signature": "(output_dir: 'str') -> 'JsonObject'"
+              },
+              "forget_actor": {
+                "doc": "Forget one conversational actor name without destroying the actor.",
+                "signature": "(name: 'str') -> 'JsonObject'"
+              },
+              "freeze_traffic_lights": {
+                "doc": "Freeze or unfreeze all traffic lights.",
+                "signature": "(*, enabled: 'bool') -> 'JsonObject'"
+              },
+              "generate_opendrive_world": {
+                "doc": "Replace the world from bounded OpenDRIVE text and known parameters.",
+                "signature": "(opendrive: 'str', parameters: 'dict[str, object] | None' = None, *, reset_settings: 'bool' = True) -> 'JsonObject'"
+              },
+              "generate_route": {
+                "doc": "Generate a waypoint route between two locations.",
+                "signature": "(start: 'dict[str, object]', end: 'dict[str, object]', step_meters: 'float' = 2.0, max_steps: 'int' = 200) -> 'JsonObject'"
+              },
+              "get_environment_objects": {
+                "doc": "Return bounded objects and optional level bounds by semantic label.",
+                "signature": "(label: 'str' = 'Any', max_count: 'int' = 200, *, include_level_bounds: 'bool' = False) -> 'JsonObject'"
+              },
+              "get_landmarks": {
+                "doc": "Return landmarks, optionally filtered by type or OpenDRIVE ID.",
+                "signature": "(max_count: 'int' = 200, *, landmark_type: 'str | None' = None, landmark_id: 'str | None' = None) -> 'JsonObject'"
+              },
+              "get_spawn_points": {
+                "doc": "Return legal vehicle spawn transforms from the current map.",
+                "signature": "() -> 'JsonObject'"
+              },
+              "get_topology": {
+                "doc": "Return a compact road topology graph.",
+                "signature": "(max_segments: 'int' = 200) -> 'JsonObject'"
+              },
+              "get_vehicle_physics": {
+                "doc": "Return a bounded common subset of vehicle physics control.",
+                "signature": "(actor_id: 'int') -> 'JsonObject'"
+              },
+              "get_vehicle_telemetry": {
+                "doc": "Return transform, speed, control, and traffic-light telemetry.",
+                "signature": "(actor_id: 'int') -> 'JsonObject'"
+              },
+              "get_waypoint": {
+                "doc": "Return waypoint metadata for a world location.",
+                "signature": "(location: 'dict[str, object]', lane_type: 'str' = 'Driving', *, project_to_road: 'bool' = True) -> 'JsonObject'"
+              },
+              "get_weather": {
+                "doc": "Return weather parameters when supported.",
+                "signature": "() -> 'JsonObject'"
+              },
+              "get_world_state": {
+                "doc": "Return the current CARLA world state.",
+                "signature": "() -> 'JsonObject'"
+              },
+              "health_check": {
+                "doc": "Return CARLA connection health.",
+                "signature": "() -> 'JsonObject'"
+              },
+              "list_actors": {
+                "doc": "List current actors matching a wildcard filter.",
+                "signature": "(filter_pattern: 'str' = '*') -> 'JsonObject'"
+              },
+              "list_blueprints": {
+                "doc": "List actor blueprints matching a wildcard filter.",
+                "signature": "(filter_pattern: 'str' = '*') -> 'JsonObject'"
+              },
+              "list_capabilities": {
+                "doc": "Return live CARLA version and feature probes.",
+                "signature": "() -> 'JsonObject'"
+              },
+              "list_named_actors": {
+                "doc": "List persistent actor names for this CARLA endpoint.",
+                "signature": "() -> 'JsonObject'"
+              },
+              "list_worlds": {
+                "doc": "Return available CARLA maps.",
+                "signature": "() -> 'JsonObject'"
+              },
+              "load_world": {
+                "doc": "Load a CARLA map by name.",
+                "signature": "(map_name: 'str') -> 'JsonObject'"
+              },
+              "name_actor": {
+                "doc": "Assign a conversational name to one live CARLA actor.",
+                "signature": "(name: 'str', actor_id: 'int') -> 'JsonObject'"
+              },
+              "populate_traffic": {
+                "doc": "Spawn Traffic Manager-controlled vehicles.",
+                "signature": "(request: 'dict[str, object]') -> 'JsonObject'"
+              },
+              "query_recording_actors_blocked": {
+                "doc": "Return recorder blocked-actor report text.",
+                "signature": "(path: 'str', min_time: 'float' = 30.0, min_distance: 'float' = 10.0) -> 'JsonObject'"
+              },
+              "query_recording_collisions": {
+                "doc": "Return recorder collision report text.",
+                "signature": "(path: 'str', actor_type: 'str' = 'a', other_type: 'str' = 'a') -> 'JsonObject'"
+              },
+              "read_sensor_stream": {
+                "doc": "Collect sensor frames server-side and return digests plus paths.",
+                "signature": "(sensor_id: 'int', frames: 'int' = 1, output_dir: 'str | None' = None) -> 'JsonObject'"
+              },
+              "record_episode": {
+                "doc": "Start the CARLA recorder at a path.",
+                "signature": "(output_path: 'str') -> 'JsonObject'"
+              },
+              "reload_world": {
+                "doc": "Reload the current world for a clean scenario reset.",
+                "signature": "(*, reset_settings: 'bool' = False) -> 'JsonObject'"
+              },
+              "replay_recording": {
+                "doc": "Replay a CARLA recorder file.",
+                "signature": "(path: 'str', start: 'float' = 0.0, duration: 'float' = 0.0, follow_id: 'int' = 0, *, replay_sensors: 'bool' = False, do_tick: 'bool' = True) -> 'JsonObject'"
+              },
+              "resolve_actor": {
+                "doc": "Resolve a conversational actor name and verify that it is still live.",
+                "signature": "(name: 'str') -> 'JsonObject'"
+              },
+              "save_screenshot": {
+                "doc": "Capture a spectator RGB frame and optionally publish it through MCP.",
+                "signature": "(output_path: 'str', attributes: 'dict[str, str] | None' = None, *, publish: 'bool' = False) -> 'JsonObject'"
+              },
+              "set_actor_transform": {
+                "doc": "Teleport an actor to a scenario start transform.",
+                "signature": "(actor_id: 'int', transform: 'dict[str, object]') -> 'JsonObject'"
+              },
+              "set_autopilot": {
+                "doc": "Toggle Traffic Manager autopilot for existing vehicles.",
+                "signature": "(request: 'dict[str, object]') -> 'JsonObject'"
+              },
+              "set_map_layer": {
+                "doc": "Load or unload one runtime MapLayer by name.",
+                "signature": "(layer: 'str', *, loaded: 'bool') -> 'JsonObject'"
+              },
+              "set_spectator": {
+                "doc": "Move the spectator viewpoint.",
+                "signature": "(transform: 'dict[str, object]') -> 'JsonObject'"
+              },
+              "set_sync_mode": {
+                "doc": "Configure synchronous mode and fixed timestep.",
+                "signature": "(*, enabled: 'bool', fixed_delta_seconds: 'float | None' = 0.05) -> 'JsonObject'"
+              },
+              "set_target_velocity": {
+                "doc": "Set an actor target velocity vector.",
+                "signature": "(actor_id: 'int', velocity: 'dict[str, object]') -> 'JsonObject'"
+              },
+              "set_traffic_density": {
+                "doc": "Converge in-script traffic to a requested density.",
+                "signature": "(request: 'dict[str, object]') -> 'JsonObject'"
+              },
+              "set_traffic_light_state": {
+                "doc": "Set one traffic light state, such as Red, Yellow, or Green.",
+                "signature": "(actor_id: 'int', state: 'str') -> 'JsonObject'"
+              },
+              "set_traffic_vehicle_path": {
+                "doc": "Upload request.path locations or request.route option strings for one vehicle.",
+                "signature": "(actor_id: 'int', request: 'dict[str, object]') -> 'JsonObject'"
+              },
+              "set_vehicle_behavior": {
+                "doc": "Apply a behavior profile to explicit vehicle actors.",
+                "signature": "(request: 'dict[str, object]') -> 'JsonObject'"
+              },
+              "set_vehicle_lights": {
+                "doc": "Set vehicle light state by integer mask or pipe-separated names.",
+                "signature": "(actor_id: 'int', state: 'str | int') -> 'JsonObject'"
+              },
+              "set_walker_destination": {
+                "doc": "Send a walker controller to a destination.",
+                "signature": "(controller_id: 'int', location: 'dict[str, object]') -> 'JsonObject'"
+              },
+              "set_weather": {
+                "doc": "Set weather parameters when supported by this CARLA build.",
+                "signature": "(parameters: 'dict[str, float]') -> 'JsonObject'"
+              },
+              "spawn_actor_batch": {
+                "doc": "Spawn actors from JSON-compatible spawn requests.",
+                "signature": "(requests: 'list[dict[str, object]]') -> 'JsonObject'"
+              },
+              "spawn_walkers": {
+                "doc": "Spawn pedestrians and AI walker controllers.",
+                "signature": "(count: 'int', speed: 'float' = 1.4, seed: 'int | None' = None) -> 'JsonObject'"
+              },
+              "start_traffic_controller": {
+                "doc": "Start an in-script persistent Traffic Manager controller.",
+                "signature": "(request: 'dict[str, object]') -> 'JsonObject'"
+              },
+              "stop_recording": {
+                "doc": "Stop the active CARLA recorder.",
+                "signature": "() -> 'JsonObject'"
+              },
+              "stop_traffic_controller": {
+                "doc": "Stop the in-script Traffic Manager controller.",
+                "signature": "() -> 'JsonObject'"
+              },
+              "subscribe_sensor": {
+                "doc": "Listen before the owner ticks; event sensors never require an event each frame.",
+                "signature": "(sensor_id: 'int', *, event_sensor: 'bool | None' = None, capacity: 'int' = 32) -> 'JsonObject'"
+              },
+              "tick": {
+                "doc": "Advance the simulation by one frame.",
+                "signature": "() -> 'JsonObject'"
+              },
+              "tick_n": {
+                "doc": "Advance the simulation by several frames inside the sandbox.",
+                "signature": "(count: 'int') -> 'JsonObject'"
+              },
+              "traffic_controller_status": {
+                "doc": "Return in-script Traffic Manager controller status.",
+                "signature": "() -> 'JsonObject'"
+              },
+              "tune_traffic_vehicle": {
+                "doc": "Set auto_lane_change, force_lane_change, speed, distance, or ignore percentages.",
+                "signature": "(actor_id: 'int', settings: 'dict[str, object]', traffic_manager_port: 'int' = 8000) -> 'JsonObject'"
+              },
+              "update_vehicle_physics": {
+                "doc": "Update supported scalar and center-of-mass vehicle physics fields.",
+                "signature": "(actor_id: 'int', changes: 'dict[str, object]') -> 'JsonObject'"
+              },
+              "wait": {
+                "doc": "Sleep inside the sandbox while CARLA async mode advances.",
+                "signature": "(seconds: 'float') -> 'JsonObject'"
+              },
+              "watch_actor": {
+                "doc": "Show an actor through a bounded simulator-tick chase camera.",
+                "signature": "(actor_id: 'int', seconds: 'float' = 8.0) -> 'JsonObject'"
+              }
+            }
+          }
+        },
+        "error": null,
+        "error_type": null,
+        "sandbox": {
+          "exit_code": 0,
+          "landlock": {
+            "landlock": "available",
+            "ruleset_enforced": true,
+            "tcp_connect_ports": [
+              3200,
+              3201,
+              3202,
+              8000
+            ]
+          },
+          "timed_out": false,
+          "child_exit_status": null,
+          "child_signal": null
+        },
+        "cleanup": {
+          "attempted_actor_ids": [],
+          "destroyed_actor_ids": [],
+          "failures": []
+        }
+      },
+      "published_images": []
+    },
+    {
+      "id": "exec-8f721701-84cf-48af-8354-472dd4c52d22",
+      "completed_at": "2026-10-07T00:00:36.266Z",
+      "prompt_id": "prompt-01",
+      "tool": "carla.execute_carla_script",
+      "status": "completed",
+      "duration": {
+        "secs": 0,
+        "nanos": 574683100
+      },
+      "arguments": {
+        "host": "127.0.0.1",
+        "port": 3200,
+        "code": "result = {'actor': api.resolve_actor('demo-car'), 'world': api.get_world_state()}",
+        "timeout_seconds": 30
+      },
+      "original_code_sha256": "7935275d2d92ef1fae9af26aa32001698caba0d3993e9d59f59dfc609164f962",
+      "code_sanitized": false,
+      "is_error": false,
+      "result": {
+        "ok": true,
+        "result": {
+          "actor": {
+            "actor_id": 25,
+            "name": "demo-car"
+          },
+          "world": {
+            "actor_counts": {
+              "sensors": 0,
+              "traffic": 23,
+              "vehicles": 1,
+              "walkers": 0
+            },
+            "current_map": "Carla/Maps/Town10HD_Opt",
+            "frame": 689499,
+            "settings": {
+              "fixed_delta_seconds": null,
+              "no_rendering_mode": false,
+              "synchronous_mode": false
+            },
+            "warnings": []
+          }
+        },
+        "stdout": "",
+        "snapshots": {
+          "carla-snapshot://actors/named": {
+            "actors": [
+              {
+                "actor_id": 25,
+                "name": "demo-car"
+              }
+            ]
+          },
+          "carla-snapshot://world/current": {
+            "actor_counts": {
+              "sensors": 0,
+              "traffic": 23,
+              "vehicles": 1,
+              "walkers": 0
+            },
+            "current_map": "Carla/Maps/Town10HD_Opt",
+            "frame": 689499,
+            "settings": {
+              "fixed_delta_seconds": null,
+              "no_rendering_mode": false,
+              "synchronous_mode": false
+            },
+            "warnings": []
+          }
+        },
+        "error": null,
+        "error_type": null,
+        "sandbox": {
+          "exit_code": 0,
+          "landlock": {
+            "landlock": "available",
+            "ruleset_enforced": true,
+            "tcp_connect_ports": [
+              3200,
+              3201,
+              3202,
+              8000
+            ]
+          },
+          "timed_out": false,
+          "child_exit_status": null,
+          "child_signal": null
+        },
+        "cleanup": {
+          "attempted_actor_ids": [],
+          "destroyed_actor_ids": [],
+          "failures": []
+        }
+      },
+      "published_images": []
+    },
+    {
+      "id": "exec-2b1b2fe4-f10b-4e8d-89bf-411bfc9313e7",
+      "completed_at": "2026-10-07T00:00:42.686Z",
+      "prompt_id": "prompt-01",
+      "tool": "carla.execute_carla_script",
+      "status": "completed",
+      "duration": {
+        "secs": 0,
+        "nanos": 376281500
+      },
+      "arguments": {
+        "host": "127.0.0.1",
+        "port": 3200,
+        "code": "result = api.get_vehicle_telemetry(25)",
+        "timeout_seconds": 30
+      },
+      "original_code_sha256": "dc0145569bee72f312c9d57a4742cf3d1d3f28b25f5a19e67f56867bdf5b54fd",
+      "code_sanitized": false,
+      "is_error": false,
+      "result": {
+        "ok": true,
+        "result": {
+          "acceleration": {
+            "x": 1.1180276260347457e-06,
+            "y": -1.0193078603393244e-09,
+            "z": -0.005333010107278824
+          },
+          "actor_id": 25,
+          "control": {
+            "brake": 1.0,
+            "gear": 1,
+            "hand_brake": true,
+            "manual_gear_shift": false,
+            "reverse": false,
+            "steer": 0.0,
+            "throttle": 0.0
+          },
+          "speed_limit": 30.0,
+          "speed_mps": 0.0,
+          "traffic_light_state": "Green",
+          "transform": {
+            "location": {
+              "x": 32.928165435791016,
+              "y": -57.428802490234375,
+              "z": -0.031975287944078445
+            },
+            "rotation": {
+              "pitch": -0.6481600403785706,
+              "roll": -0.13891825079917908,
+              "yaw": -0.051694195717573166
+            }
+          },
+          "velocity": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          }
+        },
+        "stdout": "",
+        "snapshots": {
+          "carla-snapshot://actors/25/telemetry": {
+            "acceleration": {
+              "x": 1.1180276260347457e-06,
+              "y": -1.0193078603393244e-09,
+              "z": -0.005333010107278824
+            },
+            "actor_id": 25,
+            "control": {
+              "brake": 1.0,
+              "gear": 1,
+              "hand_brake": true,
+              "manual_gear_shift": false,
+              "reverse": false,
+              "steer": 0.0,
+              "throttle": 0.0
+            },
+            "speed_limit": 30.0,
+            "speed_mps": 0.0,
+            "traffic_light_state": "Green",
+            "transform": {
+              "location": {
+                "x": 32.928165435791016,
+                "y": -57.428802490234375,
+                "z": -0.031975287944078445
+              },
+              "rotation": {
+                "pitch": -0.6481600403785706,
+                "roll": -0.13891825079917908,
+                "yaw": -0.051694195717573166
+              }
+            },
+            "velocity": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            }
+          }
+        },
+        "error": null,
+        "error_type": null,
+        "sandbox": {
+          "exit_code": 0,
+          "landlock": {
+            "landlock": "available",
+            "ruleset_enforced": true,
+            "tcp_connect_ports": [
+              3200,
+              3201,
+              3202,
+              8000
+            ]
+          },
+          "timed_out": false,
+          "child_exit_status": null,
+          "child_signal": null
+        },
+        "cleanup": {
+          "attempted_actor_ids": [],
+          "destroyed_actor_ids": [],
+          "failures": []
+        }
+      },
+      "published_images": []
+    },
+    {
+      "id": "exec-2882eac8-0fe1-4e14-8200-bd3e0b7dd6fc",
+      "completed_at": "2026-10-07T00:01:14.560Z",
+      "prompt_id": "prompt-01",
+      "tool": "carla.execute_carla_script",
+      "status": "completed",
+      "duration": {
+        "secs": 19,
+        "nanos": 634508900
+      },
+      "arguments": {
+        "host": "127.0.0.1",
+        "port": 3200,
+        "timeout_seconds": 60,
+        "code": "actor_id = api.resolve_actor('demo-car')['actor_id']\nstart = api.get_vehicle_telemetry(actor_id)\ndrive_view = None\nend_drive = None\ntry:\n    api.wait(10)\n    api.apply_vehicle_control(actor_id, throttle=0.4, steer=0.0, gear=1, manual_gear_shift=True, brake=0.0, hand_brake=False, reverse=False)\n    drive_view = api.watch_actor(actor_id, seconds=6.0)\n    end_drive = api.get_vehicle_telemetry(actor_id)\nfinally:\n    api.apply_vehicle_control(actor_id, throttle=0.0, brake=1.0, steer=0.0, gear=1, manual_gear_shift=True, hand_brake=False)\n    try:\n        api.watch_actor(actor_id, seconds=3.0)\n        for _ in range(5):\n            if api.get_vehicle_telemetry(actor_id)['speed_mps'] < 0.01:\n                break\n            api.watch_actor(actor_id, seconds=1.0)\n    finally:\n        api.apply_vehicle_control(actor_id, throttle=0.0, brake=1.0, steer=0.0, gear=1, manual_gear_shift=True, hand_brake=True)\nfinal = api.get_vehicle_telemetry(actor_id)\na = start['transform']['location']\nb = final['transform']['location']\nc = end_drive['transform']['location']\nresult = {'actor_id': actor_id, 'drive_seconds': 6.0, 'drive_displacement_m': sum((c[k]-a[k])**2 for k in ('x','y','z'))**0.5, 'total_displacement_m': sum((b[k]-a[k])**2 for k in ('x','y','z'))**0.5, 'final_speed_mps': final['speed_mps'], 'final_control': final['control'], 'drive_view': drive_view, 'world': api.get_world_state()}"
+      },
+      "original_code_sha256": "2d2249c53efdc22c2b1446364f57cadad397aa84083ae5d9f0a757e1d5ea121c",
+      "code_sanitized": false,
+      "is_error": false,
+      "result": {
+        "ok": true,
+        "result": {
+          "actor_id": 25,
+          "drive_displacement_m": 15.932579839021706,
+          "drive_seconds": 6.0,
+          "drive_view": {
+            "actor_id": 25,
+            "distance": 8.0,
+            "height": 4.0,
+            "samples": 407,
+            "seconds": 6.0,
+            "spectator_restored": true
+          },
+          "final_control": {
+            "brake": 1.0,
+            "gear": 1,
+            "hand_brake": false,
+            "manual_gear_shift": true,
+            "reverse": false,
+            "steer": 0.0,
+            "throttle": 0.0
+          },
+          "final_speed_mps": 2.974552081263473e-05,
+          "total_displacement_m": 18.752494123457712,
+          "world": {
+            "actor_counts": {
+              "sensors": 0,
+              "traffic": 23,
+              "vehicles": 1,
+              "walkers": 0
+            },
+            "current_map": "Carla/Maps/Town10HD_Opt",
+            "frame": 691857,
+            "settings": {
+              "fixed_delta_seconds": null,
+              "no_rendering_mode": false,
+              "synchronous_mode": false
+            },
+            "warnings": []
+          }
+        },
+        "stdout": "",
+        "snapshots": {
+          "carla-snapshot://actors/25/telemetry": {
+            "acceleration": {
+              "x": 1.2522856195573697e-05,
+              "y": -1.8723191885783308e-08,
+              "z": -0.007849256508052349
+            },
+            "actor_id": 25,
+            "control": {
+              "brake": 1.0,
+              "gear": 1,
+              "hand_brake": false,
+              "manual_gear_shift": true,
+              "reverse": false,
+              "steer": 0.0,
+              "throttle": 0.0
+            },
+            "speed_limit": 30.0,
+            "speed_mps": 2.974552081263473e-05,
+            "traffic_light_state": "Green",
+            "transform": {
+              "location": {
+                "x": 51.680633544921875,
+                "y": -57.45612716674805,
+                "z": -0.047161851078271866
+              },
+              "rotation": {
+                "pitch": 0.2073441445827484,
+                "roll": -0.5252997279167175,
+                "yaw": -0.0828360766172409
+              }
+            },
+            "velocity": {
+              "x": 1.581060473654361e-07,
+              "y": -2.3652443892352437e-10,
+              "z": -2.9745100619038567e-05
+            }
+          },
+          "carla-snapshot://actors/named": {
+            "actors": [
+              {
+                "actor_id": 25,
+                "name": "demo-car"
+              }
+            ]
+          },
+          "carla-snapshot://world/current": {
+            "actor_counts": {
+              "sensors": 0,
+              "traffic": 23,
+              "vehicles": 1,
+              "walkers": 0
+            },
+            "current_map": "Carla/Maps/Town10HD_Opt",
+            "frame": 691857,
+            "settings": {
+              "fixed_delta_seconds": null,
+              "no_rendering_mode": false,
+              "synchronous_mode": false
+            },
+            "warnings": []
+          }
+        },
+        "error": null,
+        "error_type": null,
+        "sandbox": {
+          "exit_code": 0,
+          "landlock": {
+            "landlock": "available",
+            "ruleset_enforced": true,
+            "tcp_connect_ports": [
+              3200,
+              3201,
+              3202,
+              8000
+            ]
+          },
+          "timed_out": false,
+          "child_exit_status": null,
+          "child_signal": null
+        },
+        "cleanup": {
+          "attempted_actor_ids": [],
+          "destroyed_actor_ids": [],
+          "failures": []
+        }
+      },
+      "published_images": []
+    },
+    {
+      "id": "exec-1a87634d-e86d-454b-92c0-39173ae8bf3b",
+      "completed_at": "2026-10-07T00:01:21.500Z",
+      "prompt_id": "prompt-01",
+      "tool": "carla.execute_carla_script",
+      "status": "completed",
+      "duration": {
+        "secs": 0,
+        "nanos": 841916100
+      },
+      "arguments": {
+        "host": "127.0.0.1",
+        "port": 3200,
+        "timeout_seconds": 30,
+        "code": "actor_id = api.resolve_actor('demo-car')['actor_id']\napi.apply_vehicle_control(actor_id, throttle=0.0, brake=1.0, hand_brake=True, gear=1, manual_gear_shift=True)\napi.wait(0.5)\nresult = api.get_vehicle_telemetry(actor_id)"
+      },
+      "original_code_sha256": "54481e70ac80802dba6d1bc8705c3b6cf7afe1f570c9c8db498c0a61e65bfa18",
+      "code_sanitized": false,
+      "is_error": false,
+      "result": {
+        "ok": true,
+        "result": {
+          "acceleration": {
+            "x": 2.4440380457235733e-06,
+            "y": -3.646061896844799e-09,
+            "z": 0.0006719698430970311
+          },
+          "actor_id": 25,
+          "control": {
+            "brake": 1.0,
+            "gear": 1,
+            "hand_brake": true,
+            "manual_gear_shift": true,
+            "reverse": false,
+            "steer": 0.0,
+            "throttle": 0.0
+          },
+          "speed_limit": 30.0,
+          "speed_mps": 8.273303160081352e-06,
+          "traffic_light_state": "Green",
+          "transform": {
+            "location": {
+              "x": 51.68063735961914,
+              "y": -57.45612716674805,
+              "z": -0.04716997966170311
+            },
+            "rotation": {
+              "pitch": 0.20782341063022616,
+              "roll": -0.5253012776374817,
+              "yaw": -0.08283709734678268
+            }
+          },
+          "velocity": {
+            "x": 5.431340710515543e-08,
+            "y": -8.10254779937125e-11,
+            "z": -8.273124876723159e-06
+          }
+        },
+        "stdout": "",
+        "snapshots": {
+          "carla-snapshot://actors/25/telemetry": {
+            "acceleration": {
+              "x": 2.4440380457235733e-06,
+              "y": -3.646061896844799e-09,
+              "z": 0.0006719698430970311
+            },
+            "actor_id": 25,
+            "control": {
+              "brake": 1.0,
+              "gear": 1,
+              "hand_brake": true,
+              "manual_gear_shift": true,
+              "reverse": false,
+              "steer": 0.0,
+              "throttle": 0.0
+            },
+            "speed_limit": 30.0,
+            "speed_mps": 8.273303160081352e-06,
+            "traffic_light_state": "Green",
+            "transform": {
+              "location": {
+                "x": 51.68063735961914,
+                "y": -57.45612716674805,
+                "z": -0.04716997966170311
+              },
+              "rotation": {
+                "pitch": 0.20782341063022616,
+                "roll": -0.5253012776374817,
+                "yaw": -0.08283709734678268
+              }
+            },
+            "velocity": {
+              "x": 5.431340710515543e-08,
+              "y": -8.10254779937125e-11,
+              "z": -8.273124876723159e-06
+            }
+          },
+          "carla-snapshot://actors/named": {
+            "actors": [
+              {
+                "actor_id": 25,
+                "name": "demo-car"
+              }
+            ]
+          }
+        },
+        "error": null,
+        "error_type": null,
+        "sandbox": {
+          "exit_code": 0,
+          "landlock": {
+            "landlock": "available",
+            "ruleset_enforced": true,
+            "tcp_connect_ports": [
+              3200,
+              3201,
+              3202,
+              8000
+            ]
+          },
+          "timed_out": false,
+          "child_exit_status": null,
+          "child_signal": null
+        },
+        "cleanup": {
+          "attempted_actor_ids": [],
+          "destroyed_actor_ids": [],
+          "failures": []
+        }
+      },
+      "published_images": []
+    }
+  ],
+  "summary": {
+    "prompt_count": 1,
+    "carla_call_count": 5,
+    "failed_carla_call_ids": [],
+    "nested_operation_errors": [],
+    "actor_ids": [
+      25
+    ],
+    "health_results": [],
+    "driving_measurements": [
+      {
+        "call_id": "exec-2882eac8-0fe1-4e14-8200-bd3e0b7dd6fc",
+        "measurements": {
+          "actor_id": 25,
+          "drive_displacement_m": 15.932579839021706,
+          "drive_seconds": 6.0,
+          "drive_view": {
+            "actor_id": 25,
+            "distance": 8.0,
+            "height": 4.0,
+            "samples": 407,
+            "seconds": 6.0,
+            "spectator_restored": true
+          },
+          "final_control": {
+            "brake": 1.0,
+            "gear": 1,
+            "hand_brake": false,
+            "manual_gear_shift": true,
+            "reverse": false,
+            "steer": 0.0,
+            "throttle": 0.0
+          },
+          "final_speed_mps": 2.974552081263473e-05,
+          "total_displacement_m": 18.752494123457712,
+          "world": {
+            "actor_counts": {
+              "sensors": 0,
+              "traffic": 23,
+              "vehicles": 1,
+              "walkers": 0
+            },
+            "current_map": "Carla/Maps/Town10HD_Opt",
+            "frame": 691857,
+            "settings": {
+              "fixed_delta_seconds": null,
+              "no_rendering_mode": false,
+              "synchronous_mode": false
+            },
+            "warnings": []
+          }
+        }
+      }
+    ],
+    "published_image_count": 0,
+    "camera_captures": []
+  },
+  "privacy_projection": "Thread identifiers, local absolute paths, runner paths, raw stderr, hidden reasoning, system/developer instructions, credentials and embedded image bytes are excluded. Exact scene prompts, CARLA code/results, simulator actor IDs and image hashes are retained."
+}

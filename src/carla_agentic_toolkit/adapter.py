@@ -417,7 +417,8 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
         sensor = self._sensor_actor(sensor_id)
         image = _capture_image(sensor)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        image.save_to_disk(str(output_path))
+        # CARLA's native writer cannot create the empty parent of a bare filename.
+        image.save_to_disk(str(output_path.absolute()))
         return CaptureInfo(
             capture_id=f"capture-{sensor_id:06d}",
             sensor_id=sensor_id,
