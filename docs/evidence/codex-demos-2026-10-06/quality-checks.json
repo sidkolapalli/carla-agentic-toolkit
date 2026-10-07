@@ -1,0 +1,74 @@
+{
+  "completed_at": "2026-10-07T00:18:47.198970+00:00",
+  "environment": "Isolated Linux checkout under WSL2; dependencies installed from the lockfile",
+  "commands": [
+    {
+      "command": "make check",
+      "exit_code": 0
+    },
+    {
+      "command": "uv run ruff format --check .",
+      "exit_code": 0
+    }
+  ],
+  "python_tests": {
+    "passed": 679,
+    "skipped": 2,
+    "skip_reasons": [
+      "Live Jev choice test requires an explicit opt-in and a trusted credential.",
+      "Non-WSL host rejection test does not apply to this WSL2 run."
+    ]
+  },
+  "rust_tests": {
+    "passed": 9,
+    "failed": 0
+  },
+  "ruff_format": {
+    "files_checked": 190,
+    "passed": true
+  },
+  "quality_checks": [
+    "Ruff lint",
+    "Ty types",
+    "Radon complexity and maintainability",
+    "Rustfmt",
+    "Clippy with warnings denied",
+    "Rust build",
+    "Rust tests",
+    "pytest",
+    "Ruff formatting"
+  ],
+  "regression_tdd": {
+    "before_fix": {
+      "failed": 2,
+      "passed": 3
+    },
+    "after_fix": "Included in the successful full pytest run"
+  },
+  "capture_output_containment": {
+    "real_landlock": true,
+    "verified_probes": 6,
+    "allowed": [
+      "basename",
+      "nested relative path",
+      "absolute path within output directory"
+    ],
+    "denied": [
+      "parent traversal outside output",
+      "absolute path outside output",
+      "symlink outside output"
+    ]
+  },
+  "changed_capture_source_sha256": {
+    "src/carla_agentic_toolkit/adapter.py": "64eda757a5fdfe7aafef88e7253f5f46ca066dac6e773a97f7e0c3a6a8bbf4be",
+    "src/carla_agentic_toolkit/experiment_perception.py": "ddb66efeb3673d403f4f871ac697ce522a425d7e59b55b6d6d022d147f4e3dc1",
+    "tests/test_sensor_capture_paths.py": "9ad86c85f4c9060dede643d416559f0248296dbbe8ba738986ceefefb9b13090"
+  },
+  "validation_log_sha256": {
+    "full-linux-quality-final-1.log": "a5f74272cb81de429f25bf03ef0f1bd129693f43d13924d2c22637ae434a7299",
+    "full-linux-quality-final-2.log": "85c160a2328f01ecbf799ea2e2d435203d0b65baa39f08e2190ee2f3fd6d5c7b",
+    "capture-path-linux-checks.json": "5556be9d85a9fa0524030d3eb5eb76819a6a1213e5b70f3900d632211eef3115"
+  },
+  "live_simulator_restarted": false,
+  "ok": true
+}

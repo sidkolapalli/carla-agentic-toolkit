@@ -1,0 +1,28 @@
+[
+  {
+    "file": "demo-clean-front.png",
+    "source_relative_capture_path": "captures/demo-clean-front.png",
+    "source": "actual original WSL simulator camera capture",
+    "verified_against": "original MCP ImageContent bytes retained in exact demo chat",
+    "frame": 698091,
+    "sensor_id": 34,
+    "call_id": "exec-c1d23ddf-41ab-45e5-9e2f-43fea2e34124",
+    "sha256": "276559debf86ff4c69d6c4e5b0323c24f99be5d3397e8b48e8fd41e99c90c2ab",
+    "byte_count": 501321,
+    "width": 640,
+    "height": 360
+  },
+  {
+    "file": "demo-clean-chase.png",
+    "source_relative_capture_path": "captures/demo-clean-chase.png",
+    "source": "actual original WSL simulator camera capture",
+    "verified_against": "original MCP ImageContent bytes retained in exact demo chat",
+    "frame": 698795,
+    "sensor_id": 35,
+    "call_id": "exec-7bb7b785-bfc2-4c48-87e2-f6efd41c80bf",
+    "sha256": "caf1364bbd8699314a8a869e88fd22a4b721ffb5562acbc3f05304b6e863f186",
+    "byte_count": 451409,
+    "width": 640,
+    "height": 360
+  }
+]

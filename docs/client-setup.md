@@ -54,9 +54,11 @@ configuration; see the [release evidence](release-readiness.md).
 Windows 0.10.0 simulator and matching Linux client in WSL2. Core MCP driving,
 camera/resource delivery, managed rules/Jev merges, persistent follow-ups,
 cancellation and final cleanup checks passed after compatibility fixes.
-One earlier persistent close returned a missing cleanup report; recovery and
-reruns succeeded, but its cause remains unresolved. This is not full production
-support or a claim that every CARLA API works on UE5.
+One earlier persistent close returned a missing cleanup report. The later
+[cleanup worker lifetime fix](evidence/cleanup-worker-2026-10-05/README.md)
+retains the native client through report publication and passed regression,
+live close and recovery checks. The exact upstream native crash was not proven.
+This is not full production support or a claim that every CARLA API works on UE5.
 
 Install the matching **Linux** Python 3.12 wheel inside Linux/WSL2, even when the
 simulator runs on Windows. Obtain it from the matching Linux simulator package;
