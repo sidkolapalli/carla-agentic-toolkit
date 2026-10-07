@@ -102,7 +102,8 @@ def save_sensor_frame(frame: object, sensor_id: int, output_dir: Path) -> Path:
     path = output_dir / f"sensor-{sensor_id}-{frame_id}.png"
     save_to_disk = getattr(frame, "save_to_disk", None)
     if callable(save_to_disk):
-        save_to_disk(str(path))
+        # A current-directory capture still needs a nonempty native parent path.
+        save_to_disk(str(path.absolute()))
     return path
 
 
