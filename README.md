@@ -24,9 +24,14 @@ Experimental alpha · Local Linux / WSL2 · Separate CARLA installation required
 
 > Drive demo-car for six seconds, brake, and report the distance.
 
-[![Animated excerpts of the real Codex request, CARLA vehicle motion, and measured result. Open the full 47-second video.](docs/assets/readme/drive-preview.gif)](docs/evidence/codex-demos-2026-10-06/drive.mp4)
+[![Animated excerpts of the real Codex request, CARLA vehicle motion, and measured result. Open the full 47-second video.](docs/assets/readme/drive-preview.gif)](https://github.com/user-attachments/assets/2d9712dc-3e64-4e0c-b905-f31241eaeda0)
 
-**[Watch the full drive demo · 47 seconds](docs/evidence/codex-demos-2026-10-06/drive.mp4)**
+<details>
+<summary><strong>Play the full drive demo · 47 seconds</strong></summary>
+
+https://github.com/user-attachments/assets/2d9712dc-3e64-4e0c-b905-f31241eaeda0
+
+</details>
 
 Codex drives the prepared car, brakes, and reports **18.75 m of displacement
 including stopping**. The animation above skips between excerpts; the full
@@ -34,8 +39,22 @@ Recordly edit shows the prompt, labeled 8× agent work, and driving at 1× speed
 
 | See through the car's cameras | Watch Jev make driving decisions |
 | --- | --- |
-| [![Actual CARLA chase-camera image displayed in Codex. Watch the camera demo.](docs/evidence/codex-demos-2026-10-06/cameras-poster.jpg)](docs/evidence/codex-demos-2026-10-06/cameras.mp4) | [![Recorded CARLA route experiment with the selected Jev tactic and vehicle controls. Watch the route demo.](docs/assets/readme/route-poster.jpg)](docs/evidence/route-hazards-2026-10-05/demo.mp4) |
-| **[Watch · 37 seconds](docs/evidence/codex-demos-2026-10-06/cameras.mp4)** — Codex retrieves real front and chase sensor images, then removes its cameras. | **[Watch · 80 seconds](docs/evidence/route-hazards-2026-10-05/demo.mp4)** — Jev selects `cruise`, `caution`, or `yield` along a 135 m route with controlled traffic. |
+| [![Actual CARLA chase-camera image displayed in Codex. Watch the camera demo.](docs/evidence/codex-demos-2026-10-06/cameras-poster.jpg)](https://github.com/user-attachments/assets/a3b3001c-5793-45de-bc6d-b84e142cdfad) | [![Recorded CARLA route experiment with the selected Jev tactic and vehicle controls. Watch the route demo.](docs/assets/readme/route-poster.jpg)](https://github.com/user-attachments/assets/2749e704-e5ab-4de7-9a24-bb70a2bd3442) |
+| **[Watch · 37 seconds](https://github.com/user-attachments/assets/a3b3001c-5793-45de-bc6d-b84e142cdfad)** — Codex retrieves real front and chase sensor images, then removes its cameras. | **[Watch · 80 seconds](https://github.com/user-attachments/assets/2749e704-e5ab-4de7-9a24-bb70a2bd3442)** — Jev selects `cruise`, `caution`, or `yield` along a 135 m route with controlled traffic. |
+
+<details>
+<summary>Play the camera demo · 37 seconds</summary>
+
+https://github.com/user-attachments/assets/a3b3001c-5793-45de-bc6d-b84e142cdfad
+
+</details>
+
+<details>
+<summary>Play the Jev route demo · 80 seconds</summary>
+
+https://github.com/user-attachments/assets/2749e704-e5ab-4de7-9a24-bb70a2bd3442
+
+</details>
 
 The Codex demos use a configured simulator and an already named car; they do
 not use Jev. The camera views are captured stills. The Jev video samples recorded
