@@ -16,6 +16,12 @@ pedestrian attempt did not enter the lane. These are exploratory trials.
 timing, output hashes and verification. The original videos and their evidence
 remain unchanged.
 
+The manifest also records the three GitHub video attachments used for inline
+README playback. The complete drive recording is compressed to 720p with all
+1,421 frames and the original timing; the camera and route attachments are
+byte-identical to their published source videos. The repository copies remain
+available as independent source artifacts.
+
 Scene credit: CARLA Simulator contributors, CARLA 0.10.0, Town10HD_Opt.
 [Upstream licensing](https://github.com/carla-simulator/carla/blob/0.10.0/README.md#licenses)
 identifies CARLA-specific assets as CC-BY; their terms remain independent of
