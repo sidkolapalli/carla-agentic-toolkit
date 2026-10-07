@@ -11,6 +11,12 @@ The agent writes the workflow. The toolkit runs it through a constrained Python
 API and a Linux sandbox. **One tool handles the whole workflow**:
 set up the scene, act, observe, and measure without wiring up every CARLA call by hand.
 
+**Explore System One AI with Jev.** Add TypeSafe's decision model to reviewed
+driving experiments: Jev chooses a tactic from the current simulator state,
+local code validates the choice and controls the vehicle, and the toolkit records
+the outcome. [Watch Jev on a route](https://github.com/user-attachments/assets/2749e704-e5ab-4de7-9a24-bb70a2bd3442)
+or [compare its decisions with a rules baseline](#system-one-decisions-with-jev).
+
 [![CI](https://github.com/sidkolapalli/carla-agentic-toolkit/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sidkolapalli/carla-agentic-toolkit/actions/workflows/ci.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
@@ -37,7 +43,7 @@ Codex drives the prepared car, brakes, and reports **18.75 m of displacement
 including stopping**. The animation above skips between excerpts; the full
 Recordly edit shows the prompt, labeled 8× agent work, and driving at 1× speed.
 
-| See through the car's cameras | Watch Jev make driving decisions |
+| See through the car's cameras | System One in action: Jev driving decisions |
 | --- | --- |
 | ![Actual CARLA chase-camera image displayed in Codex.](docs/evidence/codex-demos-2026-10-06/cameras-poster.jpg) | ![Recorded CARLA route experiment with the selected Jev tactic and vehicle controls.](docs/assets/readme/route-poster.jpg) |
 | **[Watch · 37 seconds](https://github.com/user-attachments/assets/a3b3001c-5793-45de-bc6d-b84e142cdfad)** — Codex retrieves real front and chase sensor images, then removes its cameras. | **[Watch · 80 seconds](https://github.com/user-attachments/assets/2749e704-e5ab-4de7-9a24-bb70a2bd3442)** — Jev selects `cruise`, `caution`, or `yield` along a 135 m route with controlled traffic. |
@@ -50,7 +56,7 @@ https://github.com/user-attachments/assets/a3b3001c-5793-45de-bc6d-b84e142cdfad
 </details>
 
 <details>
-<summary>Play the Jev route demo · 80 seconds</summary>
+<summary>Play the Jev System One route demo · 80 seconds</summary>
 
 https://github.com/user-attachments/assets/2749e704-e5ab-4de7-9a24-bb70a2bd3442
 
@@ -68,14 +74,14 @@ These are demonstrations of the workflows, not safety or response-time benchmark
 - **Go from a request to a complete experiment.** Your agent can combine scene
   setup, vehicle control, sensors, and measurement in one Python workflow through
   `execute_carla_script`.
+- **Study System One decisions in a simulator.** Compare Jev's driving tactics
+  with a no-key rules policy under the same vehicle controller. Inspect the
+  recorded decisions, fallbacks, and route outcomes to see where each works.
 - **See what actually happened.** Return camera images directly to your agent,
   inspect measurements, and keep captures and experiment traces after a run.
 - **Give generated code a defined boundary.** The curated API, Rust runner, and
   Linux Landlock sandbox constrain execution. Timeouts and failed scripts trigger
   owned-actor cleanup; successful scripts can keep the scene for follow-up requests.
-- **Compare decisions under the same controller.** Optional managed experiments
-  let you compare a no-key rules policy with Jev's choices while keeping the
-  observations, vehicle controller, and recorded outcomes comparable.
 
 ## Quick start
 
@@ -146,10 +152,11 @@ with measured results and cleanup, follow the [reproducible demo](docs/alpha-dem
 
 ## System One decisions with Jev
 
-The coding agent handles your conversation and writes workflows. Optional
 **[Jev, TypeSafe's System One model](https://typesafe.ai/blog/introducing-system-one-models-and-jev),
-makes tactical choices inside reviewed driving experiments**: when to merge,
-cruise, slow down, or yield.
+returns structured decisions that software can act on.** Here, it selects from
+allowed driving tactics using the current simulator state: when to merge,
+cruise, slow down, or yield. The coding agent handles your conversation and writes
+workflows; Jev supplies the optional tactical decisions inside reviewed experiments.
 
 | Component | What it does |
 | --- | --- |
