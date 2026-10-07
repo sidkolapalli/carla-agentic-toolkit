@@ -59,8 +59,9 @@ representative at an online or offline event.
 ## Enforcement
 
 Report abusive, harassing, or otherwise unacceptable behavior privately to the
-maintainer at [akon2997@gmail.com](mailto:akon2997@gmail.com), with a subject
-beginning `[CARLA Agentic Toolkit conduct]`. Include relevant links and enough
+maintainer in a private message on
+[LinkedIn](https://www.linkedin.com/in/siddharthkvr), beginning
+`[CARLA Agentic Toolkit conduct]`. Include relevant links and enough
 context to investigate. Do not post identifying incident details in a public
 issue or use a vulnerability advisory for a conduct report. All complaints will
 be reviewed and investigated promptly and fairly.

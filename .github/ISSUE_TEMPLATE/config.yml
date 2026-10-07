@@ -2,7 +2,7 @@ blank_issues_enabled: true
 contact_links:
   - name: Report a security vulnerability privately
     url: https://github.com/sidkolapalli/carla-agentic-toolkit/security/policy
-    about: Use the maintainer email or private advisory route in SECURITY.md. Do not disclose vulnerabilities in a public issue.
+    about: Use the private advisory route in SECURITY.md. Do not disclose vulnerabilities in a public issue.
   - name: Report a conduct concern privately
     url: https://github.com/sidkolapalli/carla-agentic-toolkit/blob/main/CODE_OF_CONDUCT.md#enforcement
-    about: Email the maintainer using the contact in the Code of Conduct. Do not post identifying incident details publicly.
+    about: Message the maintainer privately using the contact in the Code of Conduct. Do not post identifying incident details publicly.
