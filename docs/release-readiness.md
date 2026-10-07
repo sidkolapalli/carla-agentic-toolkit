@@ -100,7 +100,7 @@ uv run python scripts/sandbox_demo.py
 ```
 
 Install a CARLA Python API matching the dedicated simulator, then use the
-[live MCP smoke test](../README.md#demo), [managed experiment commands](managed-experiments.md),
+[live MCP smoke test](alpha-demo.md#run-the-live-mcp-workflow), [managed experiment commands](managed-experiments.md),
 [persistent-session walkthrough](persistent-sessions.md), and
 [saved-trace comparison](experiment-evidence.md). Use a private native Linux state
 directory and a writable output directory. Windows-mounted directories can have
