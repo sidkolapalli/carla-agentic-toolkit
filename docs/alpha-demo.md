@@ -2,7 +2,7 @@
 
 This walkthrough demonstrates the finite local toolkit covered by
 [#82](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/82). It needs no
-provider key. Read the [candidate release notes](alpha-release-notes.md) and
+provider key. Read the [alpha release notes](alpha-release-notes.md) and
 [client prerequisites](client-setup.md#prerequisites) first. Use a dedicated
 CARLA instance; the live step creates actors and temporarily changes weather
 and the spectator view.
@@ -10,15 +10,16 @@ and the spectator view.
 ## Prepare a fresh source environment
 
 Run these commands in Bash on supported Linux, with uv and Rust installed and a
-kernel capable of enforcing Landlock ABI V7. Repository access is required while
-the repository remains private. The pinned commit below is the implementation
-with a completed CI run, not a release tag.
+kernel capable of enforcing Landlock ABI V7. The public repository's
+[`v0.1.0-alpha.1` prerelease](https://github.com/sidkolapalli/carla-agentic-toolkit/releases/tag/v0.1.0-alpha.1)
+pins the source checkout below. Its publication commit and CI checks are recorded
+in [release readiness](release-readiness.md).
 
 ```bash
 set -euo pipefail
 git clone https://github.com/sidkolapalli/carla-agentic-toolkit.git carla-alpha-demo
 cd carla-alpha-demo
-git checkout --detach 49a739ebab377f04161afd2201d93fab1a4bd8d7
+git checkout --detach v0.1.0-alpha.1
 uv sync --locked --python 3.12
 uv pip install --python .venv 'carla==0.9.16'
 cargo build --locked --manifest-path sandbox-runner/Cargo.toml --release
@@ -38,8 +39,10 @@ uv run --no-sync carla-agentic-toolkit-preflight | tee target/alpha-demo/preflig
 Use a native Linux home directory for private state, including when working
 through WSL2. Do not put it under the source checkout or output directory.
 `--no-sync` retains the separately installed CARLA Python API. If the simulator
-version differs, install its matching API and record that difference; the live
-evidence for this candidate used 0.9.16 on both sides.
+version differs, install its matching API and record that difference. The retained
+0.9.16 live evidence used matching server and client versions on earlier source
+revisions; it is historical evidence, not a new live run of this release tag.
+Keep the commit and reports from your own run with any new recording.
 
 Preflight must report `ok: true` and `ruleset_enforced: true`. Stop on a failed
 check; there is no weaker fallback. This guide disables the optional lifecycle
@@ -108,7 +111,7 @@ sandbox rejection, the visible vehicle/camera result, and the final JSON cleanup
 checks. Keep the machine-readable files with the video. Do not imply that an
 edited video establishes reliability or that this finite demo validates a Jev
 comparison. Follow [client setup](client-setup.md) to show the same workflow in a
-client, and verify that the configured server points at this candidate checkout.
+client, and verify that the configured server points at this release checkout.
 
 For Windows clients, follow the explicit WSL2 setup and preflight in that guide
 before using the harness's `--windows` flag. The validated WSL2/Linux path is
