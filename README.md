@@ -1,28 +1,22 @@
+<div align="center">
+
 # CARLA Agentic Toolkit
 
-### Control CARLA with plain English.
+**Control CARLA with plain English.**<br>
+**Explore System One decisions with Jev.**
 
-Connect **Codex, Claude Code, or VS Code** to [CARLA](https://github.com/carla-simulator/carla),
-the open-source driving simulator. Ask your agent to build a scene, drive a car,
-inspect its cameras, or run a traffic experiment. Get back **actual simulator
-images, measurements, and saved results**.
-
-The agent writes the workflow. The toolkit runs it through a constrained Python
-API and a Linux sandbox. **One tool handles the whole workflow**:
-set up the scene, act, observe, and measure without wiring up every CARLA call by hand.
-
-**Explore System One AI with Jev.** Add TypeSafe's decision model to reviewed
-driving experiments: Jev chooses a tactic from the current simulator state,
-local code validates the choice and controls the vehicle, and the toolkit records
-the outcome. [Watch Jev on a route](https://github.com/user-attachments/assets/2749e704-e5ab-4de7-9a24-bb70a2bd3442)
-or [compare its decisions with a rules baseline](#system-one-decisions-with-jev).
+Connect **Codex, Claude Code, or VS Code** to [CARLA](https://github.com/carla-simulator/carla), the open-source driving simulator.<br>
+Build scenes, drive cars, and bring **real images, measurements, and saved results** back to your agent.
 
 [![CI](https://github.com/sidkolapalli/carla-agentic-toolkit/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sidkolapalli/carla-agentic-toolkit/actions/workflows/ci.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Experimental alpha](https://img.shields.io/badge/status-experimental%20alpha-8a5a00)](docs/alpha-release-notes.md)
 
-**[Watch the demos](#demo)** · **[Get started](#quick-start)** · **[Explore Jev experiments](#system-one-decisions-with-jev)** · **[Read the docs](#documentation)**
+**[Watch demos](#demo)** &nbsp; · &nbsp; **[Get started](#quick-start)** &nbsp; · &nbsp; **[System One + Jev](#system-one-decisions-with-jev)** &nbsp; · &nbsp; **[Documentation](#documentation)**
 
-Experimental alpha · Local Linux / WSL2 · Separate CARLA installation required · Jev optional
+Local Linux / WSL2 · Separate CARLA installation required · Jev optional
+
+</div>
 
 ## Demo
 
@@ -30,7 +24,9 @@ Experimental alpha · Local Linux / WSL2 · Separate CARLA installation required
 
 > Drive demo-car for six seconds, brake, and report the distance.
 
-![Animated excerpts of the real Codex request, CARLA vehicle motion, and measured result. Play the full video below.](docs/assets/readme/drive-preview.gif)
+<p align="center">
+  <img src="docs/assets/readme/drive-preview.gif" width="720" alt="Animated excerpts of the real Codex request, CARLA vehicle motion, and measured result. Play the full video below.">
+</p>
 
 <details>
 <summary><strong>Play the full drive demo · 47 seconds</strong></summary>
@@ -43,7 +39,7 @@ Codex drives the prepared car, brakes, and reports **18.75 m of displacement
 including stopping**. The animation above skips between excerpts; the full
 Recordly edit shows the prompt, labeled 8× agent work, and driving at 1× speed.
 
-| See through the car's cameras | System One in action: Jev driving decisions |
+| See through the car's cameras | System One in action with Jev |
 | --- | --- |
 | ![Actual CARLA chase-camera image displayed in Codex.](docs/evidence/codex-demos-2026-10-06/cameras-poster.jpg) | ![Recorded CARLA route experiment with the selected Jev tactic and vehicle controls.](docs/assets/readme/route-poster.jpg) |
 | **[Watch · 37 seconds](https://github.com/user-attachments/assets/a3b3001c-5793-45de-bc6d-b84e142cdfad)** — Codex retrieves real front and chase sensor images, then removes its cameras. | **[Watch · 80 seconds](https://github.com/user-attachments/assets/2749e704-e5ab-4de7-9a24-bb70a2bd3442)** — Jev selects `cruise`, `caution`, or `yield` along a 135 m route with controlled traffic. |
@@ -71,6 +67,10 @@ These are demonstrations of the workflows, not safety or response-time benchmark
 
 ## Why use it?
 
+**One tool handles the whole workflow:** set up the scene, act, observe, and
+measure. Your agent writes the Python workflow; the toolkit runs it through a
+constrained API and a Linux sandbox.
+
 - **Go from a request to a complete experiment.** Your agent can combine scene
   setup, vehicle control, sensors, and measurement in one Python workflow through
   `execute_carla_script`.
@@ -83,11 +83,39 @@ These are demonstrations of the workflows, not safety or response-time benchmark
   Linux Landlock sandbox constrain execution. Timeouts and failed scripts trigger
   owned-actor cleanup; successful scripts can keep the scene for follow-up requests.
 
+## System One decisions with Jev
+
+**[Jev, TypeSafe's System One model](https://typesafe.ai/blog/introducing-system-one-models-and-jev),
+returns structured decisions that software can act on.** Here, it selects from
+allowed driving tactics using the current simulator state: when to merge,
+cruise, slow down, or yield. The coding agent handles your conversation and writes
+workflows; Jev supplies the optional tactical decisions inside reviewed experiments.
+
+| Component | What it does |
+| --- | --- |
+| Codex / Claude Code / VS Code agent | Turns your request into a simulation workflow. |
+| Toolkit | Runs agent scripts through the sandbox; manages experiment timing, validation, evidence, and cleanup. |
+| Jev, when enabled | Reads structured observations and selects from supplied tactics. |
+| Local controller | Converts the accepted tactic into steering, throttle, and braking; applies guards and fallbacks. |
+| CARLA | Simulates the road, vehicles, traffic, physics, and sensors. |
+
+Jev uses numerical simulator state in this integration; it does not interpret
+camera images or directly command the pedals. The ordinary MCP workflows and
+rules baseline need no Jev key. Jev experiments require the optional SDK and
+`TYPESAFE_API_KEY` in the trusted process environment.
+
+**Explore:** [Run a rules/Jev comparison](docs/managed-experiments.md) ·
+[Follow a route with traffic](docs/route-experiments.md) ·
+[See six analytical graphs](docs/evidence/route-study-2026-10-05/README.md) ·
+[Watch a merge and budget fallback · 40 seconds](docs/evidence/managed-demo-2026-10-03/README.md)
+
 ## Quick start
 
-**You need a running CARLA simulator and a supported Linux environment.** The
-toolkit requires Landlock ABI V7, Python 3.12, [uv](https://docs.astral.sh/uv/),
-and Rust. The CARLA server and Python client must match.
+> [!IMPORTANT]
+> **You need a running CARLA simulator and a supported Linux environment.**
+> The toolkit requires Landlock ABI V7, Python 3.12,
+> [uv](https://docs.astral.sh/uv/), and Rust.
+> The CARLA server and Python client must match.
 
 | Your setup | Start here |
 | --- | --- |
@@ -149,32 +177,6 @@ Once connected, try this in a dedicated simulation:
 
 Your client may ask you to approve simulator operations. For a scripted check
 with measured results and cleanup, follow the [reproducible demo](docs/alpha-demo.md).
-
-## System One decisions with Jev
-
-**[Jev, TypeSafe's System One model](https://typesafe.ai/blog/introducing-system-one-models-and-jev),
-returns structured decisions that software can act on.** Here, it selects from
-allowed driving tactics using the current simulator state: when to merge,
-cruise, slow down, or yield. The coding agent handles your conversation and writes
-workflows; Jev supplies the optional tactical decisions inside reviewed experiments.
-
-| Component | What it does |
-| --- | --- |
-| Codex / Claude Code / VS Code agent | Turns your request into a simulation workflow. |
-| Toolkit | Runs agent scripts through the sandbox; manages experiment timing, validation, evidence, and cleanup. |
-| Jev, when enabled | Reads structured observations and selects from supplied tactics. |
-| Local controller | Converts the accepted tactic into steering, throttle, and braking; applies guards and fallbacks. |
-| CARLA | Simulates the road, vehicles, traffic, physics, and sensors. |
-
-Jev uses numerical simulator state in this integration; it does not interpret
-camera images or directly command the pedals. The ordinary MCP workflows and
-rules baseline need no Jev key. Jev experiments require the optional SDK and
-`TYPESAFE_API_KEY` in the trusted process environment.
-
-**Explore:** [Run a rules/Jev comparison](docs/managed-experiments.md) ·
-[Follow a route with traffic](docs/route-experiments.md) ·
-[See six analytical graphs](docs/evidence/route-study-2026-10-05/README.md) ·
-[Watch a merge and budget fallback · 40 seconds](docs/evidence/managed-demo-2026-10-03/README.md)
 
 ## What to expect today
 
