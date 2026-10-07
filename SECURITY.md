@@ -16,17 +16,16 @@ support branch for an alpha release.
 
 ## Reporting a Vulnerability
 
-Email the maintainer privately at
-[akon2997@gmail.com](mailto:akon2997@gmail.com), with a subject beginning
-`[CARLA Agentic Toolkit security]`. Do not open a public issue or include
-vulnerability details in a public pull request.
+Report it privately with GitHub's **Report a vulnerability** form under
+[Security → Advisories](https://github.com/sidkolapalli/carla-agentic-toolkit/security/advisories/new),
+with a title beginning `[CARLA Agentic Toolkit security]`. Do not open a public
+issue or include vulnerability details in a public pull request.
 
-You may also use GitHub's private **Report a vulnerability** form under
-[Security → Advisories](https://github.com/sidkolapalli/carla-agentic-toolkit/security/advisories).
-If the form is unavailable or you do not have a GitHub account, use the email
-address above. Email remains an available reporting route independently of
-GitHub's form. Please allow the maintainer time to investigate and coordinate a
-fix before disclosing details publicly.
+If you cannot use the form, send the maintainer a private message on
+[LinkedIn](https://www.linkedin.com/in/siddharthkvr) asking for a private
+reporting channel, without including vulnerability details. Please allow the
+maintainer time to investigate and coordinate a fix before disclosing details
+publicly.
 
 Include the affected commit, Linux distribution and kernel, reproduction steps,
 impact, and any proposed mitigation. Remove credentials, CARLA recordings, and
