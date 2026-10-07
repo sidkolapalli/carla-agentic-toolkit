@@ -1,0 +1,853 @@
+{
+  "schema_version": 1,
+  "source": {
+    "kind": "exact local Codex demo chat rollout",
+    "snapshot_sha256": "5ffad13dd0fd7b7112108fe4f4752d75c24eb64330dbb449f00a0bda2cffba6a",
+    "snapshot_byte_count": 3393980,
+    "last_record_at": "2026-10-07T00:04:20.227Z"
+  },
+  "take_kind": "final cleanup after both publication-candidate takes",
+  "prompt_provenance": "Prompts were submitted to the real Codex demo chat by the owner-authorized recording orchestrator; this does not assert manual keyboard typing.",
+  "scope": "Exact final cleanup request and its completed CARLA call. The separate camera take already destroyed sensors 34 and 35; final health confirms zero sensors.",
+  "prompts": [
+    {
+      "id": "prompt-08",
+      "timestamp": "2026-10-07T00:03:57.193Z",
+      "origin": "owner-authorized demo orchestration message",
+      "text": "Finish the demo: remove demo-car and any cameras created for it, verify those actors are gone, forget the demo-car alias, and restore the spectator to the original transform you saved. Leave unrelated actors untouched. Include api.health_check() in the final verification so client/server versions and remaining actor counts are measured."
+    }
+  ],
+  "calls": [
+    {
+      "id": "exec-faa96749-2cdf-4383-b40e-4df127c88f9a",
+      "completed_at": "2026-10-07T00:04:16.181Z",
+      "prompt_id": "prompt-08",
+      "tool": "carla.execute_carla_script",
+      "status": "completed",
+      "duration": {
+        "secs": 1,
+        "nanos": 178593300
+      },
+      "arguments": {
+        "host": "127.0.0.1",
+        "port": 3200,
+        "timeout_seconds": 30,
+        "code": "owned_ids = [25,26,27,28,29,30,31,32,33]\nbefore = api.list_actors()['actors']\nlive_owned = [actor['actor_id'] for actor in before if actor['actor_id'] in owned_ids]\nunrelated_before = [actor['actor_id'] for actor in before if actor['actor_id'] not in owned_ids]\ndestroyed = api.destroy_actors(live_owned)\nforgotten = api.forget_actor('demo-car')\nrestored = api.set_spectator({\"location\":{\"x\":-172.1965789794922,\"y\":183.8591156005859,\"z\":27.638051986694336},\"rotation\":{\"pitch\":0,\"roll\":0,\"yaw\":-45.59210586547851}})\napi.wait(0.5)\nafter = api.list_actors()['actors']\nafter_ids = [actor['actor_id'] for actor in after]\nresult = {'destroyed':destroyed,'forgotten':forgotten,'spectator':restored,'remaining_demo_ids':[actor_id for actor_id in owned_ids if actor_id in after_ids],'missing_unrelated_ids':[actor_id for actor_id in unrelated_before if actor_id not in after_ids],'named_actors':api.list_named_actors(),'health':api.health_check(),'world':api.get_world_state()}"
+      },
+      "original_code_sha256": "d06d3b1579d75843b262ca243ebf90d5704dc8c48133868634fb82ed90a20516",
+      "code_sanitized": false,
+      "is_error": false,
+      "result": {
+        "ok": true,
+        "result": {
+          "destroyed": {
+            "results": [
+              {
+                "actor_id": 25,
+                "destroyed": true,
+                "error": null
+              }
+            ]
+          },
+          "forgotten": {
+            "actor_id": 25,
+            "forgotten": true,
+            "name": "demo-car"
+          },
+          "health": {
+            "actor_counts": {
+              "sensors": 0,
+              "traffic": 23,
+              "vehicles": 0,
+              "walkers": 0
+            },
+            "client_version": "0.10.0",
+            "connected": true,
+            "current_map": "Carla/Maps/Town10HD_Opt",
+            "server_version": "0.10.0",
+            "settings": {
+              "fixed_delta_seconds": null,
+              "no_rendering_mode": false,
+              "synchronous_mode": false
+            },
+            "warnings": []
+          },
+          "missing_unrelated_ids": [],
+          "named_actors": {
+            "actors": []
+          },
+          "remaining_demo_ids": [],
+          "spectator": {
+            "previous_spectator": {
+              "location": {
+                "x": 40.78559875488281,
+                "y": -57.4394416809082,
+                "z": 3.9326019287109375
+              },
+              "rotation": {
+                "pitch": -12.0,
+                "roll": -1.5877002905040556e-18,
+                "yaw": -0.08196044713258743
+              }
+            },
+            "spectator": {
+              "location": {
+                "x": -172.1965789794922,
+                "y": 183.8591156005859,
+                "z": 27.638051986694336
+              },
+              "rotation": {
+                "pitch": 0.0,
+                "roll": 0.0,
+                "yaw": -45.59210586547851
+              }
+            }
+          },
+          "world": {
+            "actor_counts": {
+              "sensors": 0,
+              "traffic": 23,
+              "vehicles": 0,
+              "walkers": 0
+            },
+            "current_map": "Carla/Maps/Town10HD_Opt",
+            "frame": 702156,
+            "settings": {
+              "fixed_delta_seconds": null,
+              "no_rendering_mode": false,
+              "synchronous_mode": false
+            },
+            "warnings": []
+          }
+        },
+        "stdout": "",
+        "snapshots": {
+          "carla-snapshot://actors/current": {
+            "actors": [
+              {
+                "actor_id": 24,
+                "role_name": null,
+                "semantic_tags": [
+                  7,
+                  8,
+                  6
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": 115.4498291015625,
+                    "y": 35.044944763183594,
+                    "z": 0.222725972533226
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": 90.0001220703125
+                  }
+                },
+                "type_id": "traffic.traffic_light"
+              },
+              {
+                "actor_id": 23,
+                "role_name": null,
+                "semantic_tags": [
+                  7,
+                  8,
+                  6
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": -119.23003387451172,
+                    "y": 5.093152046203613,
+                    "z": 0.26276955008506775
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": -89.99960327148438
+                  }
+                },
+                "type_id": "traffic.traffic_light"
+              },
+              {
+                "actor_id": 22,
+                "role_name": null,
+                "semantic_tags": [
+                  7,
+                  8,
+                  6
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": -31.63635635375977,
+                    "y": 33.780765533447266,
+                    "z": 0.2542538344860077
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": 90.0001220703125
+                  }
+                },
+                "type_id": "traffic.traffic_light"
+              },
+              {
+                "actor_id": 21,
+                "role_name": null,
+                "semantic_tags": [
+                  7,
+                  8,
+                  6
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": -62.09930419921875,
+                    "y": 123.75550842285156,
+                    "z": 0.28308558464050293
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": -90.0001220703125
+                  }
+                },
+                "type_id": "traffic.traffic_light"
+              },
+              {
+                "actor_id": 20,
+                "role_name": null,
+                "semantic_tags": [
+                  7,
+                  8,
+                  6
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": -58.71535873413086,
+                    "y": 145.82456970214844,
+                    "z": 0.2541879117488861
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": 179.9999542236328
+                  }
+                },
+                "type_id": "traffic.traffic_light"
+              },
+              {
+                "actor_id": 19,
+                "role_name": null,
+                "semantic_tags": [
+                  7,
+                  8,
+                  6
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": -119.2381820678711,
+                    "y": 19.00446891784668,
+                    "z": 0.2542526125907898
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": 179.9999542236328
+                  }
+                },
+                "type_id": "traffic.traffic_light"
+              },
+              {
+                "actor_id": 18,
+                "role_name": null,
+                "semantic_tags": [
+                  7,
+                  8,
+                  6
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": -59.24224853515625,
+                    "y": -51.49837112426758,
+                    "z": 0.2542538344860077
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": 89.99960327148438
+                  }
+                },
+                "type_id": "traffic.traffic_light"
+              },
+              {
+                "actor_id": 17,
+                "role_name": null,
+                "semantic_tags": [
+                  7,
+                  8,
+                  6
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": -94.92822265625,
+                    "y": 20.334821701049805,
+                    "z": 0.2542559802532196
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": 0.0002119999990100041
+                  }
+                },
+                "type_id": "traffic.traffic_light"
+              },
+              {
+                "actor_id": 16,
+                "role_name": null,
+                "semantic_tags": [
+                  7,
+                  8,
+                  6
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": -62.35206985473633,
+                    "y": 20.196908950805664,
+                    "z": 0.2542538344860077
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": 179.99978637695312
+                  }
+                },
+                "type_id": "traffic.traffic_light"
+              },
+              {
+                "actor_id": 15,
+                "role_name": null,
+                "semantic_tags": [
+                  7,
+                  8,
+                  6
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": -64.26419067382812,
+                    "y": 7.063309192657471,
+                    "z": 0.2542538344860077
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": -90.00011444091797
+                  }
+                },
+                "type_id": "traffic.traffic_light"
+              },
+              {
+                "actor_id": 14,
+                "role_name": null,
+                "semantic_tags": [
+                  7,
+                  8,
+                  6
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": -31.93084144592285,
+                    "y": 20.30195426940918,
+                    "z": 0.2542538344860077
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": -3.099999958067201e-05
+                  }
+                },
+                "type_id": "traffic.traffic_light"
+              },
+              {
+                "actor_id": 13,
+                "role_name": null,
+                "semantic_tags": [
+                  7,
+                  8,
+                  6
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": 89.79188537597656,
+                    "y": 20.92214584350586,
+                    "z": 0.25420013070106506
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": 179.999755859375
+                  }
+                },
+                "type_id": "traffic.traffic_light"
+              },
+              {
+                "actor_id": 12,
+                "role_name": null,
+                "semantic_tags": [
+                  7,
+                  8,
+                  6
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": 114.45188903808594,
+                    "y": 21.19600296020508,
+                    "z": 0.25420013070106506
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": -3.099999958067201e-05
+                  }
+                },
+                "type_id": "traffic.traffic_light"
+              },
+              {
+                "actor_id": 11,
+                "role_name": null,
+                "semantic_tags": [
+                  7,
+                  8,
+                  6
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": -34.449153900146484,
+                    "y": -51.02048873901367,
+                    "z": 0.2542550563812256
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": -0.0005489999894052744
+                  }
+                },
+                "type_id": "traffic.traffic_light"
+              },
+              {
+                "actor_id": 10,
+                "role_name": null,
+                "semantic_tags": [
+                  7,
+                  8,
+                  6
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": -46.17157745361328,
+                    "y": -73.5566177368164,
+                    "z": 0.2542538344860077
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": -90.0001449584961
+                  }
+                },
+                "type_id": "traffic.traffic_light"
+              },
+              {
+                "actor_id": 9,
+                "role_name": null,
+                "semantic_tags": [],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": 43.14999771118164,
+                    "y": 66.44999694824219,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": -0.0,
+                    "yaw": 0.0
+                  }
+                },
+                "type_id": "traffic.unknown"
+              },
+              {
+                "actor_id": 8,
+                "role_name": null,
+                "semantic_tags": [],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": -28.15000915527344,
+                    "y": 66.02973937988281,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": -179.9999542236328
+                  }
+                },
+                "type_id": "traffic.unknown"
+              },
+              {
+                "actor_id": 7,
+                "role_name": null,
+                "semantic_tags": [],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": 44.04615020751953,
+                    "y": 37.79888916015625,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": -90.0001220703125
+                  }
+                },
+                "type_id": "traffic.unknown"
+              },
+              {
+                "actor_id": 6,
+                "role_name": null,
+                "semantic_tags": [
+                  6,
+                  8
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": 49.599998474121094,
+                    "y": 38.5,
+                    "z": 0.14999999105930328
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": -0.0,
+                    "yaw": 0.0
+                  }
+                },
+                "type_id": "traffic.yield"
+              },
+              {
+                "actor_id": 5,
+                "role_name": null,
+                "semantic_tags": [
+                  6,
+                  8
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": 49.599998474121094,
+                    "y": 38.5,
+                    "z": 0.14999999105930328
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": -0.0,
+                    "yaw": 0.0
+                  }
+                },
+                "type_id": "traffic.yield"
+              },
+              {
+                "actor_id": 4,
+                "role_name": null,
+                "semantic_tags": [
+                  6,
+                  8
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": 35.349998474121094,
+                    "y": 53.599998474121094,
+                    "z": 0.14999999105930328
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": 179.9998779296875
+                  }
+                },
+                "type_id": "traffic.stop"
+              },
+              {
+                "actor_id": 3,
+                "role_name": null,
+                "semantic_tags": [
+                  6,
+                  8
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": 26.099998474121097,
+                    "y": 75.1500015258789,
+                    "z": 0.14999999105930328
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": 90.00011444091797
+                  }
+                },
+                "type_id": "traffic.stop"
+              },
+              {
+                "actor_id": 2,
+                "role_name": null,
+                "semantic_tags": [
+                  6,
+                  8
+                ],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": 57.44999694824219,
+                    "y": 61.14999771118164,
+                    "z": 0.14999999105930328
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": -90.0001220703125
+                  }
+                },
+                "type_id": "traffic.stop"
+              },
+              {
+                "actor_id": 1,
+                "role_name": null,
+                "semantic_tags": [],
+                "semantic_tags_truncated": false,
+                "speed_mps": 0.0,
+                "traffic_light_state": null,
+                "transform": {
+                  "location": {
+                    "x": -172.1965789794922,
+                    "y": 183.8591156005859,
+                    "z": 27.638051986694336
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "roll": 0.0,
+                    "yaw": -45.59210586547851
+                  }
+                },
+                "type_id": "spectator"
+              }
+            ]
+          },
+          "carla-snapshot://actors/destroyed": {
+            "results": [
+              {
+                "actor_id": 25,
+                "destroyed": true,
+                "error": null
+              }
+            ]
+          },
+          "carla-snapshot://actors/named": {
+            "actors": []
+          },
+          "carla-snapshot://session/status": {
+            "actor_counts": {
+              "sensors": 0,
+              "traffic": 23,
+              "vehicles": 0,
+              "walkers": 0
+            },
+            "client_version": "0.10.0",
+            "connected": true,
+            "current_map": "Carla/Maps/Town10HD_Opt",
+            "server_version": "0.10.0",
+            "settings": {
+              "fixed_delta_seconds": null,
+              "no_rendering_mode": false,
+              "synchronous_mode": false
+            },
+            "warnings": []
+          },
+          "carla-snapshot://world/current": {
+            "actor_counts": {
+              "sensors": 0,
+              "traffic": 23,
+              "vehicles": 0,
+              "walkers": 0
+            },
+            "current_map": "Carla/Maps/Town10HD_Opt",
+            "frame": 702156,
+            "settings": {
+              "fixed_delta_seconds": null,
+              "no_rendering_mode": false,
+              "synchronous_mode": false
+            },
+            "warnings": []
+          }
+        },
+        "error": null,
+        "error_type": null,
+        "sandbox": {
+          "exit_code": 0,
+          "landlock": {
+            "landlock": "available",
+            "ruleset_enforced": true,
+            "tcp_connect_ports": [
+              3200,
+              3201,
+              3202,
+              8000
+            ]
+          },
+          "timed_out": false,
+          "child_exit_status": null,
+          "child_signal": null
+        },
+        "cleanup": {
+          "attempted_actor_ids": [],
+          "destroyed_actor_ids": [],
+          "failures": []
+        }
+      },
+      "published_images": []
+    }
+  ],
+  "summary": {
+    "health": {
+      "actor_counts": {
+        "sensors": 0,
+        "traffic": 23,
+        "vehicles": 0,
+        "walkers": 0
+      },
+      "client_version": "0.10.0",
+      "connected": true,
+      "current_map": "Carla/Maps/Town10HD_Opt",
+      "server_version": "0.10.0",
+      "settings": {
+        "fixed_delta_seconds": null,
+        "no_rendering_mode": false,
+        "synchronous_mode": false
+      },
+      "warnings": []
+    },
+    "remaining_demo_ids": [],
+    "missing_unrelated_ids": [],
+    "named_actors": {
+      "actors": []
+    },
+    "destroyed": {
+      "results": [
+        {
+          "actor_id": 25,
+          "destroyed": true,
+          "error": null
+        }
+      ]
+    },
+    "spectator_restore_requested": {
+      "location": {
+        "x": -172.1965789794922,
+        "y": 183.8591156005859,
+        "z": 27.638051986694336
+      },
+      "rotation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": -45.59210586547851
+      }
+    },
+    "world": {
+      "actor_counts": {
+        "sensors": 0,
+        "traffic": 23,
+        "vehicles": 0,
+        "walkers": 0
+      },
+      "current_map": "Carla/Maps/Town10HD_Opt",
+      "frame": 702156,
+      "settings": {
+        "fixed_delta_seconds": null,
+        "no_rendering_mode": false,
+        "synchronous_mode": false
+      },
+      "warnings": []
+    },
+    "independent_baseline_verification": {
+      "status": "passed",
+      "evidence": "final-world-state.json",
+      "actors_unchanged": true,
+      "settings_match": true,
+      "spectator_matches": true
+    }
+  },
+  "publication_status": "Machine-readable evidence verified; final video export checks are recorded separately.",
+  "privacy_projection": "Thread identifiers, local absolute paths, runner paths, raw stderr, hidden reasoning, system/developer instructions, credentials and embedded image bytes are excluded. Exact scene prompts, CARLA code/results, simulator actor IDs and image hashes are retained."
+}

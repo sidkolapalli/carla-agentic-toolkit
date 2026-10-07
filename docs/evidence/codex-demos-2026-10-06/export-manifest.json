@@ -1,0 +1,350 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-10-07T00:26:41.195549+00:00",
+  "recordly_version": "1.4.0",
+  "capture": "Official unmodified Recordly Windows Graphics Capture helper; no microphone/system audio.",
+  "editing": "Selected real window clips assembled at 3840x2160 and 30fps with FFmpeg. Recordly rendered native zooms, text annotations and playback speeds. Final compression only used FFmpeg libx264, CRF19, slow preset, Lanczos 1920x1080, yuv420p, faststart.",
+  "dispatch": "Owner-authorized messages sent through Codex chat tools. No manual typing is claimed. Prepared simulator and named vehicle; full requests are retained in accompanying receipts.",
+  "timing": "Agent work excerpts are labeled 8x; omitted intervals are visible in source selections. CARLA action is 1x. These edits do not measure response latency.",
+  "camera_gallery": "A real follow-up opened the saved, hash-verified 640x360 MCP sensor stills in Codex file previews. The child reported queued visibility; the recording independently shows both opened images. Frames are neither simultaneous nor live video.",
+  "jev_used": false,
+  "local_only": [
+    "Raw window captures",
+    "Recordly project files",
+    "4K masters",
+    "Full private chat logs"
+  ],
+  "artifacts": [
+    {
+      "file": "drive.mp4",
+      "sha256": "ee89ae698ae3bc2890b1c679ab2604a249e574e8078b92f2d6ae88745f47ce46",
+      "bytes": 13992298,
+      "duration_seconds": 47.366667,
+      "width": 1920,
+      "height": 1080,
+      "fps": "30/1",
+      "codec": "h264",
+      "silent": true,
+      "poster": {
+        "file": "drive-poster.jpg",
+        "sha256": "7d03d4286c514a46f41a473277c7bf6bc95f9421e9ac08e5125afe52ccefdc68"
+      },
+      "native_master": {
+        "retained_locally": true,
+        "sha256": "270903d8a34a54a8d80afd37e97c1c939492bb7b5b4edfee53afdcd52bcd2a1e",
+        "bytes": 139037096,
+        "export_success": true,
+        "pipeline": "modern",
+        "render_backend": "webgpu",
+        "encode_backend": "webcodecs",
+        "frames": 1421,
+        "width": 3840,
+        "height": 2160,
+        "fps": 30,
+        "effective_edit_duration_seconds": 47.34166666666667,
+        "container_duration_seconds": 47.366667
+      },
+      "project_before_native_load_sha256": "fb637d4c314b595cd7d09a74a39eec2d80262500cac9bf57445c2246779481e0",
+      "project_after_native_save_sha256": "c242635f84374d86fbe59f49364707ad14d3544fe2864005a9ccf970f4509b32",
+      "native_project_normalization": "Recordly applies its motion preset on load: zoom transition durations 650/550ms become 200/200ms. It adds defaults for disabled webcam/captions and text blur, and omits two null fields. Clip selections, playback speeds, zoom regions/focus/depth, labels and media remain unchanged. Both project versions are retained locally.",
+      "assembled_source_sha256": "7520e9c4299416d333e9888dca8350cdbc4158d9ae70ada0b6431c23965ead58",
+      "sources": {
+        "motion-clean-codex.mp4": {
+          "duration_ms": 123200,
+          "width": 3840,
+          "height": 2098,
+          "sha256": "e71dae84b08e609a9fd23fae000b1db391846a7ff7793e95c716be917d75fe08"
+        },
+        "motion-clean-carla.mp4": {
+          "duration_ms": 123169,
+          "width": 1922,
+          "height": 1128,
+          "sha256": "d53164b098f0390d42ba296a5bbcd7cdf4cc6ceed265eac9d6e48a4886919df8"
+        }
+      },
+      "source_selections": [
+        {
+          "source": "motion-clean-codex.mp4",
+          "original_start_ms": 24000,
+          "original_end_ms": 34000,
+          "assembled_start_ms": 0,
+          "assembled_end_ms": 10000,
+          "source_part_file": "source-part-000.mp4",
+          "source_part_sha256": "0237769ff83b6d8c75a71705407240ed9830d3920037d67ecc9d9117c419b303"
+        },
+        {
+          "source": "motion-clean-codex.mp4",
+          "original_start_ms": 34000,
+          "original_end_ms": 53000,
+          "assembled_start_ms": 10000,
+          "assembled_end_ms": 29000,
+          "source_part_file": "source-part-001.mp4",
+          "source_part_sha256": "fb8b2269a488b8cd0a5b7e10c36c0e093151512c6c10793d5184d03525e3b877"
+        },
+        {
+          "source": "motion-clean-carla.mp4",
+          "original_start_ms": 58000,
+          "original_end_ms": 78000,
+          "assembled_start_ms": 29000,
+          "assembled_end_ms": 49000,
+          "source_part_file": "source-part-002.mp4",
+          "source_part_sha256": "a34574e3341fb0d050fa58620c3da414e03a661e4d8d6a67628e1d78ac80d322"
+        },
+        {
+          "source": "motion-clean-codex.mp4",
+          "original_start_ms": 100000,
+          "original_end_ms": 115000,
+          "assembled_start_ms": 49000,
+          "assembled_end_ms": 63967,
+          "source_part_file": "source-part-003.mp4",
+          "source_part_sha256": "10a3c58768633fb2edbacd1ebccff7371ded3cc9cfc368778c14d1a8c427e799"
+        }
+      ],
+      "playback_segments": [
+        {
+          "source_start_ms": 0,
+          "source_end_ms": 10000,
+          "output_start_ms": 0,
+          "output_end_ms": 10000.0,
+          "speed": 1.0,
+          "kind": "prompt",
+          "label": "Message sent to Codex"
+        },
+        {
+          "source_start_ms": 10000,
+          "source_end_ms": 29000,
+          "output_start_ms": 10000.0,
+          "output_end_ms": 12375.0,
+          "speed": 8.0,
+          "kind": "agent_wait",
+          "label": "Codex executes the CARLA tool · 8× playback"
+        },
+        {
+          "source_start_ms": 29000,
+          "source_end_ms": 49000,
+          "output_start_ms": 12375.0,
+          "output_end_ms": 32375.0,
+          "speed": 1.0,
+          "kind": "simulator",
+          "label": "Drive forward, then brake · 1× recording playback"
+        },
+        {
+          "source_start_ms": 49000,
+          "source_end_ms": 63967,
+          "output_start_ms": 32375.0,
+          "output_end_ms": 47342.0,
+          "speed": 1.0,
+          "kind": "result",
+          "label": "Recorded result"
+        }
+      ],
+      "frame_boundary_corrections": [
+        {
+          "reason": "30fps source-part quantization",
+          "scope": "segment",
+          "from_end_ms": 64000,
+          "to_end_ms": 63967,
+          "delta_ms": -33
+        },
+        {
+          "reason": "30fps source-part quantization",
+          "scope": "timed_region",
+          "from_end_ms": 64000,
+          "to_end_ms": 63967,
+          "delta_ms": -33
+        }
+      ],
+      "full_decode_passed": true,
+      "visual_review_seconds": [
+        1,
+        5,
+        11,
+        13,
+        22,
+        30,
+        37,
+        46
+      ],
+      "independent_review_sampled_frames": 56,
+      "visual_review_scope": "Every-second samples plus transition and ending frames; not a frame-by-frame visual audit.",
+      "review_notes": "Key scenes and every-second contact sheets plus cut/zoom boundaries reviewed. No unexpected windows or credentials observed. Prompt, playback labels, observed outcome and measured result checked."
+    },
+    {
+      "file": "cameras.mp4",
+      "sha256": "bacb9913c4e4967ad3a1ac463d0d2085ac7ae3ad3917b00f11bab8a9f9f41030",
+      "bytes": 3437736,
+      "duration_seconds": 36.966667,
+      "width": 1920,
+      "height": 1080,
+      "fps": "30/1",
+      "codec": "h264",
+      "silent": true,
+      "poster": {
+        "file": "cameras-poster.jpg",
+        "sha256": "11c894bd2c413aa58c055fc21d0313cb53e13b6b99346182ae81b321c1de3c82"
+      },
+      "native_master": {
+        "retained_locally": true,
+        "sha256": "a4dccf5eb2cbc6d7a6af2e7e740dcfba0dd740ccd9d9fd224bc8c6d8f10fc23e",
+        "bytes": 67663231,
+        "export_success": true,
+        "pipeline": "modern",
+        "render_backend": "webgpu",
+        "encode_backend": "webcodecs",
+        "frames": 1109,
+        "width": 3840,
+        "height": 2160,
+        "fps": 30,
+        "effective_edit_duration_seconds": 36.93333333333334,
+        "container_duration_seconds": 36.966667
+      },
+      "project_before_native_load_sha256": "c536b98a449b33f76eda66ee29a5a34886fafff3b4ee0a32d803a8e2b1d01c48",
+      "project_after_native_save_sha256": "90a8480a7e10e856ee1188e0caa164e50361f3597b29513b3d0c12bf1886da56",
+      "native_project_normalization": "Recordly applies its motion preset on load: zoom transition durations 650/550ms become 200/200ms. It adds defaults for disabled webcam/captions and text blur, and omits two null fields. Clip selections, playback speeds, zoom regions/focus/depth, labels and media remain unchanged. Both project versions are retained locally.",
+      "assembled_source_sha256": "9fdb14226cde3111eee6e26c9e77fc3106e6f79226239a6dd459d49b11c032ae",
+      "sources": {
+        "camera-clean-codex.mp4": {
+          "duration_ms": 107170,
+          "width": 3840,
+          "height": 2098,
+          "sha256": "89a1ece378dd24991c6b625d8369ac74ea5029ea831d4b5629621236e8a59689"
+        },
+        "camera-gallery-codex.mp4": {
+          "duration_ms": 70480,
+          "width": 3840,
+          "height": 2098,
+          "sha256": "6c52918ffab3abf6a63d2ef7e6d481f6cfc19d35be18cc18ca53696412088ff0"
+        }
+      },
+      "source_selections": [
+        {
+          "source": "camera-clean-codex.mp4",
+          "original_start_ms": 14000,
+          "original_end_ms": 24000,
+          "assembled_start_ms": 0,
+          "assembled_end_ms": 9967,
+          "source_part_file": "source-part-000.mp4",
+          "source_part_sha256": "cf33b1b8fce908a995cc31164f05f7e6d5301d5b858a4928415299ce2cd600d9"
+        },
+        {
+          "source": "camera-clean-codex.mp4",
+          "original_start_ms": 24000,
+          "original_end_ms": 72000,
+          "assembled_start_ms": 9967,
+          "assembled_end_ms": 57967,
+          "source_part_file": "source-part-001.mp4",
+          "source_part_sha256": "6becaf71c8cf461a8d6209d3dbdbca4b822f29d436c56f92b63dbda508687d86"
+        },
+        {
+          "source": "camera-clean-codex.mp4",
+          "original_start_ms": 80000,
+          "original_end_ms": 85000,
+          "assembled_start_ms": 57967,
+          "assembled_end_ms": 62967,
+          "source_part_file": "source-part-002.mp4",
+          "source_part_sha256": "819e44b9936ede42716b43d37e6f63d15b2039b7df58f6edb03340e670aaa3f5"
+        },
+        {
+          "source": "camera-gallery-codex.mp4",
+          "original_start_ms": 10000,
+          "original_end_ms": 18000,
+          "assembled_start_ms": 62967,
+          "assembled_end_ms": 70934,
+          "source_part_file": "source-part-003.mp4",
+          "source_part_sha256": "9b380d7f962b3f624cae98fa18584c087738b00a09d034f5b9dc6ea941dd6fce"
+        },
+        {
+          "source": "camera-gallery-codex.mp4",
+          "original_start_ms": 30000,
+          "original_end_ms": 38000,
+          "assembled_start_ms": 70934,
+          "assembled_end_ms": 78934,
+          "source_part_file": "source-part-004.mp4",
+          "source_part_sha256": "6ab4c04531569e479f92551f6d4c4b54d01a365572da212b058a0283476d51bc"
+        }
+      ],
+      "playback_segments": [
+        {
+          "source_start_ms": 0,
+          "source_end_ms": 9967,
+          "output_start_ms": 0,
+          "output_end_ms": 9967.0,
+          "speed": 1.0,
+          "kind": "prompt",
+          "label": "Message sent to Codex"
+        },
+        {
+          "source_start_ms": 9967,
+          "source_end_ms": 57967,
+          "output_start_ms": 9967.0,
+          "output_end_ms": 15967.0,
+          "speed": 8.0,
+          "kind": "agent_wait",
+          "label": "Codex captures the front and chase views · 8× playback"
+        },
+        {
+          "source_start_ms": 57967,
+          "source_end_ms": 62967,
+          "output_start_ms": 15967.0,
+          "output_end_ms": 20967.0,
+          "speed": 1.0,
+          "kind": "result",
+          "label": "Recorded result"
+        },
+        {
+          "source_start_ms": 62967,
+          "source_end_ms": 70934,
+          "output_start_ms": 20967.0,
+          "output_end_ms": 28934.0,
+          "speed": 1.0,
+          "kind": "result",
+          "label": "Front sensor still · frame 698091"
+        },
+        {
+          "source_start_ms": 70934,
+          "source_end_ms": 78933,
+          "output_start_ms": 28934.0,
+          "output_end_ms": 36933.0,
+          "speed": 1.0,
+          "kind": "result",
+          "label": "Chase sensor still · frame 698795"
+        }
+      ],
+      "frame_boundary_corrections": [
+        {
+          "reason": "30fps source-part quantization",
+          "scope": "segment",
+          "from_end_ms": 10000,
+          "to_end_ms": 9967,
+          "delta_ms": -33
+        },
+        {
+          "reason": "30fps source-part quantization",
+          "scope": "segment",
+          "from_end_ms": 70967,
+          "to_end_ms": 70934,
+          "delta_ms": -33
+        },
+        {
+          "reason": "concat timestamp rounding",
+          "scope": "segment",
+          "from_end_ms": 78934,
+          "to_end_ms": 78933,
+          "delta_ms": -1
+        }
+      ],
+      "full_decode_passed": true,
+      "visual_review_seconds": [
+        4,
+        12,
+        18,
+        25,
+        33,
+        36.7
+      ],
+      "independent_review_sampled_frames": 46,
+      "visual_review_scope": "Every-second samples plus transition and ending frames; not a frame-by-frame visual audit.",
+      "review_notes": "Key scenes and every-second contact sheets plus cut/zoom boundaries reviewed. No unexpected windows or credentials observed. Prompt, playback labels, observed outcome and measured result checked."
+    }
+  ]
+}
