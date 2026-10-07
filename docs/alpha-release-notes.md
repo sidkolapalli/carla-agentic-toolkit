@@ -123,7 +123,8 @@ system. The local report is `target/fresh-install-validation.json`.
   [security policy](../SECURITY.md) remain in place. The accepted history decision
   in [#51](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/51)
   is preserved; no history rewrite is needed for this publication.
-- Security and conduct reports go privately to
-  [[withdrawn maintainer email]](mailto:[withdrawn maintainer email]). GitHub's private vulnerability
-  form provides an additional security-reporting route when enabled; conduct
-  reports use email. Configuration and verification are recorded in #82.
+- Security reports use GitHub's private vulnerability reporting form. Conduct
+  reports go to the maintainer by private LinkedIn message (see the
+  [code of conduct](../CODE_OF_CONDUCT.md)). The maintainer email address
+  published with this release was withdrawn on 2026-10-07. Configuration and
+  verification are recorded in #82.
