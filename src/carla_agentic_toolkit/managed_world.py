@@ -10,6 +10,8 @@ from carla_agentic_toolkit.errors import UnsupportedFeatureError
 from carla_agentic_toolkit.persistent_connection import require_operation_episode
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaWorld
     from carla_agentic_toolkit.managed_spec import ExperimentSpec
 
@@ -48,12 +50,19 @@ def world_settings(world: CarlaWorld) -> dict[str, object]:
     return {key: getattr(settings, key) for key in SETTINGS_FIELDS}
 
 
-def apply_world_settings(world: CarlaWorld, values: dict[str, object]) -> None:
+def apply_world_settings(
+    world: CarlaWorld,
+    values: dict[str, object],
+    *,
+    before_apply: Callable[[], None] | None = None,
+) -> None:
     """Apply the complete reviewed settings contract without scheduling an owner tick."""
     settings = world.get_settings()
     for key in SETTINGS_FIELDS:
         setattr(settings, key, values[key])
     require_operation_episode(world)
+    if before_apply is not None:
+        before_apply()
     world.apply_settings(settings)
 
 

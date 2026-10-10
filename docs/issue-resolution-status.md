@@ -502,7 +502,15 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   quarantined, and neither failed attempt establishes repetition acceptance.
   The final integrated gate passes with 2,576 Python tests, two skips and nine
   Rust tests; Ruff/format, Ty, Radon all A and all Rust checks pass.
-- Published checkpoint `ff219d3` passes GitHub CI (run 38027375180). Issues stay
+- #139/#133 settings-write follow-up: three genuine startup/close/recovery
+  regressions fail before the post-lookup episode guard; all 87 focused managed
+  reload/cleanup checks now pass. An episode change during `get_settings` cannot
+  authorize the following settings write. Two additional failing diagnostic
+  assertions in the same cases require generic cleanup exceptions to report
+  unknown episode identity, without another native query. Dirty evidence remains
+  retained. The final full gate passes with 2,579 Python tests, two skips and nine
+  Rust tests; Ruff/format, Ty, Radon all A and all Rust checks pass.
+- Published checkpoint `ca3bdb4` passes GitHub CI (run 38028260045). Issues stay
   open until merge and their completed acceptance checks.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native

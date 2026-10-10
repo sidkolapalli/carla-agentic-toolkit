@@ -221,6 +221,13 @@ another client's world. This preserves the same-episode cleanup boundary in
 [#127](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/127), including
 replacement during actor destruction, which remains a failed cleanup.
 
+Managed settings writes recheck the expected episode after fetching settings and
+immediately before applying them. A replacement during that lookup refuses the
+write and retains the dirty journal. A generic cleanup exception reports
+`world_replaced: null`, `world_identity_checked: false`, and
+`settings_restored: false`; it does not claim an unchanged episode or make another
+native query merely to fill in the diagnostic.
+
 For the required asynchronous starting baseline, this policy meets the live
 acceptance outcome: either the asynchronous baseline is verified or the lease
 stays dirty. Live CARLA 0.9.16 acceptance with a second client calling

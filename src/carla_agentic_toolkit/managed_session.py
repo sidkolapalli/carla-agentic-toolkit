@@ -102,7 +102,11 @@ class ManagedSession:
             "max_substep_delta_time": self.spec.max_substep_delta_time,
         }
         require_setup_episode(self.client, self.world_id)
-        apply_world_settings(self.world, values)
+        apply_world_settings(
+            self.world,
+            values,
+            before_apply=partial(require_setup_episode, self.client, self.world_id),
+        )
         self._reload_world()
         if world_settings(self.world) != values:
             message = "Managed reload did not preserve the requested world settings."
@@ -245,7 +249,11 @@ class ManagedSession:
             report = self._restore_world(failures)
         except (RuntimeError, OSError, ValueError) as exc:
             failures.append(str(exc))
-            report = {"world_replaced": False, "settings_restored": False}
+            report = {
+                "world_replaced": None,
+                "world_identity_checked": False,
+                "settings_restored": False,
+            }
         report.update(ok=not failures, failures=failures, trailing=trailing)
         if not failures:
             self.lease.mark_clean()
@@ -282,7 +290,11 @@ class ManagedSession:
             message = "The world was replaced during actor cleanup; settings restore refused."
             failures.append(message)
             return {"world_replaced": True, "settings_restored": False}
-        apply_world_settings(self.world, self._original_settings)
+        apply_world_settings(
+            self.world,
+            self._original_settings,
+            before_apply=partial(require_setup_episode, self.client, self.world_id),
+        )
         restored = world_settings(self.world) == self._original_settings
         if not restored:
             failures.append("World settings restoration could not be verified.")
