@@ -253,7 +253,7 @@ def test_server_rejects_capture_path_outside_output_directory(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    """Image publication errors should be structured MCP tool failures."""
+    """Rejected publication paths leave successful execution evidence intact."""
     secret = tmp_path.parent / "secret.png"
     secret.write_bytes(b"\x89PNG\r\n\x1a\nsecret")
     monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR", str(tmp_path))
@@ -261,8 +261,9 @@ def test_server_rejects_capture_path_outside_output_directory(
 
     _, _, result = asyncio.run(_call_script_tool(build_server()))
 
-    assert result.is_error is True
-    assert result.structured_content["error_type"] == "image_path_rejected"
+    assert result.is_error is False
+    assert result.structured_content["result"] == {"capture": "../secret.png"}
+    assert result.structured_content["publication_error"]["error_type"] == "image_path_rejected"
 
 
 def test_server_serializes_concurrent_script_executions(

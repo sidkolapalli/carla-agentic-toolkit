@@ -36,7 +36,6 @@ from carla_agentic_toolkit.sensor_rendering import require_sensor_rendering
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from pathlib import Path
     from typing import Unpack
 
     from carla_agentic_toolkit.actor_creation import SpawnObservers
@@ -201,13 +200,6 @@ def _require_image(candidate: object) -> CarlaImage:
         msg = "CARLA sensor frame does not expose the expected image API."
         raise CarlaAdapterError(msg)
     return cast("CarlaImage", candidate)
-
-
-def _mime_type(path: Path) -> str:
-    """Infer a capture MIME type from the output path."""
-    if path.suffix.lower() == ".jpg" or path.suffix.lower() == ".jpeg":
-        return "image/jpeg"
-    return "image/png"
 
 
 def _configured_blueprint(world: CarlaWorld, request: SpawnRequest) -> CarlaBlueprint:

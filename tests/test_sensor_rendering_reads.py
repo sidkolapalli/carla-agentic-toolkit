@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, cast
 from unittest.mock import Mock
@@ -17,7 +18,6 @@ from carla_agentic_toolkit.models import CameraAttachRequest, Location, Rotation
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from pathlib import Path
 
     from carla_agentic_toolkit.carla_protocols import CarlaClient
 
@@ -46,7 +46,16 @@ class ReadingSensor:
         self.listens = 0
         self.stops = 0
         self.listening = False
-        self.sample = SimpleNamespace(frame=1, timestamp=0.05, save_to_disk=Mock())
+        self.sample = SimpleNamespace(frame=1, timestamp=0.05)
+        if sensor_type.startswith(("sensor.camera.", "sensor.lidar.")):
+            payload = (
+                b"ply\nformat ascii 1.0\nend_header\n"
+                if sensor_type.startswith("sensor.lidar.")
+                else b"\x89PNG\r\n\x1a\nimage"
+            )
+            self.sample.save_to_disk = Mock(
+                side_effect=lambda path: Path(path).write_bytes(payload)
+            )
 
     def listen(self, callback: Callable[[object], None]) -> None:
         """Deliver a camera-like sample only after recording native Listen."""
@@ -241,7 +250,14 @@ def test_cpu_sensor_read_is_available_without_rendering(
     case = _case(monkeypatch, sensor_type)
     case.origin.settings = SimpleNamespace(synchronous_mode=False, no_rendering_mode=True)
 
-    _read(case, operation, tmp_path / "captures" / "sample.png")
+    path = tmp_path / "captures" / "sample.png"
+    if sensor_type.startswith("sensor.lidar."):
+        path = path.with_suffix(".ply")
+    if operation == "capture" and not hasattr(case.sensor.sample, "save_to_disk"):
+        with pytest.raises(CarlaAdapterError, match="expected image API"):
+            _read(case, operation, path)
+    else:
+        _read(case, operation, path)
     case.adapter.close_sensor_subscriptions()
 
     assert case.sensor.listens == 1

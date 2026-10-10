@@ -15,7 +15,6 @@ from carla_agentic_toolkit.adapter_objects import (
     _capture_image,
     _carla_client_factory,
     _configured_blueprint,
-    _mime_type,
     _parent_actor,
     _require_carla_client,
     _spawn_actor,
@@ -58,6 +57,7 @@ from carla_agentic_toolkit.models import (
 from carla_agentic_toolkit.ownership import cleanup_report
 from carla_agentic_toolkit.recorder_paths import _server_recorder_path
 from carla_agentic_toolkit.rpc_timeouts import RpcTimeoutPolicy, call_map_rpc, configure_timeout
+from carla_agentic_toolkit.sensor_evidence import capture_converter, save_capture
 from carla_agentic_toolkit.sensor_rendering import require_sensor_rendering
 from carla_agentic_toolkit.traffic_manager_policy import (
     require_async_traffic_manager_request,
@@ -526,7 +526,9 @@ class PythonCarlaAdapter(
             transform=request.transform,
         )
 
-    def capture_sensor_frame(self, *, sensor_id: int, output_path: Path) -> CaptureInfo:
+    def capture_sensor_frame(
+        self, *, sensor_id: int, output_path: Path, color_converter: str | None = None
+    ) -> CaptureInfo:
         """Capture one sensor frame to disk."""
         world = self._world(self._client())
         sensor = self._sensor_actor(sensor_id)
@@ -535,17 +537,9 @@ class PythonCarlaAdapter(
         if identity is not None:
             self._require_cleanup_episode(identity)
         require_async_sensor_read(world)
+        converter = capture_converter(sensor.type_id, output_path, color_converter)
         image = _capture_image(sensor)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        # CARLA's native writer cannot create the empty parent of a bare filename.
-        image.save_to_disk(str(output_path.absolute()))
-        return CaptureInfo(
-            capture_id=f"capture-{sensor_id:06d}",
-            sensor_id=sensor_id,
-            path=output_path,
-            frame=int(image.frame),
-            mime_type=_mime_type(output_path),
-        )
+        return save_capture(image, sensor_id, output_path, converter)
 
     def _client(self) -> CarlaClient:
         """Retain one client stream so paused synchronous worlds keep observable state."""

@@ -59,6 +59,12 @@ asynchronous worlds. They reject a synchronous world before listening, with guid
 to use the explicit subscription sequence. They cannot own an implicit tick while
 waiting for a frame.
 
+Optional `output_dir` persistence preserves camera images as raw PNG files and
+LiDAR point clouds as PLY files. Numerical measurements without a native writer
+return digests without invented file paths. Display conversion is opt-in for a
+separate published image, never the raw depth or segmentation ground truth.
+See [sensor evidence and publication limits](script-workflows.md#preserve-raw-sensor-evidence).
+
 ## Rendering requirements
 
 All `sensor.camera.*` blueprints require an explicitly observed

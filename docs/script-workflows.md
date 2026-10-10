@@ -78,6 +78,55 @@ Publication permits at most four images, each no larger than 512 KiB, within a
 budget, so two images below the individual limit can still exceed it. Every
 published path must resolve below `CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR`.
 
+`api.save_screenshot("captures/view.png", publish=True)` defaults to a 640x360
+RGB camera. This smaller default is not a size guarantee: scene content,
+encoding, result text, and the number of images still affect both byte limits.
+A publication-only failure retains the execution's original `ok`, `result`,
+snapshots, and cleanup evidence, and adds
+`publication_error={"error_type": ..., "error": ...}`. The image content is
+omitted; this does not mean the script or its simulator mutations were rolled
+back. Files remain available locally; MCP resource reads still enforce the same
+publication limits.
+
+## Preserve raw sensor evidence
+
+With `output_dir` set, `read_sensor_stream` and `drain_sensor` save camera images
+as `sensor-<id>-<frame>.png` and both LiDAR measurement types as
+`sensor-<id>-<frame>.ply`. GNSS, IMU, radar, collision, and other measurements
+without a callable native `save_to_disk` retain their numerical digests but
+return no saved paths. A native writer that does not produce the requested file
+is reported as an error, not a successful capture. Point clouds are durable
+local files, not MCP image content.
+
+Single `capture_sensor_frame` calls require `.ply` for LiDAR and a lossless
+`.png` for encoded depth, semantic segmentation, and instance segmentation.
+Lossy JPEG output would corrupt their encoded channels and is refused before
+listening. RGB cameras can use PNG or JPEG; `mime_type` is detected from file
+bytes rather than inferred from the extension. Numerical sensors without a
+writer use stream or drain digests instead of single-file capture.
+
+For a displayable depth or segmentation image, request an optional native
+converter only with `publish=True`:
+
+```python
+capture = api.capture_sensor_frame(
+    depth_sensor_id,
+    "captures/depth-raw.png",
+    publish=True,
+    color_converter="LogarithmicDepth",
+)
+result = {"capture": capture}
+```
+
+Accepted names are `Raw`, `Depth`, `LogarithmicDepth`, and `CityScapesPalette`.
+The raw lossless PNG remains at `capture["path"]` as ground truth; the converter
+writes a separate `<raw-stem>-display.png` at `capture["publication_path"]`,
+which is selected for MCP publication and its resource link. The converter does
+not call in-place `image.convert` or overwrite the raw file. Use
+`CityScapesPalette` for semantic segmentation. See CARLA's
+[sensor encoding reference](https://carla.readthedocs.io/en/0.9.16/ref_sensors/)
+and [native image writer](https://github.com/carla-simulator/carla/blob/0.9.16/PythonAPI/carla/source/libcarla/SensorData.cpp).
+
 Synchronous worlds require the explicit sequence `subscribe_sensor` → owner
 `tick` → `drain_sensor` → `close_sensor_subscription`. Bounded queues report
 delayed and dropped frames; empty collision-event drains do not wait. The

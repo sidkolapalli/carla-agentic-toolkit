@@ -341,3 +341,11 @@ class CaptureInfo(_JsonModel):
     path: Path
     frame: int | None
     mime_type: str
+    publication_path: Path | None = None
+
+    def to_dict(self) -> JsonObject:
+        """Keep the raw capture path while optionally identifying its display copy."""
+        payload = _JsonModel.to_dict(self)
+        if self.publication_path is None:
+            payload.pop("publication_path")
+        return payload

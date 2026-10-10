@@ -115,7 +115,7 @@ def _optional_captures(
             text_bytes=len(json.dumps(payload).encode()),
         )
     except OutputContentError as exc:
-        payload.update(ok=False, result=None, error=str(exc), error_type=exc.error_type)
+        payload["publication_error"] = {"error": str(exc), "error_type": exc.error_type}
         return ()
 
 

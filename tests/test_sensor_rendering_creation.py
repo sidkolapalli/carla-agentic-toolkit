@@ -397,8 +397,12 @@ def test_rendering_enabled_capture_preserves_listener_lifetime(
 ) -> None:
     """Valid cameras still listen once, save the image, and stop after collection."""
     case = _rendering_case(tmp_path, monkeypatch, mode=False)
+    output_path = tmp_path / "capture.png"
+    case.world.existing.save.side_effect = lambda _path: output_path.write_bytes(
+        b"\x89PNG\r\n\x1a\nimage"
+    )
 
-    result = case.api.capture_sensor_frame(SENSOR_ID, str(tmp_path / "capture.png"))
+    result = case.api.capture_sensor_frame(SENSOR_ID, str(output_path))
 
     assert result.get("ok") is not False
     _assert_valid_capture(case)

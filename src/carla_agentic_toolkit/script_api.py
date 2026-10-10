@@ -27,6 +27,7 @@ from carla_agentic_toolkit.ownership_release import release_controller_destroyed
 from carla_agentic_toolkit.rpc_timeouts import MAP_FAILURE_HINT
 from carla_agentic_toolkit.script_operations import recover as _recover
 from carla_agentic_toolkit.script_ownership_operations import ScriptOwnershipOperations
+from carla_agentic_toolkit.sensor_evidence import require_publication_converter
 from carla_agentic_toolkit.tool_inputs import (
     parse_autopilot_request,
     parse_camera_attach_request,
@@ -314,11 +315,14 @@ class CarlaScriptApi(ScriptOwnershipOperations):
         output_path: str,
         *,
         publish: bool = False,
+        color_converter: str | None = None,
     ) -> JsonObject:
         """Capture one sensor frame to disk and optionally publish it through MCP."""
+        require_publication_converter(publish=publish, name=color_converter)
         capture = self._adapter.capture_sensor_frame(
             sensor_id=sensor_id,
             output_path=Path(output_path),
+            color_converter=color_converter,
         )
         payload = capture.to_dict()
         if publish:
@@ -705,7 +709,7 @@ class CarlaScriptApi(ScriptOwnershipOperations):
         self._prepare_owned_creation()
         payload = self._adapter.save_screenshot(
             output_path=Path(output_path),
-            attributes=attributes or {"image_size_x": "1280", "image_size_y": "720"},
+            attributes=attributes or {"image_size_x": "640", "image_size_y": "360"},
         )
         if publish:
             payload["publish"] = True

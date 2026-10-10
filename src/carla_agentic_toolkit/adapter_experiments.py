@@ -64,7 +64,9 @@ class PythonCarlaExperimentMixin:
         """Attach a camera sensor."""
         raise NotImplementedError
 
-    def capture_sensor_frame(self, *, sensor_id: int, output_path: Path) -> CaptureInfo:
+    def capture_sensor_frame(
+        self, *, sensor_id: int, output_path: Path, color_converter: str | None = None
+    ) -> CaptureInfo:
         """Capture one sensor frame to disk."""
         raise NotImplementedError
 
@@ -224,7 +226,12 @@ class PythonCarlaExperimentMixin:
         subscription = self._subscription(sensor_id)
         batch = subscription.drain(frame, timeout_seconds=timeout_seconds)
         frames = list(batch.frames)
-        paths = experiment_perception.save_sensor_frames(frames, sensor_id, output_dir)
+        paths = experiment_perception.save_sensor_frames(
+            frames,
+            sensor_id,
+            output_dir,
+            sensor_type=self._subscribed_sensor_handles[sensor_id].type_id,
+        )
         return {
             "sensor_id": sensor_id,
             **batch.to_dict(),

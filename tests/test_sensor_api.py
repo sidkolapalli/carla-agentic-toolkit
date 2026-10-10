@@ -44,8 +44,11 @@ class SensorAdapter:
             transform=request.transform,
         )
 
-    def capture_sensor_frame(self, *, sensor_id: int, output_path: Path) -> CaptureInfo:
+    def capture_sensor_frame(
+        self, *, sensor_id: int, output_path: Path, color_converter: str | None = None
+    ) -> CaptureInfo:
         """Capture one frame to disk."""
+        assert color_converter is None
         return CaptureInfo(
             capture_id=self.capture.capture_id,
             sensor_id=sensor_id,

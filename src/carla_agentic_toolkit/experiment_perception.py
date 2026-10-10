@@ -11,6 +11,7 @@ from carla_agentic_toolkit.experiment_common import (
     optional_transform_dict,
     sensor_actor,
 )
+from carla_agentic_toolkit.sensor_evidence import save_frame
 from carla_agentic_toolkit.sensor_rendering import require_sensor_rendering
 from carla_agentic_toolkit.sensor_subscription import SensorSubscription, validate_capacity
 from carla_agentic_toolkit.world_timing import require_world_mode
@@ -37,7 +38,7 @@ def read_sensor_stream(
         after_rendering_check()
     require_async_sensor_read(world)
     frames = collect_sensor_frames(sensor, frame_count)
-    saved_paths = save_sensor_frames(frames, sensor_id, output_dir)
+    saved_paths = save_sensor_frames(frames, sensor_id, output_dir, sensor_type=sensor.type_id)
     return {
         "sensor_id": sensor_id,
         "requested_frames": frame_count,
@@ -100,22 +101,31 @@ def save_sensor_frames(
     frames: list[object],
     sensor_id: int,
     output_dir: Path | None,
+    *,
+    sensor_type: str = "sensor.camera.rgb",
 ) -> list[Path]:
     """Save frames that expose save_to_disk and return paths."""
     if output_dir is None:
         return []
     output_dir.mkdir(parents=True, exist_ok=True)
-    return [save_sensor_frame(frame, sensor_id, output_dir) for frame in frames]
+    return [
+        path
+        for frame in frames
+        if (path := save_sensor_frame(frame, sensor_id, output_dir, sensor_type=sensor_type))
+        is not None
+    ]
 
 
-def save_sensor_frame(frame: object, sensor_id: int, output_dir: Path) -> Path:
+def save_sensor_frame(
+    frame: object, sensor_id: int, output_dir: Path, *, sensor_type: str = "sensor.camera.rgb"
+) -> Path | None:
     """Save one frame when the frame supports CARLA image persistence."""
+    if not callable(getattr(frame, "save_to_disk", None)):
+        return None
     frame_id = int(getattr(frame, "frame", 0))
-    path = output_dir / f"sensor-{sensor_id}-{frame_id}.png"
-    save_to_disk = getattr(frame, "save_to_disk", None)
-    if callable(save_to_disk):
-        # A current-directory capture still needs a nonempty native parent path.
-        save_to_disk(str(path.absolute()))
+    suffix = ".ply" if sensor_type.startswith("sensor.lidar.") else ".png"
+    path = output_dir / f"sensor-{sensor_id}-{frame_id}{suffix}"
+    save_frame(frame, path)
     return path
 
 
