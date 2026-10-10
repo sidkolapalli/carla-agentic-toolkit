@@ -534,6 +534,33 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   open for that live acceptance and its external child/process prerequisites.
 - Published pre-density checkpoint `0ebfe80` passes GitHub CI (run 38030227260). Issues stay
   open until merge and their completed acceptance checks.
+- Published combined checkpoint `67bc8f7` passes GitHub CI (run 38031100187).
+  Its local gate remains 2,721 Python tests, two intentional skips and nine Rust
+  tests, with all required static checks passing. This does not replace native
+  acceptance or authorize issue closure before merge.
+- #133 operator replacement and native retry on 2026-10-10: the user approved
+  replacing only the known dedicated CARLA 0.10.0 test service. Fresh process and
+  listener checks found its old processes already absent and all reserved ports
+  closed; this operation did not stop them or touch the 0.9.16 server. The same
+  recovering endpoint lease was held while the original pending marker and all
+  three failed receipt files were archived byte-for-byte and hash-verified.
+  The new launcher/native identities and port ownership were verified, followed
+  by matching 0.10.0 versions, a changed episode, the exact original asynchronous
+  six-setting/inventory/weather/spectator baseline, the same map and two advancing
+  published frames. Explicit operator decommission/replacement resolution then
+  made that same lease clean and reacquirable. This was not managed recovery,
+  same-episode restoration or reload acceptance; original failed evidence remains.
+  A new bounded provider-free #133 attempt then again raised `std::exception`
+  before reload acknowledgement. No fixture actors were created. Cleanup correctly
+  refused frame waits, ticks, actor deletion and settings restoration, retaining
+  a new pending journal on that same endpoint. Read-only diagnostics observed a
+  different episode, synchronous requested settings and a fresh client's cached
+  snapshot at frame zero with no actor entries. This is not proof that the loaded
+  scene is empty or fully published. Readback and exact pending bytes remained
+  unchanged during diagnosis. No late episode was adopted, no reload was retried
+  against dirty state and no Traffic Manager was constructed. The dedicated 0.10.0 endpoint
+  is quarantined again. Consecutive-repetition #133 and dependent native #26 density
+  acceptance remain incomplete; all new receipts stay local and private.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native
   health confirms matching 0.9.16 releases and no warnings; a genuine 0.10.0 client
