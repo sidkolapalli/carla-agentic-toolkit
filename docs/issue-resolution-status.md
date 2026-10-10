@@ -451,7 +451,19 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
 - Integrated #96 reporting gate: 2,480 Python tests passed, two skipped and nine
   Rust tests passed; all required static checks pass. Native physical correction
   and genuine valid-crossing acceptance remain pending.
-- Published checkpoint `386f022` passes GitHub CI (run 38024612487). Issues stay
+- #155: 32 genuine regressions fail before persistent-only transport invalidation,
+  originating-episode guards and durable connection evidence; 49 new cases and
+  282 broader checks pass. Ordinary transport failure drops only the cached
+  client, does not replay an RPC, and permits a fresh connection on the next
+  request. Unexpected episode replacement and missing/malformed connection
+  evidence remain terminal, even when script code ignores the error. Ownership,
+  settings and sensor origins are never adopted from a replacement world.
+  Actual offline worker SIGKILL and fresh recovery checks retain dirty evidence
+  before actor/settings operations; they are not native restart acceptance.
+  The integrated gate passes: 2,529 Python tests, two skips and nine Rust tests;
+  Ruff/format, Ty, Radon all A and Rust checks pass. Native restart acceptance
+  remains pending.
+- Published checkpoint `ccd7c41` passes GitHub CI (run 38025230361). Issues stay
   open until merge and their completed acceptance checks.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native
@@ -562,7 +574,7 @@ vehicle.taxi.ford
 | [#152](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/152) | Filter safe traffic vehicles by base_type instead of a name list | Implemented locally: exact native car classification with legacy fallback; TDD, both native inventory checks, and full gate pass. |
 | [#153](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/153) | Read weather back from CARLA and make the showcase prompt engine-aware | Implemented; TDD, both native readback/restoration checks, and integrated full gate pass. |
 | [#154](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/154) | Support a configured default CARLA host and a stable lease key under WSL2 | Implemented omission-only endpoint defaults and stable-IP guidance; TDD, actual Landlock configured-endpoint checks and full gate pass; lease protection unchanged. |
-| [#155](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/155) | Drop the cached CARLA client in persistent sessions after a simulator restart | Pending implementation. |
+| [#155](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/155) | Drop the cached CARLA client in persistent sessions after a simulator restart | Implemented: next-request reconnect, durable sticky restart refusal and retained recovery evidence; TDD/full gate pass; native restart acceptance pending. |
 | [#156](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/156) | Allow non-default CARLA streaming and secondary ports in the sandbox | Implemented configuration; TDD, actual Landlock finite/persistent native streaming and full gate pass; hidden socket denial cannot be inferred from a timeout. |
 | [#157](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/157) | Close a script's subscription before destroying an inherited sensor | Implemented locally: original-handle unsubscribe, retry acknowledgement, and same-episode guards; full gate passed. |
 | [#158](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/158) | State CARLA's MIT and CC-BY licences in the README credits | Implemented; documentation checks pass. |
