@@ -373,9 +373,13 @@ reapplies registered presets on every maintenance pass, so a subsequent pass
 overrides an explicit desired speed. There is no persistent per-vehicle speed
 override cache. Stop the controller and confirm both `active` and `stopping` are
 false before tuning an exact target; do not reapply a preset while relying on
-that target. Mock-backed
-tests cover two real maintenance passes; the measured-speed check on a dedicated
-CARLA 0.9.16 instance remains pending.
+that target. Mock-backed tests cover the actual maintenance path twice. A
+dedicated CARLA 0.9.16 native check applied `cautious` and a 36 km/h target, then
+read snapshot speeds of 4.9036 and 6.2627 m/s after two maintenance passes. These
+are transient observations, not exact-target or steady-state-speed guarantees;
+CARLA exposes no getter for its internal desired-speed map. The probe disabled
+autopilot, deleted its owned vehicle, verified the original simulator baseline,
+and confirmed its process-owned TM port closed.
 
 With `safe_filter=True`, vehicle selection keeps only the native
 `base_type="car"` classification when that attribute exists. Present blank or

@@ -1,8 +1,8 @@
 # Open Issue Implementation Status
 
 Updated: 2026-10-09. Scope: the 51 open issues retrieved from GitHub for this
-repository. This is a local implementation ledger, not a claim that GitHub issues
-are closed or that local changes have been committed or published.
+repository. This implementation ledger distinguishes code verification,
+publication, and issue closure; it does not claim all GitHub issues are resolved.
 
 Behavior changes use a failing regression, a focused green run, and the repository
 quality gate before the next implementation. Documentation-only corrections do
@@ -17,7 +17,11 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
 
 ## Verification
 
-- Base: `a43994f`; fetched `origin/develop` remains identical to `HEAD`.
+- Integration base: fetched `origin/develop` at `a43994f`. Verified changes are
+  published through draft [PR #166](https://github.com/sidkolapalli/carla-agentic-toolkit/pull/166)
+  to `develop`; referenced issues remain open until merge and their own completed
+  acceptance checks. The initial checkpoint's branch-policy and Linux-quality
+  CI checks pass. No merge or review bypass is authorized.
 - #120: full `make check` passed, 772 Python tests passed, two skipped, nine Rust
   tests passed. Live checks remain pending.
 - #121: four reported cleanup paths and five additional unsafe-release cases
@@ -153,6 +157,38 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   after read-only verification of the same dirty leases. No private receipts or
   images were published, and no artificial TDD regression was added for this
   evidence/documentation-only result.
+- #146: ten regressions demonstrated RED with two passing controls before the
+  exact-boolean `additional_data` option; 63 focused tests pass. Its isolated
+  full gate passes with 1,719 Python tests, two skips, and nine Rust tests. Native
+  CARLA 0.9.16 records velocity, bounding-box, and physics data and accepts full
+  replay. Recording includes the authoritative owned vehicle deletion; recorder
+  and replay stop, and original actors, episode, six settings, weather, and
+  spectator are verified. An earlier replay remapped an actor and retained its
+  dirty journal; only the verified dedicated server was decommissioned, with a
+  verified replacement baseline before explicit journal recovery. That failed
+  receipt is retained, not described as same-episode restoration. The optional
+  managed-recorder feature was not added. This is trusted Windows-native, not
+  Linux sandbox, evidence.
+- #145: eleven regressions demonstrated RED with one passing control; 32 focused
+  tests pass. One snapshot supplies transform, velocity, acceleration, frame,
+  elapsed time, and speed, with missing snapshot actors explicitly rejected.
+  Controls and ancillary actor values remain separate reads. Its isolated full
+  gate passes with 1,719 Python tests, two skips, and nine Rust tests.
+- #151: nine regressions demonstrated RED with 13 passing controls; 82 focused
+  integration tests pass. Canonical `desired_speed_kmh`, strict deprecated input,
+  and documented TM preset/profile override semantics are implemented. Its
+  isolated gate passes with 1,727 Python tests, three skips, and nine Rust tests;
+  the extra collection skip is its absent optional SDK, not a provider call.
+  The integrated environment restores those two network-free SDK tests. A real
+  CARLA 0.9.16 owned vehicle uses the cautious preset and 36 km/h target, then two
+  actual maintenance passes. Snapshot speeds are 4.9036 and 6.2627 m/s; they do
+  not alone prove internal TM target state or steady-state speed. Autopilot is
+  disabled, the owned vehicle is authoritatively deleted, exact original actor,
+  episode, settings, weather, and spectator baselines are verified, and the
+  process-owned TM port closes. No provider or Linux sandbox claim is made.
+- Integrated #145/#146/#151 gate: 1,753 Python tests passed, two skipped, nine
+  Rust tests passed; Ruff/format, Ty, Radon CC/MI all A, Rustfmt, Clippy, and
+  Rust build pass. Independent issue commits are preserved.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native
   health confirms matching 0.9.16 releases and no warnings; a genuine 0.10.0 client
@@ -251,13 +287,13 @@ vehicle.taxi.ford
 | [#142](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/142) | Convert reload_world RuntimeError into the structured reload_world_failed result | Covered by #136; failure/retention/cleanup contract and full gate pass. |
 | [#143](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/143) | Explain missing Traffic Manager servers and unimportable CARLA APIs in error messages | Pending implementation. |
 | [#144](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/144) | Let persistent sessions use a non-default Traffic Manager port | Pending implementation. |
-| [#145](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/145) | Read script telemetry from one world snapshot and report its frame | Pending implementation. |
-| [#146](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/146) | Expose recorder additional_data and optionally record managed runs with the CARLA recorder | Pending implementation. |
+| [#145](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/145) | Read script telemetry from one world snapshot and report its frame | Implemented: frame-coherent motion and explicit missing-state errors; TDD and full gate pass. |
+| [#146](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/146) | Expose recorder additional_data and optionally record managed runs with the CARLA recorder | Implemented required recorder option; TDD, native record/replay, and full gate pass; optional managed recorder not added. |
 | [#147](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/147) | Clarify that the 23 remaining traffic actors in the camera demo are signs and lights | Implemented; documentation checks pass. |
 | [#148](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/148) | Label the bolded drive-demo distances as wall-clock, asynchronous and not repeatable | Implemented; documentation checks pass. |
 | [#149](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/149) | Batch traffic spawning and autopilot with SpawnActor.then(SetAutopilot), and fix the stale controller docstring | Implemented permitted per-vehicle safety alternative; full gate passed; live validation pending. |
 | [#150](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/150) | Reduce script API divergence from CARLA's names and argument order | Pending implementation. |
-| [#151](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/151) | Name Traffic Manager presets and desired_speed units unambiguously | Pending implementation. |
+| [#151](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/151) | Name Traffic Manager presets and desired_speed units unambiguously | Implemented naming and permitted profile-interaction documentation; TDD, native two-pass speed read, and full gate pass. |
 | [#152](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/152) | Filter safe traffic vehicles by base_type instead of a name list | Implemented locally: exact native car classification with legacy fallback; TDD, both native inventory checks, and full gate pass. |
 | [#153](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/153) | Read weather back from CARLA and make the showcase prompt engine-aware | Pending implementation. |
 | [#154](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/154) | Support a configured default CARLA host and a stable lease key under WSL2 | Pending implementation. |
