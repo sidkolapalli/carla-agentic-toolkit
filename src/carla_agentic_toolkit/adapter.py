@@ -56,6 +56,7 @@ from carla_agentic_toolkit.ownership import cleanup_report
 from carla_agentic_toolkit.recorder_paths import _server_recorder_path
 from carla_agentic_toolkit.rpc_timeouts import RpcTimeoutPolicy, call_map_rpc, configure_timeout
 from carla_agentic_toolkit.sensor_evidence import capture_converter, save_capture
+from carla_agentic_toolkit.sensor_memory import MAX_SENSOR_QUEUE_BYTES, SensorQueueBudget
 from carla_agentic_toolkit.sensor_rendering import require_sensor_rendering
 from carla_agentic_toolkit.traffic_manager_policy import (
     require_async_traffic_manager_request,
@@ -90,7 +91,7 @@ class PythonCarlaAdapter(
 ):
     """Adapter backed by CARLA's official Python API."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 -- Keep independent public connection and execution limits explicit.
         self,
         host: str = "127.0.0.1",
         port: int = 2000,
@@ -98,9 +99,11 @@ class PythonCarlaAdapter(
         *,
         settings_journal: RunSettings | None = None,
         rpc_timeout_policy: RpcTimeoutPolicy | None = None,
+        sensor_queue_budget_bytes: int = MAX_SENSOR_QUEUE_BYTES,
     ) -> None:
         """Create an adapter for a CARLA server."""
         self._host = host
+        self._sensor_queue_budget = SensorQueueBudget(sensor_queue_budget_bytes)
         self._port = port
         self._timeout = timeout
         self._rpc_timeout_policy = rpc_timeout_policy or RpcTimeoutPolicy(
@@ -527,7 +530,7 @@ class PythonCarlaAdapter(
             self._require_cleanup_episode(identity)
         require_async_sensor_read(world)
         converter = capture_converter(sensor.type_id, output_path, color_converter)
-        image = _capture_image(sensor)
+        image = _capture_image(sensor, byte_budget=self._sensor_queue_budget)
         return save_capture(image, sensor_id, output_path, converter)
 
     def _client(self) -> CarlaClient:

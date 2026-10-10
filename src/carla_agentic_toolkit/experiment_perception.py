@@ -21,15 +21,17 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from carla_agentic_toolkit.carla_protocols import CarlaSensor, CarlaWorld
+    from carla_agentic_toolkit.sensor_memory import SensorQueueBudget
 
 
-def read_sensor_stream(
+def read_sensor_stream(  # noqa: PLR0913 -- Keep operation and lifecycle/memory guards explicit.
     world: CarlaWorld,
     *,
     sensor_id: int,
     frame_count: int,
     output_dir: Path | None,
     after_rendering_check: Callable[[], None] | None = None,
+    byte_budget: SensorQueueBudget | None = None,
 ) -> dict[str, object]:
     """Read several frames from a CARLA sensor and optionally persist captures."""
     sensor = sensor_actor(world, sensor_id)
@@ -37,7 +39,7 @@ def read_sensor_stream(
     if sensor.type_id.startswith("sensor.camera.") and after_rendering_check is not None:
         after_rendering_check()
     require_async_sensor_read(world)
-    frames = collect_sensor_frames(sensor, frame_count)
+    frames = collect_sensor_frames(sensor, frame_count, byte_budget=byte_budget)
     saved_paths = save_sensor_frames(frames, sensor_id, output_dir, sensor_type=sensor.type_id)
     return {
         "sensor_id": sensor_id,
@@ -75,16 +77,60 @@ def stop_sensor_handle(sensor: CarlaSensor) -> None:
         raise CarlaAdapterError(str(exc)) from exc
 
 
-def collect_sensor_frames(sensor: CarlaSensor, frame_count: int) -> list[object]:
+def collect_sensor_frames(
+    sensor: CarlaSensor, frame_count: int, *, byte_budget: SensorQueueBudget | None = None
+) -> list[object]:
     """Collect bounded asynchronous frames using the shared listener lifetime."""
+    validate_collection_count(frame_count)
     if frame_count == 0:
         return []
-    validate_capacity(frame_count)
-    subscription = SensorSubscription(sensor, capacity=frame_count)
+    subscription = SensorSubscription(sensor, capacity=frame_count, byte_budget=byte_budget)
     try:
-        return [subscription.next_frame() for _ in range(frame_count)]
+        return _collect_bounded(subscription, frame_count)
     finally:
         subscription.close()
+
+
+def _collect_bounded(subscription: SensorSubscription, frame_count: int) -> list[object]:
+    """Keep returned raw data inside the same ceiling, not only pending queue data."""
+    frames: list[object] = []
+    retained_bytes = 0
+    for _ in range(frame_count):
+        sample = subscription.next_sample()
+        retained_bytes += sample.size_bytes
+        if retained_bytes > subscription.byte_limit:
+            message = "Collected sensor frames exceed the queue byte budget."
+            raise CarlaAdapterError(message)
+        frames.append(sample.data)
+    return frames
+
+
+def validate_collection_count(frame_count: int) -> None:
+    """Accept an empty collection or a strictly bounded positive count."""
+    if type(frame_count) is int and frame_count == 0:
+        return
+    validate_capacity(frame_count)
+
+
+def validate_save_frames(*, save_frames: bool) -> None:
+    """Require explicit boolean opt-in before consuming a drain's raw samples."""
+    if type(save_frames) is not bool:
+        message = "Sensor save_frames must be a boolean."
+        raise CarlaAdapterError(message)
+
+
+def save_drained_frames(
+    frames: list[object],
+    sensor_id: int,
+    output_dir: Path | None,
+    *,
+    sensor_type: str,
+    save_frames: bool,
+) -> list[Path]:
+    """Do no image encoding or directory writes without explicit drain opt-in."""
+    return save_sensor_frames(
+        frames, sensor_id, output_dir if save_frames else None, sensor_type=sensor_type
+    )
 
 
 def require_async_sensor_read(world: CarlaWorld) -> None:

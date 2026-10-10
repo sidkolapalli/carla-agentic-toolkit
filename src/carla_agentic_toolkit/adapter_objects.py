@@ -39,6 +39,7 @@ if TYPE_CHECKING:
     from typing import Unpack
 
     from carla_agentic_toolkit.actor_creation import SpawnObservers
+    from carla_agentic_toolkit.sensor_memory import SensorQueueBudget
 
 
 def _carla_client_factory() -> CarlaClientFactory:
@@ -188,9 +189,11 @@ def _require_spawn_rendering(
         after_rendering_read(identity)
 
 
-def _capture_image(sensor: CarlaSensor) -> CarlaImage:
+def _capture_image(
+    sensor: CarlaSensor, *, byte_budget: SensorQueueBudget | None = None
+) -> CarlaImage:
     """Capture one asynchronous image using the shared bounded listener."""
-    return _require_image(collect_sensor_frames(sensor, 1)[0])
+    return _require_image(collect_sensor_frames(sensor, 1, byte_budget=byte_budget)[0])
 
 
 def _require_image(candidate: object) -> CarlaImage:

@@ -22,7 +22,11 @@ from carla_agentic_toolkit.managed_world import world_identity
 from carla_agentic_toolkit.models import CameraAttachRequest, Location, SensorInfo, Transform
 from carla_agentic_toolkit.rpc_timeouts import RpcTimeoutPolicy, call_map_rpc
 from carla_agentic_toolkit.sensor_rendering import require_sensor_rendering
-from carla_agentic_toolkit.sensor_subscription import EVENT_SENSOR_TYPES, SensorSubscription
+from carla_agentic_toolkit.sensor_subscription import (
+    EVENT_SENSOR_TYPES,
+    SensorSubscription,
+    validate_capacity,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -32,6 +36,7 @@ if TYPE_CHECKING:
     from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaSensor, CarlaWorld
     from carla_agentic_toolkit.models import CaptureInfo, DestroyResult, WorldState
     from carla_agentic_toolkit.script_settings import RunSettings
+    from carla_agentic_toolkit.sensor_memory import SensorQueueBudget
 
 
 class PythonCarlaExperimentMixin:
@@ -44,6 +49,7 @@ class PythonCarlaExperimentMixin:
     _subscription_world_ids: dict[int, int]
     _settings_journal: RunSettings | None
     _rpc_timeout_policy: RpcTimeoutPolicy
+    _sensor_queue_budget: SensorQueueBudget
 
     def _client(self) -> CarlaClient:
         """Return a configured CARLA client."""
@@ -106,6 +112,7 @@ class PythonCarlaExperimentMixin:
         output_dir: Path | None,
     ) -> dict[str, object]:
         """Read several frames from a CARLA sensor and optionally persist captures."""
+        experiment_perception.validate_collection_count(frame_count)
         world = self._world(self._client())
         identity = world_identity(world)
         return experiment_perception.read_sensor_stream(
@@ -114,6 +121,7 @@ class PythonCarlaExperimentMixin:
             frame_count=frame_count,
             output_dir=output_dir,
             after_rendering_check=lambda: self._require_cleanup_episode(identity),
+            byte_budget=self._sensor_queue_budget,
         )
 
     def detach_sensor(self, sensor_id: int) -> dict[str, object]:
@@ -197,6 +205,7 @@ class PythonCarlaExperimentMixin:
         self, sensor_id: int, *, event_sensor: bool | None = None, capacity: int = 32
     ) -> dict[str, object]:
         """Install a bounded listener before the owner advances the world."""
+        validate_capacity(capacity)
         if sensor_id in self._sensor_subscriptions:
             message = f"Sensor {sensor_id} already has an active subscription."
             raise CarlaAdapterError(message)
@@ -210,7 +219,7 @@ class PythonCarlaExperimentMixin:
             self._require_cleanup_episode(identity)
         is_event = sensor.type_id in EVENT_SENSOR_TYPES if event_sensor is None else event_sensor
         self._sensor_subscriptions[sensor_id] = SensorSubscription(
-            sensor, event_sensor=is_event, capacity=capacity
+            sensor, event_sensor=is_event, capacity=capacity, byte_budget=self._sensor_queue_budget
         )
         self._subscribed_sensor_handles[sensor_id] = sensor
         self._subscription_world_ids[sensor_id] = identity
@@ -223,16 +232,19 @@ class PythonCarlaExperimentMixin:
         *,
         timeout_seconds: float = 0.0,
         output_dir: Path | None = None,
+        save_frames: bool = False,
     ) -> dict[str, object]:
         """Read available samples for an owner frame without issuing simulator ticks."""
+        experiment_perception.validate_save_frames(save_frames=save_frames)
         subscription = self._subscription(sensor_id)
         batch = subscription.drain(frame, timeout_seconds=timeout_seconds)
         frames = list(batch.frames)
-        paths = experiment_perception.save_sensor_frames(
+        paths = experiment_perception.save_drained_frames(
             frames,
             sensor_id,
             output_dir,
             sensor_type=self._subscribed_sensor_handles[sensor_id].type_id,
+            save_frames=save_frames,
         )
         return {
             "sensor_id": sensor_id,

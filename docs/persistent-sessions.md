@@ -182,6 +182,14 @@ is limited to 64 KiB per request, each IPC message to 1 MiB, script stdout to
 pending request, one latest result, one latest telemetry slot, and at most 32
 snapshot URIs. CPU time is cumulative across requests, not reset by a new request.
 
+Listening sensors consume CPU in the sandbox on every delivered frame, including
+between requests. The cumulative 60-second CPU allowance may expire before the
+wall-clock session timeout. Listener queues share the adapter's 512 MiB native
+payload reservation policy; this is not a total-RSS guarantee. Default drains
+return compact metadata even with `output_dir` set; saving additionally requires
+`save_frames=True` and incurs encoding cost on the caller thread. See
+[sensor queue memory and CPU limits](sensor-timing.md).
+
 The focused tests cover persistent state, per-client isolation, malformed file
 messages, request backpressure, deadlines, blocked-script cancellation, disconnect,
 and cleanup failures. Live CARLA validation performed spawn, throttle, and brake

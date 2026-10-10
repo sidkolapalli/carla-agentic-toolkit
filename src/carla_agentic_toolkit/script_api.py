@@ -382,13 +382,15 @@ class CarlaScriptApi(ScriptOwnershipOperations):
         *,
         timeout_seconds: float = 0.0,
         output_dir: str | None = None,
+        save_frames: bool = False,
     ) -> JsonObject:
-        """Drain by owner frame, exposing missing/late/dropped samples without ticking."""
+        """Drain compact metadata; saving frames requires save_frames=True and output_dir."""
         payload = self._adapter.drain_sensor(
             sensor_id,
             frame,
             timeout_seconds=timeout_seconds,
             output_dir=Path(output_dir) if output_dir is not None else None,
+            save_frames=save_frames,
         )
         return self._snapshot(f"carla-snapshot://sensors/{sensor_id}/drain", payload)
 

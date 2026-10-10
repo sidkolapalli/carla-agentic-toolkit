@@ -94,8 +94,10 @@ publication limits.
 
 ## Preserve raw sensor evidence
 
-With `output_dir` set, `read_sensor_stream` and `drain_sensor` save camera images
-as `sensor-<id>-<frame>.png` and both LiDAR measurement types as
+With `output_dir` set, `read_sensor_stream` saves camera images; `drain_sensor`
+also requires `save_frames=True`. A drain with only `output_dir` returns compact
+digests without encoding or writing files on the tick thread. Requested saves use
+`sensor-<id>-<frame>.png` for camera images and
 `sensor-<id>-<frame>.ply`. GNSS, IMU, radar, collision, and other measurements
 without a callable native `save_to_disk` retain their numerical digests but
 return no saved paths. A native writer that does not produce the requested file

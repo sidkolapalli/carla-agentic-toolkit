@@ -90,7 +90,7 @@ def _collect(adapter: PythonCarlaAdapter, operation: str, output_dir: Path) -> d
         return adapter.read_sensor_stream(sensor_id=7, frame_count=1, output_dir=output_dir)
     adapter.subscribe_sensor(7)
     try:
-        return adapter.drain_sensor(7, 42, output_dir=output_dir)
+        return adapter.drain_sensor(7, 42, output_dir=output_dir, save_frames=True)
     finally:
         adapter.close_sensor_subscription(7)
 
@@ -153,7 +153,7 @@ def test_callable_writer_without_a_file_cannot_report_success(
         report = api.read_sensor_stream(7, 1, str(tmp_path))
     else:
         api.subscribe_sensor(7)
-        report = api.drain_sensor(7, 42, output_dir=str(tmp_path))
+        report = api.drain_sensor(7, 42, output_dir=str(tmp_path), save_frames=True)
         api.close_sensor_subscription(7)
 
     assert report["ok"] is False

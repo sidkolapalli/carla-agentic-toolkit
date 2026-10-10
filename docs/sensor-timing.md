@@ -22,7 +22,27 @@ next owner tick. This does not make physics measurements current; frame-aligned
 observations still require the owner's tick and measurement-frame checks. The managed
 fixture uses its own direct creation handles for parents and sensors.
 
-Queues are bounded to 1–1024 samples. Overflow discards the oldest sample and reports
+Queues are bounded to 1–1024 samples and by native payload bytes. Each script
+adapter reserves at most **512 MiB total** across its listening queues, including
+one-shot capture and stream readers. This is a toolkit policy, not a measurement
+or guarantee of total process RSS. Trusted Python callers can choose a smaller
+positive `sensor_queue_budget_bytes` when constructing `PythonCarlaAdapter`;
+values above the ceiling are refused before connection.
+
+Camera reservations use native `image_size_x * image_size_y * 4 * capacity`.
+A 1920x1080 camera at capacity 32 reserves 265,420,800 bytes; two fit the
+512 MiB policy, three do not. Native camera dimensions that are present but
+invalid are refused before `Listen`. Variable-size sensors and legacy handles
+without dimension attributes reserve at most 16 MiB per queue (or the chosen
+lower execution limit), with actual buffer sizes checked on every sample.
+Actual camera measurements use `width * height * 4`; an oversized single sample
+is dropped rather than retained. One-shot collections also bound the total raw
+payload retained for their result separately from the pending queue; those two
+buffers together can exceed one reservation. Queue reservations are released when callback
+acceptance freezes, including failed-listener cleanup; a failed `Stop` still
+requires the existing shutdown retry.
+
+Overflow discards the oldest sample and reports
 a cumulative dropped count. Draining returns samples at or before the requested frame
 and retains future samples. Metadata includes measurement frame, frame lag, timestamp,
 arrival time, queue latency, pending count and timeout state. GPU camera delivery can
@@ -59,11 +79,28 @@ asynchronous worlds. They reject a synchronous world before listening, with guid
 to use the explicit subscription sequence. They cannot own an implicit tick while
 waiting for a frame.
 
-Optional `output_dir` persistence preserves camera images as raw PNG files and
+`drain_sensor` returns only compact digests and delivery metadata by default,
+even when `output_dir` is supplied. It does not copy raw arrays into JSON or
+encode files on the tick owner thread. To request persistence explicitly, use
+`drain_sensor(sensor_id, frame, output_dir="captures", save_frames=True)`.
+This replaces the previous output-directory-only drain behavior. Explicit writes
+still run on the caller thread; choose their cadence within the CPU budget.
+The asynchronous `read_sensor_stream(..., output_dir=...)` convenience API remains
+an explicit collection-and-save request.
+
+Requested persistence preserves camera images as raw PNG files and
 LiDAR point clouds as PLY files. Numerical measurements without a native writer
 return digests without invented file paths. Display conversion is opt-in for a
 separate published image, never the raw depth or segmentation ground truth.
 See [sensor evidence and publication limits](script-workflows.md#preserve-raw-sensor-evidence).
+
+A listening sensor consumes CPU in the sandboxed process on every delivered
+frame, even when it is never drained or saved. PNG encoding adds CPU cost.
+The sandbox has a **60-second cumulative CPU limit**, including across
+persistent-session requests, and a 4 GiB address-space limit. The CPU allowance
+can expire before the requested wall-clock timeout. The queue policy does not
+bound native transport buffers, Python overhead, returned samples retained by
+trusted callers, other process allocations, or total RSS.
 
 ## Rendering requirements
 

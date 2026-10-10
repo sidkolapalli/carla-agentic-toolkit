@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.sensor_memory import SensorQueueBudget, sample_payload_bytes
 
 if TYPE_CHECKING:
     from carla_agentic_toolkit.carla_protocols import CarlaSensor
@@ -29,6 +30,7 @@ class ReceivedSample:
     data: object
     frame: int
     received_monotonic: float
+    size_bytes: int
 
     def metadata(self, owner_frame: int, drained_at: float) -> dict[str, object]:
         """Report simulation lag separately from client queue residence."""
@@ -76,7 +78,12 @@ class SensorSubscription:
     """Listen now; let one caller own ticks; drain observations by frame; close."""
 
     def __init__(
-        self, sensor: CarlaSensor, *, event_sensor: bool = False, capacity: int = 32
+        self,
+        sensor: CarlaSensor,
+        *,
+        event_sensor: bool = False,
+        capacity: int = 32,
+        byte_budget: SensorQueueBudget | None = None,
     ) -> None:
         """Install a listener with bounded storage and no producer backpressure."""
         validate_capacity(capacity)
@@ -88,6 +95,8 @@ class SensorSubscription:
         self._closed = False
         self._stop_acknowledged = False
         self._dropped = 0
+        self._queued_bytes = 0
+        self._reservation = (byte_budget or SensorQueueBudget()).reserve(sensor, capacity)
         self._listen()
 
     @property
@@ -107,28 +116,37 @@ class SensorSubscription:
         try:
             self._sensor.listen(self._receive)
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
-            self._closed = True
+            with self._condition:
+                self._freeze()
             with contextlib.suppress(AttributeError, RuntimeError, TypeError, ValueError):
                 self._sensor.stop()
             raise CarlaAdapterError(str(exc)) from exc
 
     def _receive(self, data: object) -> None:
         """Drop the oldest sample on overflow; never wait for buffer space."""
-        sample = _received_sample(data)
         with self._condition:
             if self._closed:
                 return
+            sample = _received_sample(data)
             self._enqueue(sample)
             self._condition.notify_all()
 
     def _enqueue(self, sample: ReceivedSample | None) -> None:
         """Account for invalid or overwritten samples under the queue lock."""
-        if sample is None:
+        if sample is None or sample.size_bytes > self._reservation.limit:
             self._dropped += 1
             return
-        if len(self._samples) == self._samples.maxlen:
+        while self._queue_full(sample.size_bytes):
+            self._queued_bytes -= self._samples.popleft().size_bytes
             self._dropped += 1
         self._samples.append(sample)
+        self._queued_bytes += sample.size_bytes
+
+    def _queue_full(self, size_bytes: int) -> bool:
+        return (
+            len(self._samples) == self._samples.maxlen
+            or self._queued_bytes + size_bytes > self._reservation.limit
+        )
 
     def drain(self, frame: int, *, timeout_seconds: float = 0.0) -> SensorDrain:
         """Drain frames up to the owner's frame, retaining future frames; never tick."""
@@ -174,6 +192,7 @@ class SensorSubscription:
         future = tuple(sample for sample in self._samples if sample.frame > frame)
         self._samples.clear()
         self._samples.extend(future)
+        self._queued_bytes = _sample_bytes(future)
         return ready
 
     def _periodic_missing(self, frame: int, ready: tuple[ReceivedSample, ...]) -> bool:
@@ -182,6 +201,15 @@ class SensorSubscription:
 
     def next_frame(self, *, timeout_seconds: float = 5.0) -> object:
         """Wait for the next asynchronous sample without advancing the simulator."""
+        return self.next_sample(timeout_seconds=timeout_seconds).data
+
+    @property
+    def byte_limit(self) -> int:
+        """Expose the reservation for bounded one-shot consumers of raw samples."""
+        return self._reservation.limit
+
+    def next_sample(self, *, timeout_seconds: float = 5.0) -> ReceivedSample:
+        """Retain measured byte size when consuming a raw asynchronous sample."""
         _validate_timeout(timeout_seconds)
         with self._condition:
             self._require_open()
@@ -190,7 +218,9 @@ class SensorSubscription:
             if not self._samples:
                 message = "Timed out waiting for a sensor frame."
                 raise CarlaAdapterError(message)
-            return self._samples.popleft().data
+            sample = self._samples.popleft()
+            self._queued_bytes -= sample.size_bytes
+            return sample
 
     def close(self) -> None:
         """Freeze queued data and retry upstream Stop until its return is acknowledged."""
@@ -217,6 +247,8 @@ class SensorSubscription:
         """Close callback acceptance under the queue lock and wake waiting consumers."""
         self._closed = True
         self._samples.clear()
+        self._queued_bytes = 0
+        self._reservation.release()
         self._condition.notify_all()
 
     def _stop(self) -> None:
@@ -262,4 +294,9 @@ def _received_sample(data: object) -> ReceivedSample | None:
     frame = getattr(data, "frame", None)
     if type(frame) is not int or frame < 0:
         return None
-    return ReceivedSample(data, frame, time.monotonic())
+    return ReceivedSample(data, frame, time.monotonic(), sample_payload_bytes(data))
+
+
+def _sample_bytes(samples: tuple[ReceivedSample, ...]) -> int:
+    """Recalculate retained bytes after partitioning a queue by measurement frame."""
+    return sum(sample.size_bytes for sample in samples)
