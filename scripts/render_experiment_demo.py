@@ -29,6 +29,7 @@ BACKGROUND, PANEL = "#101923", "#1b2937"
 WHITE, MUTED, ACCENT = "#edf3f8", "#b4c4d1", "#70d5cf"
 PROJECTION_LIMIT = 32 * 1024 * 1024
 REASON_LINES = 3
+RAW_BGRA_REPRESENTATION = "carla.Image.raw_data (32-bit BGRA)"
 
 
 @dataclass(frozen=True)
@@ -38,6 +39,7 @@ class JoinedFrame:
     sample: dict[str, Any]
     image: Path
     capture_image_sha256: str
+    sha256_representation: str | None = None
 
 
 @dataclass(frozen=True)
@@ -59,11 +61,13 @@ def load_case(projection: Path, frames: Path, capture: Path) -> DemoCase:
     _validate_projection(value)
     images = _camera_frames(frames)
     capture_raw = _bounded_bytes(capture)
-    hashes = _capture_hashes(json.loads(capture_raw), value["run_id"])
-    _verify_camera_images(images, hashes)
+    capture_value = json.loads(capture_raw)
+    hashes = _capture_hashes(capture_value, value["run_id"])
+    representation = camera_hash_representation(capture_value["camera"])
+    _verify_camera_images(images, hashes, representation)
     samples = {sample["frame"]: sample for sample in value["samples"]}
     joined = tuple(
-        JoinedFrame(sample, images[frame], hashes[frame])
+        JoinedFrame(sample, images[frame], hashes[frame], representation)
         for frame, sample in samples.items()
         if frame in images
     )
@@ -103,21 +107,56 @@ def _capture_hashes(capture: dict[str, Any], run_id: str) -> dict[int, str]:
     return hashes
 
 
-def _verify_camera_images(images: dict[int, Path], hashes: dict[int, str]) -> None:
+def camera_hash_representation(camera: dict[str, Any]) -> str | None:
+    """Keep absent historical PNG labels distinct from the exact current raw-pixel contract."""
+    if "sha256_representation" not in camera:
+        return None
+    if camera["sha256_representation"] != RAW_BGRA_REPRESENTATION:
+        message = "Unsupported camera hash representation."
+        raise ValueError(message)
+    return RAW_BGRA_REPRESENTATION
+
+
+def _verify_camera_images(
+    images: dict[int, Path], hashes: dict[int, str], representation: str | None
+) -> None:
     for frame, path in images.items():
         if frame not in hashes:
             message = f"Camera frame is absent from the capture record: {frame}"
             raise ValueError(message)
-        camera_bytes(JoinedFrame({}, path, hashes[frame]))
+        camera_bytes(JoinedFrame({}, path, hashes[frame], representation))
 
 
 def camera_bytes(item: JoinedFrame) -> bytes:
     """Read bounded image bytes and recheck provenance immediately before image decoding."""
     raw = _bounded_bytes(item.image)
-    if hashlib.sha256(raw).hexdigest() != item.capture_image_sha256:
+    payload = _camera_hash_payload(raw, item.sha256_representation)
+    if hashlib.sha256(payload).hexdigest() != item.capture_image_sha256:
         message = f"Camera image hash does not match the capture record: {item.image.name}"
         raise ValueError(message)
     return raw
+
+
+def _camera_hash_payload(encoded: bytes, representation: str | None) -> bytes:
+    if representation is None:
+        return encoded
+    if representation != RAW_BGRA_REPRESENTATION:
+        message = "Unsupported camera hash representation."
+        raise ValueError(message)
+    return _raw_bgra_bytes(encoded)
+
+
+def _raw_bgra_bytes(encoded: bytes) -> bytes:
+    try:
+        from PIL import Image  # noqa: PLC0415 - existing optional renderer dependency
+    except ImportError as error:
+        message = "Raw-BGRA camera hash verification requires Pillow."
+        raise ValueError(message) from error
+    with Image.open(io.BytesIO(encoded)) as image:
+        if image.format != "PNG" or image.width * image.height > PROJECTION_LIMIT // 4:
+            message = "Raw-BGRA camera hash verification requires a bounded PNG image."
+            raise ValueError(message)
+        return image.convert("RGBA").tobytes("raw", "BGRA")
 
 
 def _validate_projection(value: dict[str, Any]) -> None:
@@ -395,6 +434,8 @@ def _manifest_case(case: DemoCase, frames: list[int]) -> dict[str, Any]:
         "camera_sha256_by_frame": {
             str(item.sample["frame"]): item.capture_image_sha256 for item in case.joined
         },
+        "camera_sha256_representation": case.joined[0].sha256_representation
+        or "encoded PNG bytes (legacy)",
     }
 
 

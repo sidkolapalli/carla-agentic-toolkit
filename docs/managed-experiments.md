@@ -401,3 +401,19 @@ For a demo, show the run ID and live CARLA view, then the terminal cleanup state
 saved report. Also show a bounded stop or documented provider fallback. A video is
 supporting material; retain the machine-readable evidence and do not claim improved
 realism or safety without a completed matched evaluation.
+
+The opt-in `scripts/capture_experiment_demo.py` and `scripts/capture_route_demo.py`
+use the shared `SensorSubscription` with a bounded drop-oldest queue. Capture
+receipts retain queue-drop counts and Stop/save failures; any drops make capture
+verification fail. Existing arrivals are saved before Stop, and a successful
+listener cutoff also preserves bounded trailing deliveries. PNG writing remains
+on the owner thread; this is not a background encoding pipeline.
+
+New `camera-manifest.json` receipts name `sha256_representation` as
+`carla.Image.raw_data (32-bit BGRA)`: each image's SHA-256 is computed directly
+from those in-memory pixels before the native PNG writer runs. It is not a digest
+of the encoded PNG file. The demo renderers verify losslessly decoded BGRA pixels
+using their existing Pillow dependency and refuse an unavailable decoder or an
+unknown explicit representation. Historical receipts without this field retain
+their original PNG-byte verification. Recorded receipts and media under
+`docs/evidence/` are not rewritten or reinterpreted.

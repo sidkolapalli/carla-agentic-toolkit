@@ -90,6 +90,18 @@ class SensorSubscription:
         self._dropped = 0
         self._listen()
 
+    @property
+    def dropped_samples(self) -> int:
+        """Read cumulative invalid or overwritten delivery counts, including after close."""
+        with self._condition:
+            return self._dropped
+
+    @property
+    def pending_samples(self) -> int:
+        """Read the bounded queue size without consuming data or requiring an open listener."""
+        with self._condition:
+            return len(self._samples)
+
     def _listen(self) -> None:
         """Normalize listener startup errors and release any partial registration."""
         try:

@@ -68,7 +68,7 @@ class CameraRoute(RouteExperiment):
         )
         self.session.own(camera, controller="route-demo-camera", protected=True)
         self.session.on_close(lambda: self._close_camera(camera))
-        camera.listen(self.recorder.receive)
+        self.recorder.subscribe(camera)
 
     def _close_camera(self, camera: capture.CameraSensor) -> dict[str, object]:
         manifest = self.recorder.finish(camera)
