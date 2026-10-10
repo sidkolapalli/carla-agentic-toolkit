@@ -403,7 +403,10 @@ This metadata is not added to selector inputs.
 
 Native settings/reload internals may also advance setup frames. None of these are
 scheduled experiment steps, and no frame-zero or bitwise-repeatability guarantee
-is made. The existing per-RPC deadline still applies to reload. Native consecutive
+is made. The existing client deadline applies to internal reload RPCs, not to the
+aggregate native call: CARLA can make several RPCs and publication waits inside
+[LoadEpisode](https://github.com/carla-simulator/carla/blob/0.10.0/LibCarla/source/carla/client/detail/Simulator.cpp#L87-L112).
+The separate supervisor wall deadline still bounds the worker. Native consecutive
 repetition acceptance remains pending; historical trace and media bytes are unchanged.
 
 Recovery distinguishes these phases. `prepared` means no reload call was attempted,

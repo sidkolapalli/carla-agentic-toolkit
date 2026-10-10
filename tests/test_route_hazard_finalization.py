@@ -21,7 +21,8 @@ if TYPE_CHECKING:
     from carla_agentic_toolkit.merge_planner import MergeObservation
     from tests.test_managed_session import FakeWorld
 
-FIRST_RUN_FRAME = 102
+# Fresh preflight and reset publication precede the first scheduled owner step.
+FIRST_RUN_FRAME = 103
 
 
 class HazardExperiment(FakeExperiment):
@@ -138,6 +139,13 @@ def test_frame_limit_finalizes_trial_without_extra_tick(
     assert result["outcome"] == {"completed": False, "status": "frame_limit"}
     assert result["hazard_trial"]["termination"] == "frame_limit"
     assert cast("dict[str, object]", result["cleanup"])["ok"] is True
+    _assert_one_runtime_tick(tmp_path, world)
+
+
+def _assert_one_runtime_tick(tmp_path: Path, world: FakeWorld) -> None:
+    trace = load_trace(tmp_path / "runs/hazard-final/events.jsonl")
+    setup = next(event["data"] for event in trace.events if event["kind"] == "setup_frames")
+    assert setup["traffic_light_reset_frame"] == FIRST_RUN_FRAME - 1
     assert world.frame == FIRST_RUN_FRAME
 
 

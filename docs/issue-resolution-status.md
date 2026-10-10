@@ -463,7 +463,30 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   The integrated gate passes: 2,529 Python tests, two skips and nine Rust tests;
   Ruff/format, Ty, Radon all A and Rust checks pass. Native restart acceptance
   remains pending.
-- Published checkpoint `ccd7c41` passes GitHub CI (run 38025230361). Issues stay
+- #133: 36 genuine regressions fail before journaled same-map reload and published
+  traffic-light reset; 45 new cases, including nine passing controls, and 139
+  focused checks pass. Retained actor handles and unresolved creation intents
+  refuse setup before any native preflight. The returned episode ID is journaled
+  before map inspection; missing replies, identity races and failed durable
+  acknowledgements cannot clear the lease. Actual light states and their reset
+  publication frame are fixture metadata, not selector inputs. Comparison omits
+  only ephemeral light actor IDs and reset frame. The integrated gate passes:
+  2,574 Python tests, two skips and nine Rust tests; required static checks all
+  pass. The existing hazard frame-limit test now separately asserts the mandatory
+  reset setup frame and exactly one runtime tick, preserving its outcome checks.
+- #133 native acceptance failed on dedicated CARLA 0.10.0: `reload_world(False)`
+  raised `std::exception` before a returned episode ID could be acknowledged.
+  No fixture actors were created. The same lease retains its `pending` journal
+  and original six settings; the observed world is still synchronous with the
+  requested setup settings, not restored. Read-only diagnosis confirms two
+  available maps, the current Town10HD_Opt map, unchanged native state and
+  unchanged dirty evidence. There was no reload retry, episode adoption, blind
+  cleanup or provider call. The exception text does not establish whether the
+  failure was rejection, timeout or publication; per-internal-RPC limits are
+  distinct from the supervisor wall limit. Consecutive-repetition acceptance
+  remains pending, and this dedicated endpoint is quarantined pending operator
+  review. Failed receipts and journals remain private and retained.
+- Published checkpoint `6e06449` passes GitHub CI (run 38025853231). Issues stay
   open until merge and their completed acceptance checks.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native
@@ -476,8 +499,10 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   same reserved ports for journaled native acceptance. A separate CARLA 0.10.0
   server on RPC 3500 is reachable from WSL: matching-client read-only health
   confirms Town10HD_Opt, all six settings, no warnings, and no vehicles, walkers,
-  or sensors. #159's separate managed worker-death checks now pass as described
-  above. The quarantined WSL
+  or sensors before #133's failed reload. That endpoint now retains the pending
+  journal and requested synchronous settings described above; it must not be
+  described as currently clean. #159's separate managed worker-death checks pass
+  as described above. The quarantined WSL
   loopback:2000 endpoint remains untouched.
 - #87 is skipped at the user's request; #82 requires independent reporting
   verification. #152's native inventory and pre/post checks are complete on
@@ -552,7 +577,7 @@ vehicle.taxi.ford
 | [#130](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/130) | Reject synchronous Traffic Manager requests and unguarded autopilot traffic that the sidecar cannot step | Implemented; full gate passed; live sidecar validation pending. |
 | [#131](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/131) | Make managed experiment seeds vary the initial condition, or rename them as replicates | Implemented locally: canonical replicate index, strict legacy input, and identical-initial-condition warnings; TDD and full gate pass. |
 | [#132](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/132) | Do not create a Traffic Manager in the managed worker by calling set_autopilot(False) | Implemented; full gate passed; live CARLA validation pending. |
-| [#133](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/133) | Reload the world and reset traffic lights before each managed repetition | Pending implementation. |
+| [#133](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/133) | Reload the world and reset traffic lights before each managed repetition | Implemented with TDD/full gate; native reload failed before acknowledgement, same endpoint quarantined; consecutive-repetition acceptance pending. |
 | [#134](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/134) | Seed, settle and stop AI walker controllers as CARLA's walker lifecycle requires | Implemented; TDD, native 0.9.16 async/sync lifecycle and full gate pass; UE5 spawns refused; navigation seed restoration is not claimed. |
 | [#135](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/135) | Wait for periodic sensor data by default and stop waiting once a later frame arrives | Implemented: bounded periodic waiting, later-frame wakeup and honest cadence evidence; TDD, native RGB/GNSS checks, and full gate pass. |
 | [#136](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/136) | Journal spawned actors as each is created and decouple the per-RPC timeout from the script budget | Implemented; full gate passed; live CARLA validation pending. |
