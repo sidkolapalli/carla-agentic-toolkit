@@ -16,6 +16,8 @@ Build scenes, drive cars, and bring **real images, measurements, and saved resul
 
 Local Linux / WSL2 · Separate CARLA installation required · Jev optional
 
+> Community project, not affiliated with or endorsed by CARLA, TypeSafe, or the featured coding-agent providers.
+
 </div>
 
 ## Demo
@@ -26,6 +28,7 @@ Local Linux / WSL2 · Separate CARLA installation required · Jev optional
 
 <p align="center">
   <img src="docs/assets/readme/drive-preview.gif" width="720" alt="Animated excerpts of the real Codex request, CARLA vehicle motion, and measured result. Play the full video below.">
+  <br><sub>Scene credit: <a href="docs/assets/readme/README.md">docs/assets/readme/README.md</a></sub>
 </p>
 
 <details>
@@ -218,6 +221,7 @@ released work. Follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 [MIT](LICENSE) © 2026 Siddharth Kolapalli. Built on
 [CARLA](https://github.com/carla-simulator/carla),
 [MCP](https://modelcontextprotocol.io/), and [Landlock](https://landlock.io/).
-Recorded CARLA scenes retain the asset licenses and attribution linked with each
-demo. This community project is not affiliated with or endorsed by CARLA,
-TypeSafe, or the featured coding-agent providers.
+CARLA code is MIT and CARLA assets are CC-BY; scene credits are in
+[docs/assets/readme/README.md](docs/assets/readme/README.md) and each evidence
+README. Recorded CARLA scenes retain the asset licenses and attribution linked
+with each demo.
