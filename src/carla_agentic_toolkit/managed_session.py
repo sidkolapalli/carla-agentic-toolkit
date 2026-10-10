@@ -261,12 +261,23 @@ class ManagedSession:
         return trailing
 
     def _restore_world(self, failures: list[str]) -> dict[str, object]:
+        if self.reload.failures():
+            return {
+                "world_replaced": None,
+                "world_identity_checked": False,
+                "settings_restored": False,
+                "reload_unresolved": True,
+            }
         current = self.client.get_world()
         if world_identity(current) != self.world_id:
             return check_replaced_world(self.client, current, self._original_settings, failures)
         if self._recovering:
             self._refresh_recovery_snapshot()
         self._destroy_owned(failures)
+        return self._restore_settings(failures)
+
+    def _restore_settings(self, failures: list[str]) -> dict[str, object]:
+        """Recheck episode authority immediately before the settings mutation."""
         if world_identity(self.client.get_world()) != self.world_id:
             message = "The world was replaced during actor cleanup; settings restore refused."
             failures.append(message)

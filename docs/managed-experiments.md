@@ -415,10 +415,12 @@ returned ID allows same-episode restoration even if a later map read failed.
 A lost reply, invalid returned identity or failed returned-ID journal write keeps
 unresolved reload evidence and a dirty lease. The toolkit never guesses the new
 episode from its map or settings, retries reload automatically, or writes old
-settings into an unknown replacement. A read-only baseline match under
+settings into an unknown replacement. An unresolved or invalid reload blocks
+cleanup frame waits, ticks, actor destruction and settings writes even if the
+client still reports the old episode: publication can follow a timed-out call.
+A read-only baseline match under
 [replaced-world cleanup](#replaced-world-cleanup) cannot clear an unresolved reload.
-Known original-episode cleanup can still be attempted without claiming that the
-uncertain reload outcome was resolved.
+Subscription close callbacks remain separate and cannot resolve that uncertainty.
 
 ## Limits, storage, and evidence
 

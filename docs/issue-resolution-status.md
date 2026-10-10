@@ -486,7 +486,23 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   distinct from the supervisor wall limit. Consecutive-repetition acceptance
   remains pending, and this dedicated endpoint is quarantined pending operator
   review. Failed receipts and journals remain private and retained.
-- Published checkpoint `6e06449` passes GitHub CI (run 38025853231). Issues stay
+- #133 native follow-up on the separate dedicated CARLA 0.9.16 Windows server
+  also fails before acknowledgement, reporting a 5-second simulator timeout.
+  A later read observes a changed episode; no fixture actors were created, and
+  the existing test lock/journal remains pending and dirty. The earlier cleanup
+  implementation attempted settings restoration while the old episode ID was
+  still published; that ID was not sufficient authority after a lost reply.
+  Two genuine RED close/recovery regressions reproduce this gap and now pass
+  with unconditional unresolved-reload cleanup refusal. No cleanup frame wait,
+  tick, actor deletion or settings write is permitted by that unresolved state.
+  Further failing diagnostic assertions require an unknown episode result rather
+  than an unobserved unchanged-world claim. The pending journal remains unchanged;
+  no late publication is adopted.
+  All 61 focused reload/session/hazard checks pass. Both native endpoints remain
+  quarantined, and neither failed attempt establishes repetition acceptance.
+  The final integrated gate passes with 2,576 Python tests, two skips and nine
+  Rust tests; Ruff/format, Ty, Radon all A and all Rust checks pass.
+- Published checkpoint `ff219d3` passes GitHub CI (run 38027375180). Issues stay
   open until merge and their completed acceptance checks.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native
