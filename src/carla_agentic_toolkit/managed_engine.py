@@ -3,14 +3,10 @@
 from __future__ import annotations
 
 import asyncio
-import hashlib
-import platform
 import time
 from importlib import import_module
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol, cast
 
-from carla_agentic_toolkit import __version__
 from carla_agentic_toolkit.carla_versions import read_version_info, require_matching_release
 from carla_agentic_toolkit.experiment_trace import (
     RecordedPolicy,
@@ -21,20 +17,17 @@ from carla_agentic_toolkit.experiment_trace import (
 from carla_agentic_toolkit.managed_evidence import sensor_records, trailing_drains
 from carla_agentic_toolkit.managed_jev import create_jev_policy
 from carla_agentic_toolkit.managed_jev_config import JevConfig
+from carla_agentic_toolkit.managed_metadata import run_metadata
+from carla_agentic_toolkit.managed_observations import prepare_background, record_background
 from carla_agentic_toolkit.managed_selection import DecisionScheduler
 from carla_agentic_toolkit.managed_session import ManagedSession
-from carla_agentic_toolkit.merge_planner import (
-    PLANNER_VERSION,
-    TRACKER_VERSION,
-    rules_decision,
-)
-from carla_agentic_toolkit.route_geometry import TRACKER_VERSION as ROUTE_TRACKER_VERSION
-from carla_agentic_toolkit.route_policy import PLANNER_VERSION as ROUTE_PLANNER_VERSION
+from carla_agentic_toolkit.merge_planner import rules_decision
 from carla_agentic_toolkit.route_policy import rules_decision as route_rules_decision
 from carla_agentic_toolkit.simulator_lease import SimulatorLease
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from pathlib import Path
 
     from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaSnapshot
     from carla_agentic_toolkit.managed_policy import PolicyDecision, PolicyRequest
@@ -200,24 +193,7 @@ class ExperimentRun:
     def _prepare(self, lease: SimulatorLease) -> None:
         client = connect_client(self.spec)
         versions = read_version_info(client)
-        self.event(
-            "metadata",
-            {
-                "spec": self.spec.model_dump(),
-                "fixture_version": self.spec.fixture,
-                "policy_version": self.spec.policy,
-                **_implementation_versions(self.spec.fixture),
-                "package_version": __version__,
-                "code_sha256": _source_digest(),
-                "replicate_index": self.spec.replicate_index,
-                "environment": {
-                    "platform": platform.platform(),
-                    "python": platform.python_version(),
-                    "carla_client": versions.client_version,
-                    "carla_server": versions.server_version,
-                },
-            },
-        )
+        self.event("metadata", run_metadata(self.spec, versions))
         require_matching_release(versions)
         self.policy = create_policy(self.spec, self.root)
         self.session = ManagedSession(self.spec, client, lease, self.run_id)
@@ -225,6 +201,7 @@ class ExperimentRun:
         self.event("setup_frames", self.session.setup_frame_barrier)
         self.experiment = build_experiment(self.session)
         self.experiment.prepare()
+        prepare_background(self)
         self.selection = DecisionScheduler(
             self.spec, self.experiment, self.policy, self.event, self._should_stop
         )
@@ -261,6 +238,7 @@ class ExperimentRun:
         return False
 
     async def _iteration(self, snapshot: CarlaSnapshot, step: int) -> bool:
+        record_background(self)
         experiment = cast("Experiment[Any]", self.experiment)
         observation = experiment.observe(snapshot)
         self.frame, self.actor_id = observation.frame, observation.policy.actor_id
@@ -403,14 +381,6 @@ def _valid_trial(summary: dict[str, object]) -> bool:
     return not isinstance(trial, dict) or trial.get("valid") is not False
 
 
-def _source_digest() -> str:
-    digest = hashlib.sha256()
-    for path in sorted(Path(__file__).parent.glob("*.py")):
-        digest.update(path.name.encode())
-        digest.update(path.read_bytes())
-    return digest.hexdigest()
-
-
 async def run_experiment_async(
     spec: ExperimentSpec,
     run_id: str,
@@ -444,12 +414,3 @@ def run_experiment(
             publish_status=publish_status,
         )
     )
-
-
-def _implementation_versions(fixture: str) -> dict[str, str]:
-    if fixture == "town10-route-ue5-v1":
-        return {
-            "planner_version": ROUTE_PLANNER_VERSION,
-            "controller_version": ROUTE_TRACKER_VERSION,
-        }
-    return {"planner_version": PLANNER_VERSION, "controller_version": TRACKER_VERSION}

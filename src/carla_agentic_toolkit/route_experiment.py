@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from carla_agentic_toolkit.actor_boxes import bounding_box_metadata
 from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.managed_observations import traffic_control_description
 from carla_agentic_toolkit.merge_models import LocalControl
 from carla_agentic_toolkit.route_actors import RouteActors
 from carla_agentic_toolkit.route_fixture import (
@@ -91,7 +92,7 @@ class RouteExperiment:
             "controller_version": TRACKER_VERSION,
             "vehicle_blueprint": VEHICLE_BLUEPRINT,
             "walker_blueprint": WALKER_BLUEPRINT,
-            "traffic_control": "owned scripted vehicles; no Traffic Manager",
+            "traffic_control": traffic_control_description(self.spec),
             "actor_ids": {role: int(actor.id) for role, actor in self.actors.handles.items()},
             "actor_bounding_boxes": {
                 role: bounding_box_metadata(actor.bounding_box)
@@ -111,7 +112,9 @@ class RouteExperiment:
         if self.measurements is not None:
             self.measurements.observe(self.values, frame, seconds)
         policy = self.values["policy"]
-        neighbors = self._visible_neighbors(policy)
+        neighbors = self.actors.visible_neighbors(
+            self.values, snapshot, radius=self.spec.observation_range_m
+        )
         sensors = tuple(sensor.drain(frame) for sensor in self.actors.sensors)
         value = RouteObservation(
             self.session.run_id,
@@ -130,14 +133,6 @@ class RouteExperiment:
         self.last_frame = frame
         self._remember_observation(value)
         return value
-
-    def _visible_neighbors(self, policy: RouteActor) -> tuple[RouteActor, ...]:
-        neighbors = (actor for role, actor in self.values.items() if role != "policy")
-        return tuple(
-            actor
-            for actor in neighbors
-            if math.hypot(actor.x - policy.x, actor.y - policy.y) <= self.spec.observation_range_m
-        )
 
     def _remember_observation(self, value: RouteObservation) -> None:
         if value.frame % self.spec.decision_interval_steps == 0:

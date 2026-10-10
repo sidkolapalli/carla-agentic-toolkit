@@ -52,11 +52,13 @@ class SpawnIntent:
 
 @dataclass(frozen=True, slots=True)
 class CreationOptions:
-    """Every managed fixture creation is protected and assigned exactly once."""
+    """Fixture protection is separate from an owned background controller assignment."""
 
     role_name: str
     controller: str
     attach_to: CarlaActor | None = None
+    protected: bool = True
+    try_spawn: bool = False
 
 
 class ManagedCreationJournal:
@@ -95,7 +97,7 @@ class ManagedCreationJournal:
             type_id=blueprint.id,
             role_name=options.role_name,
             controller=options.controller,
-            protected=True,
+            protected=options.protected,
             transform=transform_dict(transform),
             attach_to=options.attach_to.id if options.attach_to is not None else None,
         )
@@ -251,14 +253,36 @@ def spawn_managed(
     blueprint: CarlaBlueprint,
     transform: object,
     options: CreationOptions,
-) -> CarlaActor:
+    *,
+    before_spawn: Callable[[], None] | None = None,
+) -> CarlaActor | None:
     """Journal a configured native call and each raw returned ID before later setup."""
     session.assert_current()
     journal = session.creation
     plan = journal.begin(blueprint, transform, options)
     session.assert_current()
-    parent = {"attach_to": options.attach_to} if options.attach_to is not None else {}
-    actor = session.world.spawn_actor(blueprint, transform, **parent)
+    if before_spawn is not None:
+        before_spawn()
+    actor = _native_spawn(session, blueprint, transform, options)
+    if actor is None:
+        _complete_collision(session, plan, options)
+        return None
+    _record_created(session, actor, plan)
+    return actor
+
+
+def _complete_collision(
+    session: ManagedSession, plan: SpawnIntent, options: CreationOptions
+) -> None:
+    if not options.try_spawn:
+        message = "Native spawn_actor returned no actor; outcome remains unresolved."
+        raise SessionInvariantError(message)
+    session.assert_current()
+    session.creation.complete(plan.intent_id)
+
+
+def _record_created(session: ManagedSession, actor: CarlaActor, plan: SpawnIntent) -> None:
+    journal = session.creation
     actor_id = require_returned_id(actor.id)
     session.record_returned(actor, replace(plan, actor_id=actor_id).owned())
     journal.returned(plan, actor_id)
@@ -267,4 +291,15 @@ def spawn_managed(
         raise SessionInvariantError(message)
     session.assert_current()
     journal.complete(plan.intent_id)
-    return actor
+
+
+def _native_spawn(
+    session: ManagedSession,
+    blueprint: CarlaBlueprint,
+    transform: object,
+    options: CreationOptions,
+) -> CarlaActor | None:
+    if options.try_spawn:
+        return session.world.try_spawn_actor(blueprint, transform)
+    parent = {"attach_to": options.attach_to} if options.attach_to is not None else {}
+    return session.world.spawn_actor(blueprint, transform, **parent)

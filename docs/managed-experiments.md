@@ -23,9 +23,73 @@ Start the world in asynchronous mode: preflight waits for a fresh actor snapshot
 before changing settings. An already paused synchronous world can time out during
 that check; preflight does not tick an unverified world to make it appear ready.
 It verifies a finite straight corridor with adjacent driving lanes before spawning
-the two vehicles. It does not reload a different map, admit background density, or
-enable Traffic Manager. Use the existing source setup and sandbox preflight in the
-[client guide](client-setup.md) before enabling generated-script tools alongside it.
+the two vehicles. It does not reload a different map. By default it admits no
+background density and never constructs or enables Traffic Manager; the optional
+managed-density path below is separate. Use the existing source setup and sandbox
+preflight in the [client guide](client-setup.md) before enabling generated-script
+tools alongside it.
+
+## Optional managed density
+
+Only the trusted managed worker can opt into background vehicles. Supply
+`background_density` in the numerical specification:
+
+```json
+{
+  "background_density": {
+    "vehicle_count": 12,
+    "traffic_manager_port": 8100,
+    "maintenance_interval_steps": 20
+  }
+}
+```
+
+`vehicle_count` is required and accepts integers from 1 through 100;
+`traffic_manager_port` is required and accepts integers from 1 through 65535.
+`maintenance_interval_steps` defaults to 20 and accepts integers from 1 through
+200. The object is strict: unknown fields and non-integer values are rejected.
+Absent or `null` density stays disabled and is omitted from serialized specs.
+The operator must provide a fresh dedicated simulator and an unused local TM
+port; this path does not adopt an existing or remote Traffic Manager.
+
+Before changing world settings, the worker retains a private shared port lock
+and durably proves that the newly created TM listener belongs to its current
+PID, process start time and boot ID. It retains the original LISTEN socket inode.
+The host stays asynchronous through the acknowledged settings-preserving reload
+and fixture preparation. Only then can fresh same-episode and host proofs
+authorize TM synchronous mode. Those proofs are checked again before every TM
+mode or autopilot mutation. No TM random seed or global settings are changed.
+Fixture actors stay protected under their original local controllers; existing
+scene actors and resembling roles are never adopted.
+
+Initial population attempts at most four native spawns. Later maintenance runs
+at the configured owner-step interval, before that boundary's single scheduled
+tick, with independent limits of four spawn attempts and four authoritative
+missing-owned removals. Snapshot absence can trigger removal only after a later
+owner frame than creation. There are no maintenance ticks, waits or background
+threads. Background kinematics come from the same supplied owner snapshot as
+the fixture and retain its observation-range filter. The `background_density`
+event distinguishes the configured target from acknowledged registrations;
+registration count is not a measured live population or a deterministic result.
+
+Cleanup unregisters known background handles, then uses guarded, non-ticking
+authoritative deletion. Six-setting restoration requires acknowledged shutdown
+of the proven local TM and confirmation that its listener closed. Unknown host
+construction, registration, deregistration or reload outcomes remain dirty;
+worker death alone is not shutdown proof. Recovery never constructs a new TM or
+shuts down a potentially remote one. Missing or invalid density ownership
+evidence refuses recovery ticks, waits, actor discovery and settings writes.
+Preserve the dirty evidence for reviewed operator resolution.
+A prior density error may be resolved only when the journal already proves
+complete local-host closure and authoritative cleanup resolves every known
+actor, with no unresolved creation or reload intent; the original failed run
+remains failed.
+
+This opt-in does not relax generated-script or persistent-session asynchronous
+TM guards, or the Rust sandbox's TCP-bind denial. It is a separate trusted-worker
+path, not a new script permission. Dedicated native density acceptance remains
+blocked pending managed-reload resolution; offline tests do not establish live
+CARLA/TM population behavior or repeatability.
 
 ## Vehicle roles and names
 

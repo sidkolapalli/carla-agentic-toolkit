@@ -12,6 +12,8 @@ from carla_agentic_toolkit.authoritative_destroy import (
     destroy_authoritatively,
     destroy_result_cleaned,
 )
+from carla_agentic_toolkit.managed_background import ManagedBackground, ManagedBackgroundMixin
+from carla_agentic_toolkit.managed_cleanup import ManagedCleanupMixin
 from carla_agentic_toolkit.managed_creation import (
     CreationOptions,
     ManagedCreationJournal,
@@ -19,7 +21,6 @@ from carla_agentic_toolkit.managed_creation import (
     recover_owned,
     spawn_managed,
 )
-from carla_agentic_toolkit.managed_replacement import check_replaced_world
 from carla_agentic_toolkit.managed_setup import (
     ManagedReload,
     require_setup_episode,
@@ -47,10 +48,11 @@ if TYPE_CHECKING:
         CarlaWorld,
     )
     from carla_agentic_toolkit.managed_spec import ExperimentSpec
+    from carla_agentic_toolkit.managed_tm import ManagedTrafficManager
     from carla_agentic_toolkit.simulator_lease import SimulatorLease
 
 
-class ManagedSession:
+class ManagedSession(ManagedBackgroundMixin, ManagedCleanupMixin):
     """Retain CARLA handles and hold the caller's lease across every cleanup action."""
 
     def __init__(
@@ -80,6 +82,8 @@ class ManagedSession:
         self.initial_traffic_lights: dict[str, object] = {}
         self._recovering = False
         self._recovery_frame: int | None = None
+        self._traffic_manager_host: ManagedTrafficManager | None = None
+        self.background = ManagedBackground(self)
 
     def open(self) -> None:
         """Validate dedicated use and journal settings before the first mutation."""
@@ -93,6 +97,7 @@ class ManagedSession:
         self._original_settings = world_settings(self.world)
         self._journal()
         self._opened = True
+        self.background.open()
         self.reload.prepare()
         values = self._original_settings | {
             "synchronous_mode": True,
@@ -105,7 +110,7 @@ class ManagedSession:
         apply_world_settings(
             self.world,
             values,
-            before_apply=partial(require_setup_episode, self.client, self.world_id),
+            before_apply=self.background.require_setup_owner,
         )
         self._reload_world()
         if world_settings(self.world) != values:
@@ -122,11 +127,12 @@ class ManagedSession:
     def _reload_world(self) -> None:
         require_setup_episode(self.client, self.world_id)
         self.reload.pending()
-        require_setup_episode(self.client, self.world_id)
+        self.background.require_setup_owner()
         returned = self.client.reload_world(reset_settings=False)
         identity = returned_world_identity(returned, self.world_id)
         self._bind_reloaded_world(returned, identity)
         self.reload.acknowledge(identity)
+        self.background.rebind(identity)
         require_setup_episode(self.client, identity)
         self.map = self.world.get_map()
         require_setup_episode(self.client, identity)
@@ -151,6 +157,7 @@ class ManagedSession:
     def step(self) -> CarlaSnapshot:
         """Advance exactly one frame; no background thread or helper may tick."""
         self.assert_current()
+        self.background.before_step()
         expected = self.expected_frame + 1
         frame = self.world.tick()
         snapshot = self.world.get_snapshot()
@@ -184,11 +191,14 @@ class ManagedSession:
         attach_to: CarlaActor | None = None,
     ) -> CarlaActor:
         """Persist a plan before native creation and its raw returned ID before setup."""
-        return spawn_managed(
-            self,
-            blueprint,
-            transform,
-            CreationOptions(role_name, controller, attach_to),
+        return cast(
+            "CarlaActor",
+            spawn_managed(
+                self,
+                blueprint,
+                transform,
+                CreationOptions(role_name, controller, attach_to),
+            ),
         )
 
     def record_returned(self, actor: CarlaActor, record: OwnedActor) -> None:
@@ -210,6 +220,10 @@ class ManagedSession:
         if record.protected:
             message = "Cannot destroy a protected actor during the experiment."
             raise SessionInvariantError(message)
+        failures: list[str] = []
+        self.background.unregister(record, failures)
+        if failures:
+            raise SessionInvariantError(failures[0])
         error = self._destroy(record)
         if error:
             raise SessionInvariantError(error)
@@ -231,6 +245,7 @@ class ManagedSession:
                 "actors": [asdict(actor) for actor in self._owned.values()],
                 **self.creation.fields(),
                 **self.reload.fields(),
+                **self.background.fields(),
             }
         )
 
@@ -241,9 +256,10 @@ class ManagedSession:
         return self._cleanup.copy()
 
     def _close_once(self) -> dict[str, object]:
-        failures = self.creation.failures() + self.reload.failures()
+        failures = self.creation.failures() + self.reload.failures() + self.background.failures()
         trailing = self._close_subscriptions(failures)
         if not self._opened:
+            self.background.close_host(failures)
             return {"ok": not failures, "failures": failures, "trailing": trailing}
         try:
             report = self._restore_world(failures)
@@ -254,7 +270,9 @@ class ManagedSession:
                 "world_identity_checked": False,
                 "settings_restored": False,
             }
-        report.update(ok=not failures, failures=failures, trailing=trailing)
+        report.update(
+            ok=not failures, failures=failures, trailing=trailing, **self.background.fields()
+        )
         if not failures:
             self.lease.mark_clean()
         return report
@@ -268,44 +286,9 @@ class ManagedSession:
                 failures.append(f"subscription close: {exc}")
         return trailing
 
-    def _restore_world(self, failures: list[str]) -> dict[str, object]:
-        if self.reload.failures():
-            return {
-                "world_replaced": None,
-                "world_identity_checked": False,
-                "settings_restored": False,
-                "reload_unresolved": True,
-            }
-        current = self.client.get_world()
-        if world_identity(current) != self.world_id:
-            return check_replaced_world(self.client, current, self._original_settings, failures)
-        if self._recovering:
-            self._refresh_recovery_snapshot()
-        self._destroy_owned(failures)
-        return self._restore_settings(failures)
-
-    def _restore_settings(self, failures: list[str]) -> dict[str, object]:
-        """Recheck episode authority immediately before the settings mutation."""
-        if world_identity(self.client.get_world()) != self.world_id:
-            message = "The world was replaced during actor cleanup; settings restore refused."
-            failures.append(message)
-            return {"world_replaced": True, "settings_restored": False}
-        apply_world_settings(
-            self.world,
-            self._original_settings,
-            before_apply=partial(require_setup_episode, self.client, self.world_id),
-        )
-        restored = world_settings(self.world) == self._original_settings
-        if not restored:
-            failures.append("World settings restoration could not be verified.")
-        return {
-            "world_replaced": False,
-            "settings_restored": restored,
-            "recovery_frame": self._recovery_frame,
-        }
-
     def _destroy_owned(self, failures: list[str]) -> None:
         for record in reversed(tuple(self._owned.values())):
+            self.background.unregister(record, failures)
             error = self._destroy(record)
             if error:
                 failures.append(error)
@@ -361,6 +344,7 @@ class ManagedSession:
         session.creation = ManagedCreationJournal(session.world_id, session._journal)
         session.creation.load(state)
         session.reload.load(state.get("reload"), session.world_id)
+        session.background.load(state)
         session._owned = recover_owned(state, session.creation)
         session._opened = True
         session._recovering = True

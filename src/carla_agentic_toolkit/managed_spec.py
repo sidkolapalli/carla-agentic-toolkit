@@ -12,6 +12,16 @@ from carla_agentic_toolkit.managed_names import normalize_merge_spec
 from carla_agentic_toolkit.replicate_index import normalize_replicate_index
 
 
+class ManagedDensitySpec(BaseModel):
+    """Opt into a dedicated local TM without changing fixture actors or random seeds."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True, allow_inf_nan=False)
+
+    vehicle_count: int = Field(ge=1, le=100)
+    traffic_manager_port: int = Field(ge=1, le=65535)
+    maintenance_interval_steps: int = Field(default=20, ge=1, le=200)
+
+
 class ExperimentSpec(BaseModel):
     """Accept numerical experiment data, never generated code or provider endpoints."""
 
@@ -45,6 +55,9 @@ class ExperimentSpec(BaseModel):
     decision_timeout_seconds: float = Field(default=5.0, ge=0.1, le=30.0)
     max_requests: int = Field(default=40, ge=1, le=200)
     max_trace_bytes: int = Field(default=16_777_216, ge=65_536, le=67_108_864)
+    background_density: ManagedDensitySpec | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
     @model_validator(mode="before")
     @classmethod

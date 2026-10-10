@@ -1,4 +1,4 @@
-"""CARLA backend for the managed, no-background-traffic merge experiment."""
+"""CARLA backend for the managed merge experiment with protected fixture actors."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, cast
 from carla_agentic_toolkit.actor_boxes import bounding_box_metadata, project_actor_box
 from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
 from carla_agentic_toolkit.managed_names import managed_role
+from carla_agentic_toolkit.managed_observations import background_actors
 from carla_agentic_toolkit.merge_fixture import (
     FIXTURE_VEHICLES,
     MergeCorridor,
@@ -167,7 +168,12 @@ class MergeExperiment:
             policy=policy,
             target=target,
             lane=_lane(corridor, policy),
-            neighbors=_visible_neighbors(policy, target, self.spec.observation_range_m),
+            neighbors=_visible_neighbors(
+                policy,
+                target,
+                self.spec.observation_range_m,
+                background=self._background_observations(snapshot),
+            ),
             sensors=sensors,
             phase=self.state.phase,
             history=tuple(self._history),
@@ -192,6 +198,15 @@ class MergeExperiment:
 
     def _actor_observation(self, role: str, snapshot: object) -> ActorObservation:
         actor = cast("Any", self._actors[role])
+        return self._handle_observation(actor, snapshot)
+
+    def _background_observations(self, snapshot: object) -> tuple[ActorObservation, ...]:
+        return tuple(
+            self._handle_observation(actor, snapshot) for actor in background_actors(self.session)
+        )
+
+    def _handle_observation(self, handle: object, snapshot: object) -> ActorObservation:
+        actor = cast("Any", handle)
         frozen = cast("Any", snapshot).find(actor.id)
         if frozen is None:
             message = f"Actor {actor.id} is missing from the owner snapshot."
@@ -394,12 +409,20 @@ def _lane(corridor: MergeCorridor, policy: ActorObservation) -> LaneGeometry:
 
 
 def _visible_neighbors(
-    policy: ActorObservation, target: ActorObservation, radius: float
+    policy: ActorObservation,
+    target: ActorObservation,
+    radius: float,
+    *,
+    background: tuple[ActorObservation, ...] = (),
 ) -> tuple[ActorObservation, ...]:
-    distance = math.hypot(
-        target.longitudinal_m - policy.longitudinal_m, target.lateral_m - policy.lateral_m
+    return tuple(
+        actor
+        for actor in (target, *background)
+        if math.hypot(
+            actor.longitudinal_m - policy.longitudinal_m, actor.lateral_m - policy.lateral_m
+        )
+        <= radius
     )
-    return (target,) if distance <= radius else ()
 
 
 def _has_collision(sensors: tuple[dict[str, object], ...]) -> bool:
