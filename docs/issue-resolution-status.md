@@ -279,7 +279,28 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   Persistent configuration now freezes at most sixteen strict TCP connect ports
   and passes them to execution, the runner and worker IPC. No binding permission
   or default-port derivation was added. Full gate passes with 1,962 Python tests,
-  two skips and nine Rust tests. Real non-default TM sandbox acceptance is pending.
+  two skips and nine Rust tests. A real matching CARLA 0.10.0 persistent sandbox
+  connects to the dedicated trusted sidecar on port 8500. Landlock reports an
+  enforced ruleset with that connect port, no actors are spawned and no TM global
+  setters requested. Session close, exact native baseline, and the same clean
+  lease are verified; the process-owned sidecar port closes after probe exit.
+- #150: 46 regressions demonstrated RED with twenty controls; nine post-GREEN
+  controls bring the new cases to 75. Its 183 focused checks and full gate pass:
+  1,940 Python tests, two skips and nine Rust tests. Mutable JSON-backed value
+  constructors, canonical attach_to/waypoint order, strict legacy aliases and
+  reviewed native-operation discovery preserve validation and the import ban.
+  Three actual LibCarla 0.9.16 transforms, vector order and independent defaults
+  agree with constructor values and parsed native translations, without RPCs.
+- #164: 62 regressions demonstrated RED across the initial and supplemental
+  phases; all 88 new cases and 343 focused checks pass. Its isolated full gate
+  passes with 2,008 Python tests, two skips and nine Rust tests. Explicit-origin
+  nearest-first level bounds, snapshot-bound native actor vertices and actual
+  camera intrinsics are read-only. Image digests include dimensions, contextual
+  FOV and labelled raw-BGRA SHA; unknown FOV is null, and DVS/optical-flow behavior
+  remains unchanged. Native server acceptance is separate from these tests.
+- Integrated #144/#150/#164 gate: 2,125 Python tests passed, two skipped, nine
+  Rust tests passed; all required static checks pass. An import-only conflict was
+  resolved retaining both independent API surfaces and the sensor memory policy.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native
   health confirms matching 0.9.16 releases and no warnings; a genuine 0.10.0 client
@@ -378,13 +399,13 @@ vehicle.taxi.ford
 | [#141](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/141) | Surface CARLA client/server version mismatches in toolkit warnings | Implemented locally, including native-verified version-only health; TDD and full gate passed. |
 | [#142](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/142) | Convert reload_world RuntimeError into the structured reload_world_failed result | Covered by #136; failure/retention/cleanup contract and full gate pass. |
 | [#143](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/143) | Explain missing Traffic Manager servers and unimportable CARLA APIs in error messages | Pending implementation. |
-| [#144](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/144) | Let persistent sessions use a non-default Traffic Manager port | Implemented: frozen bounded connect-port configuration at all launch boundaries; TDD and full gate pass; live sandbox check pending. |
+| [#144](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/144) | Let persistent sessions use a non-default Traffic Manager port | Implemented: frozen bounded connect-port configuration; TDD, actual Landlock persistent connection on port 8500, and full gate pass. |
 | [#145](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/145) | Read script telemetry from one world snapshot and report its frame | Implemented: frame-coherent motion and explicit missing-state errors; TDD and full gate pass. |
 | [#146](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/146) | Expose recorder additional_data and optionally record managed runs with the CARLA recorder | Implemented required recorder option; TDD, native record/replay, and full gate pass; optional managed recorder not added. |
 | [#147](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/147) | Clarify that the 23 remaining traffic actors in the camera demo are signs and lights | Implemented; documentation checks pass. |
 | [#148](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/148) | Label the bolded drive-demo distances as wall-clock, asynchronous and not repeatable | Implemented; documentation checks pass. |
 | [#149](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/149) | Batch traffic spawning and autopilot with SpawnActor.then(SetAutopilot), and fix the stale controller docstring | Implemented permitted per-vehicle safety alternative; full gate passed; live validation pending. |
-| [#150](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/150) | Reduce script API divergence from CARLA's names and argument order | Pending implementation. |
+| [#150](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/150) | Reduce script API divergence from CARLA's names and argument order | Implemented: value constructors, canonical names/order, compatible strict legacy inputs, and native-operation hints; TDD, native value-object comparison, and full gate pass. |
 | [#151](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/151) | Name Traffic Manager presets and desired_speed units unambiguously | Implemented naming and permitted profile-interaction documentation; TDD, native two-pass speed read, and full gate pass. |
 | [#152](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/152) | Filter safe traffic vehicles by base_type instead of a name list | Implemented locally: exact native car classification with legacy fallback; TDD, both native inventory checks, and full gate pass. |
 | [#153](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/153) | Read weather back from CARLA and make the showcase prompt engine-aware | Implemented; TDD, both native readback/restoration checks, and integrated full gate pass. |
@@ -398,5 +419,5 @@ vehicle.taxi.ford
 | [#161](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/161) | Refuse or warn when attaching cameras in no-rendering mode | Implemented locally; TDD, native rendering check, and full gate pass. |
 | [#162](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/162) | Let camera auto-exposure settle before keeping a one-shot capture | Investigated locally: not reproduced in the supported live bright/dark check; unchanged capture contract and limitations documented. |
 | [#163](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/163) | Reuse SensorSubscription in the demo capture script | Implemented: shared bounded listener, raw-BGRA digest provenance, and compatible historical PNG verification; TDD and full gate pass. |
-| [#164](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/164) | Add ground-truth helpers and richer image digests for perception tests | Pending implementation. |
+| [#164](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/164) | Add ground-truth helpers and richer image digests for perception tests | Implemented: read-only spatial queries, frame-bound native actor boxes, measured intrinsics and labelled raw image metadata; TDD and full gate pass. |
 | [#165](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/165) | Report substepping settings and stop swallowing density wait_for_tick timeouts | Implemented locally: six-field reporting and fatal frame waits with lifecycle evidence; TDD, native reporting check, and full gate pass. |
