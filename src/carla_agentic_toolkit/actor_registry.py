@@ -6,10 +6,15 @@ import hashlib
 import json
 from typing import TYPE_CHECKING, cast
 
+from carla_agentic_toolkit.actor_identity import (
+    ActorIdentity,
+    identity_from_value,
+    identity_mismatch,
+)
 from carla_agentic_toolkit.errors import ActorRegistryError
 
 if TYPE_CHECKING:
-    from collections.abc import Collection
+    from collections.abc import Callable
     from pathlib import Path
 
 MAX_ACTOR_NAME_LENGTH = 100
@@ -30,94 +35,142 @@ class ActorRegistry:
         self._path = path
 
     def name_actor(
-        self, name: object, actor_id: object, live_ids: Collection[int]
+        self,
+        name: object,
+        actor_id: object,
+        lookup: Callable[[int], ActorIdentity | None],
     ) -> dict[str, object]:
-        """Assign a validated name to one live actor."""
+        """Assign a name using an explicit server actor description and episode."""
         normalized_name = _actor_name(name)
         normalized_id = _actor_id(actor_id)
-        if normalized_id not in live_ids:
+        self._load()
+        identity = _lookup_identity(lookup, normalized_id)
+        if identity is None:
             message = f"Actor {normalized_id} does not exist."
             raise ActorRegistryError(message)
-        self.set(normalized_name, normalized_id)
+        self.set(normalized_name, identity)
         return {"name": normalized_name, "actor_id": normalized_id}
 
-    def resolve_actor(self, name: object, live_ids: Collection[int]) -> dict[str, object]:
-        """Resolve one name and invalidate it when its actor disappeared."""
+    def resolve_actor(
+        self, name: object, lookup: Callable[[int], ActorIdentity | None]
+    ) -> dict[str, object]:
+        """Verify server liveness and exact stored identity before resolving a name."""
         normalized_name = _actor_name(name)
-        actor_id = self.get(normalized_name)
-        if actor_id is None:
+        expected = self.get(normalized_name)
+        if expected is None:
             raise ActorRegistryError(_missing_message(normalized_name))
-        if actor_id not in live_ids:
+        observed = _lookup_identity(lookup, expected.actor_id)
+        if observed is None:
             self.remove(normalized_name)
             message = f"Named actor '{normalized_name}' no longer exists."
             raise ActorRegistryError(message)
-        return {"name": normalized_name, "actor_id": actor_id}
+        if mismatch := identity_mismatch(expected, observed):
+            self.remove(normalized_name)
+            message = f"Named actor '{normalized_name}' {mismatch} mismatch; alias invalidated."
+            raise ActorRegistryError(message)
+        return {"name": normalized_name, "actor_id": expected.actor_id}
 
     def list_actors(self) -> dict[str, object]:
         """Return aliases in deterministic JSON-compatible order."""
-        return {"actors": [{"name": name, "actor_id": actor_id} for name, actor_id in self.items()]}
+        return {
+            "actors": [
+                {"name": name, "actor_id": identity.actor_id} for name, identity in self.items()
+            ]
+        }
 
     def forget_actor(self, name: object) -> dict[str, object]:
         """Forget one name without destroying its CARLA actor."""
         normalized_name = _actor_name(name)
-        actor_id = self.remove(normalized_name)
-        if actor_id is None:
+        identity = self.remove(normalized_name)
+        if identity is None:
             raise ActorRegistryError(_missing_message(normalized_name))
-        return {"name": normalized_name, "actor_id": actor_id, "forgotten": True}
+        return {"name": normalized_name, "actor_id": identity.actor_id, "forgotten": True}
 
-    def set(self, name: str, actor_id: int) -> None:
-        """Create or replace an actor alias."""
+    def set(self, name: str, identity: ActorIdentity) -> None:
+        """Create or replace an alias without accepting unbound integer IDs."""
         actors = self._load()
-        actors[name] = actor_id
+        actors[_actor_name(name)] = identity_from_value(identity.to_dict())
         self._save(actors)
 
-    def get(self, name: str) -> int | None:
-        """Return one actor ID when the alias exists."""
+    def get(self, name: str) -> ActorIdentity | None:
+        """Return the complete identity when the alias exists."""
         return self._load().get(name)
 
-    def remove(self, name: str) -> int | None:
-        """Remove and return one actor ID when present."""
+    def remove(self, name: str) -> ActorIdentity | None:
+        """Remove and return one identity when present."""
         actors = self._load()
         actor_id = actors.pop(name, None)
         if actor_id is not None:
             self._save(actors)
         return actor_id
 
-    def items(self) -> tuple[tuple[str, int], ...]:
+    def items(self) -> tuple[tuple[str, ActorIdentity], ...]:
         """Return aliases in deterministic order."""
         return tuple(sorted(self._load().items()))
 
-    def _load(self) -> dict[str, int]:
+    def _load(self) -> dict[str, ActorIdentity]:
         if not self._path.exists():
             return {}
         try:
             value = json.loads(self._path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
+        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
             message = f"Actor registry could not be read: {exc}"
             raise ActorRegistryError(message) from exc
-        if not isinstance(value, dict) or not _valid_entries(value):
-            msg = "Actor registry must contain string names and positive integer actor IDs."
-            raise ActorRegistryError(msg)
-        return cast("dict[str, int]", value)
+        return _registry_entries(value)
 
-    def _save(self, actors: dict[str, int]) -> None:
+    def _save(self, actors: dict[str, ActorIdentity]) -> None:
         temporary = self._path.with_name(f".{self._path.name}.tmp")
         try:
             self._path.parent.mkdir(parents=True, exist_ok=True)
-            temporary.write_text(json.dumps(actors, sort_keys=True), encoding="utf-8")
+            values = {name: identity.to_dict() for name, identity in actors.items()}
+            temporary.write_text(json.dumps(values, sort_keys=True), encoding="utf-8")
             temporary.replace(self._path)
         except OSError as exc:
             message = f"Actor registry could not be written: {exc}"
             raise ActorRegistryError(message) from exc
 
 
-def _valid_entries(value: dict[object, object]) -> bool:
-    """Return whether a decoded registry has the expected bounded scalar shape."""
-    return all(_valid_entry(name, actor_id) for name, actor_id in value.items())
+def _lookup_identity(
+    lookup: Callable[[int], ActorIdentity | None], actor_id: int
+) -> ActorIdentity | None:
+    identity = lookup(actor_id)
+    if identity is not None and identity.actor_id != actor_id:
+        message = (
+            f"Lookup actor_id {identity.actor_id} does not match requested actor_id {actor_id}."
+        )
+        raise ActorRegistryError(message)
+    return identity
 
 
-def _valid_entry(name: object, actor_id: object) -> bool:
-    return isinstance(name, str) and bool(name) and _positive_actor_id(actor_id)
+def _registry_entries(value: object) -> dict[str, ActorIdentity]:
+    """Validate the complete registry before accepting any alias from it."""
+    if not isinstance(value, dict):
+        message = "Actor registry must contain named episode-bound actor identities."
+        raise ActorRegistryError(message)
+    return {_registry_name(name): _registry_identity(identity) for name, identity in value.items()}
+
+
+def _registry_name(value: object) -> str:
+    try:
+        name = _actor_name(value)
+    except ActorRegistryError as exc:
+        message = f"Actor registry contains an invalid name: {exc}"
+        raise ActorRegistryError(message) from exc
+    if name != value:
+        message = "Actor registry names must be normalized non-empty strings."
+        raise ActorRegistryError(message)
+    return name
+
+
+def _registry_identity(value: object) -> ActorIdentity:
+    if type(value) is int:
+        message = "Actor registry contains legacy integer-only aliases without episode evidence."
+        raise ActorRegistryError(message)
+    try:
+        return identity_from_value(value)
+    except ActorRegistryError as exc:
+        message = f"Actor registry contains an invalid identity: {exc}"
+        raise ActorRegistryError(message) from exc
 
 
 def _actor_name(value: object) -> str:

@@ -6,6 +6,7 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
+from carla_agentic_toolkit.actor_identity import read_actor_identity
 from carla_agentic_toolkit.actor_runtime import actor_snapshot, destroy_actor
 from carla_agentic_toolkit.adapter_creation import PythonCarlaCreationMixin
 from carla_agentic_toolkit.adapter_experiments import PythonCarlaExperimentMixin
@@ -81,6 +82,7 @@ from carla_agentic_toolkit.world_timing import (
 __all__ = ["PythonCarlaAdapter"]
 
 if TYPE_CHECKING:
+    from carla_agentic_toolkit.actor_identity import ActorIdentity
     from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaSensor, CarlaWorld
     from carla_agentic_toolkit.script_settings import RunSettings
     from carla_agentic_toolkit.sensor_subscription import SensorSubscription
@@ -163,6 +165,10 @@ class PythonCarlaAdapter(
         """Return readable state for the current CARLA world."""
         client = self._client()
         return self._world_state(self._world(client), client=client)
+
+    def get_actor_identity(self, actor_id: int) -> ActorIdentity | None:
+        """Read server liveness and stable episode evidence for a persistent alias."""
+        return read_actor_identity(self._client(), actor_id)
 
     def _world_state(self, world: CarlaWorld, *, client: CarlaClient) -> WorldState:
         """Add version diagnostics using the operation's retained native client."""

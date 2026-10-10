@@ -146,15 +146,17 @@ class CarlaScriptApi(ScriptOwnershipOperations):
 
     @_recover("name_actor_failed")
     def name_actor(self, name: str, actor_id: int) -> JsonObject:
-        """Assign a conversational name to one live CARLA actor."""
-        live_ids = {actor.actor_id for actor in self._adapter.list_actors("*")}
-        return self._named_actor_result(self._registry().name_actor(name, actor_id, live_ids))
+        """Name a server-live actor with its episode, type and role identity."""
+        return self._named_actor_result(
+            self._registry().name_actor(name, actor_id, self._adapter.get_actor_identity)
+        )
 
     @_recover("resolve_actor_failed")
     def resolve_actor(self, name: str) -> JsonObject:
-        """Resolve a conversational actor name and verify that it is still live."""
-        live_ids = {actor.actor_id for actor in self._adapter.list_actors("*")}
-        return self._named_actor_result(self._registry().resolve_actor(name, live_ids))
+        """Resolve a name only after server liveness, episode, type and role checks."""
+        return self._named_actor_result(
+            self._registry().resolve_actor(name, self._adapter.get_actor_identity)
+        )
 
     @_recover("list_named_actors_failed")
     def list_named_actors(self) -> JsonObject:

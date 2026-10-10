@@ -140,9 +140,25 @@ ego_id = api.resolve_actor("ego")["actor_id"]
 
 Check these operations for recoverable errors before using their results.
 Aliases live under `CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR`, are isolated by CARLA
-host and port, and survive MCP server restarts that reuse that directory.
-`resolve_actor()` checks the simulator and removes stale aliases. Use
-`api.list_named_actors()` and `api.forget_actor()` to manage the registry.
+host and port, and survive MCP server restarts that reuse that directory and
+simulator episode. Each alias stores `actor_id`, `world_id`, `type_id`, and
+`role_name`; an absent role is recorded as `null`, not guessed from the alias.
+
+Both naming and resolution use the explicit-ID server actor lookup, not the
+cached snapshot inventory. An actor can be named immediately after spawning,
+without waiting for frame publication or sending a tick. Resolution checks the
+stored episode, type, and role against the live server description and verifies
+that the episode remained stable during the lookup. Confirmed absence or any
+identity mismatch invalidates only that alias with a structured error. An
+unavailable lookup or episode change during the check returns an error without
+rebinding or erasing the prior record. No role-name search fallback is performed.
+
+Legacy integer-only registry files and malformed identities are explicitly
+rejected, not migrated by guessing an episode. Retire an old alias file and
+recreate its names against known current actors rather than reusing its IDs.
+`api.list_named_actors()` lists stored names without checking their liveness;
+resolve each name before using its ID. Use `api.forget_actor()` to remove a name
+without destroying the actor.
 Names are a convenience and do not grant ownership or authorization.
 
 ## Own the lifecycle and cleanup
