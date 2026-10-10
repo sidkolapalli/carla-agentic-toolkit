@@ -10,6 +10,10 @@ class CarlaAdapterError(RuntimeError):
         self.details = details or {}
 
 
+class BlueprintInputError(CarlaAdapterError):
+    """Distinguish local native blueprint rejection from a failed simulator RPC."""
+
+
 class CarlaApiUnavailableError(CarlaAdapterError):
     """Distinguish local client import/ABI failures from simulator connectivity."""
 

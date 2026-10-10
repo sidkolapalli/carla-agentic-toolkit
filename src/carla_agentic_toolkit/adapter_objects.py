@@ -21,7 +21,7 @@ from carla_agentic_toolkit.carla_protocols import (
     CarlaSensor,
     CarlaWorld,
 )
-from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.errors import BlueprintInputError, CarlaAdapterError
 from carla_agentic_toolkit.experiment_common import carla_transform, require_sensor
 from carla_agentic_toolkit.experiment_perception import collect_sensor_frames
 from carla_agentic_toolkit.managed_world import world_identity
@@ -207,18 +207,19 @@ def _require_image(candidate: object) -> CarlaImage:
 
 def _configured_blueprint(world: CarlaWorld, request: SpawnRequest) -> CarlaBlueprint:
     """Find and configure a CARLA blueprint for a spawn request."""
+    library = world.get_blueprint_library()
     try:
-        blueprint = world.get_blueprint_library().find(request.blueprint_id)
-    except (IndexError, KeyError, ValueError) as exc:
+        blueprint = library.find(request.blueprint_id)
+    except (IndexError, KeyError, ValueError, RuntimeError) as exc:
         message = f"Blueprint {request.blueprint_id!r} lookup failed: {exc}"
-        raise CarlaAdapterError(message) from exc
+        raise BlueprintInputError(message) from exc
     for attribute_id, value in request.attributes.items():
         try:
             blueprint.set_attribute(attribute_id, value)
-        except (IndexError, KeyError, ValueError) as exc:
+        except (IndexError, KeyError, ValueError, RuntimeError) as exc:
             message = (
                 f"Blueprint {request.blueprint_id!r} attribute {attribute_id!r} "
                 f"could not be set: {exc}"
             )
-            raise CarlaAdapterError(message) from exc
+            raise BlueprintInputError(message) from exc
     return blueprint

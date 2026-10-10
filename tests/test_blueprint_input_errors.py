@@ -11,10 +11,11 @@ import pytest
 
 from carla_agentic_toolkit import adapter_objects
 from carla_agentic_toolkit.adapter import PythonCarlaAdapter
+from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.ownership import RunOwnership
 from carla_agentic_toolkit.script_api import CarlaScriptApi
 from carla_agentic_toolkit.snapshots import RunSnapshots
-from carla_agentic_toolkit.tool_inputs import sensor_blueprint, zero_transform
+from carla_agentic_toolkit.tool_inputs import parse_spawn_requests, sensor_blueprint, zero_transform
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -120,7 +121,7 @@ def _assert_batch_ownership(case: BlueprintCase, result: JsonObject) -> None:
 
 
 @pytest.mark.parametrize("operation", ["batch", "camera", "sensor"])
-@pytest.mark.parametrize("error_type", [IndexError, KeyError, ValueError])
+@pytest.mark.parametrize("error_type", [IndexError, KeyError, ValueError, RuntimeError])
 def test_blueprint_lookup_errors_are_contextual_structured_failures(
     blueprint_case: BlueprintCase, operation: str, error_type: type[Exception]
 ) -> None:
@@ -131,7 +132,7 @@ def test_blueprint_lookup_errors_are_contextual_structured_failures(
 
 
 @pytest.mark.parametrize("operation", ["batch", "camera", "sensor"])
-@pytest.mark.parametrize("error_type", [IndexError, KeyError, ValueError])
+@pytest.mark.parametrize("error_type", [IndexError, KeyError, ValueError, RuntimeError])
 def test_blueprint_attribute_errors_name_blueprint_and_attribute(
     blueprint_case: BlueprintCase, operation: str, error_type: type[Exception]
 ) -> None:
@@ -159,7 +160,7 @@ def test_runtime_sensor_blueprint_id_remains_supported() -> None:
 
 
 @pytest.mark.parametrize("stage", ["lookup", "attribute"])
-@pytest.mark.parametrize("error_type", [IndexError, KeyError, ValueError])
+@pytest.mark.parametrize("error_type", [IndexError, KeyError, ValueError, RuntimeError])
 def test_partial_batch_continues_and_retains_immediately_journaled_ids(
     blueprint_case: BlueprintCase, stage: str, error_type: type[Exception]
 ) -> None:
@@ -213,6 +214,38 @@ def test_empty_native_rpc_error_marks_partial_failure_without_clearing_intent(
     assert result["ok"] is False
     assert _results(result)[0]["error"] == ""
     assert blueprint_case.ownership.pending_creations() == 1
+
+
+@pytest.mark.parametrize("stage", ["lookup", "attribute"])
+def test_local_native_blueprint_runtime_error_preserves_non_transport_identity(
+    blueprint_case: BlueprintCase, stage: str
+) -> None:
+    """LibCarla's local std::exception must not masquerade as a failed server RPC."""
+    failure = RuntimeError("std::exception")
+    if stage == "lookup":
+        blueprint_case.library.find.side_effect = failure
+    else:
+        blueprint_case.blueprint.set_attribute.side_effect = failure
+    request = parse_spawn_requests([_request(attributes={ATTRIBUTE_ID: "480"})])[0]
+    with pytest.raises(CarlaAdapterError) as caught:
+        adapter_objects._configured_blueprint(blueprint_case.world, request)  # noqa: SLF001
+    assert type(caught.value).__name__ == "BlueprintInputError"
+    assert caught.value.__cause__ is failure
+    _assert_no_native_intent(blueprint_case)
+
+
+def test_blueprint_catalog_rpc_failure_is_not_relabelled_as_local_input(
+    blueprint_case: BlueprintCase,
+) -> None:
+    """The catalog RPC remains outside the local native lookup/setter boundary."""
+    failure = RuntimeError("catalog connection lost")
+    blueprint_case.world.get_blueprint_library.side_effect = failure
+    request = parse_spawn_requests([_request()])[0]
+    with pytest.raises(RuntimeError) as caught:
+        adapter_objects._configured_blueprint(blueprint_case.world, request)  # noqa: SLF001
+    assert caught.value is failure
+    blueprint_case.library.find.assert_not_called()
+    _assert_no_native_intent(blueprint_case)
 
 
 def test_legacy_unknown_sensor_kind_does_not_begin_creation_intent(tmp_path: Path) -> None:

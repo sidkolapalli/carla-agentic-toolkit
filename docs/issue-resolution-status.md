@@ -42,7 +42,7 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   CARLA validation remains pending.
 - #128: 30 input-error and ownership-preflight regressions demonstrated RED;
   85 focused tests pass. Full gate passed with 938 Python tests, two skips, and
-  nine Rust tests. Live typo/unknown-blueprint checks remain pending.
+  nine Rust tests. Native supplementary verification is recorded below.
 - #132: eight regressions failed at the redundant managed autopilot calls before
   removal. Focused managed-fixture/cleanup tests and independent review pass.
   Full gate passed with 942 Python tests, two skips, and nine Rust tests. The live
@@ -402,6 +402,17 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   tests passed; all required static checks pass. Integration retains #156's
   explicit streaming/secondary fields and resolves omitted HOST/PORT before
   constructing that expanded execution request.
+- #128 native supplement: matching CARLA 0.10.0 reports unknown local blueprint
+  lookups and attributes as `RuntimeError("std::exception")`, exposing a finite
+  facade gap. Ten supplemental regressions genuinely failed; the added catalog
+  RPC control passed. All 42 focused cases now pass. Only local library lookup
+  and attribute errors use the distinct `BlueprintInputError`; catalog RPCs
+  remain transport errors. The actual Landlock repeat returns contextual
+  blueprint, sensor-kind and attribute failures, with no created actors, exact
+  unchanged native state and the same clean lease. The failed receipt remains
+  local. Invalid attribute values that native CARLA accepts are not falsely
+  described as rejected. Full gate: 2,452 Python tests passed, two skipped and
+  nine Rust tests passed; Ruff/format, Ty, Radon all A and Rust checks pass.
 - #96 diagnostic: the original `walker.pedestrian.0015` route-position command
   is reproduced without a key, multiplier or teleport on native 0.10.0. At the
   same settled position, six seconds of a received 2 m/s control produce only
@@ -414,7 +425,7 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   The first diagnostic exceeded the receipt-size limit after cleanup; its
   measurements are not claimed as retained evidence. This reproduces failure,
   not a valid crossing, video, physical fix or provider acceptance run.
-- Published checkpoint `92428f3` passes GitHub CI (run 38023235735). Issues stay
+- Published checkpoint `5678211` passes GitHub CI (run 38023782658). Issues stay
   open until merge and their completed acceptance checks.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native
@@ -498,7 +509,7 @@ vehicle.taxi.ford
 | [#125](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/125) | Align load_world, reload_world and apply_batch defaults with CARLA or make them explicit | Implemented; full gate passed; live CARLA validation pending. |
 | [#126](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/126) | Bind actor aliases to the episode and check liveness against the server | Implemented; TDD, actual pre-tick naming and post-restart rejection, and full gate pass. |
 | [#127](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/127) | Fall back to a batch destroy for sensors and managed actors when destroy() returns False | Implemented; full gate passed; live CARLA validation pending. |
-| [#128](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/128) | Return structured errors for unknown blueprints, attributes and sensor kinds | Implemented; full gate passed; live CARLA validation pending. |
+| [#128](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/128) | Return structured errors for unknown blueprints, attributes and sensor kinds | Implemented including native local RuntimeError normalization; TDD, actual Landlock native invalid-input checks and full gate pass. |
 | [#129](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/129) | Report whether generate_route reached its destination, or rename it to follow_waypoints | Implemented permitted greedy-follower naming and honest arrival results; TDD, native junction check, and full gate pass. |
 | [#130](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/130) | Reject synchronous Traffic Manager requests and unguarded autopilot traffic that the sidecar cannot step | Implemented; full gate passed; live sidecar validation pending. |
 | [#131](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/131) | Make managed experiment seeds vary the initial condition, or rename them as replicates | Implemented locally: canonical replicate index, strict legacy input, and identical-initial-condition warnings; TDD and full gate pass. |
