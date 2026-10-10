@@ -510,6 +510,15 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   unknown episode identity, without another native query. Dirty evidence remains
   retained. The final full gate passes with 2,579 Python tests, two skips and nine
   Rust tests; Ruff/format, Ty, Radon all A and all Rust checks pass.
+- #155 cleanup/error follow-up: 20 genuine regressions fail before distinguishing
+  local alias errors from native lookup failures and preserving converted cleanup
+  failures; 35 new cases include 15 passing controls. Native destruction and Stop
+  failures freeze further RPCs in the same request, including persistent-worker
+  finalization, while retaining original sensor handles and ownership/settings
+  evidence. Local registry/file errors do not drop the client; finite cleanup
+  continuation is unchanged. The integrated full gate passes with 2,614 Python
+  tests, two skips and nine Rust tests; all required static checks pass. Native
+  simulator restart acceptance remains pending.
 - Published checkpoint `ca3bdb4` passes GitHub CI (run 38028260045). Issues stay
   open until merge and their completed acceptance checks.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
