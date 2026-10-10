@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sys
 import time
+from functools import partial
 from typing import TYPE_CHECKING, Protocol
 
 from carla_agentic_toolkit.adapter import PythonCarlaAdapter
@@ -13,6 +14,7 @@ from carla_agentic_toolkit.ownership import RunOwnership
 from carla_agentic_toolkit.persistent_namespace import PersistentNamespace, SessionSnapshots
 from carla_agentic_toolkit.rpc_timeouts import RpcTimeoutPolicy, deadline_value
 from carla_agentic_toolkit.script_api import CarlaScriptApi
+from carla_agentic_toolkit.script_connection import finalize_persistent_resources
 from carla_agentic_toolkit.script_runner import _error, _parse_args
 from carla_agentic_toolkit.script_settings import SETTINGS_FILENAME, RunSettings
 from carla_agentic_toolkit.session_protocol import (
@@ -217,9 +219,14 @@ def main() -> None:
     except Exception as exc:  # noqa: BLE001 - protocol/user integration failures terminate the worker.
         outcome = _error("session_protocol_error", str(exc), stdout="")
     finally:
-        api.close()
-        adapter.close_sensor_subscriptions()
+        finalize_persistent_resources(adapter, partial(_close_resources, api, adapter))
     sys.stdout.write(json.dumps(outcome, allow_nan=False))
+
+
+def _close_resources(api: CarlaScriptApi, adapter: PythonCarlaAdapter) -> None:
+    """Close worker-owned services and listener queues without changing their origins."""
+    api.close()
+    adapter.close_sensor_subscriptions()
 
 
 if __name__ == "__main__":

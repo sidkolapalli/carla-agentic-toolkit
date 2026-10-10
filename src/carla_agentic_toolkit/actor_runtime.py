@@ -7,7 +7,10 @@ from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.models import ActorSnapshot, DestroyResult, Location, Rotation, Transform
-from carla_agentic_toolkit.persistent_connection import require_operation_episode
+from carla_agentic_toolkit.persistent_connection import (
+    record_operation_failure,
+    require_operation_episode,
+)
 
 MAX_SEMANTIC_TAGS = 64
 
@@ -53,6 +56,7 @@ def destroy_actor(world: CarlaWorld, actor_id: int) -> DestroyResult:
     try:
         destroyed = bool(require_actor(actor).destroy())
     except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+        record_operation_failure(exc)
         return DestroyResult(actor_id=actor_id, destroyed=False, error=str(exc))
     return DestroyResult(actor_id=actor_id, destroyed=destroyed, error=None)
 

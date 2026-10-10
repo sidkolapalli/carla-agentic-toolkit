@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING, TypeVar
 from carla_agentic_toolkit.carla_versions import read_version_info, require_matching_release
 from carla_agentic_toolkit.connection_journal import ConnectionJournal, restart_error
 from carla_agentic_toolkit.errors import (
+    ActorLookupError,
+    ActorRegistryError,
     BlueprintInputError,
     CarlaAdapterError,
     OwnershipError,
@@ -25,6 +27,9 @@ if TYPE_CHECKING:
 
 _OPERATION_GUARD: ContextVar[Callable[[CarlaWorld], None] | None] = ContextVar(
     "persistent_episode_guard", default=None
+)
+_OPERATION_FAILURE: ContextVar[Callable[[Exception], object] | None] = ContextVar(
+    "persistent_native_failure", default=None
 )
 _T = TypeVar("_T")
 
@@ -140,25 +145,37 @@ class PersistentConnection:
 
 def native_rpc_failure(error: Exception) -> bool:
     """CARLA native RPCs raise RuntimeError; OS transport failures remain explicit."""
+    if isinstance(error, ActorRegistryError):
+        return isinstance(error, ActorLookupError) and _native_cause_failure(error)
     if isinstance(error, OwnershipError | UnsupportedFeatureError | BlueprintInputError):
         return False
     if isinstance(error, CarlaAdapterError):
-        if error.details.get("error_type") == "simulator_restarted":
-            return False
-        cause = error.__cause__
-        return isinstance(cause, Exception) and native_rpc_failure(cause)
+        return _adapter_rpc_failure(error)
     return isinstance(error, RuntimeError | OSError)
+
+
+def _adapter_rpc_failure(error: CarlaAdapterError) -> bool:
+    return error.details.get("error_type") != "simulator_restarted" and _native_cause_failure(error)
+
+
+def _native_cause_failure(error: Exception) -> bool:
+    cause = error.__cause__
+    return isinstance(cause, Exception) and native_rpc_failure(cause)
 
 
 @contextmanager
 def operation_episode_guard(
     guard: Callable[[CarlaWorld], None] | None,
+    *,
+    on_error: Callable[[Exception], object] | None = None,
 ) -> Iterator[None]:
     """Isolate the optional lookup/setter check to this operation and execution context."""
     token = _OPERATION_GUARD.set(guard)
+    failure_token = _OPERATION_FAILURE.set(on_error)
     try:
         yield
     finally:
+        _OPERATION_FAILURE.reset(failure_token)
         _OPERATION_GUARD.reset(token)
 
 
@@ -166,3 +183,9 @@ def require_operation_episode(world: CarlaWorld) -> None:
     """Recheck after a native lookup immediately before using retained objects."""
     if guard := _OPERATION_GUARD.get():
         guard(world)
+
+
+def record_operation_failure(error: Exception) -> None:
+    """Retain an optional persistent failure before native cleanup erases its cause."""
+    if callback := _OPERATION_FAILURE.get():
+        callback(error)

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from carla_agentic_toolkit.managed_world import world_identity
 from carla_agentic_toolkit.models import DestroyResult
+from carla_agentic_toolkit.persistent_connection import record_operation_failure
 from carla_agentic_toolkit.walker_cleanup import prepare_walker_cleanup
 
 if TYPE_CHECKING:
@@ -67,6 +68,7 @@ class PythonCarlaActorCleanupMixin:
             result = self._destroy_actor(world, actor_id)
             self._require_cleanup_episode(identity)
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+            record_operation_failure(exc)
             return DestroyResult(actor_id, destroyed=False, error=str(exc))
         else:
             return result

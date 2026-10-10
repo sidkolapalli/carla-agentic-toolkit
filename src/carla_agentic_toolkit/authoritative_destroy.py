@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Protocol, cast
 
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.models import DestroyResult
+from carla_agentic_toolkit.persistent_connection import record_operation_failure
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -33,6 +34,7 @@ def destroy_authoritatively(
         _require_cleanup_episode(expected_world_id, current_world_id)
         return destroy_batch_result(actor_id, payload)
     except (CarlaAdapterError, AttributeError, RuntimeError, TypeError, ValueError) as exc:
+        record_operation_failure(exc)
         return DestroyResult(
             actor_id, destroyed=False, error=f"Authoritative actor cleanup failed: {exc}"
         )

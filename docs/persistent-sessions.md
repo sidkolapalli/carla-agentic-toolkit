@@ -130,10 +130,15 @@ for the diagnostic fields and recovery requirement.
 A native RPC timeout or transport failure, including a version diagnostic read,
 discards the cached client. A failed diagnostic stops any remaining native version getter,
 without repeating the failed operation or reconnecting again within that request.
-The next request can connect a fresh client; local input and unsupported-capability
-errors do not invalidate it. The first compatible world access durably binds the
-session's episode before mutation. Non-world requests remain lazy, and incompatible
-or unknown-version health diagnostics still skip world inspection.
+Cleanup records native delete, sensor Stop, and walker-controller Stop failures
+before converting them to result evidence, so later RPCs in that request remain
+blocked. A server-declined delete response is not inferred to be a transport error.
+The next request can connect a fresh client; local input, alias-registry filesystem
+or JSON errors, and unsupported-capability errors do not invalidate it. Native
+alias lookup failures retain their original RPC cause. The first compatible world
+access durably binds the session's episode before mutation. Non-world requests
+remain lazy, and incompatible or unknown-version health diagnostics still skip
+world inspection.
 
 If the native `world.id` changes without a successful toolkit `load_world`,
 `reload_world`, or OpenDRIVE generation, the session reports non-retryable

@@ -12,6 +12,7 @@ from carla_agentic_toolkit.experiment_common import (
     sensor_actor,
 )
 from carla_agentic_toolkit.experiment_ground_truth import image_metadata
+from carla_agentic_toolkit.persistent_connection import record_operation_failure
 from carla_agentic_toolkit.sensor_evidence import save_frame
 from carla_agentic_toolkit.sensor_rendering import require_sensor_rendering
 from carla_agentic_toolkit.sensor_subscription import SensorSubscription, validate_capacity
@@ -75,6 +76,7 @@ def stop_sensor_handle(sensor: CarlaSensor) -> None:
         if listening:
             sensor.stop()
     except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+        record_operation_failure(exc)
         raise CarlaAdapterError(str(exc)) from exc
 
 

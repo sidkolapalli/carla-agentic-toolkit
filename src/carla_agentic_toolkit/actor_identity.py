@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.actor_runtime import actor_by_id
-from carla_agentic_toolkit.errors import ActorRegistryError
+from carla_agentic_toolkit.errors import ActorLookupError, ActorRegistryError
 
 if TYPE_CHECKING:
     from carla_agentic_toolkit.carla_protocols import CarlaClient
@@ -61,7 +61,7 @@ def read_actor_identity(client: CarlaClient, actor_id: int) -> ActorIdentity | N
     except ActorRegistryError:
         raise
     except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
-        raise ActorRegistryError(str(exc)) from exc
+        raise ActorLookupError(str(exc)) from exc
     if current_id != world_id:
         message = "Actor alias episode changed during server lookup; alias was not rebound."
         raise ActorRegistryError(message)

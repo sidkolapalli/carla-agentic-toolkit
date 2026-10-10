@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, cast
 from carla_agentic_toolkit.actor_runtime import actor_by_id
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.models import DestroyResult
+from carla_agentic_toolkit.persistent_connection import record_operation_failure
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -32,6 +33,7 @@ def prepare_walker_cleanup(
         actors = _resolve_owned(world, actor_ids, require_episode, skip_actor_ids)
         failures = _stop_controllers(actors, require_episode)
     except _NATIVE_ERRORS as exc:
+        record_operation_failure(exc)
         return {actor_id: _failure(actor_id, str(exc)) for actor_id in actor_ids}
     if failures:
         _retain_walkers(actors, failures)
@@ -76,6 +78,7 @@ def _stop_controllers(
             cast("Any", candidate).stop()
             require_episode()
         except _NATIVE_ERRORS as exc:
+            record_operation_failure(exc)
             failures[actor_id] = _failure(actor_id, str(exc))
     return failures
 

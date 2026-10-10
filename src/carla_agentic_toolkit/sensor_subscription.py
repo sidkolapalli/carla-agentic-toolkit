@@ -10,6 +10,7 @@ from collections import deque
 from typing import TYPE_CHECKING
 
 from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.persistent_connection import record_operation_failure
 from carla_agentic_toolkit.sensor_delivery import ReceivedSample, SensorDrain
 from carla_agentic_toolkit.sensor_memory import SensorQueueBudget, sample_payload_bytes
 from carla_agentic_toolkit.sensor_schedule import SensorSchedule
@@ -239,6 +240,7 @@ class SensorSubscription:
         try:
             self._sensor.stop()
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+            record_operation_failure(exc)
             raise CarlaAdapterError(str(exc)) from exc
         self._stop_acknowledged = True
 
