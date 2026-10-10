@@ -1,6 +1,6 @@
 # Open Issue Implementation Status
 
-Updated: 2026-10-09. Scope: the 51 open issues retrieved from GitHub for this
+Updated: 2026-10-10. Scope: the 51 open issues retrieved from GitHub for this
 repository. This implementation ledger distinguishes code verification,
 publication, and issue closure; it does not claim all GitHub issues are resolved.
 
@@ -337,6 +337,56 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   This is trusted native-facade evidence, not a script-sandbox or provider claim.
 - Published checkpoint `998c6ca` passes GitHub branch-policy and Linux-quality
   CI (run 38020695358). No issues are closed or PR merged by this checkpoint.
+- #134: thirty lifecycle regressions demonstrated RED with two controls;
+  205 focused checks pass. The isolated gate passes with 2,157 Python tests,
+  two skips and nine Rust tests. Navigation seeding precedes native navigation
+  queries; controller startup waits boundedly for walker publication, and every
+  managed cleanup stops controllers before deleting walkers. Failed stops retain
+  conservative ownership evidence. Native CARLA 0.9.16 creates two walker pairs
+  in async mode and two in sync mode, then verifies deletion of all eight owned
+  IDs and the original episode, actor inventory, six settings, weather and
+  spectator. CARLA 0.10.0 refuses both attempted walker spawns; that failed
+  receipt remains separate and its unchanged baseline and clean lease are
+  verified. The navigation seed has no original-value getter; setting seed 42
+  is recorded, not described as restored. The successful Windows-native check
+  is not a Linux script-sandbox or UE5 physical-crossing acceptance claim.
+- #156: sixty-four regressions demonstrated RED with three controls; all 67 new
+  cases and 232 broader integration checks pass. The isolated gate passes with
+  2,192 Python tests, two skips and nine Rust tests. Strict optional streaming
+  and secondary ports replace their adjacent defaults in finite and persistent
+  connect policies; no bind rule or environment permission is broadened.
+  The verified dedicated CARLA 0.10.0 server was decommissioned and restarted
+  with RPC 3500, streaming 3900 and secondary 3902. Its new episode and exact
+  initial baseline are verified; this is replacement, not same-episode restore.
+  Both actual Landlock one-shot and persistent executions receive three native
+  GNSS samples, report only connect ports 3500/3900/3902/8000, delete their sensor,
+  and verify original native state and the same clean lease. An earlier malformed
+  test transform failed before creation and is retained separately. Native
+  sensor timeouts do not expose the hidden socket endpoint; an explicit denied
+  port cannot truthfully be inferred from them. That acceptance limitation is
+  documented, not replaced with a guessed diagnostic.
+- Integrated #134/#156 gate: 2,303 Python tests passed, two skipped and nine Rust
+  tests passed, including all required static checks.
+- #122: forty regressions demonstrated RED with fourteen controls; all 54 new
+  cases pass. The isolated gate passes with 1,996 Python tests, two skips and
+  nine Rust tests. Controlled vehicles default to configurable `hero`; the
+  other merge car is canonical `target`, with distinct target-car and lane-anchor
+  poses. Historical aliases are read without altering saved evidence or
+  retroactively inventing hero roles. Managed creation journals intent before
+  native spawn and raw returned IDs before metadata/listeners. Only explicit
+  same-episode journaled IDs authorize recovery: lost replies and legacy coverage
+  gaps stay quarantined, rather than adopting actors by role or inventory.
+  Actual dedicated 0.10.0 merge and lead-brake route setup checks each find
+  exactly one `hero` in `world.get_actors()`, matching the policy ID. All other
+  vehicle/sensor roles are distinct; native IDs exactly match the durable journal.
+  Authoritative cleanup verifies original episode, inventory, six settings,
+  weather, spectator and the same clean lease after each fixture. This is
+  native managed setup, not a physical hazard or provider acceptance claim.
+- Integrated #122 gate: 2,357 Python tests passed, two skipped and nine Rust
+  tests passed. The listener conflict retains both journaled creation and the
+  #135 fixed-step cadence metadata; all required static checks remain green.
+- Published checkpoint `3ddc6df` passes GitHub CI (run 38022205599). No issue
+  closure or PR merge has occurred.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native
   health confirms matching 0.9.16 releases and no warnings; a genuine 0.10.0 client
@@ -413,7 +463,7 @@ vehicle.taxi.ford
 | [#96](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/96) | Fix UE5 pedestrian hazard motion and verify physical scenario completion | Pending UE5 walker diagnostics and physical-completion validation. |
 | [#120](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/120) | Restore world and Traffic Manager settings after script and persistent-session runs instead of marking the lease clean | Implemented; full gate passed; live CARLA validation pending. |
 | [#121](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/121) | Count already-destroyed actors as cleaned up and release successful batch destroys from the journal | Implemented; full gate passed; live validation pending. |
-| [#122](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/122) | Give the vehicle under test role_name hero and stop calling the other merge car ego | Pending implementation. |
+| [#122](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/122) | Give the vehicle under test role_name hero and stop calling the other merge car ego | Implemented: configurable hero, canonical target and journal-only ownership; TDD, both native fixture role checks and full gate pass; unknown replies remain quarantined. |
 | [#123](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/123) | Save and publish sensor evidence with correct file types and keep the result when publication fails | Implemented; TDD, native file/publication checks, and full gate pass; review evidence-backed 480x270 default instead of proposed 640x360. |
 | [#124](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/124) | Bound sensor queue memory and encoding cost by image size and sensor count | Implemented: queue reservations, actual byte bounds, and explicit saving; TDD, native 1080p metadata RSS/CPU checks, and full gate pass; no whole-process memory guarantee. |
 | [#125](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/125) | Align load_world, reload_world and apply_batch defaults with CARLA or make them explicit | Implemented; full gate passed; live CARLA validation pending. |
@@ -425,7 +475,7 @@ vehicle.taxi.ford
 | [#131](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/131) | Make managed experiment seeds vary the initial condition, or rename them as replicates | Implemented locally: canonical replicate index, strict legacy input, and identical-initial-condition warnings; TDD and full gate pass. |
 | [#132](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/132) | Do not create a Traffic Manager in the managed worker by calling set_autopilot(False) | Implemented; full gate passed; live CARLA validation pending. |
 | [#133](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/133) | Reload the world and reset traffic lights before each managed repetition | Pending implementation. |
-| [#134](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/134) | Seed, settle and stop AI walker controllers as CARLA's walker lifecycle requires | Pending implementation. |
+| [#134](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/134) | Seed, settle and stop AI walker controllers as CARLA's walker lifecycle requires | Implemented; TDD, native 0.9.16 async/sync lifecycle and full gate pass; UE5 spawns refused; navigation seed restoration is not claimed. |
 | [#135](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/135) | Wait for periodic sensor data by default and stop waiting once a later frame arrives | Implemented: bounded periodic waiting, later-frame wakeup and honest cadence evidence; TDD, native RGB/GNSS checks, and full gate pass. |
 | [#136](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/136) | Journal spawned actors as each is created and decouple the per-RPC timeout from the script budget | Implemented; full gate passed; live CARLA validation pending. |
 | [#137](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/137) | Describe the alpha demo as a step-by-step procedure, not a reproducible result | Implemented; documentation checks pass. |
@@ -447,7 +497,7 @@ vehicle.taxi.ford
 | [#153](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/153) | Read weather back from CARLA and make the showcase prompt engine-aware | Implemented; TDD, both native readback/restoration checks, and integrated full gate pass. |
 | [#154](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/154) | Support a configured default CARLA host and a stable lease key under WSL2 | Pending implementation. |
 | [#155](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/155) | Drop the cached CARLA client in persistent sessions after a simulator restart | Pending implementation. |
-| [#156](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/156) | Allow non-default CARLA streaming and secondary ports in the sandbox | Pending implementation. |
+| [#156](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/156) | Allow non-default CARLA streaming and secondary ports in the sandbox | Implemented configuration; TDD, actual Landlock finite/persistent native streaming and full gate pass; hidden socket denial cannot be inferred from a timeout. |
 | [#157](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/157) | Close a script's subscription before destroying an inherited sensor | Implemented locally: original-handle unsubscribe, retry acknowledgement, and same-episode guards; full gate passed. |
 | [#158](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/158) | State CARLA's MIT and CC-BY licences in the README credits | Implemented; documentation checks pass. |
 | [#159](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/159) | Make managed recovery's fresh-snapshot check work in an asynchronous world | Implemented locally: shared mode-aware fresh-snapshot recovery; TDD and full gate passed. |
