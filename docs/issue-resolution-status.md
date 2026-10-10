@@ -200,6 +200,56 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   An independent final-waypoint distance agrees; actor, episode, six settings,
   weather, and spectator baselines are unchanged. This is not Linux sandbox
   evidence or a complete-route-planning claim.
+- #140: twenty regressions demonstrated RED with two passing legacy controls;
+  164 focused tests pass. Native box offsets, all three extents, and the composed
+  actor/local box rotations drive projected route and merge clearances; actor
+  control/progress origins are unchanged. Its isolated gate passes with 1,729
+  Python tests, two skips, and nine Rust tests. Actual supported fixture boxes
+  were measured on CARLA 0.9.16 and 0.10.0, then checked against all eight native
+  world vertices within 50 micrometres. Local horizontal offsets are 0.029219 m
+  and 0.006216 m, respectively, not clearance-error guarantees. Three tilted
+  cases also agree with native LibCarla corners; those are local value-object
+  checks, not live tilted-vehicle measurements. Owned vehicles were deleted and
+  all native baselines verified. Historical traces and media are unchanged.
+- #126: 28 failures reproduced across the initial and supplementary TDD phases;
+  42 new alias cases and 59 focused checks pass. The isolated full gate passes
+  with 1,749 Python tests, two skips, and nine Rust tests. A real CARLA 0.9.16
+  vehicle was named and resolved while absent from the cached snapshot, with no
+  tick or frame change. After verified cleanup and an actual dedicated-server
+  restart, a spectator with the same ID, type, and role was rejected by episode
+  mismatch; the old vehicle alias was rejected too. Both simulator baselines
+  are verified clean. These are Windows-native, not persistent Linux sandbox,
+  acceptance checks.
+- #123: 31 failures and eight passing controls preceded the original correction;
+  303 focused tests and its isolated 1,746-test Python gate pass, with two skips
+  and nine Rust tests. Native acceptance then exposed a 525,488-byte 640x360 PNG,
+  above the 524,288-byte publication limit. A supplementary regression genuinely
+  failed before choosing a 480x270 default; explicit caller sizes remain intact.
+  This intentionally differs from the issue's proposed 640x360 and requires
+  review of that acceptance adjustment. All 41 focused evidence/publication
+  tests pass. The real repeat drains both LiDAR types to PLY and depth to PNG;
+  a separate converted depth copy is published without replacing the raw PNG.
+  Its default screenshot is 304,485 PNG bytes and 406,269 combined output bytes.
+  Failed probe receipts remain intact; their journals were recovered only after
+  explicit server-ID absence and exact same-episode baseline verification. The
+  successful probe verifies all baseline state and clears its ownership journal.
+  Native writers are checked for acknowledgement/file existence, not fsync
+  durability. This is trusted Windows-native, not Linux sandbox, evidence.
+- Integrated #129/#140/#126/#123 gate: 1,867 Python tests passed, two skipped,
+  nine Rust tests passed; all required static checks pass. The combined adapter
+  initially crossed the existing maintainability threshold; moving unchanged
+  methods into its existing mixins restored the all-A gate. Existing timing
+  tests retain their assertions with mocks at the relocated method boundary.
+- #153: 26 regressions demonstrated RED with five controls; 110 focused tests
+  pass. The static showcase guards health/version/catalog/color and reports
+  CARLA 0.10.0's fixed-daylight limitation without connecting during retrieval.
+  Its isolated full gate passes with 1,738 Python tests, two skips, and nine
+  Rust tests. Both matching native releases return actual weather readback.
+  On 0.10.0, all three requested fields remain unchanged and weather is disabled;
+  no rendered-weather claim is made. Original weather, actors, episode, six
+  settings, and spectator are verified after restoration on both servers.
+- Integrated weather gate: 1,898 Python tests passed, two skipped, nine Rust
+  tests passed; Ruff/format, Ty, Radon CC/MI all A, Rustfmt, Clippy, and build pass.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native
   health confirms matching 0.9.16 releases and no warnings; a genuine 0.10.0 client
@@ -207,7 +257,8 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   without requesting a world. This is not a Linux managed-startup trace receipt.
   Existing explicit CARLA 0.9.16 firewall blocks prevent WSL access to that
   executable; no firewall rule or tool permission was changed. The dedicated
-  0.9.16 server was stopped after its checks. A separate dedicated CARLA 0.10.0
+  0.9.16 server was stopped after its initial checks and later restarted on the
+  same reserved ports for journaled native acceptance. A separate CARLA 0.10.0
   server on RPC 3500 is reachable from WSL: matching-client read-only health
   confirms Town10HD_Opt, all six settings, no warnings, and no vehicles, walkers,
   or sensors. #159's separate managed worker-death checks now pass as described
@@ -276,10 +327,10 @@ vehicle.taxi.ford
 | [#120](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/120) | Restore world and Traffic Manager settings after script and persistent-session runs instead of marking the lease clean | Implemented; full gate passed; live CARLA validation pending. |
 | [#121](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/121) | Count already-destroyed actors as cleaned up and release successful batch destroys from the journal | Implemented; full gate passed; live validation pending. |
 | [#122](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/122) | Give the vehicle under test role_name hero and stop calling the other merge car ego | Pending implementation. |
-| [#123](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/123) | Save and publish sensor evidence with correct file types and keep the result when publication fails | Pending implementation. |
+| [#123](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/123) | Save and publish sensor evidence with correct file types and keep the result when publication fails | Implemented; TDD, native file/publication checks, and full gate pass; review evidence-backed 480x270 default instead of proposed 640x360. |
 | [#124](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/124) | Bound sensor queue memory and encoding cost by image size and sensor count | Pending implementation. |
 | [#125](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/125) | Align load_world, reload_world and apply_batch defaults with CARLA or make them explicit | Implemented; full gate passed; live CARLA validation pending. |
-| [#126](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/126) | Bind actor aliases to the episode and check liveness against the server | Pending implementation. |
+| [#126](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/126) | Bind actor aliases to the episode and check liveness against the server | Implemented; TDD, actual pre-tick naming and post-restart rejection, and full gate pass. |
 | [#127](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/127) | Fall back to a batch destroy for sensors and managed actors when destroy() returns False | Implemented; full gate passed; live CARLA validation pending. |
 | [#128](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/128) | Return structured errors for unknown blueprints, attributes and sensor kinds | Implemented; full gate passed; live CARLA validation pending. |
 | [#129](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/129) | Report whether generate_route reached its destination, or rename it to follow_waypoints | Implemented permitted greedy-follower naming and honest arrival results; TDD, native junction check, and full gate pass. |
@@ -293,7 +344,7 @@ vehicle.taxi.ford
 | [#137](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/137) | Describe the alpha demo as a step-by-step procedure, not a reproducible result | Implemented; documentation checks pass. |
 | [#138](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/138) | Guard tick, tick_n, watch_actor and api.wait by synchronous mode | Implemented; full gate passed; live CARLA validation pending. |
 | [#139](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/139) | Do not mark the managed lease clean after a world replacement without checking settings | Implemented fail-closed verification policy; full gate passed; live validation pending. |
-| [#140](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/140) | Use bounding_box.location and rotation in ground-truth boxes and clearance metrics | Pending implementation. |
+| [#140](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/140) | Use bounding_box.location and rotation in ground-truth boxes and clearance metrics | Implemented; TDD, both native fixture/corner checks, and full gate pass; historical evidence unchanged. |
 | [#141](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/141) | Surface CARLA client/server version mismatches in toolkit warnings | Implemented locally, including native-verified version-only health; TDD and full gate passed. |
 | [#142](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/142) | Convert reload_world RuntimeError into the structured reload_world_failed result | Covered by #136; failure/retention/cleanup contract and full gate pass. |
 | [#143](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/143) | Explain missing Traffic Manager servers and unimportable CARLA APIs in error messages | Pending implementation. |
@@ -306,7 +357,7 @@ vehicle.taxi.ford
 | [#150](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/150) | Reduce script API divergence from CARLA's names and argument order | Pending implementation. |
 | [#151](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/151) | Name Traffic Manager presets and desired_speed units unambiguously | Implemented naming and permitted profile-interaction documentation; TDD, native two-pass speed read, and full gate pass. |
 | [#152](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/152) | Filter safe traffic vehicles by base_type instead of a name list | Implemented locally: exact native car classification with legacy fallback; TDD, both native inventory checks, and full gate pass. |
-| [#153](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/153) | Read weather back from CARLA and make the showcase prompt engine-aware | Pending implementation. |
+| [#153](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/153) | Read weather back from CARLA and make the showcase prompt engine-aware | Implemented; TDD, both native readback/restoration checks, and integrated full gate pass. |
 | [#154](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/154) | Support a configured default CARLA host and a stable lease key under WSL2 | Pending implementation. |
 | [#155](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/155) | Drop the cached CARLA client in persistent sessions after a simulator restart | Pending implementation. |
 | [#156](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/156) | Allow non-default CARLA streaming and secondary ports in the sandbox | Pending implementation. |
