@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 from typing import TYPE_CHECKING, cast
 
 import pytest
@@ -73,6 +74,10 @@ class World:
     actors: Actors = field(default_factory=Actors)
     spectator: Spectator = field(default_factory=Spectator)
     ticks: int = 0
+
+    def get_settings(self) -> SimpleNamespace:
+        """Expose an explicit asynchronous mode for blocking frame observation."""
+        return SimpleNamespace(synchronous_mode=False)
 
     def get_actors(self, _actor_ids: list[int] | None = None) -> Actors:
         """Return actors."""

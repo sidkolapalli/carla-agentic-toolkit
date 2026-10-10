@@ -9,9 +9,10 @@ import time
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
+import pytest
 from mcp import Client
 from mcp.server import MCPServer
-from mcp.types import BlobResourceContents, ImageContent, ResourceLink, TextContent
+from mcp.types import BlobResourceContents, GetPromptResult, ImageContent, ResourceLink, TextContent
 
 from carla_agentic_toolkit import server as server_module
 from carla_agentic_toolkit.output_content import capture_resource_uri
@@ -19,7 +20,6 @@ from carla_agentic_toolkit.sandbox import ScriptOutcome
 from carla_agentic_toolkit.server import build_server
 
 if TYPE_CHECKING:
-    import pytest
     from mcp.types import CallToolResult, Implementation, ReadResourceResult
 
 
@@ -121,16 +121,117 @@ def test_capture_resource_template_returns_bounded_binary_content(
     assert base64.b64decode(content.blob) == image
 
 
-def test_server_prompts_cover_diagnosis_capture_reproducibility_and_demo() -> None:
+def test_server_prompts_cover_diagnosis_capture_synchronous_stepping_and_demo() -> None:
     """User-selected MCP prompts should teach the common workflow shapes."""
     prompts = asyncio.run(build_server().list_prompts())
 
     assert [prompt.name for prompt in prompts] == [
         "diagnose_carla",
         "capture_actor_view",
-        "setup_reproducible_session",
+        "setup_synchronous_stepping",
         "run_visual_showcase",
     ]
+
+
+@pytest.mark.parametrize(
+    "fragment",
+    [
+        'health["connected"]',
+        'health["warnings"]',
+        "health-only",
+        "do not call api.get_world_state()",
+        "Only if connected is True and there are no compatibility warnings",
+        "api.health_check()",
+        "compact",
+    ],
+)
+def test_diagnosis_prompt_requires_verified_health_before_world_inspection(fragment: str) -> None:
+    """The served diagnosis workflow must not unconditionally attach to an incompatible world."""
+    prompt = asyncio.run(build_server().get_prompt("diagnose_carla"))
+    assert isinstance(prompt, GetPromptResult)
+    content = cast("TextContent", prompt.messages[0].content)
+
+    assert fragment in content.text
+
+
+@pytest.mark.parametrize(
+    ("fragment", "present"),
+    [
+        ("api.set_sync_mode(enabled=True, fixed_delta_seconds=0.05)", True),
+        ('["previous_settings"]', True),
+        ("finally", True),
+        ("api.restore_world_settings(previous_settings)", True),
+        ("persistent session", True),
+        ("owns ticking", True),
+        ("restores", True),
+        ("close", True),
+        ("deterministic", False),
+        ("reproducible", False),
+    ],
+)
+def test_synchronous_stepping_prompt_restores_settings_and_explains_tick_ownership(
+    fragment: str, *, present: bool
+) -> None:
+    """The stepping workflow must restore its clock configuration before returning."""
+    prompt = asyncio.run(build_server().get_prompt("setup_synchronous_stepping"))
+    assert isinstance(prompt, GetPromptResult)
+    content = cast("TextContent", prompt.messages[0].content)
+
+    assert (fragment in content.text) is present
+
+
+@pytest.mark.parametrize(
+    ("fragment", "present"),
+    [
+        ("api.health_check()", True),
+        ('health["connected"]', True),
+        ('health["warnings"]', True),
+        ('health["server_version"]', True),
+        ("health-only", True),
+        ("before any world inspection", True),
+        ('api.list_blueprints("vehicle.*")', True),
+        ("available car blueprint", True),
+        ("color", True),
+        ("is_modifiable", True),
+        ("0.10.0", True),
+        ("skip weather changes", True),
+        ("readback", True),
+        ("only if attempted", True),
+        ("Tesla Model 3", False),
+        ("Apply rainy golden-hour", False),
+        ("asynchronous mode", True),
+        ("finally", True),
+    ],
+)
+def test_visual_showcase_prompt_uses_health_and_available_engine_features(
+    fragment: str, *, present: bool
+) -> None:
+    """The served demo must discover actual vehicles and flag fixed UE5 weather."""
+    prompt = asyncio.run(build_server().get_prompt("run_visual_showcase"))
+    assert isinstance(prompt, GetPromptResult)
+    content = cast("TextContent", prompt.messages[0].content)
+
+    assert (fragment in content.text) is present
+
+
+def test_visual_showcase_prompt_is_static_and_does_not_connect_or_execute(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Prompt retrieval is guidance, never authority to inspect or mutate a simulator."""
+    calls = []
+
+    def forbidden(*_args: object, **_kwargs: object) -> None:
+        calls.append("simulator operation")
+        message = "retrieving a prompt must not access CARLA"
+        raise AssertionError(message)
+
+    monkeypatch.setattr(server_module, "execute_script", forbidden)
+    monkeypatch.setattr("carla_agentic_toolkit.adapter.PythonCarlaAdapter.health_check", forbidden)
+
+    prompt = asyncio.run(build_server().get_prompt("run_visual_showcase"))
+
+    assert isinstance(prompt, GetPromptResult)
+    assert calls == []
 
 
 def test_server_supports_latest_mcp_protocol(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -206,7 +307,7 @@ def test_server_rejects_capture_path_outside_output_directory(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    """Image publication errors should be structured MCP tool failures."""
+    """Rejected publication paths leave successful execution evidence intact."""
     secret = tmp_path.parent / "secret.png"
     secret.write_bytes(b"\x89PNG\r\n\x1a\nsecret")
     monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR", str(tmp_path))
@@ -214,8 +315,9 @@ def test_server_rejects_capture_path_outside_output_directory(
 
     _, _, result = asyncio.run(_call_script_tool(build_server()))
 
-    assert result.is_error is True
-    assert result.structured_content["error_type"] == "image_path_rejected"
+    assert result.is_error is False
+    assert result.structured_content["result"] == {"capture": "../secret.png"}
+    assert result.structured_content["publication_error"]["error_type"] == "image_path_rejected"
 
 
 def test_server_serializes_concurrent_script_executions(

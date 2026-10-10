@@ -11,7 +11,7 @@ selection is still applicable before the shared controller acts on it. A provide
 response alone is not a completed maneuver. The evidence must connect the scene,
 request, accepted choice, executed controls and physical outcome.
 
-This is a narrow experiment: one independently controlled ego and one merging
+This is a narrow experiment: one independently controlled target car and one merging
 vehicle in the versioned `town10-merge-v1` fixture. It uses a dedicated CARLA
 instance and a verified straight corridor with adjacent driving lanes. It is not
 a general driving policy, an arbitrary-map planner, or a safety evaluation.
@@ -73,7 +73,8 @@ bounded synthetic Choice request through the pinned SDK/provider path; it does
 not by itself validate closed-loop CARLA behavior or establish a policy comparison.
 
 The [saved static comparison](evidence/merge-comparison-2026-10-02/comparison.html)
-contains one rules run and one Jev run for each of seeds 7, 19 and 31. The plan
+contains one initial condition, run three times per policy (labelled seeds 7, 19
+and 31). Those labels varied no initial pose, speed, or random generator. The plan
 declared six trials and no retries. All six physically completed, passed cleanup,
 and restored their actors and world settings. None were partial, invalid or
 excluded, and the comparison reported `comparable: true` with no blockers.
@@ -84,7 +85,8 @@ with package-source fingerprint
 `85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68`.
 The environment used CARLA server/API 0.9.16, Python 3.12.14 and WSL2 kernel
 6.18.33.2. These were `simulation_time` runs with a 0.05-second fixed step, a
-6 m/s policy target and a 5 m/s ego target. Jev made 36 recorded requests across
+6 m/s policy target and a 5 m/s other-car target (historically labelled `ego`, now
+`target`). Jev made 36 recorded requests across
 its three runs.
 
 | Saved measure | Rules | Jev |
@@ -116,8 +118,10 @@ This small fixture evaluation does not establish improved safety, realism or
 general policy quality.
 
 The comparison tool requires the same fixture and initial poses, specification
-apart from policy/replay identity, seeds, environment, code, planner and controller.
-Repeated seeds are an evaluation procedure, not a promise of bitwise CARLA
+apart from policy/replay identity, replicate index, environment, code, planner
+and controller.
+The current `replicate_index` field is a label only; legacy `seed` inputs remain
+readable. Repeated runs are an evaluation procedure, not a promise of bitwise CARLA
 determinism. Equal sample counts are required within each matched cohort.
 
 ## One decision, followed through execution
@@ -266,7 +270,7 @@ uv run --no-sync python -m carla_agentic_toolkit.experiment_comparison \
   /absolute/path/to/rules/events.jsonl /absolute/path/to/jev/events.jsonl
 ```
 
-Repeat the trace arguments for the declared seeds and replicates. Exit code zero
+Repeat the trace arguments for the declared replicate indices. Exit code zero
 means the recorded matching checks passed, not that one policy performed better.
 Exit code two means comparative metrics were withheld; the report explains why.
 The [evidence guide](experiment-evidence.md) defines each metric and denominator.

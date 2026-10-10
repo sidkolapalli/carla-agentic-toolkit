@@ -17,8 +17,10 @@ from mcp.types import (
     TextContent,
     ToolAnnotations,
 )
+from pydantic import Field, StrictInt, StrictStr
 
 from carla_agentic_toolkit import __version__
+from carla_agentic_toolkit.endpoint_defaults import default_host, default_port
 from carla_agentic_toolkit.output_content import (
     OutputContentError,
     PublishedCapture,
@@ -28,6 +30,8 @@ from carla_agentic_toolkit.output_content import (
 from carla_agentic_toolkit.sandbox import ScriptOutcome, execute_script, output_dir_path
 
 _execution_lock = threading.Lock()
+_HOST_DEFAULT = Field(default_factory=default_host)
+_PORT_DEFAULT = Field(default_factory=default_port)
 
 
 def build_server() -> MCPServer:
@@ -64,12 +68,14 @@ def _register_script_tool(mcp: MCPServer) -> None:
         ),
         structured_output=True,
     )
-    def execute_carla_script(
+    def execute_carla_script(  # noqa: PLR0913 - Public endpoint permission inputs.
         code: str,
-        host: str = "127.0.0.1",
-        port: int = 2000,
+        host: StrictStr = _HOST_DEFAULT,
+        port: StrictInt = _PORT_DEFAULT,
         timeout_seconds: float = 30.0,
         traffic_manager_ports: list[int] | None = None,
+        streaming_port: StrictInt | None = None,
+        secondary_port: StrictInt | None = None,
     ) -> dict[str, object]:
         """Run one Python script against the curated CARLA `api` object.
 
@@ -84,6 +90,8 @@ def _register_script_tool(mcp: MCPServer) -> None:
                 port=port,
                 timeout_seconds=timeout_seconds,
                 traffic_manager_ports=traffic_manager_ports or (),
+                streaming_port=streaming_port,
+                secondary_port=secondary_port,
             )
         return _tool_result(outcome)
 
@@ -115,7 +123,7 @@ def _optional_captures(
             text_bytes=len(json.dumps(payload).encode()),
         )
     except OutputContentError as exc:
-        payload.update(ok=False, result=None, error=str(exc), error_type=exc.error_type)
+        payload["publication_error"] = {"error": str(exc), "error_type": exc.error_type}
         return ()
 
 
@@ -162,8 +170,14 @@ def _register_prompts(mcp: MCPServer) -> None:
     def diagnose_carla() -> str:
         """Prompt for diagnosing a CARLA session with one script."""
         return (
-            "Write one execute_carla_script Python script that calls "
-            "api.health_check(), api.get_world_state(), and returns a compact "
+            "Write one execute_carla_script Python script that first saves "
+            "health = api.health_check(). Check for an ok: false result, then inspect "
+            'health["connected"] and health["warnings"] before any world inspection. '
+            "If the health call failed, connected is False, or compatibility warnings "
+            "are present, return a health-only result with available version strings "
+            "and next action; do not call api.get_world_state(). "
+            "Only if connected is True and there are no compatibility warnings, "
+            "call api.get_world_state() and return a compact "
             "result dict with connection status, map, actor counts, and next action."
         )
 
@@ -178,12 +192,17 @@ def _register_prompts(mcp: MCPServer) -> None:
         )
 
     @mcp.prompt()
-    def setup_reproducible_session() -> str:
-        """Prompt for configuring deterministic CARLA stepping with one script."""
+    def setup_synchronous_stepping() -> str:
+        """Prompt for bounded synchronous CARLA stepping with settings restoration."""
         return (
-            "Write one execute_carla_script Python script that configures "
-            "synchronous mode with api.set_sync_mode(enabled=True), advances frames "
-            "with api.tick_n(), and returns before/after frame information."
+            "Write one execute_carla_script Python script that calls "
+            "api.set_sync_mode(enabled=True, fixed_delta_seconds=0.05), checks for "
+            'an ok: false result, and saves the successful payload["previous_settings"] '
+            "as previous_settings. Advance frames with api.tick_n() inside try and "
+            "call api.restore_world_settings(previous_settings) in finally, checking "
+            "its result too. Return before/after frame information and restoration "
+            "evidence. If stepping spans several calls, use a persistent session "
+            "that owns ticking and restores world settings on close."
         )
 
     @mcp.prompt()
@@ -191,17 +210,33 @@ def _register_prompts(mcp: MCPServer) -> None:
         """Prompt for a self-cleaning visual scenario."""
         return (
             "Use one execute_carla_script call to create an 8-second visual CARLA demo. "
-            "Save the current weather. Spawn one red Tesla Model 3 at the first free "
-            "spawn point with role_name carla-agentic-toolkit-showcase. Apply rainy golden-hour "
-            "weather and vehicle lights, apply gentle throttle with api.apply_vehicle_control(), "
+            "First save health = api.health_check(). Check for an ok: false result, then "
+            'inspect health["connected"] and health["warnings"] before any world inspection. '
+            "If disconnected, failed, or compatibility warnings are present, return a "
+            "health-only result with available versions and next action; do not mutate. "
+            'Retain the full health["server_version"] string. '
+            "Run only in asynchronous mode. "
+            'Query api.list_blueprints("vehicle.*") and choose an available car blueprint '
+            "from that actual catalog, reporting failure if none is suitable. Set red color "
+            "only if its returned attributes include color with is_modifiable=True. "
+            "Spawn it at a free spawn point with role_name carla-agentic-toolkit-showcase. "
+            "For server release 0.10.0, skip weather changes and flag its fixed-daylight "
+            "limitation. Otherwise, save usable api.get_weather() readback before any "
+            "weather attempt, mark the attempt before calling api.set_weather(), and report "
+            "its actual returned readback without promising rain or lighting effects. "
+            "Save the spectator transform. Apply vehicle lights only when supported, "
+            "apply gentle throttle with api.apply_vehicle_control(), "
             "and call api.watch_actor(actor_id, seconds=8.0) for a smooth yaw-relative "
             "chase view that restores the spectator, then apply the brake. "
-            "Check every operation for an ok: false result. "
+            "Check every operation for an ok: false or available: false result. "
             "Attach a 320-by-180 RGB camera and publish "
-            "a frame to captures/showcase.png. Return "
-            "map, speed before/after, capture metadata, restored-state checks, and "
+            "a frame to captures/showcase.png only with rendering enabled. Return "
+            "versions, selected blueprint, weather limitations/readback, map, speed "
+            "before/after, capture metadata, restored-state checks, and "
             "leftovers. In finally, detach sensors, destroy only actors created by this "
-            "script, and restore both weather and spectator transform."
+            "script, restore weather only if attempted with a saved baseline, and restore "
+            "the saved spectator transform. Check restoration readback and report failures; "
+            "do not infer cleanup success from the requested values."
         )
 
 

@@ -9,19 +9,29 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from contextlib import contextmanager
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
+from carla_agentic_toolkit.endpoint_defaults import OMITTED, EndpointOmitted, resolve_endpoint
+from carla_agentic_toolkit.endpoint_defaults import host_error as _host_error
+from carla_agentic_toolkit.endpoint_defaults import port_error as _port_error
 from carla_agentic_toolkit.ownership import (
     OWNERSHIP_FILENAME,
     RunOwnership,
     cleanup_report,
 )
+from carla_agentic_toolkit.rpc_timeouts import RUN_DEADLINE_FILENAME
+from carla_agentic_toolkit.runtime_ports import allowed_tcp_ports as _allowed_tcp_ports
+from carla_agentic_toolkit.runtime_ports import optional_port_error
+from carla_agentic_toolkit.sandbox_cleanup import failed_cleanup_outcome, verified_settings_outcome
 from carla_agentic_toolkit.sandbox_paths import output_dir_path
 from carla_agentic_toolkit.sandbox_paths import read_only_paths as _read_only_paths
 from carla_agentic_toolkit.script_recovery import cleanup_script_ownership
+from carla_agentic_toolkit.script_settings import SETTINGS_FILENAME, RunSettings
+from carla_agentic_toolkit.session_protocol import write_message
 from carla_agentic_toolkit.simulator_lease import (
     LeaseBusyError,
     RecoveryRequiredError,
@@ -34,7 +44,6 @@ if TYPE_CHECKING:
 __all__ = ["ScriptOutcome", "execute_script", "output_dir_path"]
 
 DEFAULT_TIMEOUT_SECONDS = 30.0
-DEFAULT_TRAFFIC_MANAGER_PORT = 8000
 MAX_TCP_PORT = 65535
 MAX_CARLA_BASE_PORT = MAX_TCP_PORT - 2
 MAX_TIMEOUT_SECONDS = 3600.0
@@ -75,6 +84,8 @@ class ExecutionRequest:
     port: int
     timeout_seconds: float
     traffic_manager_ports: Sequence[int]
+    streaming_port: int | None = None
+    secondary_port: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,18 +101,33 @@ class RunnerCommandRequest:
     timeout_seconds: float
     traffic_manager_ports: Sequence[int]
     recorder_dir: str | None
+    streaming_port: int | None = None
+    secondary_port: int | None = None
 
 
-def execute_script(
+def execute_script(  # noqa: PLR0913 - Explicit endpoint permissions are public inputs.
     code: str,
     *,
-    host: str = "127.0.0.1",
-    port: int = 2000,
+    host: str | EndpointOmitted = OMITTED,
+    port: int | EndpointOmitted = OMITTED,
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
     traffic_manager_ports: Sequence[int] = (),
+    streaming_port: int | None = None,
+    secondary_port: int | None = None,
 ) -> ScriptOutcome:
     """Run a CARLA script in the Rust sandbox process."""
-    request = ExecutionRequest(host, port, timeout_seconds, traffic_manager_ports)
+    try:
+        resolved_host, resolved_port = resolve_endpoint(host, port)
+    except ValueError as exc:
+        return _failure("invalid_request", str(exc))
+    request = ExecutionRequest(
+        resolved_host,
+        resolved_port,
+        timeout_seconds,
+        traffic_manager_ports,
+        streaming_port,
+        secondary_port,
+    )
     invalid = _validate_execution(request)
     if invalid is not None:
         return _failure("invalid_request", invalid)
@@ -152,6 +178,8 @@ def _execute_with_runner(
                     timeout_seconds=request.timeout_seconds,
                     traffic_manager_ports=request.traffic_manager_ports,
                     recorder_dir=os.environ.get("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR"),
+                    streaming_port=request.streaming_port,
+                    secondary_port=request.secondary_port,
                 )
             )
             return _run_owned_sandbox(command, work_dir, request, runner, lease)
@@ -178,26 +206,51 @@ def _run_owned_sandbox(
     lease: SimulatorLease,
 ) -> ScriptOutcome:
     """Keep ownership through sandbox exit and the last parent cleanup attempt."""
+    write_message(
+        work_dir / RUN_DEADLINE_FILENAME,
+        {"absolute_deadline_monotonic": time.monotonic() + request.timeout_seconds},
+    )
     state: dict[str, object] = {
         "kind": "script",
         "ownership_path": str(work_dir / OWNERSHIP_FILENAME),
+        "settings_path": str(work_dir / SETTINGS_FILENAME),
     }
     RunOwnership(work_dir / OWNERSHIP_FILENAME).clear()
+    RunSettings(work_dir / SETTINGS_FILENAME).initialize()
     lease.mark_dirty(state)
     outcome = _run_sandbox(command, request=request, runner=runner, lease_fd=lease.descriptor)
-    if not outcome.ok:
+    if outcome.ok:
+        outcome = _verify_successful_settings(outcome, work_dir, request, lease)
+    else:
         outcome = _cleanup_failed_execution(
             outcome,
             ownership_path=work_dir / OWNERSHIP_FILENAME,
             request=request,
             lease_descriptor=lease.descriptor,
         )
-    if (outcome.cleanup or {}).get("failures"):
+    cleanup = outcome.cleanup or {}
+    if cleanup.get("failures") or cleanup.get("settings_restored") is False:
         state["cleanup"] = outcome.cleanup
         lease.mark_dirty(state)
     else:
         lease.mark_clean()
     return outcome
+
+
+def _verify_successful_settings(
+    outcome: ScriptOutcome, work_dir: Path, request: ExecutionRequest, lease: SimulatorLease
+) -> ScriptOutcome:
+    """Check durable restoration evidence independently of a child's success report."""
+    report = cleanup_script_ownership(
+        request.host,
+        request.port,
+        work_dir / OWNERSHIP_FILENAME,
+        lease.descriptor,
+        10.0,
+        require_settings=True,
+        destroy_actors=False,
+    )
+    return verified_settings_outcome(outcome, report)
 
 
 def _run_sandbox(
@@ -235,23 +288,11 @@ def _validate_execution(request: ExecutionRequest) -> str | None:
         _port_error(request.port),
         _timeout_error(request.timeout_seconds),
         _traffic_ports_error(request.traffic_manager_ports),
+        optional_port_error(request.streaming_port, "streaming_port"),
+        optional_port_error(request.secondary_port, "secondary_port"),
     ):
         if error is not None:
             return error
-    return None
-
-
-def _host_error(host: object) -> str | None:
-    if not isinstance(host, str) or not host.strip():
-        return "host must be a non-empty string."
-    return None
-
-
-def _port_error(port: object) -> str | None:
-    if isinstance(port, bool) or not isinstance(port, int):
-        return f"port must be an integer in 1..{MAX_CARLA_BASE_PORT}."
-    if not 1 <= port <= MAX_CARLA_BASE_PORT:
-        return f"port must be an integer in 1..{MAX_CARLA_BASE_PORT}."
     return None
 
 
@@ -291,6 +332,8 @@ def _runner_command(request: RunnerCommandRequest) -> list[str]:
     tcp_ports = _allowed_tcp_ports(
         port=request.port,
         traffic_manager_ports=request.traffic_manager_ports,
+        streaming_port=request.streaming_port,
+        secondary_port=request.secondary_port,
     )
     command = [
         str(request.runner),
@@ -382,31 +425,14 @@ def _cleanup_failed_execution(
 ) -> ScriptOutcome:
     """Cleanup a failed run while its ownership journal still exists."""
     report = cleanup_script_ownership(
-        request.host, request.port, ownership_path, lease_descriptor, 10.0
+        request.host,
+        request.port,
+        ownership_path,
+        lease_descriptor,
+        10.0,
+        require_settings=True,
     )
-    if not any(report.values()):
-        return outcome
-    previous = outcome.cleanup or cleanup_report()
-    combined = {
-        "attempted_actor_ids": [
-            *_list_value(previous, "attempted_actor_ids"),
-            *_list_value(report, "attempted_actor_ids"),
-        ],
-        "destroyed_actor_ids": [
-            *_list_value(previous, "destroyed_actor_ids"),
-            *_list_value(report, "destroyed_actor_ids"),
-        ],
-        "failures": [
-            *_list_value(previous, "failures"),
-            *_list_value(report, "failures"),
-        ],
-    }
-    return replace(outcome, cleanup=combined)
-
-
-def _list_value(payload: dict[str, object], key: str) -> list[object]:
-    value = payload.get(key)
-    return cast("list[object]", value) if isinstance(value, list) else []
+    return failed_cleanup_outcome(outcome, report)
 
 
 def _optional_string(value: object) -> str | None:
@@ -421,13 +447,6 @@ def _object_mapping(value: object) -> dict[str, object]:
     if not isinstance(value, dict):
         return {}
     return {str(key): item for key, item in value.items()}
-
-
-def _allowed_tcp_ports(*, port: int, traffic_manager_ports: Sequence[int]) -> tuple[int, ...]:
-    """Return CARLA-related TCP ports allowed by Landlock."""
-    ports = {port, port + 1, port + 2, DEFAULT_TRAFFIC_MANAGER_PORT}
-    ports.update(int(item) for item in traffic_manager_ports)
-    return tuple(sorted(item for item in ports if 0 < item <= MAX_TCP_PORT))
 
 
 def _sandbox_runner() -> Path | None:

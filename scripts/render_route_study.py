@@ -133,7 +133,7 @@ def hazard_response(data: dict[str, Any], analysis: dict[str, Any]) -> Figure:
         fig,
         "How the vehicle responded to each hazard",
         "Full 20 Hz state and control traces · shading marks the scripted hazard interval",
-        "One run per scenario, seed 7. Controls follow the displayed state; "
+        "One run per scenario, replicate 7. Controls follow the displayed state; "
         "lines retain held tactics.\n"
         "A fallback is a local action, not a Jev selection. The simulator pauses during inference.",
     )

@@ -283,7 +283,7 @@ def test_large_script_output_is_bounded_without_a_false_timeout() -> None:
 @pytest.mark.skipif(sys.platform != "linux", reason="requires the Linux sandbox runner")
 def test_genuine_script_timeout_still_kills_the_child() -> None:
     """The watchdog margin must not turn script budget exhaustion into success."""
-    outcome = sandbox.execute_script("result = api.wait(10)", timeout_seconds=0.1)
+    outcome = sandbox.execute_script("while True: pass", timeout_seconds=0.1)
 
     assert outcome.ok is False
     assert outcome.error_type == "script_timeout"

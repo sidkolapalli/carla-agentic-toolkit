@@ -1,4 +1,4 @@
-"""Trusted process owner for one persistent sandbox; lease survives through actor cleanup."""
+"""Trusted persistent sandbox owner; lease survives through actor and settings cleanup."""
 
 from __future__ import annotations
 
@@ -7,10 +7,12 @@ import os
 import shutil
 import subprocess
 import tempfile
+import time
 from dataclasses import asdict, replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from carla_agentic_toolkit.connection_journal import CONNECTION_FILENAME, ConnectionJournal
 from carla_agentic_toolkit.ownership import OWNERSHIP_FILENAME, RunOwnership
 from carla_agentic_toolkit.sandbox import (
     ExecutionRequest,
@@ -22,6 +24,7 @@ from carla_agentic_toolkit.sandbox import (
     output_dir_path,
 )
 from carla_agentic_toolkit.script_recovery import cleanup_script_ownership
+from carla_agentic_toolkit.script_settings import SETTINGS_FILENAME, RunSettings
 from carla_agentic_toolkit.session_protocol import SessionConfig, write_message
 from carla_agentic_toolkit.simulator_lease import SimulatorLease
 
@@ -34,7 +37,9 @@ class SessionProcess:
 
     def __init__(self, session_id: str, config: SessionConfig) -> None:
         """Create private paths only after a lease is successfully acquired."""
+        config.validate()
         self.config = config
+        self.absolute_deadline = time.monotonic() + config.absolute_timeout_seconds
         self.session_id = session_id
         self.lease = SimulatorLease(config.host, config.port)
         self.root = Path(tempfile.mkdtemp(prefix="carla-script-session-"))
@@ -51,7 +56,12 @@ class SessionProcess:
         self.cancel_path = self.control / "cancel"
         self.process: subprocess.Popen[str] | None = None
         self.request = ExecutionRequest(
-            config.host, config.port, config.absolute_timeout_seconds, ()
+            config.host,
+            config.port,
+            config.absolute_timeout_seconds,
+            config.traffic_manager_ports,
+            streaming_port=config.streaming_port,
+            secondary_port=config.secondary_port,
         )
 
     def start(self) -> None:
@@ -61,7 +71,16 @@ class SessionProcess:
             raise RuntimeError(message)
         config_path = self.work / "session.json"
         RunOwnership(self.work / OWNERSHIP_FILENAME).clear()
-        write_message(config_path, {"session_id": self.session_id, **asdict(self.config)})
+        RunSettings(self.work / SETTINGS_FILENAME).initialize()
+        ConnectionJournal(self.work / CONNECTION_FILENAME).initialize()
+        write_message(
+            config_path,
+            {
+                "session_id": self.session_id,
+                **asdict(self.config),
+                "absolute_deadline_monotonic": self.absolute_deadline,
+            },
+        )
         output = output_dir_path()
         output.mkdir(parents=True, exist_ok=True)
         request = RunnerCommandRequest(
@@ -72,8 +91,10 @@ class SessionProcess:
             self.config.host,
             self.config.port,
             self.config.absolute_timeout_seconds,
-            (),
+            self.config.traffic_manager_ports,
             os.environ.get("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR"),
+            streaming_port=self.config.streaming_port,
+            secondary_port=self.config.secondary_port,
         )
         command = _runner_command(request)
         command[command.index("--module") + 1] = "carla_agentic_toolkit.persistent_runner"
@@ -92,7 +113,7 @@ class SessionProcess:
         self.cancel_path.touch(exist_ok=True)
 
     def finish(self, stdout: str, stderr: str) -> ScriptOutcome:
-        """Reap and clean all session-created actors on every terminal outcome."""
+        """Reap, restore settings, and clean session-created actors on every terminal outcome."""
         if self.process is None or self.runner is None:
             message = "Session process was not started."
             raise RuntimeError(message)
@@ -114,6 +135,8 @@ class SessionProcess:
                 ownership_path=self.work / OWNERSHIP_FILENAME,
                 lease_descriptor=self.lease.descriptor,
                 timeout_seconds=5.0,
+                require_settings=True,
+                require_connection=True,
             )
             outcome = replace(outcome, cleanup=report)
             self._save_cleanup(outcome)
@@ -123,7 +146,10 @@ class SessionProcess:
                 ok=False,
                 error_type="session_cleanup_failed",
                 error=str(exc),
-                cleanup={"failures": [{"actor_id": None, "error": str(exc)}]},
+                cleanup={
+                    "failures": [{"actor_id": None, "error": str(exc)}],
+                    "settings_restored": False,
+                },
             )
         else:
             return outcome
@@ -131,7 +157,8 @@ class SessionProcess:
             self.lease.__exit__(None, None, None)
 
     def _save_cleanup(self, outcome: ScriptOutcome) -> None:
-        if (outcome.cleanup or {}).get("failures"):
+        cleanup = outcome.cleanup or {}
+        if cleanup.get("failures") or cleanup.get("settings_restored") is False:
             self.lease.mark_dirty({**self._recovery(), "cleanup": outcome.cleanup})
         else:
             self.lease.mark_clean()
@@ -143,4 +170,6 @@ class SessionProcess:
             "kind": "script_session",
             "session_id": self.session_id,
             "ownership_path": str(self.work / OWNERSHIP_FILENAME),
+            "settings_path": str(self.work / SETTINGS_FILENAME),
+            "connection_path": str(self.work / CONNECTION_FILENAME),
         }

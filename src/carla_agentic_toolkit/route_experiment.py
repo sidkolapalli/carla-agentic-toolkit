@@ -8,7 +8,9 @@ from collections import deque
 from dataclasses import asdict
 from typing import TYPE_CHECKING, Any, cast
 
+from carla_agentic_toolkit.actor_boxes import bounding_box_metadata
 from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.managed_observations import traffic_control_description
 from carla_agentic_toolkit.merge_models import LocalControl
 from carla_agentic_toolkit.route_actors import RouteActors
 from carla_agentic_toolkit.route_fixture import (
@@ -18,6 +20,7 @@ from carla_agentic_toolkit.route_fixture import (
     select_route,
 )
 from carla_agentic_toolkit.route_geometry import TRACKER_VERSION, tracking_control
+from carla_agentic_toolkit.route_hazards import HazardMeasurements
 from carla_agentic_toolkit.route_models import RouteActor, RouteObservation
 from carla_agentic_toolkit.route_policy import (
     PLANNER_VERSION,
@@ -48,6 +51,7 @@ class RouteExperiment:
         self.spec: ExperimentSpec = self.session.spec
         self.path: RoutePath
         self.actors: RouteActors
+        self.measurements: HazardMeasurements | None = None
         self.selection = RouteSelection()
         self.hazard = HazardState()
         self.values: dict[str, RouteActor] = {}
@@ -58,6 +62,7 @@ class RouteExperiment:
     def prepare(self) -> None:
         """Validate the full route before spawning the reviewed scene."""
         self.path = select_route(self.session.map)
+        self.measurements = HazardMeasurements(self.path, str(self.spec.scenario))
         self.actors = RouteActors(self.session, self.path)
         self.session.on_close(self.close)
         self.actors.spawn("policy", self.path.sample(0.0))
@@ -76,6 +81,7 @@ class RouteExperiment:
     def fixture_metadata(self) -> dict[str, object]:
         """Keep exact route and hazard ground truth in the trace, outside provider inputs."""
         return {
+            "initial_traffic_lights": self.session.initial_traffic_lights,
             "fixture_version": self.spec.fixture,
             "scenario": self.spec.scenario,
             "scenario_version": SCENARIO_VERSION,
@@ -86,8 +92,12 @@ class RouteExperiment:
             "controller_version": TRACKER_VERSION,
             "vehicle_blueprint": VEHICLE_BLUEPRINT,
             "walker_blueprint": WALKER_BLUEPRINT,
-            "traffic_control": "owned scripted vehicles; no Traffic Manager",
+            "traffic_control": traffic_control_description(self.spec),
             "actor_ids": {role: int(actor.id) for role, actor in self.actors.handles.items()},
+            "actor_bounding_boxes": {
+                role: bounding_box_metadata(actor.bounding_box)
+                for role, actor in self.actors.handles.items()
+            },
             "observation_mode": self.spec.observation_mode,
         }
 
@@ -98,14 +108,19 @@ class RouteExperiment:
             message = "Route observations require increasing snapshot frames."
             raise CarlaAdapterError(message)
         self.values = self.actors.observe(snapshot)
+        seconds = float(cast("Any", snapshot).timestamp.elapsed_seconds)
+        if self.measurements is not None:
+            self.measurements.observe(self.values, frame, seconds)
         policy = self.values["policy"]
-        neighbors = self._visible_neighbors(policy)
+        neighbors = self.actors.visible_neighbors(
+            self.values, snapshot, radius=self.spec.observation_range_m
+        )
         sensors = tuple(sensor.drain(frame) for sensor in self.actors.sensors)
         value = RouteObservation(
             self.session.run_id,
             self.session.world_generation,
             frame,
-            float(cast("Any", snapshot).timestamp.elapsed_seconds),
+            seconds,
             policy,
             GOAL_DISTANCE_M,
             traffic_evidence(policy, neighbors),
@@ -118,14 +133,6 @@ class RouteExperiment:
         self.last_frame = frame
         self._remember_observation(value)
         return value
-
-    def _visible_neighbors(self, policy: RouteActor) -> tuple[RouteActor, ...]:
-        neighbors = (actor for role, actor in self.values.items() if role != "policy")
-        return tuple(
-            actor
-            for actor in neighbors
-            if math.hypot(actor.x - policy.x, actor.y - policy.y) <= self.spec.observation_range_m
-        )
 
     def _remember_observation(self, value: RouteObservation) -> None:
         if value.frame % self.spec.decision_interval_steps == 0:
@@ -166,6 +173,7 @@ class RouteExperiment:
             seconds=observation.simulation_seconds,
         )
         outcome = _outcome(observation)
+        self._record_hazard_command(terminal=outcome != "running")
         reason = emergency_reason(observation)
         control = self._policy_control(observation, action, reason, outcome)
         self.actors.vehicle_control("policy", control)
@@ -183,11 +191,39 @@ class RouteExperiment:
                 "reason": reason or action.reason,
             },
             "hazard": {"scenario": self.spec.scenario, **asdict(self.hazard)},
+            **self._hazard_summary(termination=None if outcome == "running" else outcome),
             "route_progress_m": observation.policy.progress_m,
             "tracking_error_m": observation.tracking_error_m,
             "terminal": outcome != "running",
             "outcome": {"completed": outcome == "route_completed", "status": outcome},
         }
+
+    def _record_hazard_command(self, *, terminal: bool) -> None:
+        if self.measurements is not None:
+            self.measurements.command(
+                self.hazard,
+                {
+                    **asdict(self.hazard),
+                    "speed_mps": self._walker_command_speed(terminal=terminal),
+                    "target_lateral_m": self._lead_offset()
+                    if self.spec.scenario == "cut_in"
+                    else None,
+                },
+            )
+
+    def _walker_command_speed(self, *, terminal: bool) -> float | None:
+        if self.spec.scenario != "pedestrian_crossing":
+            return None
+        return 2.0 if self.hazard.active and not terminal else 0.0
+
+    def _hazard_summary(self, *, termination: str | None) -> dict[str, object]:
+        if self.measurements is None:
+            return {"hazard_trial": {"valid": None, "status": "unverified"}}
+        return {"hazard_trial": self.measurements.summary(termination=termination)}
+
+    def final_summary(self, *, termination: str) -> dict[str, object]:
+        """Finalize measured exposure even when a deadline, cancellation or error ends the run."""
+        return self._hazard_summary(termination=termination)
 
     def _policy_control(
         self, value: RouteObservation, action: SelectedAction, reason: str | None, outcome: str

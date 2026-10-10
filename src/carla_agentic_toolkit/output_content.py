@@ -104,7 +104,7 @@ def _published_path(uri: str, value: object) -> Path | None:
         return None
     if not isinstance(value, dict) or value.get("publish") is not True:
         return None
-    path = value.get("path")
+    path = value.get("publication_path", value.get("path"))
     if not isinstance(path, str):
         _raise("image_metadata_error", f"Capture snapshot {uri} has no string path.")
     return Path(path)
@@ -113,7 +113,7 @@ def _published_path(uri: str, value: object) -> Path | None:
 def _read_image(path: Path, output_dir: Path) -> tuple[bytes, str, Path]:
     root, resolved = _resolved_capture(path, output_dir)
     data = _read_bounded_image(resolved)
-    return data, _image_mime_type(data), resolved.relative_to(root)
+    return data, image_mime_type(data), resolved.relative_to(root)
 
 
 def _read_bounded_image(path: Path) -> bytes:
@@ -157,7 +157,8 @@ def _resolved_capture(path: Path, output_dir: Path) -> tuple[Path, Path]:
     return root, resolved
 
 
-def _image_mime_type(data: bytes) -> str:
+def image_mime_type(data: bytes) -> str:
+    """Detect supported image bytes without trusting a file extension."""
     if data.startswith(b"\x89PNG\r\n\x1a\n"):
         return "image/png"
     if data.startswith(b"\xff\xd8\xff"):

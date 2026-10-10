@@ -2,11 +2,24 @@
 
 from __future__ import annotations
 
-from typing import Literal, Self
+from collections.abc import Mapping
+from typing import Literal, Self, cast
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from carla_agentic_toolkit.errors import UnsupportedFeatureError
+from carla_agentic_toolkit.managed_names import normalize_merge_spec
+from carla_agentic_toolkit.replicate_index import normalize_replicate_index
+
+
+class ManagedDensitySpec(BaseModel):
+    """Opt into a dedicated local TM without changing fixture actors or random seeds."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True, allow_inf_nan=False)
+
+    vehicle_count: int = Field(ge=1, le=100)
+    traffic_manager_port: int = Field(ge=1, le=65535)
+    maintenance_interval_steps: int = Field(default=20, ge=1, le=200)
 
 
 class ExperimentSpec(BaseModel):
@@ -21,7 +34,7 @@ class ExperimentSpec(BaseModel):
     scenario: Literal["lead_brake", "cut_in", "pedestrian_crossing"] | None = None
     host: str = Field(default="127.0.0.1", min_length=1, max_length=253)
     port: int = Field(default=2000, ge=1, le=65533)
-    seed: int = Field(default=7, ge=0, le=2**31 - 1)
+    replicate_index: int = Field(default=7, ge=0, le=2**31 - 1)
     policy: Literal["rules", "jev", "replay"] = "rules"
     replay_run_id: str | None = Field(default=None, pattern=r"^[0-9a-f]{32}$")
     timing_mode: Literal["simulation_time", "paced"] = "simulation_time"
@@ -33,12 +46,38 @@ class ExperimentSpec(BaseModel):
     max_wall_seconds: float = Field(default=180.0, ge=1.0, le=3600.0)
     rpc_timeout_seconds: float = Field(default=5.0, ge=0.1, le=10.0)
     target_speed_mps: float = Field(default=6.0, ge=1.0, le=12.0)
-    ego_speed_mps: float = Field(default=5.0, ge=1.0, le=12.0)
+    target_vehicle_speed_mps: float = Field(default=5.0, ge=1.0, le=12.0)
+    controlled_vehicle_role: str = Field(
+        default="hero", min_length=1, max_length=64, pattern=r"^[^\s\x00-\x1f\x7f-\x9f]+$"
+    )
     observation_range_m: float = Field(default=80.0, ge=20.0, le=150.0)
     decision_interval_steps: int = Field(default=10, ge=1, le=100)
     decision_timeout_seconds: float = Field(default=5.0, ge=0.1, le=30.0)
     max_requests: int = Field(default=40, ge=1, le=200)
     max_trace_bytes: int = Field(default=16_777_216, ge=65_536, le=67_108_864)
+    background_density: ManagedDensitySpec | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_replicate_label(cls, values: object) -> object:
+        """Accept historical seed input without publishing a randomization claim."""
+        if isinstance(values, Mapping):
+            return normalize_merge_spec(
+                normalize_replicate_index(cast("Mapping[str, object]", values))
+            )
+        return values
+
+    @property
+    def seed(self) -> int:
+        """Expose the historical Python spelling as a read-only repetition label."""
+        return self.replicate_index
+
+    @property
+    def ego_speed_mps(self) -> float:
+        """Read the deprecated other-car spelling; new specs emit target_vehicle_speed_mps."""
+        return self.target_vehicle_speed_mps
 
     @model_validator(mode="after")
     def explicit_route_scenario(self) -> Self:

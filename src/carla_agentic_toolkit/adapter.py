@@ -2,30 +2,33 @@
 
 from __future__ import annotations
 
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.actor_runtime import actor_snapshot, destroy_actor
+from carla_agentic_toolkit.adapter_actor_cleanup import PythonCarlaActorCleanupMixin
+from carla_agentic_toolkit.adapter_connection import PythonCarlaConnectionMixin
+from carla_agentic_toolkit.adapter_creation import PythonCarlaCreationMixin
 from carla_agentic_toolkit.adapter_experiments import PythonCarlaExperimentMixin
 from carla_agentic_toolkit.adapter_objects import (
     _blueprint_info,
     _capture_image,
-    _carla_client_factory,
     _configured_blueprint,
-    _mime_type,
     _parent_actor,
-    _require_carla_client,
-    _safe_call,
     _spawn_actor,
     _spawn_sensor,
+)
+from carla_agentic_toolkit.adapter_settings import PythonCarlaSettingsMixin
+from carla_agentic_toolkit.authoritative_destroy import (
+    destroy_authoritatively,
+    destroy_batch_result,
 )
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.experiment_common import (
     actor_counts,
-    frame,
     map_name,
     world_settings,
-    world_state,
 )
 from carla_agentic_toolkit.experiment_perception import require_async_sensor_read
 from carla_agentic_toolkit.managed_session import world_identity
@@ -50,6 +53,14 @@ from carla_agentic_toolkit.models import (
 )
 from carla_agentic_toolkit.ownership import cleanup_report
 from carla_agentic_toolkit.recorder_paths import _server_recorder_path
+from carla_agentic_toolkit.rpc_timeouts import RpcTimeoutPolicy, call_map_rpc, configure_timeout
+from carla_agentic_toolkit.sensor_evidence import capture_converter, save_capture
+from carla_agentic_toolkit.sensor_memory import MAX_SENSOR_QUEUE_BYTES, SensorQueueBudget
+from carla_agentic_toolkit.sensor_rendering import require_sensor_rendering
+from carla_agentic_toolkit.traffic_manager_policy import (
+    require_async_traffic_manager_request,
+    require_async_traffic_world,
+)
 from carla_agentic_toolkit.traffic_runtime import (
     advance_world_once,
     populate_traffic_actors,
@@ -60,26 +71,59 @@ from carla_agentic_toolkit.traffic_runtime import (
     configure_traffic_manager as configure_traffic_manager_runtime,
 )
 from carla_agentic_toolkit.traffic_tuning import set_traffic_vehicle_path, tune_traffic_vehicle
+from carla_agentic_toolkit.world_timing import (
+    TICK_MODE_MESSAGE,
+    require_world_mode,
+    wait_for_frames,
+)
 
 __all__ = ["PythonCarlaAdapter"]
 
 if TYPE_CHECKING:
     from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaSensor, CarlaWorld
+    from carla_agentic_toolkit.persistent_connection import PersistentConnection
+    from carla_agentic_toolkit.script_settings import RunSettings
     from carla_agentic_toolkit.sensor_subscription import SensorSubscription
 
 
-class PythonCarlaAdapter(PythonCarlaExperimentMixin):
+class PythonCarlaAdapter(
+    PythonCarlaConnectionMixin,
+    PythonCarlaCreationMixin,
+    PythonCarlaSettingsMixin,
+    PythonCarlaExperimentMixin,
+    PythonCarlaActorCleanupMixin,
+):
     """Adapter backed by CARLA's official Python API."""
 
-    def __init__(self, host: str = "127.0.0.1", port: int = 2000, timeout: float = 10.0) -> None:
+    def __init__(  # noqa: PLR0913 -- Keep independent public connection and execution limits explicit.
+        self,
+        host: str = "127.0.0.1",
+        port: int = 2000,
+        timeout: float = 10.0,
+        *,
+        settings_journal: RunSettings | None = None,
+        rpc_timeout_policy: RpcTimeoutPolicy | None = None,
+        sensor_queue_budget_bytes: int = MAX_SENSOR_QUEUE_BYTES,
+        persistent_connection_path: Path | None = None,
+    ) -> None:
         """Create an adapter for a CARLA server."""
         self._host = host
+        self._sensor_queue_budget = SensorQueueBudget(sensor_queue_budget_bytes)
         self._port = port
         self._timeout = timeout
+        self._rpc_timeout_policy = rpc_timeout_policy or RpcTimeoutPolicy(
+            normal_timeout_seconds=min(timeout, 10.0)
+        )
         self._recording: RecordingInfo | None = None
         self._connected_client: CarlaClient | None = None
         self._sensor_subscriptions: dict[int, SensorSubscription] = {}
         self._sensor_handles: dict[int, CarlaSensor] = {}
+        self._sensor_world_ids: dict[int, int] = {}
+        self._subscribed_sensor_handles: dict[int, CarlaSensor] = {}
+        self._subscription_world_ids: dict[int, int] = {}
+        self._settings_journal = settings_journal
+        self._persistent_connection: PersistentConnection | None = None
+        self._persistent_connection_path = persistent_connection_path
 
     @property
     def host(self) -> str:
@@ -98,28 +142,40 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
 
     def health_check(self) -> HealthReport:
         """Return health details for the connected CARLA server."""
-        client = self._client()
+        client = (
+            self._client(inspect_episode=False)
+            if self._persistent_connection is not None
+            else self._client()
+        )
+        versions = self._version_info(client)
+        if warnings := versions.warnings:
+            return HealthReport(
+                connected=False,
+                client_version=versions.client_version,
+                server_version=versions.server_version,
+                current_map=None,
+                settings=None,
+                actor_counts=None,
+                warnings=(
+                    *warnings,
+                    "World inspection skipped; world/session connectivity was not verified.",
+                ),
+            )
         world = self._world(client)
         return HealthReport(
             connected=True,
-            client_version=_safe_call(client, "get_client_version"),
-            server_version=_safe_call(client, "get_server_version"),
+            client_version=versions.client_version,
+            server_version=versions.server_version,
             current_map=map_name(world),
             settings=world_settings(world),
             actor_counts=actor_counts(world),
-            warnings=(),
+            warnings=versions.warnings,
         )
 
     def get_world_state(self) -> WorldState:
         """Return readable state for the current CARLA world."""
-        world = self._world(self._client())
-        return WorldState(
-            current_map=map_name(world),
-            settings=world_settings(world),
-            actor_counts=actor_counts(world),
-            frame=frame(world),
-            warnings=(),
-        )
+        client = self._client()
+        return self._world_state(self._world(client), client=client)
 
     def list_worlds(self) -> tuple[str, ...]:
         """Return available CARLA world names."""
@@ -130,43 +186,60 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
             raise CarlaAdapterError(str(exc)) from exc
         return tuple(str(world) for world in worlds)
 
-    def load_world(self, map_name: str) -> WorldState:
-        """Load a CARLA world by map name."""
+    def load_world(self, map_name: str, *, reset_settings: bool = True) -> WorldState:
+        """Load a CARLA world; reset_settings=True matches CARLA's default."""
         client = self._client()
+        if self._settings_journal is not None:
+            self._settings_journal.capture_world(self._world(client))
         self.close_sensor_subscriptions()
-        try:
-            world = client.load_world(map_name)
-        except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
-            raise CarlaAdapterError(str(exc)) from exc
-        self._sensor_handles.clear()
-        return world_state(world)
+        world = call_map_rpc(
+            client,
+            self._rpc_timeout_policy,
+            lambda: client.load_world(map_name, reset_settings=reset_settings),
+        )
+        self._acknowledge_world_replacement(world)
+        self.configure_rpc_timeout(client)
+        self._forget_sensor_records()
+        if self._settings_journal is not None:
+            self._settings_journal.rebind_world(world)
+        return self._world_state(world, client=client)
 
     def get_world_identity(self) -> int:
         """Read the connected episode identity without advancing the world."""
         try:
-            return world_identity(self._client().get_world())
+            return world_identity(self._world(self._client()))
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
             raise CarlaAdapterError(str(exc)) from exc
-
-    def set_sync_mode(self, *, enabled: bool, fixed_delta_seconds: float | None) -> WorldState:
-        """Configure synchronous mode and fixed timestep."""
-        world = self._world(self._client())
-        settings = world.get_settings()
-        settings.synchronous_mode = enabled
-        settings.fixed_delta_seconds = fixed_delta_seconds
-        try:
-            world.apply_settings(settings)
-        except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
-            raise CarlaAdapterError(str(exc)) from exc
-        return world_state(world)
 
     def tick(self) -> int:
         """Advance the CARLA world by one frame."""
         world = self._world(self._client())
+        require_world_mode(world, synchronous_mode=True, message=TICK_MODE_MESSAGE)
         try:
             return int(world.tick())
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
             raise CarlaAdapterError(str(exc)) from exc
+
+    def require_sync_tick(self) -> None:
+        """Validate ticking mode even when a facade requests zero frames."""
+        require_world_mode(
+            self._world(self._client()), synchronous_mode=True, message=TICK_MODE_MESSAGE
+        )
+
+    def wait(self, seconds: float) -> float:
+        """Observe asynchronous frames within the current execution RPC budget."""
+        client = self._client()
+        return wait_for_frames(
+            self._world(client),
+            seconds,
+            rpc_timeout_seconds=lambda: self._frame_wait_timeout(client),
+        )
+
+    def _frame_wait_timeout(self, client: CarlaClient) -> float:
+        """Refresh cached native RPC limits before mode reads and explicit frame waits."""
+        seconds = self._rpc_timeout_policy.timeout_seconds()
+        configure_timeout(client, seconds)
+        return seconds
 
     def list_blueprints(self, filter_pattern: str) -> tuple[BlueprintInfo, ...]:
         """Return CARLA blueprints matching a filter."""
@@ -185,7 +258,16 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
     def spawn_actor_batch(self, requests: tuple[SpawnRequest, ...]) -> tuple[SpawnResult, ...]:
         """Spawn CARLA actors from a batch of requests."""
         world = self._world(self._client())
-        return tuple(_spawn_actor(world, index, request) for index, request in enumerate(requests))
+        return tuple(
+            _spawn_actor(
+                world,
+                index,
+                request,
+                after_rendering_read=self._require_cleanup_episode,
+                **self._creation_options(),
+            )
+            for index, request in enumerate(requests)
+        )
 
     def list_actors(self, filter_pattern: str) -> tuple[ActorSnapshot, ...]:
         """Return actor snapshots matching a CARLA wildcard filter."""
@@ -196,14 +278,9 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
             raise CarlaAdapterError(str(exc)) from exc
         return tuple(actor_snapshot(actor) for actor in actors)
 
-    def destroy_actors(self, actor_ids: tuple[int, ...]) -> tuple[DestroyResult, ...]:
-        """Destroy explicit CARLA actors by ID."""
-        world = self._world(self._client())
-        return tuple(self._destroy_actor(world, actor_id) for actor_id in actor_ids)
-
     def _destroy_actor(self, world: CarlaWorld, actor_id: int) -> DestroyResult:
         """Use created sensor handles even before the next snapshot exposes their IDs."""
-        if actor_id not in self._sensor_handles:
+        if not self._has_retained_sensor(actor_id):
             result = destroy_actor(world, actor_id)
             if not result.destroyed and result.error in (None, "Actor was not found."):
                 return self._destroy_uncached_actor(world, actor_id)
@@ -211,22 +288,29 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
         try:
             result = self.detach_sensor(actor_id)
         except CarlaAdapterError as exc:
-            return DestroyResult(actor_id, destroyed=False, error=str(exc))
-        return DestroyResult(actor_id, destroyed=bool(result["destroyed"]), error=None)
+            return DestroyResult(actor_id, destroyed=False, error=f"Sensor cleanup failed: {exc}")
+        return DestroyResult(
+            actor_id,
+            destroyed=bool(result["destroyed"]),
+            error=cast("str | None", result.get("error")),
+        )
 
-    def _destroy_uncached_actor(self, world: CarlaWorld, actor_id: int) -> DestroyResult:
+    def _destroy_uncached_actor(
+        self, world: CarlaWorld, actor_id: int, *, expected_world_id: int | None = None
+    ) -> DestroyResult:
         """Use an authoritative server response when a cached snapshot omits an actor."""
         try:
-            identity = world_identity(world)
-            self._require_cleanup_episode(identity)
-            payload = self.apply_batch(
-                [{"action": "destroy_actor", "actor_id": actor_id}],
-                do_tick=False,
+            identity = world_identity(world) if expected_world_id is None else expected_world_id
+            return destroy_authoritatively(
+                actor_id,
+                expected_world_id=identity,
+                current_world_id=self.get_world_identity,
+                apply_batch=self.apply_batch,
             )
-            self._require_cleanup_episode(identity)
-            return _destroy_batch_result(actor_id, payload)
         except (CarlaAdapterError, AttributeError, RuntimeError, TypeError, ValueError) as exc:
-            return DestroyResult(actor_id, destroyed=False, error=str(exc))
+            return DestroyResult(
+                actor_id, destroyed=False, error=f"Authoritative actor cleanup failed: {exc}"
+            )
 
     def _require_cleanup_episode(self, identity: int) -> None:
         if self.get_world_identity() != identity:
@@ -244,6 +328,7 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
             raise CarlaAdapterError(msg)
         client = self._client()
         world = self._world(client)
+        require_async_traffic_world(world)
         settings = self.configure_traffic_manager(
             request=TrafficManagerRequest(
                 traffic_manager_port=request.traffic_manager_port,
@@ -258,6 +343,7 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
             world=world,
             traffic_manager_instance=traffic_manager_instance,
             request=request,
+            **self._creation_options(),
         )
         if request.advance_world:
             self._advance_population(world, actor_ids)
@@ -274,7 +360,7 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
                 safe_filter=request.safe_filter,
                 synchronous_mode=settings.synchronous_mode,
             ),
-            world_state=world_state(world),
+            world_state=self._world_state(world, client=client),
         )
 
     def _advance_population(self, world: CarlaWorld, actor_ids: list[int]) -> int:
@@ -299,6 +385,7 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
         """Toggle Traffic Manager autopilot for existing vehicles."""
         client = self._client()
         world = self._world(client)
+        require_async_traffic_world(world)
         traffic_manager_instance = traffic_manager(client, request.traffic_manager_port)
         changed_ids, failures = set_actor_autopilot(
             world=world,
@@ -319,7 +406,7 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
                 seed=None,
                 safe_filter=None,
             ),
-            world_state=world_state(world),
+            world_state=self._world_state(world, client=client),
         )
 
     def configure_traffic_manager(
@@ -327,9 +414,18 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
         *,
         request: TrafficManagerRequest,
     ) -> TrafficManagerSettings:
-        """Configure Traffic Manager behavior settings."""
-        traffic_manager_instance = traffic_manager(self._client(), request.traffic_manager_port)
-        return configure_traffic_manager_runtime(traffic_manager_instance, request)
+        """Configure dedicated asynchronous Traffic Manager sidecar globals."""
+        require_async_traffic_manager_request(synchronous_mode=request.synchronous_mode)
+        client = self._client()
+        require_async_traffic_world(self._world(client))
+        traffic_manager_instance = traffic_manager(client, request.traffic_manager_port)
+        return configure_traffic_manager_runtime(
+            traffic_manager_instance,
+            request,
+            before_setting=partial(
+                self.capture_traffic_manager_setting, request.traffic_manager_port
+            ),
+        )
 
     def tune_traffic_vehicle(
         self,
@@ -339,8 +435,10 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
         settings: dict[str, object],
     ) -> dict[str, object]:
         """Apply validated per-vehicle Traffic Manager settings."""
+        client = self._client()
+        require_async_traffic_world(self._world(client))
         return tune_traffic_vehicle(
-            self._client(),
+            client,
             actor_id=actor_id,
             traffic_manager_port=traffic_manager_port,
             settings=settings,
@@ -352,14 +450,19 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
         request: TrafficVehiclePathRequest,
     ) -> dict[str, object]:
         """Upload one bounded path or route for a Traffic Manager vehicle."""
-        return set_traffic_vehicle_path(self._client(), request)
+        client = self._client()
+        require_async_traffic_world(self._world(client))
+        return set_traffic_vehicle_path(client, request)
 
-    def record_episode(self, output_path: Path) -> RecordingInfo:
-        """Start recording an episode at the simulator-side path."""
+    def record_episode(self, output_path: Path, *, additional_data: bool = False) -> RecordingInfo:
+        """Start simulator-side recording, optionally including additional physics data."""
+        if type(additional_data) is not bool:
+            msg = "additional_data must be a boolean."
+            raise CarlaAdapterError(msg)
         requested_path = _server_recorder_path(output_path)
         client = self._client()
         try:
-            accepted_path = client.start_recorder(requested_path)
+            accepted_path = client.start_recorder(requested_path, additional_data=additional_data)
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
             raise CarlaAdapterError(str(exc)) from exc
         if not accepted_path:
@@ -393,6 +496,10 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
     ) -> SensorInfo:
         """Attach a camera sensor."""
         world = self._world(self._client())
+        identity = world_identity(world)
+        require_sensor_rendering(world, request.blueprint_id)
+        if request.blueprint_id.startswith("sensor.camera."):
+            self._require_cleanup_episode(identity)
         spawn_request = SpawnRequest(
             blueprint_id=request.blueprint_id,
             transform=request.transform,
@@ -400,8 +507,16 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
         )
         blueprint = _configured_blueprint(world, spawn_request)
         parent = _parent_actor(world, request.parent_actor_id)
-        sensor = _spawn_sensor(world, blueprint, request.transform, parent)
+        sensor = _spawn_sensor(
+            world,
+            blueprint,
+            request.transform,
+            parent,
+            after_rendering_read=self._require_cleanup_episode,
+            **self._creation_options(),
+        )
         self._sensor_handles[sensor.id] = sensor
+        self._sensor_world_ids[sensor.id] = identity
         return SensorInfo(
             sensor_id=sensor.id,
             blueprint_id=request.blueprint_id,
@@ -410,54 +525,20 @@ class PythonCarlaAdapter(PythonCarlaExperimentMixin):
             transform=request.transform,
         )
 
-    def capture_sensor_frame(self, *, sensor_id: int, output_path: Path) -> CaptureInfo:
+    def capture_sensor_frame(
+        self, *, sensor_id: int, output_path: Path, color_converter: str | None = None
+    ) -> CaptureInfo:
         """Capture one sensor frame to disk."""
         world = self._world(self._client())
-        require_async_sensor_read(world)
         sensor = self._sensor_actor(sensor_id)
-        image = _capture_image(sensor)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        # CARLA's native writer cannot create the empty parent of a bare filename.
-        image.save_to_disk(str(output_path.absolute()))
-        return CaptureInfo(
-            capture_id=f"capture-{sensor_id:06d}",
-            sensor_id=sensor_id,
-            path=output_path,
-            frame=int(image.frame),
-            mime_type=_mime_type(output_path),
-        )
-
-    def _client(self) -> CarlaClient:
-        """Retain one client stream so paused synchronous worlds keep observable state."""
-        if self._connected_client is None:
-            self._connected_client = self._connect()
-        return self._connected_client
-
-    def _connect(self) -> CarlaClient:
-        """Create and configure a CARLA client."""
-        try:
-            client_factory = _carla_client_factory()
-        except (ImportError, TypeError) as exc:  # pragma: no cover - optional CARLA package
-            msg = "CARLA Python API is not importable."
-            raise CarlaAdapterError(msg) from exc
-        try:
-            client_candidate = client_factory(self._host, self._port)
-        except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
-            raise CarlaAdapterError(str(exc)) from exc
-        client = _require_carla_client(client_candidate)
-        try:
-            client.set_timeout(self._timeout)
-        except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
-            raise CarlaAdapterError(str(exc)) from exc
-        return client
-
-    @staticmethod
-    def _world(client: CarlaClient) -> CarlaWorld:
-        """Fetch the current CARLA world."""
-        try:
-            return client.get_world()
-        except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
-            raise CarlaAdapterError(str(exc)) from exc
+        identity = world_identity(world) if sensor.type_id.startswith("sensor.camera.") else None
+        require_sensor_rendering(world, sensor.type_id)
+        if identity is not None:
+            self._require_cleanup_episode(identity)
+        require_async_sensor_read(world)
+        converter = capture_converter(sensor.type_id, output_path, color_converter)
+        image = _capture_image(sensor, byte_budget=self._sensor_queue_budget)
+        return save_capture(image, sensor_id, output_path, converter)
 
 
 def _population_cleanup(adapter: PythonCarlaAdapter, actor_ids: list[int]) -> dict[str, object]:
@@ -490,16 +571,4 @@ def _population_cleanup_failures(results: tuple[DestroyResult, ...]) -> list[dic
 
 def _destroy_batch_result(actor_id: int, payload: dict[str, object]) -> DestroyResult:
     """Require one matching server acknowledgement; incomplete responses retain ownership."""
-    response = _single_destroy_response(payload)
-    if not isinstance(response, dict) or response.get("actor_id") != actor_id:
-        return DestroyResult(actor_id, destroyed=False, error="Invalid destroy response identity.")
-    error = response.get("error")
-    return DestroyResult(actor_id, destroyed=not error, error=str(error) if error else None)
-
-
-def _single_destroy_response(payload: dict[str, object]) -> object:
-    responses = payload.get("responses")
-    if not isinstance(responses, list) or len(responses) != 1:
-        message = "Invalid destroy response count."
-        raise CarlaAdapterError(message)
-    return responses[0]
+    return destroy_batch_result(actor_id, payload)

@@ -40,7 +40,7 @@ def observation() -> MergeObservation:
         width_m=1.9,
         lane_id=-1,
     )
-    ego = replace(
+    target = replace(
         policy,
         actor_id=EGO_ID,
         longitudinal_m=24.0,
@@ -67,9 +67,9 @@ def observation() -> MergeObservation:
         frame=FRAME,
         simulation_seconds=5.0,
         policy=policy,
-        ego=ego,
+        target=target,
         lane=lane,
-        neighbors=(ego,),
+        neighbors=(target,),
     )
 
 
@@ -91,14 +91,14 @@ def test_invalid_lane_topology_never_offers_merge(field: str) -> None:
 def test_insufficient_front_or_rear_gap_defers(distance: float) -> None:
     """Vehicle bounds and relative target-lane gaps constrain the candidate set."""
     value = observation()
-    value = replace(value, neighbors=(replace(value.ego, longitudinal_m=distance),))
+    value = replace(value, neighbors=(replace(value.target, longitudinal_m=distance),))
     assert _choices(value, ManeuverState(phase="preparing")) == ["defer"]
 
 
 def test_closing_rear_vehicle_blocks_a_small_ttc() -> None:
     """A large distance alone is insufficient when relative closing speed is high."""
     value = observation()
-    value = replace(value, neighbors=(replace(value.ego, longitudinal_m=-25.0, speed_mps=20.0),))
+    value = replace(value, neighbors=(replace(value.target, longitudinal_m=-25.0, speed_mps=20.0),))
     assert _choices(value, ManeuverState(phase="preparing")) == ["defer"]
 
 
@@ -129,8 +129,8 @@ def test_committed_merge_cannot_be_reversed_by_defer() -> None:
         value,
         frame=FRAME + 10,
         policy=replace(value.policy, frame=FRAME + 10),
-        ego=replace(value.ego, frame=FRAME + 10),
-        neighbors=(replace(value.ego, frame=FRAME + 10),),
+        target=replace(value.target, frame=FRAME + 10),
+        neighbors=(replace(value.target, frame=FRAME + 10),),
     )
     continued = transition(committed, later, "defer", settings)
     assert (
@@ -153,8 +153,8 @@ def test_settling_requires_stable_target_lane_before_completion() -> None:
         value,
         frame=FRAME + 10,
         policy=replace(value.policy, frame=FRAME + 10),
-        ego=replace(value.ego, frame=FRAME + 10),
-        neighbors=(replace(value.ego, frame=FRAME + 10),),
+        target=replace(value.target, frame=FRAME + 10),
+        neighbors=(replace(value.target, frame=FRAME + 10),),
     )
     completed = transition(settled, later, "continue", settings)
     assert (settled.phase, completed.phase, completed.outcome) == (
@@ -168,7 +168,7 @@ def test_stale_or_misaligned_observations_abort_without_candidates() -> None:
     """No actuation decision is based on mixed frames or a repeated simulator frame."""
     value = observation()
     stale = ManeuverState(phase="preparing", last_frame=FRAME)
-    misaligned = replace(value, ego=replace(value.ego, frame=FRAME - 1))
+    misaligned = replace(value, target=replace(value.target, frame=FRAME - 1))
     assert (
         valid_candidates(misaligned, ManeuverState(), PlannerSettings()),
         transition(stale, value, "merge", PlannerSettings()).outcome,
@@ -178,7 +178,7 @@ def test_stale_or_misaligned_observations_abort_without_candidates() -> None:
 def test_misaligned_neighbor_cannot_authorize_a_merge() -> None:
     """Gap evidence cannot use a different frame than the controlled actors."""
     value = observation()
-    value = replace(value, neighbors=(replace(value.ego, frame=FRAME - 1),))
+    value = replace(value, neighbors=(replace(value.target, frame=FRAME - 1),))
     state = ManeuverState(phase="preparing")
     assert valid_candidates(value, state, PlannerSettings()) == ()
     assert transition(state, value, "merge", PlannerSettings()).outcome == "misaligned_observation"
@@ -249,8 +249,8 @@ def test_candidate_identity_is_stable_while_actions_remain_applicable() -> None:
         value,
         frame=FRAME + 1,
         policy=replace(value.policy, frame=FRAME + 1),
-        ego=replace(value.ego, frame=FRAME + 1),
-        neighbors=(replace(value.ego, frame=FRAME + 1),),
+        target=replace(value.target, frame=FRAME + 1),
+        neighbors=(replace(value.target, frame=FRAME + 1),),
     )
     state = ManeuverState(phase="preparing")
     first = build_policy_request(

@@ -19,6 +19,7 @@ from carla_agentic_toolkit.experiment_common import (
 )
 from carla_agentic_toolkit.experiment_navigation import enum_value
 from carla_agentic_toolkit.models import Location, Rotation, Transform
+from carla_agentic_toolkit.world_timing import require_world_mode
 
 MAX_WATCH_SECONDS = 30.0
 MAX_CHASE_DISTANCE = 30.0
@@ -65,6 +66,11 @@ def watch_actor(
     _bounded_watch_value(seconds, "seconds", 0.0, MAX_WATCH_SECONDS)
     _bounded_watch_value(distance, "distance", 0.0, MAX_CHASE_DISTANCE)
     _bounded_watch_value(height, "height", 0.0, MAX_CHASE_HEIGHT)
+    require_world_mode(
+        world,
+        synchronous_mode=False,
+        message="Actor watching requires asynchronous mode; synchronous owners must tick.",
+    )
     target = cast("Any", actor(world, actor_id))
     spectator = cast("Any", world).get_spectator()
     previous = typed_transform(spectator.get_transform())
@@ -125,12 +131,12 @@ def weather(world: CarlaWorld) -> dict[str, object]:
 
 
 def set_weather(world: CarlaWorld, parameters: dict[str, float]) -> dict[str, object]:
-    """Set weather parameters when supported."""
+    """Set weather parameters and return the server's current readback."""
     if not hasattr(world, "set_weather"):
         return unavailable("world.set_weather is not available in this CARLA build.")
     carla_weather = weather_parameters(import_module("carla"), parameters)
     cast("Any", world).set_weather(carla_weather)
-    return {"weather": object_public_fields(carla_weather)}
+    return weather(world)
 
 
 def weather_parameters(module: object, parameters: dict[str, float]) -> object:

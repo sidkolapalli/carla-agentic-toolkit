@@ -142,7 +142,7 @@ def _api(service: TrafficControllerService, snapshots: RunSnapshots) -> CarlaScr
         host="127.0.0.1",
         port=2000,
         timeout=10.0,
-        get_world_state=lambda: SimpleNamespace(settings=SimpleNamespace(synchronous_mode=False)),
+        get_synchronous_mode=lambda: False,
     )
     return build_api(adapter, snapshots, service)
 
@@ -155,7 +155,7 @@ def test_sync_density_is_rejected_before_start_or_mutation(method: str) -> None:
         host="127.0.0.1",
         port=2000,
         timeout=10.0,
-        get_world_state=lambda: SimpleNamespace(settings=SimpleNamespace(synchronous_mode=True)),
+        get_synchronous_mode=lambda: True,
     )
     api = build_api(adapter, RunSnapshots(), service)
     result = getattr(api, method)({"vehicle_count": 5})

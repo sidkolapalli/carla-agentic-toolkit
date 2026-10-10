@@ -5,6 +5,12 @@ from __future__ import annotations
 from importlib import import_module
 from typing import TYPE_CHECKING, cast
 
+from carla_agentic_toolkit.actor_creation import (
+    creation_identity,
+    observe_created_actor,
+    observe_no_actor,
+    prepare_spawn,
+)
 from carla_agentic_toolkit.actor_runtime import actor_by_id
 from carla_agentic_toolkit.carla_protocols import (
     CarlaBlueprint,
@@ -15,9 +21,10 @@ from carla_agentic_toolkit.carla_protocols import (
     CarlaSensor,
     CarlaWorld,
 )
-from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.errors import BlueprintInputError, CarlaAdapterError
 from carla_agentic_toolkit.experiment_common import carla_transform, require_sensor
 from carla_agentic_toolkit.experiment_perception import collect_sensor_frames
+from carla_agentic_toolkit.managed_world import world_identity
 from carla_agentic_toolkit.models import (
     BlueprintAttribute,
     BlueprintInfo,
@@ -25,9 +32,14 @@ from carla_agentic_toolkit.models import (
     SpawnResult,
     Transform,
 )
+from carla_agentic_toolkit.sensor_rendering import require_sensor_rendering
 
 if TYPE_CHECKING:
-    from pathlib import Path
+    from collections.abc import Callable
+    from typing import Unpack
+
+    from carla_agentic_toolkit.actor_creation import SpawnObservers
+    from carla_agentic_toolkit.sensor_memory import SensorQueueBudget
 
 
 def _carla_client_factory() -> CarlaClientFactory:
@@ -91,13 +103,33 @@ def _require_blueprint_attribute(candidate: object) -> CarlaBlueprintAttribute:
     return cast("CarlaBlueprintAttribute", candidate)
 
 
-def _spawn_actor(world: CarlaWorld, index: int, request: SpawnRequest) -> SpawnResult:
+def _spawn_actor(
+    world: CarlaWorld,
+    index: int,
+    request: SpawnRequest,
+    *,
+    after_rendering_read: Callable[[int], None] | None = None,
+    **observers: Unpack[SpawnObservers],
+) -> SpawnResult:
     """Spawn one actor and convert CARLA failures into a structured result."""
     try:
+        _require_spawn_rendering(world, request.blueprint_id, after_rendering_read)
         blueprint = _configured_blueprint(world, request)
-        actor = world.spawn_actor(blueprint, carla_transform(request.transform))
+        transform = carla_transform(request.transform)
     except (AttributeError, RuntimeError, TypeError, ValueError, CarlaAdapterError) as exc:
         return SpawnResult(request_index=index, actor_id=None, error=str(exc))
+    prepare_spawn(observers.get("before_spawn"))
+    try:
+        identity = creation_identity(world, observers.get("on_spawn"))
+        actor = world.spawn_actor(blueprint, transform)
+    except (AttributeError, RuntimeError, TypeError, ValueError, CarlaAdapterError) as exc:
+        return SpawnResult(request_index=index, actor_id=None, error=str(exc))
+    if actor is None:
+        observe_no_actor(identity, observers.get("on_no_actor"))
+        return SpawnResult(
+            request_index=index, actor_id=None, error="CARLA spawn returned no actor."
+        )
+    observe_created_actor(actor, identity, observers.get("on_spawn"))
     return SpawnResult(request_index=index, actor_id=int(actor.id), error=None)
 
 
@@ -117,18 +149,51 @@ def _spawn_sensor(
     blueprint: CarlaBlueprint,
     transform: Transform,
     parent: object | None,
+    *,
+    after_rendering_read: Callable[[int], None] | None = None,
+    **observers: Unpack[SpawnObservers],
 ) -> CarlaSensor:
     """Spawn a sensor actor."""
+    _require_spawn_rendering(world, blueprint.id, after_rendering_read)
     try:
-        actor = world.spawn_actor(blueprint, carla_transform(transform), parent)
+        native_transform = carla_transform(transform)
     except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
         raise CarlaAdapterError(str(exc)) from exc
+    prepare_spawn(observers.get("before_spawn"))
+    try:
+        identity = creation_identity(world, observers.get("on_spawn"))
+        actor = world.spawn_actor(blueprint, native_transform, parent)
+    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+        raise CarlaAdapterError(str(exc)) from exc
+    if actor is None:
+        observe_no_actor(identity, observers.get("on_no_actor"))
+        message = "CARLA sensor spawn returned no actor."
+        raise CarlaAdapterError(message)
+    observe_created_actor(actor, identity, observers.get("on_spawn"))
     return require_sensor(actor)
 
 
-def _capture_image(sensor: CarlaSensor) -> CarlaImage:
+def _require_spawn_rendering(
+    world: CarlaWorld,
+    sensor_type: str,
+    after_rendering_read: Callable[[int], None] | None,
+) -> None:
+    """Keep a new settings read inside its captured episode before creation intent."""
+    identity = (
+        world_identity(world)
+        if after_rendering_read is not None and sensor_type.startswith("sensor.camera.")
+        else None
+    )
+    require_sensor_rendering(world, sensor_type)
+    if identity is not None and after_rendering_read is not None:
+        after_rendering_read(identity)
+
+
+def _capture_image(
+    sensor: CarlaSensor, *, byte_budget: SensorQueueBudget | None = None
+) -> CarlaImage:
     """Capture one asynchronous image using the shared bounded listener."""
-    return _require_image(collect_sensor_frames(sensor, 1)[0])
+    return _require_image(collect_sensor_frames(sensor, 1, byte_budget=byte_budget)[0])
 
 
 def _require_image(candidate: object) -> CarlaImage:
@@ -140,16 +205,21 @@ def _require_image(candidate: object) -> CarlaImage:
     return cast("CarlaImage", candidate)
 
 
-def _mime_type(path: Path) -> str:
-    """Infer a capture MIME type from the output path."""
-    if path.suffix.lower() == ".jpg" or path.suffix.lower() == ".jpeg":
-        return "image/jpeg"
-    return "image/png"
-
-
 def _configured_blueprint(world: CarlaWorld, request: SpawnRequest) -> CarlaBlueprint:
     """Find and configure a CARLA blueprint for a spawn request."""
-    blueprint = world.get_blueprint_library().find(request.blueprint_id)
+    library = world.get_blueprint_library()
+    try:
+        blueprint = library.find(request.blueprint_id)
+    except (IndexError, KeyError, ValueError, RuntimeError) as exc:
+        message = f"Blueprint {request.blueprint_id!r} lookup failed: {exc}"
+        raise BlueprintInputError(message) from exc
     for attribute_id, value in request.attributes.items():
-        blueprint.set_attribute(attribute_id, value)
+        try:
+            blueprint.set_attribute(attribute_id, value)
+        except (IndexError, KeyError, ValueError, RuntimeError) as exc:
+            message = (
+                f"Blueprint {request.blueprint_id!r} attribute {attribute_id!r} "
+                f"could not be set: {exc}"
+            )
+            raise BlueprintInputError(message) from exc
     return blueprint

@@ -9,8 +9,8 @@ from unittest.mock import Mock
 import pytest
 
 from carla_agentic_toolkit import adapter as adapter_module
+from carla_agentic_toolkit import adapter_connection, script_runner
 from carla_agentic_toolkit import experiment_perception as perception
-from carla_agentic_toolkit import script_runner
 from carla_agentic_toolkit.adapter import PythonCarlaAdapter
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.models import CameraAttachRequest, Location, Rotation, Transform
@@ -34,15 +34,22 @@ class TickSensor:
         """Initialize an inactive listener."""
         self.callback: Callable[[object], None] | None = None
         self.stops = 0
+        self._listening = False
         self.destroy = Mock(return_value=True)
 
     def listen(self, callback: object) -> None:
         """Register a nonblocking callback."""
         self.callback = cast("Callable[[object], None]", callback)
+        self._listening = True
+
+    def is_listening(self) -> bool:
+        """Expose the native method form of the listener state."""
+        return self._listening
 
     def stop(self) -> None:
         """Record listener cleanup."""
         self.stops += 1
+        self._listening = False
 
     def emit(self, frame: int) -> None:
         """Produce one owner-triggered sample."""
@@ -55,11 +62,19 @@ def _newly_attached_sensor(
 ) -> tuple[PythonCarlaAdapter, TickSensor, Mock]:
     """Spawn succeeds while the last world snapshot deliberately omits the new sensor."""
     adapter = PythonCarlaAdapter()
-    world = Mock()
+    world = Mock(id=17)
+    world.get_settings.return_value.no_rendering_mode = False
     world.get_actors.return_value.find.return_value = None
     sensor = TickSensor()
-    monkeypatch.setattr(adapter, "_client", Mock())
+    client = Mock()
+    client.get_world.return_value = world
+    monkeypatch.setattr(adapter, "_client", Mock(return_value=client))
     monkeypatch.setattr(adapter, "_world", Mock(return_value=world))
+    monkeypatch.setattr(
+        adapter,
+        "apply_batch",
+        Mock(return_value={"responses": [{"actor_id": sensor.id, "error": ""}]}),
+    )
     monkeypatch.setattr(adapter_module, "_configured_blueprint", Mock())
     monkeypatch.setattr(adapter_module, "_parent_actor", Mock())
     monkeypatch.setattr(adapter_module, "_spawn_sensor", Mock(return_value=sensor))
@@ -101,7 +116,10 @@ def test_new_sensor_cleanup_does_not_depend_on_snapshot_visibility(
         destroyed = adapter.detach_sensor(sensor.id)["destroyed"]
 
     assert destroyed is True
-    sensor.destroy.assert_called_once()
+    sensor.destroy.assert_not_called()
+    cast("Mock", adapter.apply_batch).assert_called_once_with(
+        [{"action": "destroy_actor", "actor_id": sensor.id}], do_tick=False
+    )
     world.tick.assert_not_called()
 
 
@@ -111,8 +129,8 @@ def test_adapter_retains_client_stream_for_synchronous_reads(
     """A paused world's observations must use the established client stream, not a new empty one."""
     established = Mock()
     factory = Mock(side_effect=[established, Mock()])
-    monkeypatch.setattr(adapter_module, "_carla_client_factory", Mock(return_value=factory))
-    monkeypatch.setattr(adapter_module, "_require_carla_client", lambda value: value)
+    monkeypatch.setattr(adapter_connection, "_carla_client_factory", Mock(return_value=factory))
+    monkeypatch.setattr(adapter_connection, "_require_carla_client", lambda value: value)
     adapter = PythonCarlaAdapter()
 
     first = adapter._client()  # noqa: SLF001 -- Verify the connection lifetime boundary.
@@ -127,12 +145,42 @@ def test_detach_already_stopped_sensor_does_not_unsubscribe_again(
 ) -> None:
     """Explicit listener close followed by actor cleanup should not emit native stop warnings."""
     adapter, sensor, _world = _newly_attached_sensor(monkeypatch)
-    monkeypatch.setattr(sensor, "is_listening", False, raising=False)
-    stop = Mock(side_effect=AssertionError("already stopped"))
-    monkeypatch.setattr(sensor, "stop", stop)
+    adapter.subscribe_sensor(sensor.id)
+    adapter.close_sensor_subscription(sensor.id)
 
+    assert sensor.is_listening() is False
     assert adapter.detach_sensor(sensor.id)["destroyed"] is True
-    stop.assert_not_called()
+    assert sensor.stops == 1
+
+
+@pytest.mark.parametrize(("listening", "expected_stops"), [(False, 0), (True, 1)])
+def test_detach_sensor_checks_native_listening_method(
+    *, listening: bool, expected_stops: int
+) -> None:
+    """A native sensor is stopped exactly once only while its listener is active."""
+    sensor = TickSensor()
+    if listening:
+        sensor.listen(lambda _frame: None)
+
+    perception.detach_sensor_handle(cast("CarlaSensor", sensor))
+
+    assert sensor.stops == expected_stops
+    assert sensor.is_listening() is False
+    sensor.destroy.assert_called_once()
+
+
+@pytest.mark.parametrize(("listening", "expected_stops"), [(False, 0), (True, 1)])
+def test_detach_sensor_accepts_boolean_listening_state(
+    monkeypatch: pytest.MonkeyPatch, *, listening: bool, expected_stops: int
+) -> None:
+    """Older clients exposing the listener state as a boolean remain compatible."""
+    sensor = TickSensor()
+    monkeypatch.setattr(sensor, "is_listening", listening)
+
+    perception.detach_sensor_handle(cast("CarlaSensor", sensor))
+
+    assert sensor.stops == expected_stops
+    sensor.destroy.assert_called_once()
 
 
 def test_owner_can_subscribe_tick_then_drain_exact_frame() -> None:
@@ -252,29 +300,39 @@ def test_synchronous_blocking_capture_fails_fast_before_listening(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     """The legacy capture helper directs sync callers to subscribe/tick/drain."""
-    world = Mock()
+    world = Mock(id=17)
     world.get_settings.return_value.synchronous_mode = True
+    world.get_settings.return_value.no_rendering_mode = False
+    sensor = Mock(id=7, type_id="sensor.camera.rgb")
+    world.get_actors.return_value.find.return_value = sensor
+    client = Mock()
+    client.get_world.return_value = world
     adapter = PythonCarlaAdapter()
-    monkeypatch.setattr(adapter, "_client", Mock())
+    monkeypatch.setattr(adapter, "_client", Mock(return_value=client))
     monkeypatch.setattr(adapter, "_world", Mock(return_value=world))
 
     with pytest.raises(CarlaAdapterError, match="subscribe_sensor"):
         adapter.capture_sensor_frame(sensor_id=7, output_path=tmp_path / "frame.png")
 
-    world.get_actors.assert_not_called()
+    world.get_actors.assert_called_once_with([7])
+    sensor.listen.assert_not_called()
 
 
 def test_synchronous_blocking_stream_fails_fast_before_listening() -> None:
     """A synchronous stream read must never wait for a tick its caller cannot send."""
     world = Mock()
     world.get_settings.return_value.synchronous_mode = True
+    world.get_settings.return_value.no_rendering_mode = False
+    sensor = Mock(id=7, type_id="sensor.camera.rgb")
+    world.get_actors.return_value.find.return_value = sensor
 
     with pytest.raises(CarlaAdapterError, match="subscribe_sensor"):
         perception.read_sensor_stream(
             cast("CarlaWorld", world), sensor_id=7, frame_count=1, output_dir=None
         )
 
-    world.get_actors.assert_not_called()
+    world.get_actors.assert_called_once_with([7])
+    sensor.listen.assert_not_called()
 
 
 @pytest.mark.parametrize("code", ["result = 1", "assert False, 'script failed'"])
@@ -309,10 +367,13 @@ def test_facade_subscribe_tick_drain_and_close(
 ) -> None:
     """The script facade exposes the same non-ticking lifecycle as trusted owners."""
     sensor = TickSensor()
-    world = Mock()
+    world = Mock(id=17)
+    world.get_settings.return_value.no_rendering_mode = False
     world.get_actors.return_value.find.return_value = sensor
+    client = Mock()
+    client.get_world.return_value = world
     adapter = PythonCarlaAdapter()
-    monkeypatch.setattr(adapter, "_client", Mock())
+    monkeypatch.setattr(adapter, "_client", Mock(return_value=client))
     monkeypatch.setattr(adapter, "_world", Mock(return_value=world))
     api = build_api(adapter, RunSnapshots())
     api.subscribe_sensor(7)

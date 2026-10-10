@@ -11,10 +11,15 @@ import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from carla_agentic_toolkit.connection_journal import CONNECTION_FILENAME, ConnectionJournal
+from carla_agentic_toolkit.creation_health import add_creation_failures
+from carla_agentic_toolkit.errors import OwnershipError
 from carla_agentic_toolkit.managed_control_io import read_control, write_control
 from carla_agentic_toolkit.managed_process import parent_death_guard, terminate_tree
 from carla_agentic_toolkit.managed_session import world_identity
 from carla_agentic_toolkit.ownership import OWNERSHIP_FILENAME, RunOwnership, cleanup_report
+from carla_agentic_toolkit.recovery_snapshots import fresh_cleanup_frame
+from carla_agentic_toolkit.script_settings import SETTINGS_FILENAME, RunSettings
 from carla_agentic_toolkit.simulator_lease import SimulatorLease
 
 if TYPE_CHECKING:
@@ -42,8 +47,8 @@ def _private_existing_directory(path: Path) -> None:
         raise ValueError(message)
 
 
-def _journal_root(path: Path) -> Path:
-    if path.name != OWNERSHIP_FILENAME or path != path.resolve():
+def _journal_root(path: Path, *, filename: str = OWNERSHIP_FILENAME) -> Path:
+    if path.name != filename or path != path.resolve():
         message = "Ownership journal must use a canonical path without symbolic links."
         raise ValueError(message)
     root = path.parent.parent if path.parent.name == "work" else path.parent
@@ -60,8 +65,8 @@ def _known_root(root: Path) -> bool:
     return root.parent == Path(tempfile.gettempdir()).resolve() and root.name.startswith(prefixes)
 
 
-def _validate_journal_file(path: Path) -> None:
-    _journal_root(path)
+def _validate_journal_file(path: Path, *, filename: str = OWNERSHIP_FILENAME) -> None:
+    _journal_root(path, filename=filename)
     descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     with os.fdopen(descriptor, "rb") as stream:
         metadata = os.fstat(stream.fileno())
@@ -84,10 +89,20 @@ def _ownership(path: Path) -> RunOwnership:
     ownership = RunOwnership(path)
     actor_ids = ownership.actor_ids()
     _bound_actor_ids(actor_ids)
-    if actor_ids and ownership.world_id() is None:
-        message = "Nonempty ownership journal has no episode identity; manual recovery is required."
+    if (actor_ids or ownership.pending_creations()) and ownership.world_id() is None:
+        message = "Nonempty or unresolved ownership journal requires an episode identity."
         raise ValueError(message)
     return ownership
+
+
+def _settings_record(path: Path, *, required: bool) -> RunSettings | None:
+    settings_path = path.with_name(SETTINGS_FILENAME)
+    if not required and not settings_path.exists() and not settings_path.is_symlink():
+        return None
+    _validate_journal_file(settings_path, filename=SETTINGS_FILENAME)
+    settings = RunSettings(settings_path, require_existing=True)
+    settings.pending()
+    return settings
 
 
 def _bound_actor_ids(actor_ids: tuple[int, ...]) -> None:
@@ -96,38 +111,100 @@ def _bound_actor_ids(actor_ids: tuple[int, ...]) -> None:
         raise ValueError(message)
 
 
+def _connection_record(path: Path, *, required: bool) -> ConnectionJournal | None:
+    connection_path = path.with_name(CONNECTION_FILENAME)
+    if not required and not connection_path.exists() and not connection_path.is_symlink():
+        return None
+    _validate_journal_file(connection_path, filename=CONNECTION_FILENAME)
+    connection = ConnectionJournal(connection_path)
+    connection.require_healthy()
+    return connection
+
+
 def _validate_deadline(timeout: float) -> None:
     if not 0 < timeout <= MAX_CLEANUP_SECONDS:
         message = "Cleanup deadline must be positive and at most 30 seconds."
         raise ValueError(message)
 
 
-def cleanup_script_ownership(
+def cleanup_script_ownership(  # noqa: PLR0913 - retain the existing five positional arguments.
     host: str,
     port: int,
     ownership_path: Path,
     lease_descriptor: int,
     timeout_seconds: float,
+    *,
+    require_settings: bool = False,
+    destroy_actors: bool = True,
+    require_connection: bool = False,
 ) -> dict[str, object]:
     """Clean under the caller's inherited lease and a hard native-process deadline."""
+    ownership = None
     try:
         _validate_deadline(timeout_seconds)
         ownership = _ownership(ownership_path)
-        if not ownership.actor_ids():
-            return cleanup_report()
-        return _bounded_cleanup(host, port, ownership_path, lease_descriptor, timeout_seconds)
+        settings = _settings_record(ownership_path, required=require_settings)
+        connection = _connection_record(ownership_path, required=require_connection)
+        offline = _offline_cleanup(ownership, settings, destroy_actors=destroy_actors)
+        if offline is not None:
+            return offline
+        return _bounded_cleanup(
+            _cleanup_request(
+                host,
+                port,
+                ownership_path,
+                require_settings=settings is not None,
+                destroy_actors=destroy_actors,
+                require_connection=connection is not None,
+            ),
+            lease_descriptor,
+            timeout_seconds,
+        )
     except (OSError, RuntimeError, TypeError, ValueError) as error:
-        return _failure(str(error))
+        report = _failure(str(error))
+        return add_creation_failures(report, ownership) if ownership is not None else report
+
+
+def _offline_cleanup(
+    ownership: RunOwnership, settings: RunSettings | None, *, destroy_actors: bool
+) -> dict[str, object] | None:
+    if settings is not None and settings.pending():
+        return None
+    if destroy_actors and ownership.actor_ids():
+        return None
+    return add_creation_failures(_empty_cleanup_evidence(settings), ownership)
+
+
+def _empty_cleanup_evidence(settings: RunSettings | None) -> dict[str, object]:
+    report = cleanup_report()
+    return report if settings is None else report | {"settings_restored": True}
+
+
+def _cleanup_request(  # noqa: PLR0913 -- Keep independent journal validation flags explicit.
+    host: str,
+    port: int,
+    path: Path,
+    *,
+    require_settings: bool,
+    destroy_actors: bool,
+    require_connection: bool = False,
+) -> dict[str, object]:
+    return {
+        "host": host,
+        "port": port,
+        "ownership_path": str(path),
+        "require_settings": require_settings,
+        "destroy_actors": destroy_actors,
+        "require_connection": require_connection,
+    }
 
 
 def _bounded_cleanup(
-    host: str, port: int, path: Path, lease_descriptor: int, timeout: float
+    request: dict[str, object], lease_descriptor: int, timeout: float
 ) -> dict[str, object]:
     with tempfile.TemporaryDirectory(prefix="carla-script-cleanup-") as directory:
         job = Path(directory)
-        write_control(
-            job / "request.json", {"host": host, "port": port, "ownership_path": str(path)}
-        )
+        write_control(job / "request.json", request)
         process = _spawn_cleanup(job, lease_descriptor)
         try:
             exit_code = process.wait(timeout=timeout)
@@ -167,30 +244,81 @@ def _spawn_cleanup(job: Path, lease_descriptor: int) -> subprocess.Popen[bytes]:
 
 
 def _fresh_cleanup_snapshot(world: CarlaWorld) -> None:
-    before = world.get_snapshot().frame
-    if world.get_settings().synchronous_mode:
-        frame = world.tick()
-    else:
-        frame = world.wait_for_tick(5.0).frame
-    if frame <= before or world.get_snapshot().frame < frame:
-        message = "Script cleanup could not verify a fresh actor snapshot."
-        raise RuntimeError(message)
+    fresh_cleanup_frame(
+        world, failure_message="Script cleanup could not verify a fresh actor snapshot."
+    )
 
 
-def _cleanup_connected(adapter: PythonCarlaAdapter, ownership: RunOwnership) -> dict[str, object]:
+def _cleanup_connected(
+    adapter: PythonCarlaAdapter,
+    ownership: RunOwnership,
+    settings: RunSettings | None = None,
+    *,
+    destroy_actors: bool = True,
+    connection: ConnectionJournal | None = None,
+) -> dict[str, object]:
     from carla_agentic_toolkit.ownership import cleanup_owned_actors  # noqa: PLC0415
 
-    # Trusted cleanup retains the same adapter connection through snapshot and destruction.
-    world = adapter._client().get_world()  # noqa: SLF001
+    _check_connection_episode(adapter, connection, ownership)
+    restored = _restore_settings(adapter, settings)
+    if restored.get("failures"):
+        return add_creation_failures(restored, ownership)
+    if not _actor_cleanup_needed(ownership, settings, destroy_actors=destroy_actors):
+        return add_creation_failures(restored, ownership)
+    # Restore timing before publishing any actor snapshot on the same connection.
+    world = _cleanup_world(adapter, connection)
     original_world = world_identity(world)
     if original_world != ownership.world_id():
-        ownership.clear()
-        return cleanup_report()
+        return _clear_old_world(ownership, restored)
     _fresh_cleanup_snapshot(world)
     if world_identity(adapter._client().get_world()) != original_world:  # noqa: SLF001
         message = "World changed while publishing the script cleanup snapshot."
         raise RuntimeError(message)
-    return cleanup_owned_actors(adapter, ownership)
+    return restored | cleanup_owned_actors(adapter, ownership)
+
+
+def _cleanup_world(adapter: PythonCarlaAdapter, connection: ConnectionJournal | None) -> CarlaWorld:
+    world = adapter._client().get_world()  # noqa: SLF001
+    if connection is not None:
+        connection.require_identity(world_identity(world))
+    return world
+
+
+def _check_connection_episode(
+    adapter: PythonCarlaAdapter, connection: ConnectionJournal | None, ownership: RunOwnership
+) -> None:
+    if connection is None:
+        return
+    identity = connection.world_id()
+    if identity is not None:
+        connection.require_identity(world_identity(adapter._client().get_world()))  # noqa: SLF001
+        if ownership.actor_ids() and ownership.world_id() != identity:
+            message = "Persistent actor ownership differs from its connection origin."
+            raise RuntimeError(message)
+
+
+def _clear_old_world(ownership: RunOwnership, restored: dict[str, object]) -> dict[str, object]:
+    try:
+        ownership.clear(require_completed=True)
+    except OwnershipError as exc:
+        return restored | _failure(str(exc))
+    return restored
+
+
+def _restore_settings(
+    adapter: PythonCarlaAdapter, settings: RunSettings | None
+) -> dict[str, object]:
+    return settings.restore(adapter) if settings is not None else cleanup_report()
+
+
+def _actor_cleanup_needed(
+    ownership: RunOwnership, settings: RunSettings | None, *, destroy_actors: bool
+) -> bool:
+    if not destroy_actors:
+        return False
+    if settings is None:
+        return True
+    return bool(ownership.actor_ids())
 
 
 def _worker_cleanup(
@@ -200,14 +328,26 @@ def _worker_cleanup(
     from carla_agentic_toolkit.adapter import PythonCarlaAdapter  # noqa: PLC0415
 
     adapter = None
+    ownership = None
     try:
-        ownership = _ownership(Path(str(request["ownership_path"])))
+        path = Path(str(request["ownership_path"]))
+        ownership = _ownership(path)
+        settings = _settings_record(path, required=request.get("require_settings") is True)
+        connection = _connection_record(path, required=request.get("require_connection") is True)
         adapter = PythonCarlaAdapter(
             host=str(request["host"]), port=int(str(request["port"])), timeout=5.0
         )
-        report = _cleanup_connected(adapter, ownership)
+        report = _cleanup_connected(
+            adapter,
+            ownership,
+            settings,
+            destroy_actors=request.get("destroy_actors") is not False,
+            connection=connection,
+        )
     except (OSError, RuntimeError, TypeError, ValueError) as error:
         report = _failure(str(error))
+        if ownership is not None:
+            report = add_creation_failures(report, ownership)
     return report, adapter
 
 
@@ -225,17 +365,47 @@ def recover_script_ownership(
                 "recovery_required": True,
                 "cleanup": _failure("Not a script lease."),
             }
-        report = cleanup_script_ownership(
-            host,
-            port,
-            Path(str(state.get("ownership_path", ""))),
-            lease.descriptor,
-            timeout_seconds,
-        )
+        report = _recover_lease_settings(host, port, state, lease.descriptor, timeout_seconds)
         success = not report.get("failures")
         if success:
             lease.mark_clean()
         return {"ok": success, "recovery_required": not success, "cleanup": report}
+
+
+def _recover_lease_settings(
+    host: str, port: int, state: dict[str, object], descriptor: int, timeout: float
+) -> dict[str, object]:
+    try:
+        path = Path(str(state.get("ownership_path", "")))
+        require_settings = _require_settings_path(state, path)
+        require_connection = _require_connection_path(state, path)
+        return cleanup_script_ownership(
+            host,
+            port,
+            path,
+            descriptor,
+            timeout,
+            require_settings=require_settings,
+            require_connection=require_connection,
+        )
+    except (OSError, RuntimeError, TypeError, ValueError) as error:
+        return _failure(str(error))
+
+
+def _require_settings_path(state: dict[str, object], path: Path) -> bool:
+    required = "settings_path" in state
+    if required and state["settings_path"] != str(path.with_name(SETTINGS_FILENAME)):
+        message = "Settings journal must be beside the recorded ownership journal."
+        raise ValueError(message)
+    return required
+
+
+def _require_connection_path(state: dict[str, object], path: Path) -> bool:
+    required = state.get("kind") == "script_session" or "connection_path" in state
+    if required and state.get("connection_path") != str(path.with_name(CONNECTION_FILENAME)):
+        message = "Persistent connection journal must be beside the ownership journal."
+        raise ValueError(message)
+    return required
 
 
 def main() -> None:

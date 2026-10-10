@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
+from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.models import (
     AutopilotRequest,
     CameraAttachRequest,
@@ -18,6 +19,8 @@ from carla_agentic_toolkit.models import (
     Transform,
     VehicleBehaviorRequest,
 )
+from carla_agentic_toolkit.script_arguments import parent_value
+from carla_agentic_toolkit.tm_access import require_traffic_manager_port
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
@@ -45,7 +48,11 @@ def sensor_blueprint(kind: str) -> str:
     """Resolve a friendly sensor kind or preserve a runtime blueprint ID."""
     if kind.startswith("sensor."):
         return kind
-    return _SENSOR_BLUEPRINTS[kind]
+    try:
+        return _SENSOR_BLUEPRINTS[kind]
+    except KeyError as exc:
+        message = f"Unknown sensor kind {kind!r}."
+        raise CarlaAdapterError(message) from exc
 
 
 def zero_transform() -> dict[str, object]:
@@ -77,7 +84,7 @@ def parse_camera_attach_request(payload: dict[str, object]) -> CameraAttachReque
         blueprint_id=_string_field(payload, "blueprint_id"),
         transform=_transform(_mapping_field(payload, "transform")),
         attributes=_string_mapping_field(payload, "attributes"),
-        parent_actor_id=_optional_int_field(payload, "parent_actor_id"),
+        parent_actor_id=parent_value(payload, legacy_name="parent_actor_id"),
     )
 
 
@@ -335,6 +342,9 @@ def _provided_fields(
     parsers: Mapping[str, Callable[[Mapping[str, object], str], object]],
 ) -> dict[str, object]:
     """Parse only supplied non-null fields so model defaults stay authoritative."""
-    return {
+    fields = {
         key: parser(payload, key) for key, parser in parsers.items() if payload.get(key) is not None
     }
+    if "traffic_manager_port" in parsers:
+        require_traffic_manager_port(fields.get("traffic_manager_port", 8000))
+    return fields

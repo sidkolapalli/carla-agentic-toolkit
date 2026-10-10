@@ -34,7 +34,7 @@ class ReplayRequest:
 
 
 def replay_recording(client: object, request: ReplayRequest) -> dict[str, object]:
-    """Replay a CARLA recorder file."""
+    """Replay a CARLA recorder file; only do_tick=True is supported."""
     _validate_tick_flag(request.do_tick)
     if not request.do_tick:
         message = "CARLA replay_file does not expose a non-ticking replay capability."
@@ -56,7 +56,7 @@ def recording_collisions(
     actor_type: str,
     other_type: str,
 ) -> dict[str, object]:
-    """Return recorder collision report text."""
+    """Query collisions: h=hero, v=vehicle, w=walker, t=traffic light, o=other, a=any."""
     report = cast("Any", client).show_recorder_collisions(str(path), actor_type, other_type)
     return {"path": str(path), "report": str(report)}
 
@@ -74,9 +74,9 @@ def recording_actors_blocked(
 
 
 def apply_batch(
-    client: object, commands: list[dict[str, object]], *, do_tick: bool = True
+    client: object, commands: list[dict[str, object]], *, do_tick: bool = False
 ) -> dict[str, object]:
-    """Apply a small JSON-compatible batch using carla.command."""
+    """Apply reviewed commands with CARLA's non-ticking apply_batch_sync default."""
     _validate_tick_flag(do_tick)
     carla_commands = [batch_command(import_module("carla"), command) for command in commands]
     responses = cast("Any", client).apply_batch_sync(carla_commands, do_tick=do_tick)

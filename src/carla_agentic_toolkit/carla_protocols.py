@@ -41,14 +41,17 @@ class CarlaClient(Protocol):
     def get_server_version(self) -> object:
         """Return CARLA server version."""
 
-    def load_world(self, map_name: str) -> CarlaWorld:
-        """Load a world by map name."""
+    def load_world(self, map_name: str, *, reset_settings: bool = True) -> CarlaWorld:
+        """Load a world, resetting settings by default as CARLA does."""
+
+    def reload_world(self, *, reset_settings: bool = True) -> CarlaWorld:
+        """Reload the same map, optionally retaining current settings."""
 
     def get_trafficmanager(self, port: int = 8000) -> CarlaTrafficManager:
         """Return a Traffic Manager on the requested port."""
 
-    def start_recorder(self, path: str) -> str:
-        """Start the recorder and return the simulator-accepted path."""
+    def start_recorder(self, path: str, *, additional_data: bool = False) -> str:
+        """Start recording with optional additional data and return the accepted path."""
 
     def stop_recorder(self) -> None:
         """Stop the CARLA recorder."""
@@ -62,6 +65,9 @@ class CarlaWorld(Protocol):
 
     def get_settings(self) -> CarlaWorldSettings:
         """Return world settings."""
+
+    def reset_all_traffic_lights(self) -> None:
+        """Reset all native traffic-light cycles to their initial state."""
 
     def get_actors(self, actor_ids: list[int] | None = None, /) -> CarlaActorList:
         """Return cached actors, or directly resolve the supplied actor IDs."""
@@ -247,3 +253,31 @@ class CarlaSnapshot(Protocol):
     """Subset of a CARLA world snapshot."""
 
     frame: int
+
+
+class CarlaTimestamp(Protocol):
+    """Simulation time carried by a native world snapshot."""
+
+    elapsed_seconds: float
+
+
+class CarlaActorSnapshot(Protocol):
+    """Frame-frozen native actor motion, separate from a live actor handle."""
+
+    def get_transform(self) -> CarlaTransformObject:
+        """Return this frame's actor transform."""
+
+    def get_velocity(self) -> CarlaVector:
+        """Return this frame's actor velocity."""
+
+    def get_acceleration(self) -> CarlaVector:
+        """Return this frame's actor acceleration."""
+
+
+class CarlaTelemetrySnapshot(CarlaSnapshot, Protocol):
+    """World snapshot capabilities needed for frame-coherent vehicle telemetry."""
+
+    timestamp: CarlaTimestamp
+
+    def find(self, actor_id: int) -> CarlaActorSnapshot | None:
+        """Find an actor's motion in this specific frame, not the latest actor cache."""

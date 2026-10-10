@@ -3,14 +3,11 @@
 from __future__ import annotations
 
 import asyncio
-import hashlib
-import platform
 import time
 from importlib import import_module
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol, cast
 
-from carla_agentic_toolkit import __version__
+from carla_agentic_toolkit.carla_versions import read_version_info, require_matching_release
 from carla_agentic_toolkit.experiment_trace import (
     RecordedPolicy,
     TraceStore,
@@ -20,20 +17,17 @@ from carla_agentic_toolkit.experiment_trace import (
 from carla_agentic_toolkit.managed_evidence import sensor_records, trailing_drains
 from carla_agentic_toolkit.managed_jev import create_jev_policy
 from carla_agentic_toolkit.managed_jev_config import JevConfig
+from carla_agentic_toolkit.managed_metadata import run_metadata
+from carla_agentic_toolkit.managed_observations import prepare_background, record_background
 from carla_agentic_toolkit.managed_selection import DecisionScheduler
 from carla_agentic_toolkit.managed_session import ManagedSession
-from carla_agentic_toolkit.merge_planner import (
-    PLANNER_VERSION,
-    TRACKER_VERSION,
-    rules_decision,
-)
-from carla_agentic_toolkit.route_geometry import TRACKER_VERSION as ROUTE_TRACKER_VERSION
-from carla_agentic_toolkit.route_policy import PLANNER_VERSION as ROUTE_PLANNER_VERSION
+from carla_agentic_toolkit.merge_planner import rules_decision
 from carla_agentic_toolkit.route_policy import rules_decision as route_rules_decision
 from carla_agentic_toolkit.simulator_lease import SimulatorLease
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from pathlib import Path
 
     from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaSnapshot
     from carla_agentic_toolkit.managed_policy import PolicyDecision, PolicyRequest
@@ -145,6 +139,7 @@ class ExperimentRun:
         self.error: str | None = None
         self.outcome: dict[str, object] = {"completed": False, "status": "partial"}
         self.cleanup: dict[str, object] = {"ok": True, "not_started": True}
+        self.fixture_summary: dict[str, object] = {}
 
     @property
     def world_generation(self) -> str:
@@ -197,30 +192,16 @@ class ExperimentRun:
 
     def _prepare(self, lease: SimulatorLease) -> None:
         client = connect_client(self.spec)
+        versions = read_version_info(client)
+        self.event("metadata", run_metadata(self.spec, versions))
+        require_matching_release(versions)
         self.policy = create_policy(self.spec, self.root)
         self.session = ManagedSession(self.spec, client, lease, self.run_id)
-        self.event(
-            "metadata",
-            {
-                "spec": self.spec.model_dump(),
-                "fixture_version": self.spec.fixture,
-                "policy_version": self.spec.policy,
-                **_implementation_versions(self.spec.fixture),
-                "package_version": __version__,
-                "code_sha256": _source_digest(),
-                "seed": self.spec.seed,
-                "environment": {
-                    "platform": platform.platform(),
-                    "python": platform.python_version(),
-                    "carla_client": client.get_client_version(),
-                    "carla_server": client.get_server_version(),
-                },
-            },
-        )
         self.session.open()
         self.event("setup_frames", self.session.setup_frame_barrier)
         self.experiment = build_experiment(self.session)
         self.experiment.prepare()
+        prepare_background(self)
         self.selection = DecisionScheduler(
             self.spec, self.experiment, self.policy, self.event, self._should_stop
         )
@@ -257,6 +238,7 @@ class ExperimentRun:
         return False
 
     async def _iteration(self, snapshot: CarlaSnapshot, step: int) -> bool:
+        record_background(self)
         experiment = cast("Experiment[Any]", self.experiment)
         observation = experiment.observe(snapshot)
         self.frame, self.actor_id = observation.frame, observation.policy.actor_id
@@ -340,7 +322,8 @@ class ExperimentRun:
             self.trace.close()
         reports = self._report_paths()
         result = {
-            "ok": self.state == "completed" and self.outcome.get("completed") is True,
+            **self.fixture_summary,
+            "ok": self._successful(),
             "run_id": self.run_id,
             "state": self.state,
             "error": self.error,
@@ -353,14 +336,31 @@ class ExperimentRun:
         self.publish_status(result)
         return result
 
+    def _successful(self) -> bool:
+        return (
+            self.state == "completed"
+            and self.outcome.get("completed") is True
+            and _valid_trial(self.fixture_summary)
+        )
+
     def _final_events(self) -> None:
         if self.error is not None:
             self.event("infrastructure_error", {"error": self.error})
         if self.state == "cancelled":
             self.outcome = {"completed": False, "status": "cancelled"}
             self.event("outcome", self.outcome)
+        self._finalize_fixture()
         self.event("cleanup", self.cleanup)
         self.event("lifecycle", {"state": self.state, "error": self.error})
+
+    def _finalize_fixture(self) -> None:
+        summarize = getattr(self.experiment, "final_summary", None)
+        if callable(summarize):
+            termination = (
+                self.state if self.state in {"cancelled", "failed"} else str(self.outcome["status"])
+            )
+            self.fixture_summary = summarize(termination=termination)
+            self.event("fixture_summary", self.fixture_summary)
 
     def _report_paths(self) -> dict[str, str]:
         try:
@@ -376,12 +376,9 @@ def _intervened(intervention: dict[str, object]) -> bool:
     return intervention.get("fallback") is True or bool(intervention.get("reason"))
 
 
-def _source_digest() -> str:
-    digest = hashlib.sha256()
-    for path in sorted(Path(__file__).parent.glob("*.py")):
-        digest.update(path.name.encode())
-        digest.update(path.read_bytes())
-    return digest.hexdigest()
+def _valid_trial(summary: dict[str, object]) -> bool:
+    trial = summary.get("hazard_trial")
+    return not isinstance(trial, dict) or trial.get("valid") is not False
 
 
 async def run_experiment_async(
@@ -417,12 +414,3 @@ def run_experiment(
             publish_status=publish_status,
         )
     )
-
-
-def _implementation_versions(fixture: str) -> dict[str, str]:
-    if fixture == "town10-route-ue5-v1":
-        return {
-            "planner_version": ROUTE_PLANNER_VERSION,
-            "controller_version": ROUTE_TRACKER_VERSION,
-        }
-    return {"planner_version": PLANNER_VERSION, "controller_version": TRACKER_VERSION}

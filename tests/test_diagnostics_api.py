@@ -44,8 +44,9 @@ class FakeAdapter:
         """Return available CARLA maps."""
         return self.maps
 
-    def load_world(self, map_name: str) -> WorldState:
+    def load_world(self, map_name: str, *, reset_settings: bool = True) -> WorldState:
         """Load a CARLA world by map name."""
+        del reset_settings
         return replace(self.world, current_map=map_name)
 
     def set_sync_mode(self, *, enabled: bool, fixed_delta_seconds: float | None) -> WorldState:

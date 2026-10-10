@@ -26,7 +26,7 @@ independently tested; #82 retains that verification gap.
 | Public release (#82) | Owner-authorized public source-only alpha published as `v0.1.0-alpha.1` on 2026-10-06. The wheel does not bundle the Rust runner. |
 | Private reporting (#82) | Security reports use GitHub's private vulnerability reporting, which is enabled; conduct reports go to the maintainer by private LinkedIn message. On 2026-10-07 the owner withdrew the maintainer email address that was published at release, and no email address is listed. The enabled GitHub private-reporting entry point was checked without authentication. External report submission remains unverified. |
 | Live provider (#86) | Passed the separately opted-in live Jev check using the existing Windows Credential Manager entry through private process input. The key was neither printed nor copied to configuration or report files. |
-| Matched evaluation (#87) | Six declared trials completed: one rules and one Jev run for each seed 7, 19 and 31. Strict matching accepted all pairs; all runs verified actor cleanup and world restoration. The [saved comparison](evidence/merge-comparison-2026-10-02/README.md) records sample counts, metrics, versions and limitations. |
+| Matched evaluation (#87) | Six declared trials completed: one initial condition, run three times per policy (labelled seeds 7, 19 and 31). These labels varied nothing; they are repetitions, not independently varied conditions or a promise of bitwise determinism. Strict matching accepted all pairs; all runs verified actor cleanup and world restoration. The [saved comparison](evidence/merge-comparison-2026-10-02/README.md) records sample counts, metrics, versions and limitations. |
 | Follow-on article (#87) | Read the current original article before preparing its follow-up. Its URL or file path is still required. |
 | Demo (#87) | The [recorded camera demo](evidence/managed-demo-2026-10-03/README.md) shows a completed maneuver and a deliberate budget fallback with an incomplete maneuver. Both cleaned up and restored actors/settings. Exact-frame projections and coverage gaps accompany the video. |
 | Reproduction (#87) | An [independent automated operator](evidence/independent-reproduction-2026-10-03/README.md), starting from the checked-in instructions in a fresh checkout/venv/state, reproduced all six trials with no retries or comparison blockers. This is not an external-human or second-machine validation claim. |
@@ -35,7 +35,7 @@ independently tested; #82 retains that verification gap.
 
 The [2026-10-05 route study](evidence/route-study-2026-10-05/README.md) adds
 full-frame numerical data and six PNG/SVG graphs to the route experiments.
-All three ego cars reached the 135m goal, but the pedestrian never entered the
+All three policy cars reached the 135m goal, but the pedestrian never entered the
 lane. #96 tracks that defect and physical scenario acceptance. #94 stays open
 until the missing crossing validation is complete. Those known limitations are
 disclosed in the public alpha; they are not reported as successful hazard tests.
@@ -87,7 +87,7 @@ gates above or establish full UE5 support. Later changes still require candidate
 ## Reproduction
 
 The [alpha release notes](alpha-release-notes.md) describe the source-only scope;
-the [alpha demo guide](alpha-demo.md) gives reproducible success and failure checks.
+the [alpha demo guide](alpha-demo.md) gives step-by-step success and failure checks.
 
 Follow [client setup](client-setup.md), then run the repository checks and the
 documented offline walkthrough before touching a dedicated simulator:

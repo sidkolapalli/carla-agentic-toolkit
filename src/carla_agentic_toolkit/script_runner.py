@@ -17,9 +17,13 @@ from pathlib import Path
 from typing import cast
 
 from carla_agentic_toolkit.adapter import PythonCarlaAdapter
+from carla_agentic_toolkit.creation_health import finish_creation_outcome
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.ownership import RunOwnership, cleanup_owned_actors, cleanup_report
+from carla_agentic_toolkit.rpc_timeouts import RUN_DEADLINE_FILENAME, RpcTimeoutPolicy, run_deadline
 from carla_agentic_toolkit.script_api import CarlaScriptApi
+from carla_agentic_toolkit.script_settings import SETTINGS_FILENAME, RunSettings
+from carla_agentic_toolkit.script_values import value_constructors
 from carla_agentic_toolkit.snapshots import RunSnapshots
 
 RESULT_NAME = "result"
@@ -117,26 +121,42 @@ def main() -> None:
         port=args.port,
         timeout_seconds=args.timeout_seconds,
         ownership_path=args.ownership_file,
+        require_settings_journal=args.ownership_file is not None,
+        require_rpc_deadline=args.ownership_file is not None,
     )
     sys.stdout.write(json.dumps(outcome, sort_keys=True, allow_nan=False) + "\n")
 
 
-def run_script_file(
+def run_script_file(  # noqa: PLR0913 - direct callers may omit parent-initialized recovery evidence.
     *,
     script_path: Path,
     host: str,
     port: int,
     timeout_seconds: float,
     ownership_path: Path | None = None,
+    require_settings_journal: bool = False,
+    require_rpc_deadline: bool = False,
 ) -> dict[str, object]:
     """Execute one script file with a curated CARLA API object."""
+    policy = _execution_rpc_policy(script_path, timeout_seconds, required=require_rpc_deadline)
+    if isinstance(policy, dict):
+        return cast("dict[str, object]", policy)
     code = script_path.read_text(encoding="utf-8")
     rejection = _validate_script(code)
     if rejection is not None:
         return _error("script_rejected", rejection, stdout="")
     snapshots = RunSnapshots()
-    adapter = PythonCarlaAdapter(host=host, port=port, timeout=timeout_seconds)
-    ownership = RunOwnership(ownership_path) if ownership_path is not None else None
+    settings = RunSettings(
+        _settings_path(ownership_path), require_existing=require_settings_journal
+    )
+    adapter = PythonCarlaAdapter(
+        host=host,
+        port=port,
+        timeout=min(timeout_seconds, 10.0),
+        settings_journal=settings,
+        rpc_timeout_policy=policy,
+    )
+    ownership = _run_ownership(ownership_path)
     api = CarlaScriptApi(adapter=adapter, snapshots=snapshots, ownership=ownership)
     stream = _BoundedWriter(MAX_SCRIPT_STDOUT_BYTES)
     listener_errors: list[str] = []
@@ -148,26 +168,94 @@ def run_script_file(
             globals_after_run = runpy.run_path(
                 str(script_path),
                 init_globals={
+                    **value_constructors(),
                     "__builtins__": _safe_builtins(),
                     API_NAME: api,
                     RESULT_NAME: None,
                 },
             )
     except Exception as exc:
-        cleanup = cleanup_owned_actors(adapter, ownership)
-        return _error(
+        restored = _restore_execution_settings(api, adapter, settings)
+        outcome = _error(
             type(exc).__name__,
             str(exc),
             stdout=stream.getvalue(),
-            cleanup=_listener_cleanup_evidence(cleanup, listener_errors),
         )
+        return _finish_execution(outcome, adapter, ownership, restored, listener_errors)
+    restored = _restore_execution_settings(api, adapter, settings)
     if stream.truncated:
-        return _error(
+        outcome = _error(
             "output_too_large",
             f"Script stdout exceeded {MAX_SCRIPT_STDOUT_BYTES} bytes.",
             stdout=stream.getvalue(),
         )
-    return _finished_script(globals_after_run, stream, snapshots, listener_errors)
+    else:
+        outcome = _finished_script(globals_after_run, stream, snapshots, listener_errors)
+    return _finish_execution(outcome, adapter, ownership, restored, listener_errors)
+
+
+def _settings_path(ownership_path: Path | None) -> Path | None:
+    return ownership_path.with_name(SETTINGS_FILENAME) if ownership_path is not None else None
+
+
+def _run_ownership(path: Path | None) -> RunOwnership | None:
+    return RunOwnership(path) if path is not None else None
+
+
+def _execution_rpc_policy(
+    script_path: Path, timeout_seconds: float, *, required: bool
+) -> RpcTimeoutPolicy | dict[str, object]:
+    try:
+        return RpcTimeoutPolicy(
+            absolute_deadline=run_deadline(
+                script_path.with_name(RUN_DEADLINE_FILENAME), timeout_seconds, required=required
+            )
+        )
+    except (OSError, ValueError, TypeError) as exc:
+        return _error("execution_deadline_invalid", str(exc), stdout="")
+
+
+def _restore_execution_settings(
+    api: CarlaScriptApi, adapter: PythonCarlaAdapter, settings: RunSettings
+) -> dict[str, object]:
+    """Stop background mutators before restoring the first settings baseline."""
+    try:
+        api.close()
+    except CarlaAdapterError as exc:
+        failure: dict[str, object] = {"actor_id": None, "error": str(exc)}
+        return cleanup_report(failures=(failure,)) | {"settings_restored": False}
+    return settings.restore(adapter)
+
+
+def _finish_execution(
+    outcome: dict[str, object],
+    adapter: PythonCarlaAdapter,
+    ownership: RunOwnership | None,
+    restored: dict[str, object],
+    listener_errors: list[str],
+) -> dict[str, object]:
+    """Keep success actors while retaining every terminal cleanup failure."""
+    outcome = finish_creation_outcome(outcome, ownership)
+    if restored.get("settings_restored") is False:
+        if outcome["ok"]:
+            outcome = _error(
+                "settings_restore_failed", str(restored["failures"]), stdout=str(outcome["stdout"])
+            )
+        cleanup = restored
+    elif not outcome["ok"]:
+        cleanup = cleanup_owned_actors(adapter, ownership) | _settings_evidence(restored)
+    else:
+        cleanup = restored
+    outcome["cleanup"] = _listener_cleanup_evidence(cleanup, listener_errors)
+    return outcome
+
+
+def _settings_evidence(restored: dict[str, object]) -> dict[str, object]:
+    return {
+        key: value
+        for key, value in restored.items()
+        if key not in {"attempted_actor_ids", "destroyed_actor_ids", "failures"}
+    }
 
 
 @contextlib.contextmanager

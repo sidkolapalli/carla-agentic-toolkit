@@ -36,7 +36,11 @@ https://github.com/user-attachments/assets/2d9712dc-3e64-4e0c-b905-f31241eaeda0
 </details>
 
 Codex drives the prepared car, brakes, and reports **18.75 m of displacement
-including stopping**. The animation above skips between excerpts; the full
+including stopping**. The drive phase lasts six wall-clock seconds in an
+asynchronous, variable-step world. This recorded endpoint displacement is
+illustrative, not repeatable and not a measurement. It compares recorded 3D
+endpoints, not a continuously sampled trajectory length. The animation above
+skips between excerpts; the full
 Recordly edit shows the prompt, labeled 8× agent work, and driving at 1× speed.
 
 | See through the car's cameras | System One in action with Jev |
@@ -176,7 +180,7 @@ Once connected, try this in a dedicated simulation:
 > the car parked for my next request.
 
 Your client may ask you to approve simulator operations. For a scripted check
-with measured results and cleanup, follow the [reproducible demo](docs/alpha-demo.md).
+with recorded results and cleanup, follow the [step-by-step demo](docs/alpha-demo.md).
 
 ## What to expect today
 
@@ -218,6 +222,9 @@ released work. Follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 [MIT](LICENSE) © 2026 Siddharth Kolapalli. Built on
 [CARLA](https://github.com/carla-simulator/carla),
 [MCP](https://modelcontextprotocol.io/), and [Landlock](https://landlock.io/).
-Recorded CARLA scenes retain the asset licenses and attribution linked with each
-demo. This community project is not affiliated with or endorsed by CARLA,
+CARLA-specific code is MIT and CARLA-specific assets are CC-BY, as stated in the
+[upstream licence notice](https://github.com/carla-simulator/carla/blob/0.10.0/README.md#licenses).
+The [preview GIF and scene credits](docs/assets/readme/README.md) and each evidence
+README retain the applicable asset attribution independently of the toolkit's
+MIT licence. This community project is not affiliated with or endorsed by CARLA,
 TypeSafe, or the featured coding-agent providers.

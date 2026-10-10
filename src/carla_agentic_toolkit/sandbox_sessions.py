@@ -51,6 +51,7 @@ class SandboxSessionManager:
             session_id = uuid.uuid4().hex
             owner = SessionProcess(session_id, config)
             session = SessionState(session_id, config, owner)
+            owner.absolute_deadline = session.started + config.absolute_timeout_seconds
             self._sessions[session_id] = session
         try:
             owner.start()
@@ -106,6 +107,10 @@ class SandboxSessionManager:
                     "session_id": session.session_id,
                     "sequence": session.sequence,
                     **request,
+                    "request_deadline_monotonic": min(
+                        session.started + session.config.absolute_timeout_seconds,
+                        session.pending_since + session.config.request_timeout_seconds,
+                    ),
                 },
             )
         except (OSError, ValueError) as exc:

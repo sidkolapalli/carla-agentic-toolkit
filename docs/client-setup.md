@@ -25,8 +25,9 @@ Before starting, install or confirm:
   otherwise select Python 3.14, which CARLA 0.9.16 does not support.
 - Linux kernel 6.15 or newer, which provides the Landlock ABI V7 required by the
   sandbox. On Windows this kernel must be supplied by WSL2.
-- A reachable CARLA server and the same CARLA Python API version in the MCP
-  virtual environment. A 0.9.16 server requires `carla==0.9.16`.
+- A reachable CARLA server and a matching CARLA Python API release in the MCP
+  virtual environment. A 0.9.16 server requires `carla==0.9.16`; see
+  [version matching](#version-matching) for diagnostics and source-build suffixes.
 - Free, non-reserved CARLA ports. The defaults are RPC 2000, streaming 2001,
   secondary 2002, and Traffic Manager 8000. WSL2/Hyper-V may reserve the
   defaults on Windows even when `netstat` shows no listener.
@@ -94,6 +95,37 @@ experiments. The original Tesla fixture remains unchanged; its vehicle is absent
 from UE5. Keep UE4 and UE5 results in separate comparisons. Docker continues to
 default to 0.9.16; changing its version argument is not a validated UE5 image.
 
+### Version matching
+
+`api.health_check()` retains the full available `client_version` and
+`server_version` strings. Its `warnings`, and the warnings in world-state
+results such as `api.get_world_state()`, compare the leading `X.Y.Z` release
+prefixes. Same-release source-build suffixes are accepted: for example,
+`0.9.16-custom` and `0.9.16` match this release check, while their full strings
+remain available for diagnosis. Different release prefixes produce a structured
+warning naming both versions. A missing, unreadable, or unparseable version is
+reported distinctly as unknown compatibility, not mislabeled as a mismatch.
+
+For mismatched or unknown compatibility, health returns version-only diagnostics
+without attaching to a world. `connected: false` means a compatible world/session
+connection was not verified; it is not proof that the server is offline. The
+unobserved `current_map`, `settings`, and `actor_counts` are `null`, and a warning
+explains that world inspection was skipped. Check health's connection status and
+compatibility warnings before calling `api.get_world_state()` or other world
+operations. Those operations are not automatically protected by the health check.
+
+Managed startup records available full versions in trace metadata under
+`environment.carla_client` and `environment.carla_server`. It refuses both
+mismatched and unknown compatibility before constructing the policy or session,
+or changing the simulator. See the [managed guide](managed-experiments.md).
+A matching release prefix does not guarantee every native capability or imply
+a fixture-to-engine catalog match; the existing capability and fixture checks
+still apply. Live acceptance with an incompatible CARLA wheel and server remains
+separate from managed startup: Windows-native checks on 2026-10-09 verified full
+health with matching 0.9.16 releases and version-only health from a genuine 0.10.0
+client against the 0.9.16 server, with zero world-inspection calls. Linux managed
+startup acceptance remains pending.
+
 ## Docker MCP server
 
 The image contains the MCP server, CARLA Python API, and compiled Rust sandbox.
@@ -156,10 +188,10 @@ codex mcp add carla -- \
 
 In prompts, tell the agent to connect to CARLA at
 `host.docker.internal:<rpc-port>`; for example,
-`host.docker.internal:3000`. The sandbox permits that RPC port, its next two
-streaming ports, Traffic Manager port 8000, and any additional Traffic Manager
-ports explicitly supplied to the tool. Output persists in the
-`carla-agentic-toolkit-output` Docker volume.
+`host.docker.internal:3000`. The sandbox permits that RPC port, the selected
+[streaming and secondary ports](#carla-port-layout), Traffic Manager port 8000,
+and any additional Traffic Manager ports explicitly supplied to the tool. Output
+persists in the `carla-agentic-toolkit-output` Docker volume.
 
 ## 1. Prepare the Server from source
 
@@ -364,6 +396,8 @@ The client entry must set these environment variables:
 | `CARLA_AGENTIC_TOOLKIT_WSL_UV` | Absolute Linux path reported by `command -v uv` |
 | `CARLA_AGENTIC_TOOLKIT_WSL_OUTPUT_DIR` | Absolute Linux path for durable output |
 | `CARLA_AGENTIC_TOOLKIT_RECORDER_DIR` | Optional absolute recorder directory understood by the CARLA simulator host |
+| `CARLA_AGENTIC_TOOLKIT_HOST` | Optional default simulator host, forwarded unchanged to the WSL server |
+| `CARLA_AGENTIC_TOOLKIT_PORT` | Optional default RPC port as an ASCII decimal string in 1..65533 |
 
 Use the Claude Code, Codex, or VS Code configuration shape above, replacing the
 program with `carla-agentic-toolkit-windows` and adding the four required variables. Output is
@@ -375,6 +409,9 @@ CARLA opens recorder files on the simulator host, not in WSL. With
 sent under that directory and success reports the exact path CARLA accepted.
 An empty CARLA response becomes `record_episode_failed`; no response claims the
 file was copied into `CARLA_AGENTIC_TOOLKIT_WSL_OUTPUT_DIR`.
+The optional `additional_data=True` recorder flag includes extra velocities,
+bounding boxes, traffic-light timings and vehicle physics controls; its default
+is `False`, matching CARLA. See [recorder options and query categories](script-workflows.md#put-outputs-on-the-correct-host).
 
 If CARLA itself runs on Windows, WSL2 mirrored networking can use
 `127.0.0.1`. With WSL2's default NAT networking, get the Windows host address
@@ -383,6 +420,41 @@ from inside WSL and pass it as the tool's `host` input:
 ```bash
 ip route show default | awk '{print $3}'
 ```
+
+### Default simulator endpoint
+
+Set optional `CARLA_AGENTIC_TOOLKIT_HOST` and `CARLA_AGENTIC_TOOLKIT_PORT` values
+in the MCP client's server environment to avoid repeating the endpoint on each
+call. For example, add these nonsecret entries alongside the existing launcher
+configuration, using the reachable address of your dedicated simulator:
+
+```json
+{"CARLA_AGENTIC_TOOLKIT_HOST":"172.18.112.1","CARLA_AGENTIC_TOOLKIT_PORT":"3000"}
+```
+
+The Windows launcher forwards exactly these two optional settings to the WSL
+server as individual environment arguments. Linux server entries can set them
+directly. They affect omitted `host` and `port` inputs in `execute_carla_script`,
+the Python `execute_script` launcher, and persistent-session open config. Explicit
+values override each field independently, including an unused malformed default.
+Unset settings retain `127.0.0.1` and `2000`. Defaults are read at each request or
+session-config construction; a created session keeps its selected endpoint.
+
+A configured host must be nonblank. The configured port must contain one to five
+ASCII decimal digits and be in 1..65533. Malformed selected defaults are rejected
+before lease, filesystem or worker setup. Explicit `null`, boolean or malformed
+endpoint inputs are errors, not requests to use a default.
+
+**Keep recovery identity stable.** Prefer WSL mirrored networking with
+`127.0.0.1`, or a fixed literal address used consistently by all cooperating
+clients. The lease still coalesces aliases by their resolved IP and RPC port;
+these defaults do not invent a stable identity across changing NAT addresses.
+Keep the same private `CARLA_AGENTIC_TOOLKIT_STATE_DIR` for operation and recovery.
+If a WSL restart changes the NAT address while dirty recovery evidence exists,
+investigate that evidence and the simulator's actual state before resuming.
+Changing addresses, RPC ports or state roots does not verify cleanup and must
+not be used to bypass quarantine. No automatic lease migration or dirty-marker
+deletion is performed.
 
 ### Verify in order
 
@@ -418,12 +490,43 @@ Git Bash rewrites Linux-looking environment values such as `/home/user` before
 passing them to Windows programs. Prefer PowerShell for launcher commands. If
 Git Bash is required, prefix the command with `MSYS_NO_PATHCONV=1`.
 
+### CARLA port layout
+
+CARLA defaults to streaming at RPC+1 and secondary at RPC+2, but supports
+`-carla-streaming-port` and `-carla-secondary-port` overrides. The defaults and
+command-line handling are defined in
+[CARLA 0.9.16 settings](https://github.com/carla-simulator/carla/blob/0.9.16/Unreal/CarlaUE4/Plugins/Carla/Source/Carla/Settings/CarlaSettings.cpp).
+Supply the actual layout to `execute_carla_script`, for example:
+
+```json
+{"code":"result = api.health_check()","port":3000,"streaming_port":3100,"secondary_port":3200}
+```
+
+`streaming_port` and `secondary_port` are optional exact integers in 1..65535.
+Omitting a field or passing `null` retains its adjacent default. Each explicit
+value replaces that default connect permission; it does not also allow the old
+adjacent port. RPC, selected streaming/secondary, 8000, and explicit
+`traffic_manager_ports` are deduplicated and sorted. These inputs do not change
+the simulator's configuration or grant TCP bind permission. Persistent sessions
+accept the same fields in their [open config](persistent-sessions.md).
+
+The native Python sensor API does not expose its streaming endpoint or a
+structured Landlock denial. A sensor timeout alone therefore cannot establish
+which port was attempted or whether it was denied. Check the server's configured
+layout against these inputs rather than treating any delivery timeout as proof
+of a blocked port. Local kernel tests cover selected and denied connections;
+live nonadjacent CARLA sensor-delivery acceptance is separate.
+
 ### Traffic Manager
 
-The sandbox can connect to Traffic Manager but cannot bind a TCP server port.
-Before using autopilot or traffic tuning, keep a trusted CARLA client running
-outside the sandbox on the chosen Traffic Manager port. For example, inside
-the Linux environment with the matching CARLA Python API:
+The sandbox can connect to Traffic Manager but cannot bind a TCP server port or
+step a synchronous manager in another process. Toolkit Traffic Manager workflows
+are asynchronous-only. Before using autopilot or traffic tuning, keep a trusted
+CARLA client running outside the sandbox on a dedicated toolkit-owned Traffic
+Manager port. Do not share that manager with unrelated clients: global settings
+and their cleanup targets affect every vehicle using the same manager.
+
+For example, inside the Linux environment with the matching CARLA Python API:
 
 ```python
 import time
@@ -432,6 +535,7 @@ import carla
 client = carla.Client("127.0.0.1", 2000)  # Use the reachable simulator endpoint.
 client.set_timeout(10.0)
 manager = client.get_trafficmanager(8000)
+manager.set_synchronous_mode(False)
 try:
     while True:
         time.sleep(1.0)
@@ -444,6 +548,23 @@ Traffic Manager on port 8000. For other ports, also include them in the MCP
 tool's `traffic_manager_ports` argument. With Windows CARLA and WSL NAT, use the
 Windows host address and an available RPC port as described above. The live
 MCP smoke test uses direct throttle and brake controls, so it needs no sidecar.
+
+Toolkit traffic creation and configuration workflows reject a synchronous world
+before mutation. `api.configure_traffic_manager({"synchronous_mode": True})` is
+rejected in either world mode. Synchronous Traffic Manager support remains
+tracked in
+[#26](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/26). Stop the
+background traffic controller completely before enabling or restoring synchronous
+world settings.
+
+Seeds do not make this asynchronous traffic reproducible; CARLA's
+[deterministic Traffic Manager mode requires synchronous operation](https://carla.readthedocs.io/en/0.9.16/adv_traffic_manager/#deterministic-mode).
+Setting a Traffic Manager seed also
+[resets all traffic lights](https://github.com/carla-simulator/carla/blob/0.9.16/LibCarla/source/carla/trafficmanager/TrafficManagerLocal.cpp#L449-L453),
+including when cleanup sets seed 0. Cleanup restores only attempted global
+settings to [declared targets](script-workflows.md#keep-traffic-and-simulation-timing-explicit),
+not to an unknown shared client's original values. Live CARLA 0.9.16 acceptance
+with this dedicated sidecar remains pending.
 
 ## 5. First Request
 
@@ -484,15 +605,31 @@ authentication, deployment, and a packaged sandbox runner.
   6.15-or-newer kernel, then run `wsl --update`. Do not bypass a failed check.
 - **Windows cannot reach `wsl.exe`:** install or update WSL from an elevated
   PowerShell prompt, then reopen the client.
-- **CARLA API is not importable:** install the API version matching the simulator
-  into the checkout's `.venv`, then rerun the import preflight.
+- **`carla_api_unavailable`:** the message retains the original import or ABI
+  error. Install the API matching the simulator and Python version into the
+  checkout's `.venv`, resolve missing native libraries, then rerun the import
+  preflight. This is a local client failure, not a simulator connection failure.
+- **`traffic_manager_port_not_allowed`:** the message names the requested TM
+  port. Include it in `traffic_manager_ports` when creating the one-shot
+  execution or persistent session; script TM methods still require the same
+  explicit port. Rejected ports fail before any CARLA connection or mutation.
+- **`traffic_manager_unavailable`:** CARLA reported a TM bind error for the
+  named port. Start a dedicated TM sidecar outside the sandbox for this
+  simulator, keep it running, or select its actual port. The failure can also
+  reflect another native bind problem; it does not prove no server exists.
+  Do not grant sandbox bind permissions to work around it.
+- **`traffic_manager_network_policy_error`:** connect-port evidence supplied by
+  the sandbox runner is malformed. Rebuild the reviewed runner; access fails
+  closed rather than treating unreadable policy as unrestricted.
 - **`invalid_request`:** execution inputs are rejected before filesystem or
   process setup. `host` must be non-empty; the base RPC port is `1..65533` so
-  CARLA's two adjacent ports remain valid; Traffic Manager ports are
-  `1..65535`; and `timeout_seconds` is finite and in `(0, 3600]`. Hostnames are
+  CARLA's adjacent defaults remain valid; optional `streaming_port`,
+  `secondary_port`, and Traffic Manager ports are `1..65535`; and
+  `timeout_seconds` is finite and in `(0, 3600]`. Optional endpoint ports accept
+  `null`, not booleans, strings, or floats. Hostnames are
   resolved by CARLA, while Landlock limits ports rather than destination hosts.
 - **`carla_connection_error`:** start CARLA and verify the reported host and RPC
-  port plus the adjacent streaming/secondary ports and Traffic Manager port. The
+  port plus the configured streaming/secondary ports and Traffic Manager port. The
   Rust watchdog allows two seconds beyond CARLA's client deadline so this error
   can be serialized; genuine script budget exhaustion remains `script_timeout`.
 - **`CARLA_AGENTIC_TOOLKIT_WSL_PROJECT must be an absolute Linux path` in Git Bash:** use

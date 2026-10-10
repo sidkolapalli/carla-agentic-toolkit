@@ -12,6 +12,8 @@ from pathlib import Path
 from typing import Any, cast
 
 from carla_agentic_toolkit.experiment_trace import MAX_TRACE_BYTES, load_trace
+from carla_agentic_toolkit.managed_names import normalize_merge_observation
+from carla_agentic_toolkit.replicate_index import normalize_replicate_index
 
 ACTOR_FIELDS = (
     "longitudinal_m",
@@ -26,14 +28,14 @@ ACTOR_FIELDS = (
 def project_trace(path: Path, expected_sha256: str) -> dict[str, Any]:
     """Preserve observed values and event ordering without exporting arbitrary payloads."""
     events, digest = _pinned_events(path, expected_sha256)
-    metadata = _metadata(events)
+    metadata = normalize_replicate_index(_metadata(events))
     spec = _mapping(metadata, "spec")
     return {
         "schema_version": 1,
         "run_id": events[0]["run_id"],
         "trace_sha256": digest,
         "code_sha256": _digest(_text(metadata, "code_sha256")),
-        "seed": _integer(metadata, "seed"),
+        "replicate_index": _integer(metadata, "replicate_index"),
         "policy": _text(spec, "policy"),
         "fixed_delta_seconds": _number(spec, "fixed_delta_seconds"),
         "outcome": _outcome(events),
@@ -156,7 +158,7 @@ def _decision(event: dict[str, Any]) -> dict[str, Any]:
 
 
 def _observation(event: dict[str, Any]) -> dict[str, Any]:
-    data = event["data"]
+    data = normalize_merge_observation(event["data"])
     _check_observation_identity(event, data)
     lane = _mapping(data, "lane")
     return {
@@ -165,16 +167,17 @@ def _observation(event: dict[str, Any]) -> dict[str, Any]:
         "simulation_seconds": _number(data, "simulation_seconds"),
         "phase": _text(data, "phase"),
         "policy": _actor(_mapping(data, "policy")),
-        "ego": _actor(_mapping(data, "ego")),
+        "target": _actor(_mapping(data, "target")),
         "lane": {key: _number(lane, key) for key in ("width_m", "target_offset_m")},
     }
 
 
 def _check_observation_identity(event: dict[str, Any], data: dict[str, Any]) -> None:
-    observed = tuple(data.get(key) for key in ("run_id", "world_generation", "frame"))
-    expected = tuple(event[key] for key in ("run_id", "world_generation", "frame"))
-    actors = (_mapping(data, "policy"), _mapping(data, "ego"))
-    if observed != expected or any(actor.get("frame") != event["frame"] for actor in actors):
+    observed = (data.get("run_id"), data.get("world_generation"), data.get("frame"))
+    expected = (event["run_id"], event["world_generation"], event["frame"])
+    actors = (_mapping(data, "policy"), _mapping(data, "target"))
+    actor_frames = tuple(actor.get("frame") for actor in actors)
+    if observed != expected or actor_frames != (event["frame"], event["frame"]):
         message = "Observation identity does not match its trace envelope."
         raise ValueError(message)
     if actors[0].get("actor_id") != event["actor_id"]:

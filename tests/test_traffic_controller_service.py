@@ -132,7 +132,7 @@ class ConfigureManager:
 
     events: list[str]
 
-    def __call__(self, _manager: object, _request: object) -> None:
+    def __call__(self, _manager: object, _request: object, **_kwargs: object) -> None:
         """Record Traffic Manager configuration."""
         self.events.append("configure")
 
@@ -216,7 +216,7 @@ def test_existing_vehicles_are_registered_with_traffic_manager(
     )
     monkeypatch.setattr(
         "carla_agentic_toolkit.traffic_controller_step.configure_traffic_manager",
-        lambda _manager, _request: events.append("configure"),
+        lambda _manager, _request, **_kwargs: events.append("configure"),
     )
     monkeypatch.setattr(
         "carla_agentic_toolkit.traffic_density.populate_traffic_actors",
@@ -259,7 +259,7 @@ def test_spawned_vehicles_are_distinct_from_adopted_vehicles(
     )
     monkeypatch.setattr(
         "carla_agentic_toolkit.traffic_controller_step.configure_traffic_manager",
-        lambda _manager, _request: None,
+        lambda _manager, _request, **_kwargs: None,
     )
     monkeypatch.setattr(
         "carla_agentic_toolkit.traffic_density.populate_traffic_actors",
@@ -327,7 +327,7 @@ def test_known_vehicles_are_not_registered_again(
     )
     monkeypatch.setattr(
         "carla_agentic_toolkit.traffic_controller_step.configure_traffic_manager",
-        lambda _manager, _request: events.append("configure"),
+        lambda _manager, _request, **_kwargs: events.append("configure"),
     )
 
     result = maintain_traffic_once(
@@ -355,7 +355,7 @@ def test_configured_manager_can_be_left_undisturbed(
     )
     monkeypatch.setattr(
         "carla_agentic_toolkit.traffic_controller_step.configure_traffic_manager",
-        lambda _manager, _request: events.append("configure"),
+        lambda _manager, _request, **_kwargs: events.append("configure"),
     )
 
     result = maintain_traffic_once(

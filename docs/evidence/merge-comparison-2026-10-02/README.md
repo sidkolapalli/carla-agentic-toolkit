@@ -1,7 +1,9 @@
 # Matched merge evidence — 2026-10-02
 
-This is a descriptive evaluation of six declared trials: seeds **7, 19 and 31**,
-one rules run and one Jev run per seed, with no failed-trial retries. All six
+This is a descriptive evaluation of six declared trials: one initial condition,
+run three times per policy (labelled seeds **7, 19 and 31**), with no failed-trial
+retries. The labels varied no initial condition. They are replicate indices, not
+random seeds; repeated runs are not a promise of bitwise CARLA determinism. All six
 completed the maneuver, passed cleanup, and restored the original actors and
 world settings. All six are eligible; none are partial, invalid or excluded.
 Three successful pairs in one fixture do not establish comparative safety or
@@ -114,7 +116,7 @@ reversals and sensor drops were zero for both. Each run recorded four lane-invas
 events during the maneuver. These are sensor event counts, not collision rates or
 evidence of realistic driving. Mean per-run tracking RMSE was 0.846222 m for rules
 and 0.844090 m for Jev. Mean real-time factor was 3.012089 and 0.820965 respectively;
-rules varied substantially across seeds, so the aggregate is not a controlled
+rules varied substantially across labelled repetitions, so the aggregate is not a controlled
 latency benchmark. Jev's mean of per-run decision latencies was 0.155717 seconds.
 
 All physical rate denominators are three eligible runs per policy. Numerical means

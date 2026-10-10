@@ -15,7 +15,7 @@ FIXTURE_VEHICLES = {
 }
 CORRIDOR_LENGTH_M = 50.0
 CORRIDOR_SAMPLE_M = 2.0
-EGO_INITIAL_LEAD_M = 24.0
+TARGET_INITIAL_LEAD_M = 24.0
 MINIMUM_LANE_WIDTH_M = 2.7
 MAXIMUM_HEADING_CHANGE_DEGREES = 2.0
 MAXIMUM_CORRIDOR_DEVIATION_M = 0.5
@@ -36,8 +36,8 @@ class MergeCorridor:
     """Two adjacent same-direction lanes proven reachable over a finite corridor."""
 
     policy_start: Pose
-    ego_start: Pose
     target_start: Pose
+    target_lane_start: Pose
     road_id: int
     source_lane_id: int
     target_lane_id: int
@@ -56,7 +56,7 @@ class MergeCorridor:
     @property
     def target_offset_m(self) -> float:
         """Return the signed adjacent-lane centre displacement."""
-        return self.project(self.target_start.x, self.target_start.y)[1]
+        return self.project(self.target_lane_start.x, self.target_lane_start.y)[1]
 
     def to_dict(self) -> dict[str, object]:
         """Record exact fixture poses and bounded reachability assumptions."""
@@ -100,8 +100,8 @@ def _candidate_corridor(start: object) -> MergeCorridor | None:
         return None
     return MergeCorridor(
         policy_start=source_route[0],
-        ego_start=target_route[int(EGO_INITIAL_LEAD_M / CORRIDOR_SAMPLE_M)],
-        target_start=target_route[0],
+        target_start=target_route[int(TARGET_INITIAL_LEAD_M / CORRIDOR_SAMPLE_M)],
+        target_lane_start=target_route[0],
         road_id=int(source.road_id),
         source_lane_id=int(source.lane_id),
         target_lane_id=int(target.lane_id),

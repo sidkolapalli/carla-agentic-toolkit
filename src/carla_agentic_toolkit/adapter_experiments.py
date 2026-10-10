@@ -15,38 +15,78 @@ from carla_agentic_toolkit import (
     experiment_vehicle,
     experiment_walkers,
 )
+from carla_agentic_toolkit.actor_identity import read_actor_identity
+from carla_agentic_toolkit.adapter_ground_truth import PythonCarlaGroundTruthMixin
+from carla_agentic_toolkit.adapter_sensor_listening import PythonCarlaSensorListeningMixin
+from carla_agentic_toolkit.authoritative_destroy import destroy_result_cleaned
 from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.managed_world import world_identity
 from carla_agentic_toolkit.models import CameraAttachRequest, Location, SensorInfo, Transform
-from carla_agentic_toolkit.sensor_subscription import EVENT_SENSOR_TYPES, SensorSubscription
+from carla_agentic_toolkit.rpc_timeouts import RpcTimeoutPolicy, call_map_rpc
+from carla_agentic_toolkit.sensor_rendering import require_sensor_rendering
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from pathlib import Path
 
+    from carla_agentic_toolkit.actor_creation import SpawnObservers
+    from carla_agentic_toolkit.actor_identity import ActorIdentity
     from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaSensor, CarlaWorld
-    from carla_agentic_toolkit.models import CaptureInfo
+    from carla_agentic_toolkit.models import CaptureInfo, DestroyResult, WorldState
+    from carla_agentic_toolkit.script_settings import RunSettings
+    from carla_agentic_toolkit.sensor_memory import SensorQueueBudget
+    from carla_agentic_toolkit.sensor_subscription import SensorSubscription
 
 
-class PythonCarlaExperimentMixin:
+class PythonCarlaExperimentMixin(PythonCarlaGroundTruthMixin, PythonCarlaSensorListeningMixin):
     """Experiment capabilities layered onto the core Python CARLA adapter."""
 
     _sensor_subscriptions: dict[int, SensorSubscription]
     _sensor_handles: dict[int, CarlaSensor]
+    _sensor_world_ids: dict[int, int]
+    _subscribed_sensor_handles: dict[int, CarlaSensor]
+    _subscription_world_ids: dict[int, int]
+    _settings_journal: RunSettings | None
+    _rpc_timeout_policy: RpcTimeoutPolicy
+    _sensor_queue_budget: SensorQueueBudget
+    _delete_walker_rollback: Callable[[CarlaWorld, int, int], DestroyResult]
 
     def _client(self) -> CarlaClient:
         """Return a configured CARLA client."""
         raise NotImplementedError
 
-    @staticmethod
-    def _world(client: CarlaClient) -> CarlaWorld:
+    def configure_rpc_timeout(self, client: object) -> None:
+        """Refresh a native client against the execution's remaining RPC budget."""
+        raise NotImplementedError
+
+    def _frame_wait_timeout(self, client: CarlaClient) -> float:
+        """Refresh the concrete adapter's current remaining native deadline."""
+        raise NotImplementedError
+
+    def _world(self, client: CarlaClient) -> CarlaWorld:
         """Return the current CARLA world."""
+        raise NotImplementedError
+
+    def _world_state(self, world: CarlaWorld, *, client: CarlaClient) -> WorldState:
+        """Build a world result using the operation's retained client."""
         raise NotImplementedError
 
     def attach_camera(self, *, request: CameraAttachRequest) -> SensorInfo:
         """Attach a camera sensor."""
         raise NotImplementedError
 
-    def capture_sensor_frame(self, *, sensor_id: int, output_path: Path) -> CaptureInfo:
+    def capture_sensor_frame(
+        self, *, sensor_id: int, output_path: Path, color_converter: str | None = None
+    ) -> CaptureInfo:
         """Capture one sensor frame to disk."""
+        raise NotImplementedError
+
+    def _creation_options(self) -> SpawnObservers:
+        """Receive the optional native creation hooks from the concrete adapter."""
+        raise NotImplementedError
+
+    def _observe_actor_cleanup(self, actor_id: int, world_id: int) -> None:
+        """Release only confirmed destruction through the optional journal hook."""
         raise NotImplementedError
 
     def attach_sensor(
@@ -75,75 +115,106 @@ class PythonCarlaExperimentMixin:
         output_dir: Path | None,
     ) -> dict[str, object]:
         """Read several frames from a CARLA sensor and optionally persist captures."""
+        experiment_perception.validate_collection_count(frame_count)
+        world = self._world(self._client())
+        identity = world_identity(world)
         return experiment_perception.read_sensor_stream(
-            self._world(self._client()),
+            world,
             sensor_id=sensor_id,
             frame_count=frame_count,
             output_dir=output_dir,
+            after_rendering_check=lambda: self._require_cleanup_episode(identity),
+            byte_budget=self._sensor_queue_budget,
         )
 
     def detach_sensor(self, sensor_id: int) -> dict[str, object]:
         """Stop and destroy a sensor actor."""
+        world = self._world(self._client())
+        identity = self._sensor_cleanup_identity(sensor_id, world)
+        self._require_cleanup_episode(identity)
+        sensor = self._sensor_actor(sensor_id)
+        self._require_cleanup_episode(identity)
         self.close_sensor_subscription(sensor_id)
-        result = experiment_perception.detach_sensor_handle(self._sensor_actor(sensor_id))
-        if result["destroyed"]:
-            self._sensor_handles.pop(sensor_id, None)
-        return result
+        self._require_cleanup_episode(identity)
+        experiment_perception.stop_sensor_handle(sensor)
+        self._require_cleanup_episode(identity)
+        result = self._destroy_uncached_actor(world, sensor_id, expected_world_id=identity)
+        if not destroy_result_cleaned(result):
+            raise CarlaAdapterError(result.error or "Sensor destruction failed.")
+        self._sensor_handles.pop(sensor_id, None)
+        self._sensor_world_ids.pop(sensor_id, None)
+        self._subscribed_sensor_handles.pop(sensor_id, None)
+        self._subscription_world_ids.pop(sensor_id, None)
+        payload: dict[str, object] = {"sensor_id": sensor_id, "destroyed": result.destroyed}
+        if result.error is not None:
+            payload["error"] = result.error
+        return payload
+
+    def _sensor_cleanup_identity(self, sensor_id: int, world: CarlaWorld) -> int:
+        """Authorize retained created or subscribed handles only in their recorded episode."""
+        if sensor_id in self._sensor_handles:
+            return self._recorded_sensor_identity(self._sensor_world_ids, sensor_id, "creation")
+        if sensor_id in self._subscribed_sensor_handles:
+            return self._recorded_sensor_identity(
+                self._subscription_world_ids, sensor_id, "subscription"
+            )
+        return world_identity(world)
+
+    @staticmethod
+    def _recorded_sensor_identity(records: dict[int, int], sensor_id: int, source: str) -> int:
+        """Require explicit episode evidence for every retained native sensor handle."""
+        identity = records.get(sensor_id)
+        if identity is None:
+            message = f"Sensor {source} episode is unavailable; cleanup refused."
+            raise CarlaAdapterError(message)
+        return identity
+
+    def _forget_sensor_records(self) -> None:
+        """Forget old handles only after an explicitly acknowledged world replacement."""
+        self._sensor_handles.clear()
+        self._sensor_world_ids.clear()
+        self._subscribed_sensor_handles.clear()
+        self._subscription_world_ids.clear()
+
+    def _has_retained_sensor(self, sensor_id: int) -> bool:
+        """Route every retained sensor through origin-guarded authoritative cleanup."""
+        return sensor_id in self._sensor_handles or sensor_id in self._subscribed_sensor_handles
+
+    def _require_cleanup_episode(self, identity: int) -> None:
+        """Require the originating episode before stopping a resolved sensor handle."""
+        raise NotImplementedError
+
+    def _destroy_uncached_actor(
+        self, world: CarlaWorld, actor_id: int, *, expected_world_id: int | None = None
+    ) -> DestroyResult:
+        """Use the adapter's guarded, non-ticking server destroy path."""
+        raise NotImplementedError
 
     def _sensor_actor(self, sensor_id: int) -> CarlaSensor:
-        """Prefer the created handle until snapshot propagation catches up with spawning."""
+        """Prefer original subscribed or created handles over a fresh snapshot lookup."""
+        sensor = self._subscribed_sensor_handles.get(sensor_id)
+        if sensor is not None:
+            identity = self._recorded_sensor_identity(
+                self._subscription_world_ids, sensor_id, "subscription"
+            )
+            self._require_cleanup_episode(identity)
+            return sensor
         sensor = self._sensor_handles.get(sensor_id)
         if sensor is not None:
             return sensor
         return experiment_common.sensor_actor(self._world(self._client()), sensor_id)
 
-    def subscribe_sensor(
-        self, sensor_id: int, *, event_sensor: bool | None = None, capacity: int = 32
-    ) -> dict[str, object]:
-        """Install a bounded listener before the owner advances the world."""
-        if sensor_id in self._sensor_subscriptions:
-            message = f"Sensor {sensor_id} already has an active subscription."
-            raise CarlaAdapterError(message)
-        sensor = self._sensor_actor(sensor_id)
-        is_event = sensor.type_id in EVENT_SENSOR_TYPES if event_sensor is None else event_sensor
-        self._sensor_subscriptions[sensor_id] = SensorSubscription(
-            sensor, event_sensor=is_event, capacity=capacity
-        )
-        return {"sensor_id": sensor_id, "event_sensor": is_event, "capacity": capacity}
-
-    def drain_sensor(
-        self,
-        sensor_id: int,
-        frame: int,
-        *,
-        timeout_seconds: float = 0.0,
-        output_dir: Path | None = None,
-    ) -> dict[str, object]:
-        """Read available samples for an owner frame without issuing simulator ticks."""
-        subscription = self._subscription(sensor_id)
-        batch = subscription.drain(frame, timeout_seconds=timeout_seconds)
-        frames = list(batch.frames)
-        paths = experiment_perception.save_sensor_frames(frames, sensor_id, output_dir)
-        return {
-            "sensor_id": sensor_id,
-            **batch.to_dict(),
-            "frames": [experiment_perception.sensor_frame_digest(item) for item in frames],
-            "paths": [str(path) for path in paths],
-        }
-
-    def _subscription(self, sensor_id: int) -> SensorSubscription:
-        """Require a listener owned by this adapter execution."""
-        try:
-            return self._sensor_subscriptions[sensor_id]
-        except KeyError as exc:
-            message = f"Sensor {sensor_id} has no subscription; call subscribe_sensor first."
-            raise CarlaAdapterError(message) from exc
-
     def close_sensor_subscription(self, sensor_id: int) -> dict[str, object]:
         """Idempotently close one owned listener without destroying its sensor actor."""
-        subscription = self._sensor_subscriptions.pop(sensor_id, None)
+        subscription = self._sensor_subscriptions.get(sensor_id)
         if subscription is not None:
+            identity = self._recorded_sensor_identity(
+                self._subscription_world_ids, sensor_id, "subscription"
+            )
+            self._require_cleanup_episode(identity)
             subscription.close()
+            self._require_cleanup_episode(identity)
+            self._sensor_subscriptions.pop(sensor_id, None)
         return {"sensor_id": sensor_id, "closed": True}
 
     def close_sensor_subscriptions(self) -> None:
@@ -164,6 +235,10 @@ class PythonCarlaExperimentMixin:
     def get_spawn_points(self) -> dict[str, object]:
         """Return legal vehicle spawn transforms from the loaded map."""
         return experiment_navigation.spawn_points(self._world(self._client()))
+
+    def get_actor_identity(self, actor_id: int) -> ActorIdentity | None:
+        """Read server liveness and stable episode evidence for a persistent alias."""
+        return read_actor_identity(self._client(), actor_id)
 
     def get_waypoint(
         self,
@@ -188,7 +263,7 @@ class PythonCarlaExperimentMixin:
         step_meters: float = 2.0,
         max_steps: int = 200,
     ) -> dict[str, object]:
-        """Generate an A-to-B waypoint route by following official waypoint.next links."""
+        """Follow greedy waypoint links and report actual remaining destination distance."""
         return experiment_navigation.route(
             self._world(self._client()),
             start=start,
@@ -259,14 +334,22 @@ class PythonCarlaExperimentMixin:
     ) -> dict[str, object]:
         """Generate a world from bounded OpenDRIVE text."""
         self.close_sensor_subscriptions()
-        world = experiment_environment.generate_opendrive_world(
-            self._client(),
-            opendrive=opendrive,
-            parameters=parameters,
-            reset_settings=reset_settings,
+        self._capture_replacement_settings()
+        client = self._client()
+        world = call_map_rpc(
+            client,
+            self._rpc_timeout_policy,
+            lambda: experiment_environment.generate_opendrive_world(
+                client,
+                opendrive=opendrive,
+                parameters=parameters,
+                reset_settings=reset_settings,
+            ),
         )
-        self._sensor_handles.clear()
-        return experiment_common.world_state_payload(cast("CarlaWorld", world))
+        self.configure_rpc_timeout(client)
+        self._rebind_replacement_settings(cast("CarlaWorld", world))
+        self._forget_sensor_records()
+        return self._world_state(cast("CarlaWorld", world), client=client).to_dict()
 
     def configure_actor_physics(
         self,
@@ -329,7 +412,7 @@ class PythonCarlaExperimentMixin:
         )
 
     def get_vehicle_telemetry(self, actor_id: int) -> dict[str, object]:
-        """Return vehicle state useful for closed-loop control."""
+        """Return frame-coherent motion with separately read control and road state."""
         return experiment_vehicle.vehicle_telemetry(self._world(self._client()), actor_id)
 
     def set_actor_transform(self, *, actor_id: int, transform: Transform) -> dict[str, object]:
@@ -364,11 +447,24 @@ class PythonCarlaExperimentMixin:
         seed: int | None = None,
     ) -> dict[str, object]:
         """Spawn pedestrians and AI walker controllers."""
+        from carla_agentic_toolkit.walker_lifecycle import WalkerLifecycle  # noqa: PLC0415
+
+        client = self._client()
+        world = self._world(client)
         return experiment_walkers.spawn_walker_actors(
-            self._world(self._client()),
+            world,
             count=count,
             speed=speed,
             seed=seed,
+            lifecycle=WalkerLifecycle(
+                world,
+                require_episode=self._require_cleanup_episode,
+                timeout_seconds=lambda: self._frame_wait_timeout(client),
+                delete_actor=lambda actor_id, identity: self._delete_walker_rollback(
+                    world, actor_id, identity
+                ),
+            ),
+            **self._creation_options(),
         )
 
     def set_walker_destination(
@@ -443,6 +539,9 @@ class PythonCarlaExperimentMixin:
     ) -> dict[str, object]:
         """Capture a temporary RGB camera frame from the spectator viewpoint."""
         world = self._world(self._client())
+        identity = world_identity(world)
+        require_sensor_rendering(world, "sensor.camera.rgb")
+        self._require_cleanup_episode(identity)
         spectator_transform = experiment_scene.spectator_transform(world)
         info = self.attach_sensor(
             blueprint_id="sensor.camera.rgb",
@@ -454,6 +553,7 @@ class PythonCarlaExperimentMixin:
             capture = self.capture_sensor_frame(sensor_id=info.sensor_id, output_path=output_path)
         finally:
             self.detach_sensor(info.sensor_id)
+            self._observe_actor_cleanup(info.sensor_id, identity)
         return capture.to_dict()
 
     def get_weather(self) -> dict[str, object]:
@@ -474,7 +574,7 @@ class PythonCarlaExperimentMixin:
         replay_sensors: bool = False,
         do_tick: bool = True,
     ) -> dict[str, object]:
-        """Replay a CARLA recorder file."""
+        """Replay a CARLA recorder file; only do_tick=True is supported."""
         return experiment_replay.replay_recording(
             self._client(),
             experiment_replay.ReplayRequest(
@@ -494,7 +594,7 @@ class PythonCarlaExperimentMixin:
         actor_type: str = "a",
         other_type: str = "a",
     ) -> dict[str, object]:
-        """Return recorder collision report text."""
+        """Query collisions: h=hero, v=vehicle, w=walker, t=traffic light, o=other, a=any."""
         return experiment_replay.recording_collisions(
             self._client(),
             path=path,
@@ -517,17 +617,38 @@ class PythonCarlaExperimentMixin:
             min_distance=min_distance,
         )
 
-    def reload_world(self, *, reset_settings: bool = False) -> dict[str, object]:
-        """Reload the current world."""
+    def reload_world(self, *, reset_settings: bool) -> dict[str, object]:
+        """Reload with an explicit reset choice; False intentionally keeps settings."""
         self.close_sensor_subscriptions()
-        world = cast("Any", self._client()).reload_world(reset_settings)
-        self._sensor_handles.clear()
-        return experiment_common.world_state_payload(world)
+        self._capture_replacement_settings()
+        client = self._client()
+        world = call_map_rpc(
+            client,
+            self._rpc_timeout_policy,
+            lambda: cast("Any", client).reload_world(reset_settings),
+        )
+        self.configure_rpc_timeout(client)
+        self._rebind_replacement_settings(world)
+        self._forget_sensor_records()
+        return self._world_state(world, client=client).to_dict()
+
+    def _capture_replacement_settings(self) -> None:
+        if self._settings_journal is not None:
+            self._settings_journal.capture_world(self._world(self._client()))
+
+    def _rebind_replacement_settings(self, world: CarlaWorld) -> None:
+        self._acknowledge_world_replacement(world)
+        if self._settings_journal is not None:
+            self._settings_journal.rebind_world(world)
+
+    if TYPE_CHECKING:
+
+        def _acknowledge_world_replacement(self, world: CarlaWorld) -> None: ...
 
     def apply_batch(
-        self, commands: list[dict[str, object]], *, do_tick: bool = True
+        self, commands: list[dict[str, object]], *, do_tick: bool = False
     ) -> dict[str, object]:
-        """Apply a small JSON-compatible batch using carla.command."""
+        """Apply a response batch without ticking unless explicitly requested."""
         return experiment_replay.apply_batch(self._client(), commands, do_tick=do_tick)
 
     def list_capabilities(self) -> dict[str, object]:

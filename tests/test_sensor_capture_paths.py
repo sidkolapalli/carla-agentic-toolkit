@@ -13,6 +13,8 @@ from carla_agentic_toolkit.experiment_perception import save_sensor_frames
 from carla_agentic_toolkit.snapshots import RunSnapshots
 from tests.api_helpers import build_api
 
+PNG_BYTES = b"\x89PNG\r\n\x1a\nsensor-frame"
+
 
 class NativeImage:
     """Model CARLA's native writer rejecting an empty parent directory."""
@@ -24,7 +26,7 @@ class NativeImage:
         if not os.path.dirname(path):  # noqa: PTH120 -- pathlib hides the native empty-parent bug.
             message = 'filesystem error: in create_directories: No such file or directory [""]'
             raise RuntimeError(message)
-        Path(path).write_bytes(b"sensor-frame")
+        Path(path).write_bytes(PNG_BYTES)
 
 
 @pytest.mark.parametrize("path_kind", ["basename", "nested", "absolute"])
@@ -38,12 +40,15 @@ def test_capture_persists_requested_output_and_publication_metadata(
         "nested": Path("captures/front.png"),
         "absolute": tmp_path / "absolute/front.png",
     }[path_kind]
-    world = Mock()
+    world = Mock(id=17)
     world.get_settings.return_value.synchronous_mode = False
-    sensor = Mock()
+    world.get_settings.return_value.no_rendering_mode = False
+    sensor = Mock(id=7, type_id="sensor.camera.rgb")
     sensor.listen.side_effect = lambda callback: callback(NativeImage())
     adapter = PythonCarlaAdapter()
-    monkeypatch.setattr(adapter, "_client", Mock())
+    client = Mock()
+    client.get_world.return_value = world
+    monkeypatch.setattr(adapter, "_client", Mock(return_value=client))
     monkeypatch.setattr(adapter, "_world", Mock(return_value=world))
     monkeypatch.setattr(adapter, "_sensor_actor", Mock(return_value=sensor))
     snapshots = RunSnapshots()
@@ -58,7 +63,7 @@ def test_capture_persists_requested_output_and_publication_metadata(
         "mime_type": "image/png",
         "publish": True,
     }
-    assert output_path.read_bytes() == b"sensor-frame"
+    assert output_path.read_bytes() == PNG_BYTES
     assert snapshots.read_snapshot("carla-snapshot://captures/capture-000007") == result
     sensor.stop.assert_called_once_with()
 
@@ -73,4 +78,4 @@ def test_stream_capture_accepts_the_output_working_directory(
     paths = save_sensor_frames([NativeImage()], 7, Path(directory))
 
     assert paths == [Path(directory) / "sensor-7-42.png"]
-    assert paths[0].read_bytes() == b"sensor-frame"
+    assert paths[0].read_bytes() == PNG_BYTES

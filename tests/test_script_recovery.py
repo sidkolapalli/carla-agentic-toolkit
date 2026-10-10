@@ -123,7 +123,12 @@ def test_cleanup_never_confuses_empty_cache_with_absent_actor(
     )
     client = SimpleNamespace(get_world=lambda: world)
     adapter = SimpleNamespace(_client=lambda: client)
-    record = SimpleNamespace(world_id=lambda: 7, clear=lambda: events.append("clear"))
+
+    def clear(*, require_completed: bool = False) -> None:
+        assert require_completed
+        events.append("clear")
+
+    record = SimpleNamespace(world_id=lambda: 7, clear=clear)
 
     def clean(_adapter: object, _record: object) -> dict[str, object]:
         events.append("destroy")

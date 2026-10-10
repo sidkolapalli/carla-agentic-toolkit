@@ -4,26 +4,125 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING, cast
 from unittest.mock import Mock
 
 import pytest
 
+from carla_agentic_toolkit.sensor_subscription import SensorSubscription
 from scripts import capture_experiment_demo as capture
 from scripts.capture_experiment_demo import _run_instrumented
+from tests.capture_helpers import Camera, Image
+from tests.capture_helpers import camera_case as _camera_case
+from tests.capture_helpers import recorder as _recorder
+
+if TYPE_CHECKING:
+    from typing import Any
+
+    from carla_agentic_toolkit.carla_protocols import CarlaSensor
 
 
-@dataclass
-class Image:
-    """A sensor delivery with a deterministic on-disk payload."""
+def _assert_saved_range(manifest: dict[str, Any], overflow: int) -> None:
+    assert [image["frame"] for image in manifest["images"]] == list(
+        range(overflow, capture.QUEUE_CAPACITY + overflow)
+    )
 
-    frame: int
-    timestamp: float = 0.05
 
-    def save_to_disk(self, path: str) -> None:
-        """Persist fake bytes without depending on the CARLA package."""
-        Path(path).write_bytes(b"camera-frame")
+def _assert_overflow_evidence(manifest: dict[str, Any], overflow: int) -> None:
+    assert manifest["dropped_queue_frames"] == overflow
+    assert manifest["pending_queue_frames"] == 0
+    assert manifest["ok"] is False
+
+
+def test_capture_installs_the_actual_shared_subscription(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The demo must reuse shared listener storage, not only imitate its drop policy."""
+    _experiment, camera = _camera_case(tmp_path, monkeypatch)
+
+    assert isinstance(getattr(camera.callback, "__self__", None), SensorSubscription)
+
+
+def test_capture_overflow_keeps_newest_frames_with_shared_drop_count(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Overflow discards the oldest queued images while retaining the bounded newest set."""
+    experiment, camera = _camera_case(tmp_path, monkeypatch)
+    overflow = 3
+    for frame in range(capture.QUEUE_CAPACITY + overflow):
+        camera.emit(Image(frame))
+
+    manifest = experiment.recorder.finish(camera)
+
+    _assert_saved_range(manifest, overflow)
+    _assert_overflow_evidence(manifest, overflow)
+
+
+def test_capture_hashes_raw_bgra_without_reading_the_encoded_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """In-memory native pixels, not the different PNG payload, determine the frame digest."""
+    experiment, camera = _camera_case(tmp_path, monkeypatch)
+    image = Image(1)
+    camera.emit(image)
+    read_bytes = Mock(side_effect=AssertionError("encoded PNG must not be read for hashing"))
+    monkeypatch.setattr(Path, "read_bytes", read_bytes)
+
+    manifest = experiment.recorder.finish(camera)
+
+    assert manifest["images"][0]["sha256"] == hashlib.sha256(image.raw_data).hexdigest()
+    read_bytes.assert_not_called()
+    assert manifest["sha256_representation"] == "carla.Image.raw_data (32-bit BGRA)"
+
+
+def test_capture_preserves_final_stop_delivery_and_rejects_late_callbacks(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Replacing the queue must retain the listener cutoff and trailing-frame evidence."""
+    experiment, camera = _camera_case(tmp_path, monkeypatch)
+    camera.emit(Image(1))
+    camera.stopping_image = Image(2)
+
+    manifest = experiment.recorder.finish(camera)
+    camera.emit(Image(3))
+
+    assert [image["frame"] for image in manifest["images"]] == [1, 2]
+    assert camera.stops == 1
+    assert not (tmp_path / "frames/3.png").exists()
+
+
+def test_capture_failed_stop_preserves_arrived_frames_and_drop_evidence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A failed listener cutoff cannot erase already-arrived images or claim cleanup success."""
+    experiment, camera = _camera_case(tmp_path, monkeypatch)
+    overflow = 3
+    for frame in range(capture.QUEUE_CAPACITY + overflow):
+        camera.emit(Image(frame))
+    camera.stop_error = RuntimeError("disconnected")
+
+    with pytest.raises(RuntimeError, match="Camera capture"):
+        experiment.recorder.finish(camera)
+
+    manifest = json.loads((tmp_path / "camera-manifest.json").read_text(encoding="utf-8"))
+    _assert_saved_range(manifest, overflow)
+    _assert_overflow_evidence(manifest, overflow)
+    assert manifest["camera_stopped"] is False
+    assert manifest["errors"] == ["stop_camera:CarlaAdapterError"]
+
+
+def test_shared_subscription_counters_remain_readable_after_queue_cutoff() -> None:
+    """Trusted capture evidence reads the same locked counters even when close freezes data."""
+    camera = Camera()
+    subscription = SensorSubscription(cast("CarlaSensor", camera), capacity=2)
+    for frame in range(4):
+        camera.emit(Image(frame))
+
+    assert (subscription.dropped_samples, subscription.pending_samples) == (2, 2)
+    subscription.close()
+    camera.emit(Image(5))
+    assert (subscription.dropped_samples, subscription.pending_samples) == (2, 0)
 
 
 def _arguments(tmp_path: Path) -> list[str]:
@@ -53,38 +152,38 @@ def test_private_state_cannot_be_published_below_camera_output(tmp_path: Path) -
 
 def test_bounded_queue_reports_drops_and_keeps_frame_hashes(tmp_path: Path) -> None:
     """The callback never grows a backlog beyond its fixed capacity."""
-    recorder = capture.FrameRecorder(tmp_path)
+    recorder, camera = _recorder(tmp_path)
     overflow = 3
     for frame in range(capture.QUEUE_CAPACITY + overflow):
-        recorder.receive(Image(frame))
-    manifest = recorder.finish(Mock())
+        camera.emit(Image(frame))
+    manifest = recorder.finish(camera)
     assert (manifest["dropped_queue_frames"], manifest["ok"], len(manifest["images"])) == (
         overflow,
         False,
         capture.QUEUE_CAPACITY,
     )
-    assert manifest["images"][0]["sha256"] == hashlib.sha256(b"camera-frame").hexdigest()
+    assert manifest["images"][0]["sha256"] == hashlib.sha256(Image(0).raw_data).hexdigest()
 
 
 def test_close_rejects_callbacks_after_sensor_stop(tmp_path: Path) -> None:
     """A late callback cannot enqueue or create a file after final draining."""
-    recorder = capture.FrameRecorder(tmp_path)
-    recorder.receive(Image(1))
-    recorder.finish(Mock())
-    recorder.receive(Image(2))
+    recorder, camera = _recorder(tmp_path)
+    camera.emit(Image(1))
+    recorder.finish(camera)
+    camera.emit(Image(2))
     recorder.save_arrived()
     assert not (tmp_path / "frames/2.png").exists()
 
 
 def test_duplicate_frame_never_overwrites_previous_capture(tmp_path: Path) -> None:
     """Duplicate sensor identities invalidate the capture and preserve original bytes."""
-    recorder = capture.FrameRecorder(tmp_path)
-    recorder.receive(Image(1))
+    recorder, camera = _recorder(tmp_path)
+    camera.emit(Image(1))
     recorder.save_arrived()
     original = (tmp_path / "frames/1.png").read_bytes()
-    recorder.receive(Image(1))
+    camera.emit(Image(1))
     with pytest.raises(RuntimeError, match="Camera capture"):
-        recorder.finish(Mock())
+        recorder.finish(camera)
     manifest = json.loads((tmp_path / "camera-manifest.json").read_text())
     assert manifest["ok"] is False
     assert manifest["errors"]
@@ -93,12 +192,11 @@ def test_duplicate_frame_never_overwrites_previous_capture(tmp_path: Path) -> No
 
 def test_failed_stop_is_not_reported_as_verified_capture(tmp_path: Path) -> None:
     """Stop failures still produce an explicit manifest and propagate to session cleanup."""
-    recorder = capture.FrameRecorder(tmp_path)
-    recorder.receive(Image(4))
-    sensor = Mock()
-    sensor.stop.side_effect = RuntimeError("disconnected")
+    recorder, camera = _recorder(tmp_path)
+    camera.emit(Image(4))
+    camera.stop_error = RuntimeError("disconnected")
     with pytest.raises(RuntimeError, match="Camera capture"):
-        recorder.finish(sensor)
+        recorder.finish(camera)
     manifest = json.loads((tmp_path / "camera-manifest.json").read_text())
     assert manifest["camera_stopped"] is False
     assert manifest["ok"] is False
@@ -110,12 +208,12 @@ def test_capture_count_is_bounded_on_repeated_drains(
 ) -> None:
     """A small queue alone cannot bound total retained files; the run has a separate cap."""
     monkeypatch.setattr(capture, "MAX_CAPTURE_FRAMES", 1)
-    recorder = capture.FrameRecorder(tmp_path)
-    recorder.receive(Image(1))
+    recorder, camera = _recorder(tmp_path)
+    camera.emit(Image(1))
     recorder.save_arrived()
-    recorder.receive(Image(2))
+    camera.emit(Image(2))
     with pytest.raises(RuntimeError, match="Camera capture"):
-        recorder.finish(Mock())
+        recorder.finish(camera)
     assert not (tmp_path / "frames/2.png").exists()
 
 

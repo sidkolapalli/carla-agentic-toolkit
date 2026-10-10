@@ -8,11 +8,12 @@ from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
 from carla_agentic_toolkit.experiment_common import actor, call_required, carla_location
+from carla_agentic_toolkit.tm_access import get_traffic_manager
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from carla_agentic_toolkit.carla_protocols import CarlaWorld
+    from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaWorld
     from carla_agentic_toolkit.models import TrafficVehiclePathRequest
 
 MAX_TCP_PORT = 65535
@@ -39,10 +40,11 @@ def tune_traffic_vehicle(
     traffic_manager_port: int,
     settings: dict[str, object],
 ) -> dict[str, object]:
-    """Apply validated per-vehicle Traffic Manager settings."""
+    """Apply per-vehicle TM settings; desired_speed_kmh is in km/h."""
     if not settings:
         msg = "settings must contain at least one per-vehicle Traffic Manager option."
         raise CarlaAdapterError(msg)
+    settings = _normalized_speed_settings(settings)
     operations = tuple(_traffic_operation(name, value) for name, value in settings.items())
     manager, target = _manager_and_actor(client, traffic_manager_port, actor_id)
     _require_methods(manager, operations)
@@ -53,6 +55,26 @@ def tune_traffic_vehicle(
         "traffic_manager_port": traffic_manager_port,
         **settings,
     }
+
+
+def _normalized_speed_settings(settings: dict[str, object]) -> dict[str, object]:
+    speeds = {
+        name: _nonnegative(settings[name], name)
+        for name in ("desired_speed_kmh", "desired_speed")
+        if name in settings
+    }
+    normalized = dict(settings)
+    if speeds:
+        _require_matching_speeds(speeds)
+        normalized.pop("desired_speed", None)
+        normalized["desired_speed_kmh"] = next(iter(speeds.values()))
+    return normalized
+
+
+def _require_matching_speeds(speeds: dict[str, float]) -> None:
+    if len(speeds) > 1 and speeds["desired_speed_kmh"] != speeds["desired_speed"]:
+        message = "desired_speed_kmh and deprecated desired_speed must specify the same km/h."
+        raise CarlaAdapterError(message)
 
 
 def set_traffic_vehicle_path(
@@ -108,7 +130,7 @@ def _manager_and_actor(client: object, port: int, actor_id: int) -> tuple[object
     if isinstance(port, bool) or not isinstance(port, int) or not 1 <= port <= MAX_TCP_PORT:
         msg = f"traffic_manager_port must be in 1..{MAX_TCP_PORT}."
         raise CarlaAdapterError(msg)
-    manager = call_required(client, "get_trafficmanager", port)
+    manager = get_traffic_manager(cast("CarlaClient", client), port)
     world = call_required(client, "get_world")
     return manager, actor(cast("CarlaWorld", world), actor_id)
 
@@ -177,7 +199,7 @@ def _finite_number(value: object, name: str) -> float:
 _SETTING_DEFINITIONS: dict[str, tuple[str, Callable[[object, str], object]]] = {
     "auto_lane_change": ("auto_lane_change", _auto_lane_change),
     "force_lane_change": ("force_lane_change", _lane_direction),
-    "desired_speed": ("set_desired_speed", _nonnegative),
+    "desired_speed_kmh": ("set_desired_speed", _nonnegative),
     "distance_to_leading_vehicle": ("distance_to_leading_vehicle", _nonnegative),
     "ignore_lights_percentage": ("ignore_lights_percentage", _percentage),
     "ignore_signs_percentage": ("ignore_signs_percentage", _percentage),
