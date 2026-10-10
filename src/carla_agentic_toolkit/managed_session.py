@@ -4,8 +4,15 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import asdict, dataclass
+from functools import partial
 from typing import TYPE_CHECKING, cast
 
+from carla_agentic_toolkit import experiment_replay
+from carla_agentic_toolkit.authoritative_destroy import (
+    destroy_authoritatively,
+    destroy_result_cleaned,
+)
+from carla_agentic_toolkit.managed_replacement import check_replaced_world
 from carla_agentic_toolkit.managed_world import (
     ACTOR_PATTERNS,
     SessionInvariantError,
@@ -15,6 +22,7 @@ from carla_agentic_toolkit.managed_world import (
     world_identity,
     world_settings,
 )
+from carla_agentic_toolkit.recovery_snapshots import fresh_cleanup_frame
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -195,12 +203,17 @@ class ManagedSession:
         return trailing
 
     def _restore_world(self, failures: list[str]) -> dict[str, object]:
-        if world_identity(self.client.get_world()) != self.world_id:
-            return {"world_replaced": True, "settings_restored": False}
+        current = self.client.get_world()
+        if world_identity(current) != self.world_id:
+            return check_replaced_world(self.client, current, self._original_settings, failures)
         if self._recovering:
             self._refresh_recovery_snapshot()
         self._recover_uncertain_spawns()
         self._destroy_owned(failures)
+        if world_identity(self.client.get_world()) != self.world_id:
+            message = "The world was replaced during actor cleanup; settings restore refused."
+            failures.append(message)
+            return {"world_replaced": True, "settings_restored": False}
         apply_world_settings(self.world, self._original_settings)
         restored = world_settings(self.world) == self._original_settings
         if not restored:
@@ -219,11 +232,10 @@ class ManagedSession:
 
     def _refresh_recovery_snapshot(self) -> None:
         """Publish one cleanup frame only after the dead worker's lease is reacquired."""
-        before = self.world.get_snapshot().frame
-        frame = self.world.tick()
-        if frame <= before or self.world.get_snapshot().frame != frame:
-            message = "Recovery actor snapshot did not reach the requested cleanup frame."
-            raise SessionInvariantError(message)
+        frame = fresh_cleanup_frame(
+            self.world,
+            failure_message="Recovery actor snapshot did not reach the requested cleanup frame.",
+        )
         if world_identity(self.client.get_world()) != self.world_id:
             message = "The world was replaced while refreshing recovery actor state."
             raise SessionInvariantError(message)
@@ -248,14 +260,17 @@ class ManagedSession:
 
     def _destroy(self, record: OwnedActor) -> str | None:
         actor = self._actor_handle(record.actor_id)
-        if actor is None:
-            return None
-        if not _actor_matches(actor, record):
+        if actor is not None and not _actor_matches(actor, record):
             return f"Actor {record.actor_id} identity changed; destruction refused."
-        try:
-            return None if actor.destroy() else f"Actor {record.actor_id} destruction failed."
-        except RuntimeError as exc:
-            return f"Actor {record.actor_id}: {exc}"
+        result = destroy_authoritatively(
+            record.actor_id,
+            expected_world_id=self.world_id,
+            current_world_id=lambda: world_identity(self.client.get_world()),
+            apply_batch=partial(experiment_replay.apply_batch, self.client),
+        )
+        if destroy_result_cleaned(result):
+            return None
+        return f"Actor {record.actor_id}: {result.error}"
 
     def _actor_handle(self, actor_id: int) -> CarlaActor | None:
         actor = self._handles.get(actor_id)

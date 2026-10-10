@@ -70,7 +70,7 @@ def observed(experiment: route_experiment.RouteExperiment, frame: int = 100) -> 
 
 
 @pytest.mark.parametrize("scenario", ["lead_brake", "cut_in", "pedestrian_crossing"])
-def test_all_actors_are_journaled_and_every_vehicle_disables_autopilot(
+def test_all_actors_are_journaled_without_autopilot_calls(
     monkeypatch: pytest.MonkeyPatch,
     scenario: str,
 ) -> None:
@@ -78,9 +78,7 @@ def test_all_actors_are_journaled_and_every_vehicle_disables_autopilot(
     session, _experiment = prepared(monkeypatch, scenario)
     assert {item[0] for item in session.owned} == {item.id for item in session.world.actors}
     assert all(
-        item.autopilot == [False]
-        for item in session.world.actors
-        if item.type_id.startswith("vehicle.")
+        not item.autopilot for item in session.world.actors if item.type_id.startswith("vehicle.")
     )
     assert all(item[2] for item in session.owned)
 

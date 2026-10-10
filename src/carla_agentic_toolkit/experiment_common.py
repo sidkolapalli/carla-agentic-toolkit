@@ -21,20 +21,20 @@ if TYPE_CHECKING:
     from carla_agentic_toolkit.carla_protocols import CarlaSensor, CarlaWorld, ObjectFactory
 
 
-def world_state(world: CarlaWorld) -> WorldState:
+def world_state(world: CarlaWorld, *, warnings: tuple[str, ...] = ()) -> WorldState:
     """Convert a CARLA world into the authoritative state model."""
     return WorldState(
         current_map=map_name(world),
         settings=world_settings(world),
         actor_counts=actor_counts(world),
         frame=frame(world),
-        warnings=(),
+        warnings=warnings,
     )
 
 
-def world_state_payload(world: CarlaWorld) -> dict[str, object]:
+def world_state_payload(world: CarlaWorld, *, warnings: tuple[str, ...] = ()) -> dict[str, object]:
     """Return a JSON-compatible current-world payload."""
-    return world_state(world).to_dict()
+    return world_state(world, warnings=warnings).to_dict()
 
 
 def map_name(world: CarlaWorld) -> str | None:
@@ -53,6 +53,9 @@ def world_settings(world: CarlaWorld) -> WorldSettings:
         synchronous_mode=bool(settings.synchronous_mode),
         fixed_delta_seconds=settings.fixed_delta_seconds,
         no_rendering_mode=bool(settings.no_rendering_mode),
+        substepping=getattr(settings, "substepping", None),
+        max_substeps=getattr(settings, "max_substeps", None),
+        max_substep_delta_time=getattr(settings, "max_substep_delta_time", None),
     )
 
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
+from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.models import (
     AutopilotRequest,
     CameraAttachRequest,
@@ -45,7 +46,11 @@ def sensor_blueprint(kind: str) -> str:
     """Resolve a friendly sensor kind or preserve a runtime blueprint ID."""
     if kind.startswith("sensor."):
         return kind
-    return _SENSOR_BLUEPRINTS[kind]
+    try:
+        return _SENSOR_BLUEPRINTS[kind]
+    except KeyError as exc:
+        message = f"Unknown sensor kind {kind!r}."
+        raise CarlaAdapterError(message) from exc
 
 
 def zero_transform() -> dict[str, object]:

@@ -9,12 +9,12 @@ from typing import TYPE_CHECKING, cast
 
 import pytest
 
-from carla_agentic_toolkit import managed_engine, managed_session, managed_world
+from carla_agentic_toolkit import experiment_replay, managed_engine, managed_session, managed_world
 from carla_agentic_toolkit.managed_session import ManagedSession, SessionInvariantError
 from carla_agentic_toolkit.managed_spec import ExperimentSpec
 from carla_agentic_toolkit.simulator_lease import RecoveryRequiredError, SimulatorLease
 from tests.test_managed_engine import FakeExperiment
-from tests.test_managed_session import FakeWorld
+from tests.test_managed_session import FakeWorld, _apply_destroy_batch
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -22,13 +22,19 @@ if TYPE_CHECKING:
     from carla_agentic_toolkit.carla_protocols import CarlaActor, CarlaClient
 
 
+@pytest.fixture(autouse=True)
+def authoritative_batch(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Use the same realistic server-response fixture for lifecycle cleanup."""
+    monkeypatch.setattr(experiment_replay, "apply_batch", _apply_destroy_batch)
+
+
 def prepare_engine(monkeypatch: pytest.MonkeyPatch) -> FakeWorld:
     """Use real lifecycle code with a deterministic numerical fixture."""
     world = FakeWorld()
     client = SimpleNamespace(
         get_world=lambda: world,
-        get_client_version=lambda: "fake",
-        get_server_version=lambda: "fake",
+        get_client_version=lambda: "0.9.16-test",
+        get_server_version=lambda: "0.9.16-test",
     )
     monkeypatch.setattr(managed_engine, "connect_client", lambda _spec: client)
     monkeypatch.setattr(managed_engine, "build_experiment", FakeExperiment)

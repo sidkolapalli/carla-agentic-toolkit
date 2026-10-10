@@ -162,8 +162,14 @@ def _register_prompts(mcp: MCPServer) -> None:
     def diagnose_carla() -> str:
         """Prompt for diagnosing a CARLA session with one script."""
         return (
-            "Write one execute_carla_script Python script that calls "
-            "api.health_check(), api.get_world_state(), and returns a compact "
+            "Write one execute_carla_script Python script that first saves "
+            "health = api.health_check(). Check for an ok: false result, then inspect "
+            'health["connected"] and health["warnings"] before any world inspection. '
+            "If the health call failed, connected is False, or compatibility warnings "
+            "are present, return a health-only result with available version strings "
+            "and next action; do not call api.get_world_state(). "
+            "Only if connected is True and there are no compatibility warnings, "
+            "call api.get_world_state() and return a compact "
             "result dict with connection status, map, actor counts, and next action."
         )
 
@@ -178,12 +184,17 @@ def _register_prompts(mcp: MCPServer) -> None:
         )
 
     @mcp.prompt()
-    def setup_reproducible_session() -> str:
-        """Prompt for configuring deterministic CARLA stepping with one script."""
+    def setup_synchronous_stepping() -> str:
+        """Prompt for bounded synchronous CARLA stepping with settings restoration."""
         return (
-            "Write one execute_carla_script Python script that configures "
-            "synchronous mode with api.set_sync_mode(enabled=True), advances frames "
-            "with api.tick_n(), and returns before/after frame information."
+            "Write one execute_carla_script Python script that calls "
+            "api.set_sync_mode(enabled=True, fixed_delta_seconds=0.05), checks for "
+            'an ok: false result, and saves the successful payload["previous_settings"] '
+            "as previous_settings. Advance frames with api.tick_n() inside try and "
+            "call api.restore_world_settings(previous_settings) in finally, checking "
+            "its result too. Return before/after frame information and restoration "
+            "evidence. If stepping spans several calls, use a persistent session "
+            "that owns ticking and restores world settings on close."
         )
 
     @mcp.prompt()
@@ -191,6 +202,7 @@ def _register_prompts(mcp: MCPServer) -> None:
         """Prompt for a self-cleaning visual scenario."""
         return (
             "Use one execute_carla_script call to create an 8-second visual CARLA demo. "
+            "Run only in asynchronous mode. "
             "Save the current weather. Spawn one red Tesla Model 3 at the first free "
             "spawn point with role_name carla-agentic-toolkit-showcase. Apply rainy golden-hour "
             "weather and vehicle lights, apply gentle throttle with api.apply_vehicle_control(), "

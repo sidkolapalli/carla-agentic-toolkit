@@ -9,19 +9,24 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from contextlib import contextmanager
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from carla_agentic_toolkit.ownership import (
     OWNERSHIP_FILENAME,
     RunOwnership,
     cleanup_report,
 )
+from carla_agentic_toolkit.rpc_timeouts import RUN_DEADLINE_FILENAME
+from carla_agentic_toolkit.sandbox_cleanup import failed_cleanup_outcome, verified_settings_outcome
 from carla_agentic_toolkit.sandbox_paths import output_dir_path
 from carla_agentic_toolkit.sandbox_paths import read_only_paths as _read_only_paths
 from carla_agentic_toolkit.script_recovery import cleanup_script_ownership
+from carla_agentic_toolkit.script_settings import SETTINGS_FILENAME, RunSettings
+from carla_agentic_toolkit.session_protocol import write_message
 from carla_agentic_toolkit.simulator_lease import (
     LeaseBusyError,
     RecoveryRequiredError,
@@ -178,26 +183,51 @@ def _run_owned_sandbox(
     lease: SimulatorLease,
 ) -> ScriptOutcome:
     """Keep ownership through sandbox exit and the last parent cleanup attempt."""
+    write_message(
+        work_dir / RUN_DEADLINE_FILENAME,
+        {"absolute_deadline_monotonic": time.monotonic() + request.timeout_seconds},
+    )
     state: dict[str, object] = {
         "kind": "script",
         "ownership_path": str(work_dir / OWNERSHIP_FILENAME),
+        "settings_path": str(work_dir / SETTINGS_FILENAME),
     }
     RunOwnership(work_dir / OWNERSHIP_FILENAME).clear()
+    RunSettings(work_dir / SETTINGS_FILENAME).initialize()
     lease.mark_dirty(state)
     outcome = _run_sandbox(command, request=request, runner=runner, lease_fd=lease.descriptor)
-    if not outcome.ok:
+    if outcome.ok:
+        outcome = _verify_successful_settings(outcome, work_dir, request, lease)
+    else:
         outcome = _cleanup_failed_execution(
             outcome,
             ownership_path=work_dir / OWNERSHIP_FILENAME,
             request=request,
             lease_descriptor=lease.descriptor,
         )
-    if (outcome.cleanup or {}).get("failures"):
+    cleanup = outcome.cleanup or {}
+    if cleanup.get("failures") or cleanup.get("settings_restored") is False:
         state["cleanup"] = outcome.cleanup
         lease.mark_dirty(state)
     else:
         lease.mark_clean()
     return outcome
+
+
+def _verify_successful_settings(
+    outcome: ScriptOutcome, work_dir: Path, request: ExecutionRequest, lease: SimulatorLease
+) -> ScriptOutcome:
+    """Check durable restoration evidence independently of a child's success report."""
+    report = cleanup_script_ownership(
+        request.host,
+        request.port,
+        work_dir / OWNERSHIP_FILENAME,
+        lease.descriptor,
+        10.0,
+        require_settings=True,
+        destroy_actors=False,
+    )
+    return verified_settings_outcome(outcome, report)
 
 
 def _run_sandbox(
@@ -382,31 +412,14 @@ def _cleanup_failed_execution(
 ) -> ScriptOutcome:
     """Cleanup a failed run while its ownership journal still exists."""
     report = cleanup_script_ownership(
-        request.host, request.port, ownership_path, lease_descriptor, 10.0
+        request.host,
+        request.port,
+        ownership_path,
+        lease_descriptor,
+        10.0,
+        require_settings=True,
     )
-    if not any(report.values()):
-        return outcome
-    previous = outcome.cleanup or cleanup_report()
-    combined = {
-        "attempted_actor_ids": [
-            *_list_value(previous, "attempted_actor_ids"),
-            *_list_value(report, "attempted_actor_ids"),
-        ],
-        "destroyed_actor_ids": [
-            *_list_value(previous, "destroyed_actor_ids"),
-            *_list_value(report, "destroyed_actor_ids"),
-        ],
-        "failures": [
-            *_list_value(previous, "failures"),
-            *_list_value(report, "failures"),
-        ],
-    }
-    return replace(outcome, cleanup=combined)
-
-
-def _list_value(payload: dict[str, object], key: str) -> list[object]:
-    value = payload.get(key)
-    return cast("list[object]", value) if isinstance(value, list) else []
+    return failed_cleanup_outcome(outcome, report)
 
 
 def _optional_string(value: object) -> str | None:

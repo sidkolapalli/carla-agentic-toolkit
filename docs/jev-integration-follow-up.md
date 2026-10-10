@@ -73,7 +73,8 @@ bounded synthetic Choice request through the pinned SDK/provider path; it does
 not by itself validate closed-loop CARLA behavior or establish a policy comparison.
 
 The [saved static comparison](evidence/merge-comparison-2026-10-02/comparison.html)
-contains one rules run and one Jev run for each of seeds 7, 19 and 31. The plan
+contains one initial condition, run three times per policy (labelled seeds 7, 19
+and 31). Those labels varied no initial pose, speed, or random generator. The plan
 declared six trials and no retries. All six physically completed, passed cleanup,
 and restored their actors and world settings. None were partial, invalid or
 excluded, and the comparison reported `comparable: true` with no blockers.
@@ -116,8 +117,10 @@ This small fixture evaluation does not establish improved safety, realism or
 general policy quality.
 
 The comparison tool requires the same fixture and initial poses, specification
-apart from policy/replay identity, seeds, environment, code, planner and controller.
-Repeated seeds are an evaluation procedure, not a promise of bitwise CARLA
+apart from policy/replay identity, replicate index, environment, code, planner
+and controller.
+The current `replicate_index` field is a label only; legacy `seed` inputs remain
+readable. Repeated runs are an evaluation procedure, not a promise of bitwise CARLA
 determinism. Equal sample counts are required within each matched cohort.
 
 ## One decision, followed through execution
@@ -266,7 +269,7 @@ uv run --no-sync python -m carla_agentic_toolkit.experiment_comparison \
   /absolute/path/to/rules/events.jsonl /absolute/path/to/jev/events.jsonl
 ```
 
-Repeat the trace arguments for the declared seeds and replicates. Exit code zero
+Repeat the trace arguments for the declared replicate indices. Exit code zero
 means the recorded matching checks passed, not that one policy performed better.
 Exit code two means comparative metrics were withheld; the report explains why.
 The [evidence guide](experiment-evidence.md) defines each metric and denominator.

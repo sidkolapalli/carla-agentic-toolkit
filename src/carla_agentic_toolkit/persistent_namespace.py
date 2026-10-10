@@ -48,9 +48,13 @@ class PersistentNamespace:
         self._namespace.update(__builtins__=_safe_builtins(), api=self._api, result=None)
         stream = _BoundedWriter(MAX_SCRIPT_STDOUT_BYTES)
         error = self._execute(code, stream)
-        if error is not None:
-            return error
-        return _script_outcome(self._namespace.get("result"), stream.getvalue(), self._snapshots)
+        outcome = (
+            error
+            if error is not None
+            else _script_outcome(self._namespace.get("result"), stream.getvalue(), self._snapshots)
+        )
+        finalize = getattr(self._api, "_finalize_owned_outcome", None)
+        return finalize(outcome) if callable(finalize) else outcome
 
     def _execute(self, code: str, stream: _BoundedWriter) -> dict[str, object] | None:
         try:

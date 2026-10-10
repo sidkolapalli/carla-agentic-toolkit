@@ -52,18 +52,21 @@ class WorldSettings(_JsonModel):
     synchronous_mode: bool
     fixed_delta_seconds: float | None
     no_rendering_mode: bool
+    substepping: bool | None = None
+    max_substeps: int | None = None
+    max_substep_delta_time: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
 class HealthReport(_JsonModel):
-    """Health details for a CARLA client/server connection."""
+    """World connection health with explicit unknowns for unavailable world observations."""
 
     connected: bool
     client_version: str | None
     server_version: str | None
     current_map: str | None
-    settings: WorldSettings
-    actor_counts: ActorCounts
+    settings: WorldSettings | None
+    actor_counts: ActorCounts | None
     warnings: tuple[str, ...] = ()
 
 
@@ -295,6 +298,8 @@ class TrafficControllerStatus(_JsonModel):
     adopted_actor_ids: tuple[int, ...] = ()
     error_type: str | None = None
     conflict: dict[str, object] | None = None
+    frame_wait_phase: str | None = None
+    reset_progress: dict[str, object] | None = None
 
 
 @dataclass(frozen=True, slots=True)

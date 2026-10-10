@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol, cast
 
 from carla_agentic_toolkit import __version__
+from carla_agentic_toolkit.carla_versions import read_version_info, require_matching_release
 from carla_agentic_toolkit.experiment_trace import (
     RecordedPolicy,
     TraceStore,
@@ -197,8 +198,7 @@ class ExperimentRun:
 
     def _prepare(self, lease: SimulatorLease) -> None:
         client = connect_client(self.spec)
-        self.policy = create_policy(self.spec, self.root)
-        self.session = ManagedSession(self.spec, client, lease, self.run_id)
+        versions = read_version_info(client)
         self.event(
             "metadata",
             {
@@ -208,15 +208,18 @@ class ExperimentRun:
                 **_implementation_versions(self.spec.fixture),
                 "package_version": __version__,
                 "code_sha256": _source_digest(),
-                "seed": self.spec.seed,
+                "replicate_index": self.spec.replicate_index,
                 "environment": {
                     "platform": platform.platform(),
                     "python": platform.python_version(),
-                    "carla_client": client.get_client_version(),
-                    "carla_server": client.get_server_version(),
+                    "carla_client": versions.client_version,
+                    "carla_server": versions.server_version,
                 },
             },
         )
+        require_matching_release(versions)
+        self.policy = create_policy(self.spec, self.root)
+        self.session = ManagedSession(self.spec, client, lease, self.run_id)
         self.session.open()
         self.event("setup_frames", self.session.setup_frame_barrier)
         self.experiment = build_experiment(self.session)

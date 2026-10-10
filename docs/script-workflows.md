@@ -11,14 +11,14 @@ Scripts receive a curated `api` object. Assign a JSON-compatible value to
 
 ```python
 health = api.health_check()
-world = api.get_world_state()
-
-result = {
-    "connected": health["connected"],
-    "map": world["current_map"],
-    "actors": world["actor_counts"],
-}
+result = {"health": health}
+if health.get("connected") is True and not health.get("warnings"):
+    result["world"] = api.get_world_state()
 ```
+
+An incompatible or unverified release returns version-only health with no world
+inspection. Keep that diagnostic result and fix client/server compatibility
+before requesting world state or mutations; see [version matching](client-setup.md#version-matching).
 
 Call `api.describe_api()` for the live method catalog, or
 `api.list_capabilities()` for CARLA version and feature probes. A method being
@@ -55,6 +55,11 @@ capture a frame. Set `publish=True` to include the saved image in the MCP result
 capture = api.capture_sensor_frame(sensor_id, "captures/front.png", publish=True)
 result = {"capture": capture}
 ```
+
+Camera creation and new reads require `no_rendering_mode=False`; disabled or
+unknown rendering is refused before spawning or listening. CPU sensors and
+listener cleanup remain available. Off-screen rendering does not imply
+no-rendering mode. See [rendering requirements](sensor-timing.md#rendering-requirements).
 
 Published PNG/JPEG captures include native `ImageContent` for vision-capable
 clients and a `carla-output://capture/...` Resource link for later reads. JSON
@@ -102,10 +107,56 @@ or use explicit destroy methods when the scene no longer needs them. Actors
 retained from an earlier call require explicit cleanup using their known IDs;
 assigning an alias does not add them to the current execution's ownership journal.
 
-Uncaught exceptions and timeouts trigger bounded, best-effort CARLA-side cleanup
-of journaled actors without touching pre-existing actors. Failed or unreachable
-cleanup remains visible; a failed script is not proof that its actors are gone.
-Actor cleanup does not substitute for restoring world settings your script changed.
+Before a native spawn, the toolkit durably records a pending creation intent for
+the originating simulator episode. Each returned actor ID is journaled
+immediately, before validation or later setup. This includes each actor in a
+spawn batch, each traffic vehicle, and each walker before its controller.
+`api.save_screenshot()` journals its temporary camera before capture and removes
+it from the journal only after authoritative destruction or confirmed absence.
+The intent is resolved only after fresh same-episode verification and a durable
+completion write. A definitive no-actor spawn response uses the same checks.
+
+Traffic population and `spawn_actor_batch` intentionally spawn one actor at a
+time. Each returned ID reaches the durable journal before autopilot or later
+setup. CARLA's native `SpawnActor.then(SetAutopilot)` batch returns IDs only after
+the batch request; a terminated worker cannot journal them before its chained
+controls run. This retains the journaling-first alternative in
+[#149](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/149) rather than
+trading [#136](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/136)'s
+ownership guarantee for fewer round trips. No native spawn/autopilot batch is
+exposed; deterministic blueprint ordering and per-vehicle failures are unchanged.
+Traffic controllers live in the script or persistent-session child, not the MCP
+server or the trusted Traffic Manager sidecar. The live 30-vehicle ownership and
+autopilot check remains pending.
+
+A creation-journal, episode-verification, or completion-write failure remains
+fatal for that execution even if script code ignores the API error. Later
+creation is blocked. The toolkit attempts a non-ticking, authoritative rollback
+of the known ID. Verified rollback can resolve that actor and its creation intent,
+but the execution still fails. Unverified rollback retains the actor ID and error
+in cleanup failures; a failed completion write also leaves the intent unresolved.
+Both require recovery without releasing the dirty simulator lease.
+Do not delete recovery markers or change the state directory or endpoint to bypass
+that barrier; only verified recovery can establish cleanup.
+
+If a worker is killed or a spawn reply is lost before a conclusive outcome is
+recorded, the pending intent keeps the lease dirty even when the actor-ID list is
+empty. Recovery can attempt cleanup of durably known IDs from the same episode
+and restore journaled settings, but cannot establish a clean run while that
+intent is unresolved. That uncertainty requires operator investigation. Unknown
+IDs are not reconstructed: the toolkit cannot infer whether the server created
+such an actor or claim that it was recovered.
+
+The toolkit journals all six original world-settings fields before the first
+settings change, then restores and verifies them when a finite script finishes.
+Successful scripts retain their actors while their world settings are restored.
+Uncaught exceptions and timeouts also trigger bounded, best-effort CARLA-side
+cleanup of journaled actors without touching pre-existing actors. The separate
+cleanup process can restore settings even when a killed script cannot run
+`finally`. Inspect `cleanup.settings_restored` and `cleanup.failures`; a restoration
+that cannot be verified leaves the simulator lease dirty and requires recovery.
+Failed or unreachable cleanup remains visible; a failed script is not proof that
+its actors are gone.
 
 One MCP server serializes complete finite script executions against shared
 simulator state. `timeout_seconds` starts after queueing and covers sandbox
@@ -118,19 +169,186 @@ endpoint for every local process. This coordination cannot stop unrelated CARLA
 clients from changing the world. The [security policy](../SECURITY.md) explains
 the process boundary and supported deployment assumptions.
 
+## Bound RPC timeouts and map changes
+
+CARLA's per-RPC timeout is separate from `timeout_seconds`. Ordinary calls use a
+10-second cap, narrowed to the remaining finite execution budget. Native creation
+refreshes that limit before each spawn; a long batch does not grant each actor a
+new script budget.
+
+The world and batch defaults are explicit below, alongside the
+[CARLA 0.9.16 Python binding](https://github.com/carla-simulator/carla/blob/0.9.16/PythonAPI/carla/source/libcarla/Client.cpp).
+
+| Script operation | Toolkit choice | CARLA 0.9.16 default |
+| --- | --- | --- |
+| `api.load_world(map_name, reset_settings=True)` | Optional keyword; `True` resets settings, `False` preserves them. | `Client.load_world`: `reset_settings=True` |
+| `api.reload_world(reset_settings=False)` | Required keyword with no default; choose `False` to keep settings or `True` to reset them. | `Client.reload_world`: `reset_settings=True` |
+| `api.generate_opendrive_world(opendrive, reset_settings=True)` | Optional keyword; unchanged default of `True`. | `Client.generate_opendrive_world`: `reset_settings=True` |
+| `api.apply_batch(commands, do_tick=False)` | No tick by default; only explicit `do_tick=True` requests a tick. | `Client.apply_batch_sync`: `do_tick=False` |
+
+Successful world replacements and batch results include top-level
+`synchronous_mode` and `synchronous_mode_changed`. The former is the observed
+post-call mode; the latter compares the observed pre-call and post-call modes,
+not the requested flags. An unchanged mode does not mean every world setting
+was preserved. Inspect these fields before choosing the next timing operation.
+When the caller owns a synchronous clock, request a batch tick explicitly if
+needed; ordinary cleanup batches do not implicitly advance it.
+
+Loading, reloading, and generating a world temporarily raise the map-mutation
+RPC cap to 120 seconds, still bounded by the remaining execution budget. The
+ordinary limit is restored afterward; this does not extend the sandbox deadline.
+
+A native map-operation failure returns `retryable: false`, a `hint`, and
+`observed_world` with `world_id`, `map_name`, and `error`. The toolkit makes one
+best-effort read-only observation within a combined two-second window, also
+bounded by the remaining budget. Unavailable diagnostics retain null fields and
+an error. A lost reply does not trigger another map mutation, automatic ownership
+rebinding, or journal clearing: inspect the observation and recover the execution
+before starting another mutation.
+
+Reload closes this execution's sensor subscriptions before making the native
+request. If it fails, cached sensor handles and the ownership journal remain
+intact; the failure is returned as `reload_world_failed`, not a raw CARLA
+exception. When the original episode is still current, later owned-actor cleanup
+can destroy those sensors without restarting their listeners. An uncertain or
+changed episode is not authorization to reuse old handles in the replacement
+world, and does not make a failed run's lease clean.
+
+Live CARLA 0.9.16 acceptance checks for interrupted traffic creation and large
+persistent-session map loads remain pending; offline regressions do not establish
+those simulator-specific outcomes.
+
 ## Keep traffic and simulation timing explicit
 
-Traffic controller state lasts for one script process. Keep that process alive
-with `api.wait()` within its execution budget, or use the documented live
-sidecar. Autopilot and traffic tuning require an existing Traffic Manager server
-in a trusted client outside the sandbox; follow
-[Traffic Manager setup](client-setup.md#traffic-manager).
+The `setup_synchronous_stepping` prompt uses a fixed timestep and restores the
+previous settings in `finally`. The same pattern gives a script restoration
+evidence before it returns:
 
-Background density maintenance supports asynchronous worlds. Synchronous density
-maintenance and non-ticking recorder replay fail before mutation. When your
-caller owns the clock, population/autopilot requests accept `advance_world=False`
-and batch operations accept `do_tick=False`. See [sensor timing](sensor-timing.md)
-before combining these operations with an explicit tick owner.
+```python
+configured = api.set_sync_mode(enabled=True, fixed_delta_seconds=0.05)
+if configured.get("ok") is False:
+    raise RuntimeError(configured["error"])
+previous_settings = configured["previous_settings"]
+try:
+    before = api.get_world_state()
+    advanced = api.tick_n(count=5)
+    if advanced.get("ok") is False:
+        raise RuntimeError(advanced["error"])
+    after = api.get_world_state()
+    result = {"before": before, "after": after}
+finally:
+    restored = api.restore_world_settings(previous_settings)
+    if restored.get("ok") is False:
+        raise RuntimeError(restored["error"])
+result["restoration"] = restored
+```
+
+Successful `health_check` and `get_world_state` reports, including their inline
+snapshots, expose `synchronous_mode`, `fixed_delta_seconds`, `no_rendering_mode`,
+`substepping`, `max_substeps`, and `max_substep_delta_time`. Substepping fields
+unavailable in a legacy client are `null`, not assumed CARLA defaults. Unverified
+version-only health still has `settings=null` and does not inspect the world.
+
+Enabling synchronous mode requires a positive fixed timestep of at most 0.1
+seconds that fits the world's substep budget when substepping is enabled.
+`api.set_sync_mode(enabled=False)` defaults to a variable timestep. Synchronous
+stepping does not by itself guarantee reproducible simulation results.
+Both `api.set_sync_mode(enabled=True)` and restoration of
+`synchronous_mode=True` through `api.restore_world_settings()` are refused while
+the background traffic controller is active or stopping. Call
+`api.stop_traffic_controller()` and confirm both `active` and `stopping` are false
+before changing to synchronous settings.
+
+`api.tick()` and `api.tick_n()` require synchronous mode. In asynchronous mode
+they return a structured error without sending a tick cue. `api.watch_actor()`
+requires asynchronous mode and rejects a synchronous world before changing the
+spectator.
+
+`api.wait(seconds)` is also asynchronous-only. It clamps the requested wall-clock
+duration to 0-60 seconds and observes native frames instead of sleeping or
+ticking. Each frame wait is capped at one second, the remaining requested
+duration, and the remaining RPC budget. Finite execution, request, and absolute
+session deadlines are not reset. Incompatible modes return structured errors;
+use explicit ticks when the caller owns a synchronous clock.
+
+For stepping across calls, use a [persistent session](persistent-sessions.md).
+It retains the settings and owns ticking until close, when the toolkit restores
+and verifies the original settings. A finite call restores its settings before
+releasing ownership, even when the script leaves synchronous mode enabled.
+
+Traffic Manager global setter attempts are journaled per port in
+`attempted_settings` before the native call. Cleanup restores only the attempted
+fields to these declared targets:
+
+| Global setting | Cleanup target |
+| --- | --- |
+| `global_distance_to_leading_vehicle` | 2.0 meters |
+| `global_percentage_speed_difference` | 0.0 |
+| `seed` | 0 |
+| `synchronous_mode` | `False` |
+
+These are cleanup policy, not captured original values. The
+[CARLA 0.9.16 binding](https://github.com/carla-simulator/carla/blob/0.9.16/PythonAPI/carla/source/libcarla/TrafficManager.cpp)
+provides no getters for these global settings, so successful setter calls are not
+readback verification and cannot restore unknown external configuration. A cleanup
+setter failure keeps the lease dirty even when actor cleanup succeeds. Cleanup's
+`traffic_manager_restore_targets` evidence lists each port and its attempted-field
+targets; `traffic_manager_async_ports` includes only ports whose recorded fields
+include synchronous mode. Legacy mode-only journal entries restore only their
+recorded synchronous-mode field; they do not authorize resetting unrecorded
+globals. Setting any seed, including cleanup's seed 0,
+[resets all traffic lights](https://github.com/carla-simulator/carla/blob/0.9.16/LibCarla/source/carla/trafficmanager/TrafficManagerLocal.cpp#L449-L453).
+
+Traffic controller state lasts for one script process. Keep that process alive
+with asynchronous frame waits through `api.wait()` within its execution budget,
+or use the documented sidecar. Autopilot and traffic tuning require a dedicated
+toolkit-owned Traffic Manager server in a trusted client outside the sandbox;
+follow [Traffic Manager setup](client-setup.md#traffic-manager).
+
+Population, autopilot, global configuration, per-vehicle tuning, path changes,
+behavior profiles, and background density maintenance are asynchronous-only.
+They reject synchronous worlds before Traffic Manager access or mutation.
+`configure_traffic_manager` also rejects `synchronous_mode=True` in either world
+mode with guidance to [#26](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/26).
+Seeds do not provide asynchronous traffic reproducibility. Population/autopilot
+requests still accept `advance_world=False`, but that does not bypass the
+asynchronous-only guard. Batch operations default to `do_tick=False`; non-ticking
+recorder replay remains unsupported. See [sensor timing](sensor-timing.md) before
+combining operations with an explicit tick owner. Live CARLA 0.9.16 sidecar checks
+of these guards and cleanup targets remain pending.
+
+With `safe_filter=True`, vehicle selection keeps only the native
+`base_type="car"` classification when that attribute exists. Present blank or
+other values are excluded. Older blueprints without the attribute use the
+previous four-wheel and excluded-name policy. `safe_filter=False` retains all
+vehicle blueprints; both selections stay sorted by blueprint ID before the
+existing seed-based population ordering.
+
+### Density frame-wait failures
+
+A single failed density-controller `wait_for_tick(1.0)` stops its worker. It is
+not replaced by a sleep or an automatic reconnect/retry. Status exposes
+`error_type="frame_wait_failed"`, the original native error in `last_error`, and
+`frame_wait_phase`: `reset_before_destroy`, `reset_after_destroy`, or
+`maintenance_end`. Inspect the failure before explicitly restarting maintenance.
+
+The final wait follows population maintenance and count observation. Those
+completed-pass observations and confirmed spawn/destroy callbacks remain
+recorded even when the wait fails. Reset-phase failures instead expose
+`reset_progress` with the episode, acknowledged deleted IDs, and whether the
+destruction phase was attempted to completion. They preserve previous counts
+and applied-revision evidence rather than inventing a successful density pass.
+Only acknowledged deletions remove ownership. A completed destruction phase
+consumes the captured one-shot reset, not a newer desired revision; it does not
+mean every requested deletion succeeded.
+
+No further controller maintenance RPCs run after that failed wait. Existing
+trusted lifecycle callbacks still validate the originating episode before
+releasing durable ownership; a failed journal acknowledgement remains a fatal
+ownership error. This policy does not change the asynchronous-only mode guard
+or acquire timing ownership. An ordinary failure while publishing lifecycle
+evidence retains the fatal frame-wait failure and reports the secondary error;
+it does not authorize another maintenance pass or an unverified journal release.
 
 ## Put outputs on the correct host
 

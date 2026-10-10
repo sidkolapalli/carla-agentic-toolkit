@@ -7,6 +7,12 @@ import hashlib
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, cast
 
+from carla_agentic_toolkit.actor_creation import (
+    creation_identity,
+    observe_created_actor,
+    observe_no_actor,
+    prepare_spawn,
+)
 from carla_agentic_toolkit.actor_runtime import actor_by_id
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.models import (
@@ -16,8 +22,18 @@ from carla_agentic_toolkit.models import (
     TrafficManagerSettings,
     TrafficPopulationRequest,
 )
+from carla_agentic_toolkit.traffic_manager_policy import require_async_traffic_manager_request
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+    from typing import Unpack
+
+    from carla_agentic_toolkit.actor_creation import (
+        ActorCreationObserver,
+        BeforeSpawn,
+        NoActorObserver,
+        SpawnObservers,
+    )
     from carla_agentic_toolkit.carla_protocols import (
         CarlaActor,
         CarlaBlueprint,
@@ -25,6 +41,7 @@ if TYPE_CHECKING:
         CarlaTrafficManager,
         CarlaWorld,
     )
+    from carla_agentic_toolkit.traffic_manager_policy import BeforeTrafficManagerSetting
 
 
 @dataclass(frozen=True, slots=True)
@@ -34,6 +51,9 @@ class _SpawnTrafficContext:
     world: CarlaWorld
     traffic_manager_instance: CarlaTrafficManager
     seed: int
+    on_spawn: ActorCreationObserver | None = None
+    before_spawn: BeforeSpawn | None = None
+    on_no_actor: NoActorObserver | None = None
 
 
 def traffic_manager(client: CarlaClient, traffic_manager_port: int) -> CarlaTrafficManager:
@@ -51,12 +71,12 @@ def traffic_manager(client: CarlaClient, traffic_manager_port: int) -> CarlaTraf
 def configure_traffic_manager(
     traffic_manager_instance: CarlaTrafficManager,
     request: TrafficManagerRequest,
+    *,
+    before_setting: BeforeTrafficManagerSetting | None = None,
 ) -> TrafficManagerSettings:
-    """Configure Traffic Manager behavior settings."""
-    try:
-        _apply_traffic_manager_settings(traffic_manager_instance, request)
-    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
-        raise CarlaAdapterError(str(exc)) from exc
+    """Configure dedicated asynchronous Traffic Manager sidecar globals."""
+    require_async_traffic_manager_request(synchronous_mode=request.synchronous_mode)
+    _apply_traffic_manager_settings(traffic_manager_instance, request, before_setting)
     return TrafficManagerSettings(
         traffic_manager_port=traffic_manager_instance.get_port(),
         global_distance_to_leading_vehicle=request.global_distance_to_leading_vehicle,
@@ -72,6 +92,7 @@ def populate_traffic_actors(
     world: CarlaWorld,
     traffic_manager_instance: CarlaTrafficManager,
     request: TrafficPopulationRequest,
+    **observers: Unpack[SpawnObservers],
 ) -> tuple[list[int], list[SpawnResult]]:
     """Spawn vehicles at map spawn points and register them with Traffic Manager."""
     blueprints = _stable_ordered(
@@ -86,6 +107,7 @@ def populate_traffic_actors(
                 world=world,
                 traffic_manager_instance=traffic_manager_instance,
                 seed=request.seed,
+                **observers,
             ),
             blueprint=blueprints[index % len(blueprints)],
             spawn_point=spawn_point,
@@ -145,20 +167,47 @@ def _missing_traffic_manager_api(candidate: object) -> bool:
 def _apply_traffic_manager_settings(
     traffic_manager_instance: CarlaTrafficManager,
     request: TrafficManagerRequest,
+    before_setting: BeforeTrafficManagerSetting | None,
 ) -> None:
     """Apply optional Traffic Manager settings."""
-    if request.global_distance_to_leading_vehicle is not None:
-        traffic_manager_instance.set_global_distance_to_leading_vehicle(
-            request.global_distance_to_leading_vehicle
-        )
-    if request.global_percentage_speed_difference is not None:
-        traffic_manager_instance.global_percentage_speed_difference(
-            request.global_percentage_speed_difference
-        )
-    if request.seed is not None:
-        traffic_manager_instance.set_random_device_seed(request.seed)
-    if request.synchronous_mode is not None:
-        traffic_manager_instance.set_synchronous_mode(request.synchronous_mode)
+    _apply_setting(
+        "global_distance_to_leading_vehicle",
+        request.global_distance_to_leading_vehicle,
+        traffic_manager_instance.set_global_distance_to_leading_vehicle,
+        before_setting,
+    )
+    _apply_setting(
+        "global_percentage_speed_difference",
+        request.global_percentage_speed_difference,
+        traffic_manager_instance.global_percentage_speed_difference,
+        before_setting,
+    )
+    _apply_setting(
+        "seed", request.seed, traffic_manager_instance.set_random_device_seed, before_setting
+    )
+    _apply_setting(
+        "synchronous_mode",
+        request.synchronous_mode,
+        traffic_manager_instance.set_synchronous_mode,
+        before_setting,
+    )
+
+
+def _apply_setting[T](
+    name: str,
+    value: T | None,
+    setter: Callable[[T], None],
+    before_setting: BeforeTrafficManagerSetting | None,
+) -> None:
+    """Keep fatal journal failures outside the recoverable native RPC boundary."""
+    if value is None:
+        return
+    if before_setting is not None:
+        before_setting(setting=name, value=value)
+    try:
+        setter(value)
+    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+        raise CarlaAdapterError(str(exc)) from exc
 
 
 def _spawn_traffic_actor(
@@ -177,17 +226,21 @@ def _spawn_traffic_actor(
         seed=context.seed,
         index=index,
     )
+    identity = creation_identity(context.world, context.on_spawn)
+    prepare_spawn(context.before_spawn)
     try:
         actor = context.world.try_spawn_actor(configured_blueprint, spawn_point)
-        if actor is None:
-            return _spawn_failure(index, "CARLA could not spawn actor at the selected spawn point.")
-        try:
-            autopilot_enabled = True
-            actor.set_autopilot(autopilot_enabled, context.traffic_manager_instance.get_port())
-        except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
-            _destroy_actor(actor)
-            return _spawn_failure(index, str(exc))
     except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+        return _spawn_failure(index, str(exc))
+    if actor is None:
+        observe_no_actor(identity, context.on_no_actor)
+        return _spawn_failure(index, "CARLA could not spawn actor at the selected spawn point.")
+    observe_created_actor(actor, identity, context.on_spawn)
+    try:
+        autopilot_enabled = True
+        actor.set_autopilot(autopilot_enabled, context.traffic_manager_instance.get_port())
+    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+        _destroy_actor(actor)
         return _spawn_failure(index, str(exc))
     return SpawnResult(request_index=index, actor_id=int(actor.id), error=None)
 
@@ -235,7 +288,9 @@ def _traffic_vehicle_blueprints(
 
 
 def _is_safe_vehicle_blueprint(blueprint: CarlaBlueprint) -> bool:
-    """Avoid odd vehicles that tend to create unrealistic traffic flow."""
+    """Keep native cars, or use legacy heuristics when classification is absent."""
+    if _has_blueprint_attribute(blueprint, "base_type"):
+        return _blueprint_string_attribute_text(blueprint, "base_type") == "car"
     unsafe_fragments = (
         "ambulance",
         "carlacola",
@@ -287,6 +342,18 @@ def _blueprint_attribute_text(blueprint: CarlaBlueprint, attribute_id: str) -> s
         as_int = getattr(attribute, "as_int", None)
         if callable(as_int):
             return str(as_int())
+        return str(attribute)
+    except (AttributeError, RuntimeError, TypeError, ValueError):
+        return None
+
+
+def _blueprint_string_attribute_text(blueprint: CarlaBlueprint, attribute_id: str) -> str | None:
+    """Read string attributes without probing CARLA's incompatible integer cast."""
+    try:
+        attribute = blueprint.get_attribute(attribute_id)
+        as_str = getattr(attribute, "as_str", None)
+        if callable(as_str):
+            return str(as_str())
         return str(attribute)
     except (AttributeError, RuntimeError, TypeError, ValueError):
         return None

@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from carla_agentic_toolkit.experiment_trace import MAX_TRACE_BYTES, load_trace
+from carla_agentic_toolkit.replicate_index import normalize_replicate_index
 
 ACTOR_FIELDS = (
     "longitudinal_m",
@@ -26,14 +27,14 @@ ACTOR_FIELDS = (
 def project_trace(path: Path, expected_sha256: str) -> dict[str, Any]:
     """Preserve observed values and event ordering without exporting arbitrary payloads."""
     events, digest = _pinned_events(path, expected_sha256)
-    metadata = _metadata(events)
+    metadata = normalize_replicate_index(_metadata(events))
     spec = _mapping(metadata, "spec")
     return {
         "schema_version": 1,
         "run_id": events[0]["run_id"],
         "trace_sha256": digest,
         "code_sha256": _digest(_text(metadata, "code_sha256")),
-        "seed": _integer(metadata, "seed"),
+        "replicate_index": _integer(metadata, "replicate_index"),
         "policy": _text(spec, "policy"),
         "fixed_delta_seconds": _number(spec, "fixed_delta_seconds"),
         "outcome": _outcome(events),

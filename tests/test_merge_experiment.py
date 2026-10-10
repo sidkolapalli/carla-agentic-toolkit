@@ -42,7 +42,7 @@ class Actor:
         raise AssertionError(message)
 
     def set_autopilot(self, enabled: object, *_args: object) -> None:
-        """Record explicit TM disabling before local control."""
+        """Record any forbidden autopilot call from a managed fixture."""
         assert isinstance(enabled, bool)
         self.autopilot.append(enabled)
 
@@ -149,13 +149,13 @@ def _snapshot(session: Session, frame: int = 10) -> SimpleNamespace:
     )
 
 
-def test_prepare_assigns_unique_controllers_and_disables_autopilot(
+def test_prepare_assigns_unique_controllers_without_autopilot(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Every spawned actor is protected, with role identity present before spawning."""
     session, _experiment = _prepare(monkeypatch)
     vehicles = session.world.actors[:2]
-    assert [actor.autopilot for actor in vehicles] == [[False], [False]]
+    assert [actor.autopilot for actor in vehicles] == [[], []]
     assert len({item[0] for item in session.owned}) == len(session.world.actors)
     assert all(actor.role.startswith("managed:run-test:") for actor in session.world.actors)
 

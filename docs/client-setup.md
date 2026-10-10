@@ -25,8 +25,9 @@ Before starting, install or confirm:
   otherwise select Python 3.14, which CARLA 0.9.16 does not support.
 - Linux kernel 6.15 or newer, which provides the Landlock ABI V7 required by the
   sandbox. On Windows this kernel must be supplied by WSL2.
-- A reachable CARLA server and the same CARLA Python API version in the MCP
-  virtual environment. A 0.9.16 server requires `carla==0.9.16`.
+- A reachable CARLA server and a matching CARLA Python API release in the MCP
+  virtual environment. A 0.9.16 server requires `carla==0.9.16`; see
+  [version matching](#version-matching) for diagnostics and source-build suffixes.
 - Free, non-reserved CARLA ports. The defaults are RPC 2000, streaming 2001,
   secondary 2002, and Traffic Manager 8000. WSL2/Hyper-V may reserve the
   defaults on Windows even when `netstat` shows no listener.
@@ -93,6 +94,37 @@ Use `town10-merge-ue5-v1` and the
 experiments. The original Tesla fixture remains unchanged; its vehicle is absent
 from UE5. Keep UE4 and UE5 results in separate comparisons. Docker continues to
 default to 0.9.16; changing its version argument is not a validated UE5 image.
+
+### Version matching
+
+`api.health_check()` retains the full available `client_version` and
+`server_version` strings. Its `warnings`, and the warnings in world-state
+results such as `api.get_world_state()`, compare the leading `X.Y.Z` release
+prefixes. Same-release source-build suffixes are accepted: for example,
+`0.9.16-custom` and `0.9.16` match this release check, while their full strings
+remain available for diagnosis. Different release prefixes produce a structured
+warning naming both versions. A missing, unreadable, or unparseable version is
+reported distinctly as unknown compatibility, not mislabeled as a mismatch.
+
+For mismatched or unknown compatibility, health returns version-only diagnostics
+without attaching to a world. `connected: false` means a compatible world/session
+connection was not verified; it is not proof that the server is offline. The
+unobserved `current_map`, `settings`, and `actor_counts` are `null`, and a warning
+explains that world inspection was skipped. Check health's connection status and
+compatibility warnings before calling `api.get_world_state()` or other world
+operations. Those operations are not automatically protected by the health check.
+
+Managed startup records available full versions in trace metadata under
+`environment.carla_client` and `environment.carla_server`. It refuses both
+mismatched and unknown compatibility before constructing the policy or session,
+or changing the simulator. See the [managed guide](managed-experiments.md).
+A matching release prefix does not guarantee every native capability or imply
+a fixture-to-engine catalog match; the existing capability and fixture checks
+still apply. Live acceptance with an incompatible CARLA wheel and server remains
+separate from managed startup: Windows-native checks on 2026-10-09 verified full
+health with matching 0.9.16 releases and version-only health from a genuine 0.10.0
+client against the 0.9.16 server, with zero world-inspection calls. Linux managed
+startup acceptance remains pending.
 
 ## Docker MCP server
 
@@ -420,10 +452,14 @@ Git Bash is required, prefix the command with `MSYS_NO_PATHCONV=1`.
 
 ### Traffic Manager
 
-The sandbox can connect to Traffic Manager but cannot bind a TCP server port.
-Before using autopilot or traffic tuning, keep a trusted CARLA client running
-outside the sandbox on the chosen Traffic Manager port. For example, inside
-the Linux environment with the matching CARLA Python API:
+The sandbox can connect to Traffic Manager but cannot bind a TCP server port or
+step a synchronous manager in another process. Toolkit Traffic Manager workflows
+are asynchronous-only. Before using autopilot or traffic tuning, keep a trusted
+CARLA client running outside the sandbox on a dedicated toolkit-owned Traffic
+Manager port. Do not share that manager with unrelated clients: global settings
+and their cleanup targets affect every vehicle using the same manager.
+
+For example, inside the Linux environment with the matching CARLA Python API:
 
 ```python
 import time
@@ -432,6 +468,7 @@ import carla
 client = carla.Client("127.0.0.1", 2000)  # Use the reachable simulator endpoint.
 client.set_timeout(10.0)
 manager = client.get_trafficmanager(8000)
+manager.set_synchronous_mode(False)
 try:
     while True:
         time.sleep(1.0)
@@ -444,6 +481,23 @@ Traffic Manager on port 8000. For other ports, also include them in the MCP
 tool's `traffic_manager_ports` argument. With Windows CARLA and WSL NAT, use the
 Windows host address and an available RPC port as described above. The live
 MCP smoke test uses direct throttle and brake controls, so it needs no sidecar.
+
+Toolkit traffic creation and configuration workflows reject a synchronous world
+before mutation. `api.configure_traffic_manager({"synchronous_mode": True})` is
+rejected in either world mode. Synchronous Traffic Manager support remains
+tracked in
+[#26](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/26). Stop the
+background traffic controller completely before enabling or restoring synchronous
+world settings.
+
+Seeds do not make this asynchronous traffic reproducible; CARLA's
+[deterministic Traffic Manager mode requires synchronous operation](https://carla.readthedocs.io/en/0.9.16/adv_traffic_manager/#deterministic-mode).
+Setting a Traffic Manager seed also
+[resets all traffic lights](https://github.com/carla-simulator/carla/blob/0.9.16/LibCarla/source/carla/trafficmanager/TrafficManagerLocal.cpp#L449-L453),
+including when cleanup sets seed 0. Cleanup restores only attempted global
+settings to [declared targets](script-workflows.md#keep-traffic-and-simulation-timing-explicit),
+not to an unknown shared client's original values. Live CARLA 0.9.16 acceptance
+with this dedicated sidecar remains pending.
 
 ## 5. First Request
 

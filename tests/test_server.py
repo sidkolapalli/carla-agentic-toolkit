@@ -9,9 +9,10 @@ import time
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
+import pytest
 from mcp import Client
 from mcp.server import MCPServer
-from mcp.types import BlobResourceContents, ImageContent, ResourceLink, TextContent
+from mcp.types import BlobResourceContents, GetPromptResult, ImageContent, ResourceLink, TextContent
 
 from carla_agentic_toolkit import server as server_module
 from carla_agentic_toolkit.output_content import capture_resource_uri
@@ -19,7 +20,6 @@ from carla_agentic_toolkit.sandbox import ScriptOutcome
 from carla_agentic_toolkit.server import build_server
 
 if TYPE_CHECKING:
-    import pytest
     from mcp.types import CallToolResult, Implementation, ReadResourceResult
 
 
@@ -121,16 +121,63 @@ def test_capture_resource_template_returns_bounded_binary_content(
     assert base64.b64decode(content.blob) == image
 
 
-def test_server_prompts_cover_diagnosis_capture_reproducibility_and_demo() -> None:
+def test_server_prompts_cover_diagnosis_capture_synchronous_stepping_and_demo() -> None:
     """User-selected MCP prompts should teach the common workflow shapes."""
     prompts = asyncio.run(build_server().list_prompts())
 
     assert [prompt.name for prompt in prompts] == [
         "diagnose_carla",
         "capture_actor_view",
-        "setup_reproducible_session",
+        "setup_synchronous_stepping",
         "run_visual_showcase",
     ]
+
+
+@pytest.mark.parametrize(
+    "fragment",
+    [
+        'health["connected"]',
+        'health["warnings"]',
+        "health-only",
+        "do not call api.get_world_state()",
+        "Only if connected is True and there are no compatibility warnings",
+        "api.health_check()",
+        "compact",
+    ],
+)
+def test_diagnosis_prompt_requires_verified_health_before_world_inspection(fragment: str) -> None:
+    """The served diagnosis workflow must not unconditionally attach to an incompatible world."""
+    prompt = asyncio.run(build_server().get_prompt("diagnose_carla"))
+    assert isinstance(prompt, GetPromptResult)
+    content = cast("TextContent", prompt.messages[0].content)
+
+    assert fragment in content.text
+
+
+@pytest.mark.parametrize(
+    ("fragment", "present"),
+    [
+        ("api.set_sync_mode(enabled=True, fixed_delta_seconds=0.05)", True),
+        ('["previous_settings"]', True),
+        ("finally", True),
+        ("api.restore_world_settings(previous_settings)", True),
+        ("persistent session", True),
+        ("owns ticking", True),
+        ("restores", True),
+        ("close", True),
+        ("deterministic", False),
+        ("reproducible", False),
+    ],
+)
+def test_synchronous_stepping_prompt_restores_settings_and_explains_tick_ownership(
+    fragment: str, *, present: bool
+) -> None:
+    """The stepping workflow must restore its clock configuration before returning."""
+    prompt = asyncio.run(build_server().get_prompt("setup_synchronous_stepping"))
+    assert isinstance(prompt, GetPromptResult)
+    content = cast("TextContent", prompt.messages[0].content)
+
+    assert (fragment in content.text) is present
 
 
 def test_server_supports_latest_mcp_protocol(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -10,12 +10,16 @@ from typing import TYPE_CHECKING, Protocol
 from carla_agentic_toolkit.adapter import PythonCarlaAdapter
 from carla_agentic_toolkit.ownership import RunOwnership
 from carla_agentic_toolkit.persistent_namespace import PersistentNamespace, SessionSnapshots
+from carla_agentic_toolkit.rpc_timeouts import RpcTimeoutPolicy, deadline_value
 from carla_agentic_toolkit.script_api import CarlaScriptApi
 from carla_agentic_toolkit.script_runner import _error, _parse_args
+from carla_agentic_toolkit.script_settings import SETTINGS_FILENAME, RunSettings
 from carla_agentic_toolkit.session_protocol import (
+    MAX_REQUEST_SECONDS,
     POLL_SECONDS,
     PROTOCOL_VERSION,
     ProtocolError,
+    bounded_seconds,
     read_message,
     validate_code,
     write_message,
@@ -39,13 +43,17 @@ class TelemetryApi(Protocol):
 class SessionLoop:
     """One ordered request slot and one replacing telemetry slot; no hidden tick owner."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 - optional policy preserves direct loop callers and parent deadlines.
         self,
         directory: Path,
         session_id: str,
         api: TelemetryApi,
         ownership: RunOwnership,
         snapshots: SessionSnapshots | None = None,
+        *,
+        rpc_timeout_policy: RpcTimeoutPolicy | None = None,
+        request_timeout_seconds: float = 30.0,
+        require_deadlines: bool = False,
     ) -> None:
         """Retain the same API, ownership journal, and user namespace for this worker."""
         self.directory = directory
@@ -53,6 +61,11 @@ class SessionLoop:
         self.api = api
         self.ownership = ownership
         self.namespace = PersistentNamespace(api, snapshots)
+        self.rpc_timeout_policy = rpc_timeout_policy
+        self.request_timeout_seconds = bounded_seconds(
+            request_timeout_seconds, "request_timeout_seconds", MAX_REQUEST_SECONDS
+        )
+        self.require_deadlines = require_deadlines
         self.sequence = 0
         self.telemetry_sequence = 0
         self.actor_id: int | None = None
@@ -80,13 +93,33 @@ class SessionLoop:
         self._validate_identity(request)
         action = request.get("action")
         if action == "execute":
-            payload = self.namespace.execute(validate_code(request.get("code")))
+            payload = self._execute_request(request)
         elif action == "telemetry":
             payload = self._configure_telemetry(request)
         else:
             message = "Unsupported session request action."
             raise ProtocolError(message)
         self._write("response.json", "result", self.sequence, payload)
+
+    def _execute_request(self, request: dict[str, object]) -> dict[str, object]:
+        policy = self.rpc_timeout_policy
+        if policy is None:
+            return self.namespace.execute(validate_code(request.get("code")))
+        policy.start_request(self.request_timeout_seconds, deadline=self._request_deadline(request))
+        try:
+            policy.timeout_seconds()
+            return self.namespace.execute(validate_code(request.get("code")))
+        finally:
+            policy.end_request()
+
+    def _request_deadline(self, request: dict[str, object]) -> float | None:
+        value = request.get("request_deadline_monotonic")
+        if value is None and not self.require_deadlines:
+            return None
+        try:
+            return deadline_value(value)
+        except (ValueError, TypeError) as exc:
+            raise ProtocolError(str(exc)) from exc
 
     def _validate_identity(self, request: dict[str, object]) -> None:
         if (
@@ -150,17 +183,39 @@ def main() -> None:
     """Use only trusted launcher paths and the same curated script API as finite execution."""
     args = _parse_args()
     config = read_message(args.script)
+    policy = RpcTimeoutPolicy(
+        absolute_deadline=deadline_value(config.get("absolute_deadline_monotonic"))
+    )
+    request_timeout = bounded_seconds(
+        config.get("request_timeout_seconds"), "request_timeout_seconds", MAX_REQUEST_SECONDS
+    )
     adapter = PythonCarlaAdapter(
-        host=args.host, port=args.port, timeout=min(args.timeout_seconds, 5.0)
+        host=args.host,
+        port=args.port,
+        timeout=min(args.timeout_seconds, 10.0),
+        rpc_timeout_policy=policy,
+        settings_journal=RunSettings(
+            args.ownership_file.with_name(SETTINGS_FILENAME), require_existing=True
+        ),
     )
     snapshots = SessionSnapshots()
     ownership = RunOwnership(args.ownership_file)
     api = CarlaScriptApi(adapter=adapter, snapshots=snapshots, ownership=ownership)
     try:
-        SessionLoop(args.script.parent, str(config["session_id"]), api, ownership, snapshots).run()
+        SessionLoop(
+            args.script.parent,
+            str(config["session_id"]),
+            api,
+            ownership,
+            snapshots,
+            rpc_timeout_policy=policy,
+            request_timeout_seconds=request_timeout,
+            require_deadlines=True,
+        ).run()
     except Exception as exc:  # noqa: BLE001 - protocol/user integration failures terminate the worker.
         outcome = _error("session_protocol_error", str(exc), stdout="")
     finally:
+        api.close()
         adapter.close_sensor_subscriptions()
     sys.stdout.write(json.dumps(outcome, allow_nan=False))
 

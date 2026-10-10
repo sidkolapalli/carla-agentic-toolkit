@@ -7,7 +7,6 @@ publish successful values as run-local snapshots.
 
 from __future__ import annotations
 
-import time
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -23,10 +22,11 @@ from carla_agentic_toolkit.ownership import (
     payload_actor_ids,
     release_batch_destroyed,
     release_destroyed,
-    track_owned,
 )
-from carla_agentic_toolkit.script_operations import ScriptOperations
+from carla_agentic_toolkit.ownership_release import release_controller_destroyed
+from carla_agentic_toolkit.rpc_timeouts import MAP_FAILURE_HINT
 from carla_agentic_toolkit.script_operations import recover as _recover
+from carla_agentic_toolkit.script_ownership_operations import ScriptOwnershipOperations
 from carla_agentic_toolkit.tool_inputs import (
     parse_autopilot_request,
     parse_camera_attach_request,
@@ -43,19 +43,16 @@ from carla_agentic_toolkit.tool_inputs import (
     zero_transform,
 )
 from carla_agentic_toolkit.traffic_controller_service import (
-    InProcessTrafficControllerService,
     require_async_density_mode,
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
-
     from carla_agentic_toolkit.adapter import PythonCarlaAdapter
-    from carla_agentic_toolkit.models import JsonObject
+    from carla_agentic_toolkit.models import JsonObject, SpawnResult
     from carla_agentic_toolkit.snapshots import RunSnapshots
 
 
-class CarlaScriptApi(ScriptOperations):
+class CarlaScriptApi(ScriptOwnershipOperations):
     """High-level CARLA operations callable from a sandboxed script."""
 
     def __init__(
@@ -69,13 +66,7 @@ class CarlaScriptApi(ScriptOperations):
         self._adapter = adapter
         self._snapshots = snapshots
         self._actor_registry = actor_registry
-        self._ownership = ownership
-        self._traffic_controller = InProcessTrafficControllerService(on_spawn=self._track_owned)
-
-    def _replaced_world(self, payload: JsonObject) -> JsonObject:
-        if self._ownership is not None:
-            self._ownership.clear()
-        return self._snapshot("carla-snapshot://world/current", payload)
+        self._initialize_ownership(adapter, ownership)
 
     # Connection and world lifecycle.
     @_recover("carla_connection_error", endpoint=True)
@@ -96,24 +87,13 @@ class CarlaScriptApi(ScriptOperations):
         payload = {"worlds": sorted(self._adapter.list_worlds())}
         return self._snapshot("carla-snapshot://worlds", payload)
 
-    @_recover("load_world_failed")
-    def load_world(self, map_name: str) -> JsonObject:
-        """Load a CARLA map by name."""
-        return self._replaced_world(self._adapter.load_world(map_name).to_dict())
-
-    @_recover("set_sync_mode_failed")
-    def set_sync_mode(
-        self,
-        *,
-        enabled: bool,
-        fixed_delta_seconds: float | None = 0.05,
-    ) -> JsonObject:
-        """Configure synchronous mode and fixed timestep."""
-        payload = self._adapter.set_sync_mode(
-            enabled=enabled,
-            fixed_delta_seconds=fixed_delta_seconds,
-        ).to_dict()
-        return self._snapshot("carla-snapshot://world/current", payload)
+    @_recover("load_world_failed", retryable=False, hint=MAP_FAILURE_HINT)
+    def load_world(self, map_name: str, *, reset_settings: bool = True) -> JsonObject:
+        """Load a CARLA map; reset_settings=True matches CARLA's default."""
+        self._require_completed_creations()
+        previous_mode = self._current_synchronous_mode()
+        payload = self._adapter.load_world(map_name, reset_settings=reset_settings).to_dict()
+        return self._replaced_world(self._mode_change(payload, previous_mode=previous_mode))
 
     @_recover("tick_failed")
     def tick(self) -> JsonObject:
@@ -124,6 +104,7 @@ class CarlaScriptApi(ScriptOperations):
     @_recover("tick_failed")
     def tick_n(self, count: int) -> JsonObject:
         """Advance the simulation by several frames inside the sandbox."""
+        self._adapter.require_sync_tick()
         frames = [self._adapter.tick() for _ in range(max(count, 0))]
         if frames:
             self._snapshots.register_snapshot(
@@ -147,8 +128,7 @@ class CarlaScriptApi(ScriptOperations):
         self._prepare_owned_creation()
         results = self._adapter.spawn_actor_batch(parsed)
         self._track_owned(result.actor_id for result in results if result.actor_id is not None)
-        payload = {"results": [item.to_dict() for item in results]}
-        return self._snapshot("carla-snapshot://actors", payload)
+        return self._snapshot("carla-snapshot://actors", _spawn_batch_payload(results))
 
     @_recover("list_actors_failed")
     def list_actors(self, filter_pattern: str = "*") -> JsonObject:
@@ -201,8 +181,9 @@ class CarlaScriptApi(ScriptOperations):
     # Traffic Manager workflows.
     @_recover("populate_traffic_failed")
     def populate_traffic(self, request: dict[str, object]) -> JsonObject:
-        """Spawn Traffic Manager-controlled vehicles."""
+        """Spawn Traffic Manager-controlled vehicles in an asynchronous world only."""
         parsed = parse_traffic_population_request(request)
+        self._require_async_traffic_controller()
         self._prepare_owned_creation()
         try:
             population = self._adapter.populate_traffic(request=parsed)
@@ -219,7 +200,7 @@ class CarlaScriptApi(ScriptOperations):
 
     @_recover("set_autopilot_failed")
     def set_autopilot(self, request: dict[str, object]) -> JsonObject:
-        """Toggle Traffic Manager autopilot for existing vehicles."""
+        """Toggle Traffic Manager autopilot in an asynchronous world only."""
         result = self._adapter.set_autopilot(request=parse_autopilot_request(request))
         payload = result.to_dict()
         self._snapshots.register_snapshot("carla-snapshot://traffic/autopilot", payload)
@@ -230,7 +211,7 @@ class CarlaScriptApi(ScriptOperations):
 
     @_recover("configure_traffic_manager_failed")
     def configure_traffic_manager(self, request: dict[str, object]) -> JsonObject:
-        """Configure global Traffic Manager behavior."""
+        """Configure toolkit-owned asynchronous TM globals; seeds do not ensure reproducibility."""
         payload = self._adapter.configure_traffic_manager(
             request=parse_traffic_manager_request(request)
         ).to_dict()
@@ -243,7 +224,7 @@ class CarlaScriptApi(ScriptOperations):
         settings: dict[str, object],
         traffic_manager_port: int = 8000,
     ) -> JsonObject:
-        """Set auto_lane_change, force_lane_change, speed, distance, or ignore percentages."""
+        """Set per-vehicle Traffic Manager behavior in an asynchronous world only."""
         return self._adapter.tune_traffic_vehicle(
             actor_id=actor_id,
             traffic_manager_port=traffic_manager_port,
@@ -256,23 +237,22 @@ class CarlaScriptApi(ScriptOperations):
         actor_id: int,
         request: dict[str, object],
     ) -> JsonObject:
-        """Upload request.path locations or request.route option strings for one vehicle."""
+        """Upload path locations or route strings for one vehicle in an asynchronous world only."""
         parsed = parse_traffic_vehicle_path_request(actor_id, request)
         return self._adapter.set_traffic_vehicle_path(request=parsed)
 
     @_recover("start_traffic_controller_failed")
     def start_traffic_controller(self, request: dict[str, object]) -> JsonObject:
-        """Start an in-script persistent Traffic Manager controller."""
+        """Start an in-script Traffic Manager controller in an asynchronous world only."""
         self._require_async_traffic_controller()
-        self._prepare_owned_creation()
-        status = self._traffic_controller.start(
-            parse_traffic_controller_start_request(
-                request,
-                host=self._adapter.host,
-                port=self._adapter.port,
-                timeout_seconds=self._adapter.timeout,
-            )
+        self._prepare_owned_controller()
+        parsed = parse_traffic_controller_start_request(
+            request,
+            host=self._adapter.host,
+            port=self._adapter.port,
+            timeout_seconds=self._adapter.timeout,
         )
+        status = self._traffic_controller.start(parsed)
         return self._controller_status_payload(status.to_dict())
 
     @_recover("stop_traffic_controller_failed")
@@ -287,21 +267,23 @@ class CarlaScriptApi(ScriptOperations):
 
     @_recover("set_traffic_density_failed")
     def set_traffic_density(self, request: dict[str, object]) -> JsonObject:
-        """Converge in-script traffic to a requested density."""
+        """Converge in-script traffic to a requested density in an asynchronous world only."""
         self._require_async_traffic_controller()
-        self._prepare_owned_creation()
-        status = self._traffic_controller.set_density(parse_traffic_density_request(request))
+        self._prepare_owned_controller()
+        parsed = parse_traffic_density_request(request)
+        status = self._traffic_controller.set_density(parsed)
         return self._controller_status_payload(status.to_dict())
 
     def _require_async_traffic_controller(self) -> None:
         """Reject unsupported tick ownership before starting background mutations."""
         require_async_density_mode(
-            synchronous_mode=self._adapter.get_world_state().settings.synchronous_mode,
+            synchronous_mode=self._adapter.get_synchronous_mode(),
         )
 
     @_recover("set_vehicle_behavior_failed")
     def set_vehicle_behavior(self, request: dict[str, object]) -> JsonObject:
-        """Apply a behavior profile to explicit vehicle actors."""
+        """Apply a behavior profile to explicit vehicle actors in an asynchronous world only."""
+        self._require_async_traffic_controller()
         payload = self._traffic_controller.set_vehicle_behavior(
             parse_vehicle_behavior_request(request)
         ).to_dict()
@@ -309,14 +291,6 @@ class CarlaScriptApi(ScriptOperations):
 
     def _controller_status_payload(self, payload: JsonObject) -> JsonObject:
         return self._snapshot("carla-snapshot://traffic/controller", payload)
-
-    def _track_owned(self, actor_ids: Iterable[int]) -> None:
-        track_owned(self._adapter, self._ownership, actor_ids)
-
-    def _prepare_owned_creation(self) -> None:
-        """Capture episode before mutation while keeping no-actor scripts fully offline."""
-        if self._ownership is not None:
-            self._ownership.bind_world(self._adapter.get_world_identity())
 
     # Sensors and durable captures.
     @_recover("attach_camera_failed")
@@ -355,10 +329,12 @@ class CarlaScriptApi(ScriptOperations):
         attributes: dict[str, str] | None = None,
     ) -> JsonObject:
         """Attach any supported CARLA sensor kind to an actor."""
+        blueprint_id = sensor_blueprint(kind)
+        parsed_transform = parse_transform(transform)
         self._prepare_owned_creation()
         sensor = self._adapter.attach_sensor(
-            blueprint_id=sensor_blueprint(kind),
-            transform=parse_transform(transform),
+            blueprint_id=blueprint_id,
+            transform=parsed_transform,
             attributes=attributes or {},
             parent_actor_id=parent_id,
         )
@@ -429,9 +405,10 @@ class CarlaScriptApi(ScriptOperations):
     @_recover("detach_sensor_failed")
     def detach_sensor(self, sensor_id: int) -> JsonObject:
         """Stop and destroy a sensor actor."""
+        world_id = self._adapter.get_world_identity() if self._ownership is not None else None
         payload = self._adapter.detach_sensor(sensor_id)
-        if payload.get("destroyed") is True and self._ownership is not None:
-            self._ownership.discard((sensor_id,))
+        if payload.get("destroyed") is True or payload.get("error") == "Actor was not found.":
+            release_controller_destroyed(self._adapter, self._ownership, (sensor_id,), world_id)
         return self._snapshot(f"carla-snapshot://sensors/{sensor_id}/detached", payload)
 
     # Navigation and map semantics.
@@ -532,7 +509,7 @@ class CarlaScriptApi(ScriptOperations):
         """Load or unload one runtime MapLayer by name."""
         return self._adapter.set_map_layer(layer=layer, loaded=loaded)
 
-    @_recover("generate_opendrive_world_failed")
+    @_recover("generate_opendrive_world_failed", retryable=False, hint=MAP_FAILURE_HINT)
     def generate_opendrive_world(
         self,
         opendrive: str,
@@ -541,12 +518,14 @@ class CarlaScriptApi(ScriptOperations):
         reset_settings: bool = True,
     ) -> JsonObject:
         """Replace the world from bounded OpenDRIVE text and known parameters."""
+        self._require_completed_creations()
+        previous_mode = self._current_synchronous_mode()
         payload = self._adapter.generate_opendrive_world(
             opendrive=opendrive,
             parameters=parameters or {},
             reset_settings=reset_settings,
         )
-        return self._replaced_world(payload)
+        return self._replaced_world(self._mode_change(payload, previous_mode=previous_mode))
 
     # Actor and vehicle physics.
     @_recover("configure_actor_physics_failed")
@@ -698,6 +677,7 @@ class CarlaScriptApi(ScriptOperations):
         publish: bool = False,
     ) -> JsonObject:
         """Capture a spectator RGB frame and optionally publish it through MCP."""
+        self._prepare_owned_creation()
         payload = self._adapter.save_screenshot(
             output_path=Path(output_path),
             attributes=attributes or {"image_size_x": "1280", "image_size_y": "720"},
@@ -767,17 +747,27 @@ class CarlaScriptApi(ScriptOperations):
             min_distance=min_distance,
         )
 
-    @_recover("reload_world_failed")
-    def reload_world(self, *, reset_settings: bool = False) -> JsonObject:
-        """Reload the current world for a clean scenario reset."""
-        return self._replaced_world(self._adapter.reload_world(reset_settings=reset_settings))
+    @_recover("reload_world_failed", retryable=False, hint=MAP_FAILURE_HINT)
+    def reload_world(self, *, reset_settings: bool) -> JsonObject:
+        """Reload with required reset_settings; False deliberately keeps current settings."""
+        self._require_completed_creations()
+        previous_mode = self._current_synchronous_mode()
+        payload = self._adapter.reload_world(reset_settings=reset_settings)
+        return self._replaced_world(self._mode_change(payload, previous_mode=previous_mode))
 
     @_recover("apply_batch_failed")
-    def apply_batch(self, commands: list[dict[str, object]], *, do_tick: bool = True) -> JsonObject:
-        """Apply supported bulk CARLA commands, such as destroy_actor."""
+    def apply_batch(
+        self, commands: list[dict[str, object]], *, do_tick: bool = False
+    ) -> JsonObject:
+        """Apply response batches with do_tick=False, matching CARLA apply_batch_sync."""
+        previous_mode = self._current_synchronous_mode()
         payload = self._adapter.apply_batch(commands, do_tick=do_tick)
-        release_batch_destroyed(self._ownership, payload)
-        return payload
+        release_batch_destroyed(self._ownership, payload, commands=commands)
+        current_mode = self._current_synchronous_mode()
+        return payload | {
+            "synchronous_mode": current_mode,
+            "synchronous_mode_changed": current_mode is not previous_mode,
+        }
 
     @_recover("cleanup_owned_actors_failed")
     def cleanup_owned_actors(self) -> JsonObject:
@@ -815,8 +805,15 @@ class CarlaScriptApi(ScriptOperations):
         """Export a compact evidence manifest from script-created snapshots."""
         return export_evidence(self._snapshots, output_dir)
 
+    @_recover("wait_failed")
     def wait(self, seconds: float) -> JsonObject:
-        """Sleep inside the sandbox while CARLA async mode advances."""
-        bounded_seconds = min(max(seconds, 0.0), 60.0)
-        time.sleep(bounded_seconds)
-        return {"waited_seconds": bounded_seconds}
+        """Observe asynchronous simulator frames for at most sixty seconds."""
+        return {"waited_seconds": self._adapter.wait(seconds)}
+
+
+def _spawn_batch_payload(results: tuple[SpawnResult, ...]) -> JsonObject:
+    """Flag partial failure without changing the all-success result shape."""
+    payload: JsonObject = {"results": [item.to_dict() for item in results]}
+    if any(item.error is not None for item in results):
+        payload["ok"] = False
+    return payload

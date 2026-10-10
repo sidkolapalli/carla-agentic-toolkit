@@ -35,7 +35,7 @@ def _save_run(
         "controller_version": "controller-v1",
         "package_version": "0.1.0",
         "code_sha256": "a" * 64,
-        "seed": spec["seed"],
+        "replicate_index": spec["replicate_index"],
         "environment": {
             "platform": "linux",
             "python": "3.12",
@@ -114,7 +114,7 @@ def test_comparison_matches_saved_trials_and_keeps_exact_policy_metadata(tmp_pat
 @pytest.mark.parametrize(
     "changes",
     [
-        {"spec": {"seed": 8}},
+        {"spec": {"replicate_index": 8}},
         {"spec": {"timing_mode": "paced"}},
         {"spec": {"fixture": "town10-merge-ue5-v1"}},
         {"metadata": {"code_sha256": "b" * 64}},
@@ -129,7 +129,7 @@ def test_mismatched_trials_refuse_comparative_metrics(
     tmp_path: Path,
     changes: dict[str, Any],
 ) -> None:
-    """A changed constraint, seed, exact pose, environment, or code blocks comparison."""
+    """A changed constraint, replicate, exact pose, environment, or code blocks comparison."""
     rules = _save_run(tmp_path, "rules", "rules")
     jev = _save_run(tmp_path, "jev", "jev", **changes)
     report = comparison.compare_traces([rules, jev])

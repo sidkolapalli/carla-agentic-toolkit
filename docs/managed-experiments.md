@@ -14,6 +14,9 @@ from finite generated scripts. Specifications cannot contain code, imports, shel
 commands, provider URLs, credentials, or unknown fields.
 
 Use Linux or WSL2, the repository environment, and a matching CARLA Python API.
+Startup records available full client/server versions and rejects mismatched or
+unknown release compatibility before policy/session construction or simulator
+mutation; see [version matching](client-setup.md#version-matching).
 Start a dedicated CARLA instance with Town10HD loaded. The runtime rejects worlds
 containing existing `vehicle.*`, `walker.*`, `sensor.*`, or `controller.*` actors.
 Start the world in asynchronous mode: preflight waits for a fresh actor snapshot
@@ -107,6 +110,17 @@ The simulator lease covers mutations and cleanup. Failed or unverified recovery
 retains dirty evidence and blocks another cooperating owner. Inspect the failure;
 do not delete dirty lease evidence merely to bypass it.
 
+Same-episode recovery verifies a fresh actor snapshot before discovering or
+destroying actors. It requests one tick only in synchronous mode; in asynchronous
+mode it waits up to five seconds for a frame. The delivered frame must be newer
+than the previous snapshot, and the published snapshot must have reached that
+frame or a later one. This covers interruption before synchronous settings were
+applied or after asynchronous settings were restored but before the clean marker
+was saved. A timeout, stale publication, or episode change retains quarantine
+without subsequent actor deletion or settings restoration. Normal experiment
+steps still require exactly one frame; this recovery freshness check does not
+relax runtime frame ownership.
+
 If the detached supervisor dies, the next `status` or `result` call starts a
 separate recovery coordinator. It checks recorded process identity, verifies the
 worker group has stopped, and then performs bounded cleanup under the original
@@ -130,6 +144,39 @@ for `cleanup.ok: true` and `recovery_required: false` before starting another ru
 If process identity cannot be verified or the journal is corrupt, preserve the
 evidence for local operator inspection; this command never deletes ambiguous
 ownership evidence to force progress.
+
+### Replaced-world cleanup
+
+If another client replaces the world before managed cleanup or dead-worker
+recovery begins, the toolkit reads the replacement's current settings without
+mutating it. It compares all six journaled fields: `synchronous_mode`,
+`fixed_delta_seconds`, `no_rendering_mode`, `substepping`, `max_substeps`, and
+`max_substep_delta_time`. Values and native types must match; integer 0 or 1
+cannot substitute for a boolean. The replacement episode must remain unchanged
+across this check.
+
+A stable full match reports `world_replaced: true`, `settings_checked: true`,
+and `settings_restored: true`. Here, restoration means the original baseline was
+verified without a settings write. The lease can become clean only if the other
+cleanup checks also succeed. A mismatch, unreadable settings, or another episode
+change records a failure and leaves the lease dirty. A settings-read failure
+reports `world_replaced: true`, `settings_checked: false`, and
+`settings_restored: false`.
+
+This deliberately differs from the restore-on-mismatch suggestion in
+[#139](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/139): old-episode
+ownership does not authorize writing settings, ticking, or deleting actors in an
+unknown replacement. The toolkit refuses those mutations rather than overwriting
+another client's world. This preserves the same-episode cleanup boundary in
+[#127](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/127), including
+replacement during actor destruction, which remains a failed cleanup.
+
+For the required asynchronous starting baseline, this policy meets the live
+acceptance outcome: either the asynchronous baseline is verified or the lease
+stays dirty. Live CARLA 0.9.16 acceptance with a second client calling
+`reload_world(False)` remains pending. Such a reload can retain the managed
+synchronous settings; see CARLA's
+[settings-preserving reload example](https://github.com/carla-simulator/carla/blob/0.9.16/Docs/adv_synchrony_timestep.md#physics-determinism).
 
 ## Optional MCP lifecycle
 
@@ -228,6 +275,8 @@ One session owns every scheduled tick. The fixture/controller and provider never
 tick. Each controlled vehicle has one assigned tracker; protected actors cannot be
 adopted or reset by background traffic. World replacement or unexpected advancement
 invalidates the run rather than silently accepting stale observations.
+Invalidating a run does not establish a clean lease; see
+[replaced-world cleanup](#replaced-world-cleanup) for the separate settings check.
 
 - `simulation_time` pauses at decision boundaries while awaiting bounded inference.
 - `paced` continues scheduled owner steps while inference is pending and records
@@ -286,13 +335,24 @@ a scene. Playing fixed actions into a different scene is a different experiment.
 
 ## Comparing policies and recording a demo
 
-The two example specs differ only in policy. Keep fixture, initial poses, seeds,
-controller/planner versions, observation/timing mode, and constraints matched.
+The two example specs differ only in policy. Keep fixture, initial poses,
+replicate index, controller/planner versions, observation/timing mode, and
+constraints matched.
 Retain each run's exact spec, code hash, environment, model/question metadata, and
-summary/report. Repeat a declared seed set and report sample counts, completion and
-collision definitions, invalid runs, interventions/fallbacks, decision latency,
-staleness, and achieved real-time factor. Repeated seeds do not guarantee bitwise
+summary/report. Repeat a declared replicate set and report sample counts,
+completion and collision definitions, invalid runs, interventions/fallbacks, decision latency,
+staleness, and achieved real-time factor. Repeated runs do not guarantee bitwise
 simulator determinism. Attribute controller interventions to the controller.
+
+`replicate_index` is a label only: it changes no initial pose, speed, random
+generator, Traffic Manager, or pedestrian state. It defaults to 7 and accepts
+integers from 0 through 2**31-1. Legacy `seed` input is accepted as an alias;
+providing both names requires identical valid integer values. New specs, traces,
+fixture metadata, and demo projections use `replicate_index`. Historical evidence
+keeps its original `seed` labels and bytes. Comparison accepts either name and
+warns, without withholding otherwise matched metrics, when distinct replicate
+indices have identical recorded initial conditions. That warning does not claim
+identical physics, outcomes, or provider responses.
 
 Generate the [matched static comparison](experiment-evidence.md#matched-static-comparison)
 from every saved trial. It checks exact fixture/specification/version matching and

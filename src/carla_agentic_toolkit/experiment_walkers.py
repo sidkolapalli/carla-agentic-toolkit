@@ -7,10 +7,24 @@ from dataclasses import dataclass
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, cast
 
-from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.actor_creation import (
+    creation_identity,
+    observe_created_actor,
+    observe_no_actor,
+    prepare_spawn,
+)
+from carla_agentic_toolkit.errors import CarlaAdapterError, OwnershipError
 from carla_agentic_toolkit.experiment_common import actor, carla_location, object_factory
 
 if TYPE_CHECKING:
+    from typing import Unpack
+
+    from carla_agentic_toolkit.actor_creation import (
+        ActorCreationObserver,
+        BeforeSpawn,
+        NoActorObserver,
+        SpawnObservers,
+    )
     from carla_agentic_toolkit.carla_protocols import CarlaActor, CarlaBlueprint, CarlaWorld
     from carla_agentic_toolkit.models import Location
 
@@ -25,6 +39,9 @@ class WalkerSpawnContext:
     speed: float
     seed: int | None
     count: int
+    on_spawn: ActorCreationObserver | None = None
+    before_spawn: BeforeSpawn | None = None
+    on_no_actor: NoActorObserver | None = None
 
 
 @dataclass(slots=True)
@@ -42,6 +59,7 @@ def spawn_walker_actors(
     count: int,
     speed: float,
     seed: int | None,
+    **observers: Unpack[SpawnObservers],
 ) -> dict[str, object]:
     """Spawn pedestrians and AI walker controllers."""
     walker_blueprints = world.get_blueprint_library().filter("walker.pedestrian.*")
@@ -54,6 +72,7 @@ def spawn_walker_actors(
             speed=speed,
             seed=seed,
             count=count,
+            **observers,
         )
     )
     return {"requested_walkers": count, **spawned}
@@ -108,18 +127,26 @@ def try_spawn_walker(context: WalkerSpawnContext, state: WalkerSpawnState, index
     """
     walker: CarlaActor | None = None
     controller: CarlaActor | None = None
+    identity = creation_identity(context.world, context.on_spawn)
+    prepare_spawn(context.before_spawn)
     try:
         transform = random_walker_transform(context.world)
         walker = context.world.try_spawn_actor(walker_blueprint(context, index), transform)
         if walker is None:
+            observe_no_actor(identity, context.on_no_actor)
             state.failures.append("walker spawn returned None")
             return
+        observe_created_actor(walker, identity, context.on_spawn)
         state.walker_ids.append(int(walker.id))
+        prepare_spawn(context.before_spawn)
         controller = context.world.spawn_actor(context.controller_blueprint, transform, walker)
+        observe_created_actor(controller, identity, context.on_spawn)
         state.controller_ids.append(int(controller.id))
         cast("Any", controller).start()
         cast("Any", controller).set_max_speed(context.speed)
         cast("Any", controller).go_to_location(random_walker_location(context.world))
+    except OwnershipError:
+        raise
     except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
         state.failures.append(str(exc))
         _rollback_spawned_actor(controller, state.controller_ids)

@@ -74,9 +74,9 @@ def recording_actors_blocked(
 
 
 def apply_batch(
-    client: object, commands: list[dict[str, object]], *, do_tick: bool = True
+    client: object, commands: list[dict[str, object]], *, do_tick: bool = False
 ) -> dict[str, object]:
-    """Apply a small JSON-compatible batch using carla.command."""
+    """Apply reviewed commands with CARLA's non-ticking apply_batch_sync default."""
     _validate_tick_flag(do_tick)
     carla_commands = [batch_command(import_module("carla"), command) for command in commands]
     responses = cast("Any", client).apply_batch_sync(carla_commands, do_tick=do_tick)

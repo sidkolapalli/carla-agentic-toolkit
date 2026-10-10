@@ -41,18 +41,55 @@ callbacks cannot revive a closed queue. Script execution closes all listener que
 on success and failure; failed cleanup is reported without hiding the original script
 exception. Ordinary close and actor destruction are separate operations.
 
+Destroying a subscribed sensor closes the script's original listener handle
+before requesting a non-ticking server destroy, including sensors inherited from
+another client. Subscribing does not adopt the sensor into actor ownership. The
+adapter retains its subscription episode separately, including after an explicit
+listener close, so an old numeric ID cannot authorize cleanup in a replacement
+world. An episode change before or during shutdown refuses subsequent destruction.
+
+A failed native `stop()` freezes the queue but does not count as successful
+unsubscribe. The original subscription remains available for a same-episode retry;
+repeated failures stay visible in final script cleanup. A normal `stop()` return
+makes listener close idempotent, but is not an actor-removal readback. A later
+callback cannot revive the frozen queue.
+
 The legacy `capture_sensor_frame` and `read_sensor_stream` convenience calls support
 asynchronous worlds. They reject a synchronous world before listening, with guidance
 to use the explicit subscription sequence. They cannot own an implicit tick while
 waiting for a frame.
 
+## Rendering requirements
+
+All `sensor.camera.*` blueprints require an explicitly observed
+`no_rendering_mode=False`. Camera attachment, generic camera spawning,
+subscription, one-shot capture, stream reads, and `save_screenshot` refuse
+disabled, unreadable, or malformed rendering settings with a structured error
+that names `no_rendering_mode`. The check happens before a creation intent,
+native spawn, or new listener; screenshot preflight also precedes spectator
+inspection. A camera attached earlier is checked again before a new read.
+
+GNSS, IMU, collision, lane-invasion, obstacle, lidar, and radar sensors are not
+subject to this camera restriction. Buffered samples can still drain and
+listeners can still close after rendering is disabled. Sensor destruction
+remains available for cleanup. Off-screen rendering is different from
+no-rendering mode: `-RenderOffScreen` can produce camera data when
+`no_rendering_mode` is false. See CARLA's
+[rendering options](https://carla.readthedocs.io/en/0.9.16/adv_rendering_options/).
+
 ## Other world mutations
 
 Traffic population and autopilot request models accept `advance_world=False`. The
-script JSON request parser preserves that flag. Batch operations accept
-`do_tick=False`, passed to CARLA's actual `apply_batch_sync` option. Existing defaults
-continue advancing once for finite-script compatibility. Required advancement errors
-are raised; partial population errors retain created IDs and cleanup evidence.
+script JSON request parser preserves that flag; these traffic requests keep their
+existing `advance_world=True` defaults but remain asynchronous-only. Disabling
+advancement does not permit Traffic Manager use in a synchronous world. Batch
+operations instead default to `do_tick=False`, passed to CARLA's actual
+`apply_batch_sync` option, matching its native default. Only an explicit
+`do_tick=True` requests a tick. Batch results
+report the observed `synchronous_mode` and whether it changed across the call.
+Required advancement errors are raised; partial population errors retain created
+IDs and cleanup evidence. See [world and batch defaults](script-workflows.md#bound-rpc-timeouts-and-map-changes)
+for settings-reset choices and the comparison with CARLA.
 
 Finite scripts bind creation journals to the CARLA episode before spawning. Cleanup
 checks that identity so numeric IDs from an older world cannot destroy replacement
@@ -63,5 +100,12 @@ preflight do not connect merely to create an ownership journal.
 
 CARLA recorder replay exposes no non-ticking option in the supported binding.
 `replay_recording(..., do_tick=False)` rejects the request before mutation. A boolean
-`replay_sensors=False` is not a tick control. Background density maintenance likewise
-rejects synchronous worlds before resetting actors or changing Traffic Manager state.
+`replay_sensors=False` is not a tick control. Traffic Manager traffic creation,
+configuration, per-vehicle changes, and density maintenance reject synchronous
+worlds before Traffic Manager access or mutation. A synchronous-manager
+configuration request is rejected even in an asynchronous world. Both enabling
+and restoring synchronous world settings require a fully stopped traffic
+controller. See
+[Traffic Manager mode and cleanup policy](script-workflows.md#keep-traffic-and-simulation-timing-explicit)
+for the dedicated sidecar requirement, declared global cleanup targets, and why
+asynchronous seeds do not guarantee reproducibility.

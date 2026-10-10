@@ -164,7 +164,7 @@ class SessionMonitor:
                 return
 
     def complete(self, session: SessionState, outcome: dict[str, object]) -> None:
-        """Publish terminal state only after actor cleanup and lease disposition."""
+        """Publish terminal state only after actors/settings cleanup and lease disposition."""
         with session.lock:
             session.cleanup = cast("dict[str, object]", outcome.get("cleanup") or {})
             session.sandbox = cast("dict[str, object]", outcome.get("sandbox") or {})
@@ -175,10 +175,10 @@ class SessionMonitor:
             session.ready.set()
 
     def _final_error(self, session: SessionState, outcome: dict[str, object]) -> None:
-        if session.cleanup.get("failures"):
+        if session.cleanup.get("failures") or session.cleanup.get("settings_restored") is False:
             session.error_type, session.error = (
                 "session_cleanup_failed",
-                "Actor cleanup requires recovery.",
+                "Actor cleanup or settings restoration requires recovery.",
             )
         elif session.error_type == "session_closed":
             session.error_type, session.error = None, None

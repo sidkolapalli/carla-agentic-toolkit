@@ -16,7 +16,9 @@ import subprocess
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
+
+from carla_agentic_toolkit.replicate_index import normalize_replicate_index
 
 if TYPE_CHECKING:
     from PIL import Image
@@ -53,7 +55,7 @@ class DemoCase:
 def load_case(projection: Path, frames: Path, capture: Path) -> DemoCase:
     """Bind observations to their original capture run and verified exact-frame camera bytes."""
     raw = _bounded_bytes(projection)
-    value = json.loads(raw)
+    value = cast("dict[str, Any]", normalize_replicate_index(json.loads(raw)))
     _validate_projection(value)
     images = _camera_frames(frames)
     capture_raw = _bounded_bytes(capture)
@@ -122,7 +124,7 @@ def _validate_projection(value: dict[str, Any]) -> None:
     if value.get("schema_version") != 1:
         message = "Unsupported demo projection schema."
         raise ValueError(message)
-    for key in ("run_id", "trace_sha256", "code_sha256", "outcome", "cleanup"):
+    for key in ("run_id", "trace_sha256", "code_sha256", "replicate_index", "outcome", "cleanup"):
         if key not in value:
             message = f"Missing demo projection field: {key}"
             raise ValueError(message)
@@ -252,7 +254,9 @@ def _case_labels(canvas: Canvas, case: DemoCase, item: JoinedFrame) -> None:
     canvas.text((900, 466), "RUN ID", 18, MUTED)
     canvas.text((900, 494), str(case.projection["run_id"]), 18)
     canvas.text(
-        (900, 532), f"Policy {case.projection['policy']} / seed {case.projection['seed']}", 20
+        (900, 532),
+        f"Policy {case.projection['policy']} / replicate {case.projection['replicate_index']}",
+        20,
     )
 
 

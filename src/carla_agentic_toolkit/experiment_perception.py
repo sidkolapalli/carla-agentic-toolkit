@@ -11,9 +11,12 @@ from carla_agentic_toolkit.experiment_common import (
     optional_transform_dict,
     sensor_actor,
 )
+from carla_agentic_toolkit.sensor_rendering import require_sensor_rendering
 from carla_agentic_toolkit.sensor_subscription import SensorSubscription, validate_capacity
+from carla_agentic_toolkit.world_timing import require_world_mode
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from pathlib import Path
 
     from carla_agentic_toolkit.carla_protocols import CarlaSensor, CarlaWorld
@@ -25,10 +28,14 @@ def read_sensor_stream(
     sensor_id: int,
     frame_count: int,
     output_dir: Path | None,
+    after_rendering_check: Callable[[], None] | None = None,
 ) -> dict[str, object]:
     """Read several frames from a CARLA sensor and optionally persist captures."""
-    require_async_sensor_read(world)
     sensor = sensor_actor(world, sensor_id)
+    require_sensor_rendering(world, sensor.type_id)
+    if sensor.type_id.startswith("sensor.camera.") and after_rendering_check is not None:
+        after_rendering_check()
+    require_async_sensor_read(world)
     frames = collect_sensor_frames(sensor, frame_count)
     saved_paths = save_sensor_frames(frames, sensor_id, output_dir)
     return {
@@ -48,13 +55,23 @@ def detach_sensor(world: CarlaWorld, sensor_id: int) -> dict[str, object]:
 
 def detach_sensor_handle(sensor: CarlaSensor) -> dict[str, object]:
     """Release a created sensor even before its first world snapshot exists."""
+    stop_sensor_handle(sensor)
     try:
-        if getattr(sensor, "is_listening", True):
-            sensor.stop()
         destroyed = bool(sensor.destroy())
     except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
         raise CarlaAdapterError(str(exc)) from exc
     return {"sensor_id": sensor.id, "destroyed": destroyed}
+
+
+def stop_sensor_handle(sensor: CarlaSensor) -> None:
+    """Stop only a remaining listener before authoritative sensor destruction."""
+    try:
+        state = getattr(sensor, "is_listening", True)
+        listening = state() if callable(state) else state
+        if listening:
+            sensor.stop()
+    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+        raise CarlaAdapterError(str(exc)) from exc
 
 
 def collect_sensor_frames(sensor: CarlaSensor, frame_count: int) -> list[object]:
@@ -71,17 +88,12 @@ def collect_sensor_frames(sensor: CarlaSensor, frame_count: int) -> list[object]
 
 def require_async_sensor_read(world: CarlaWorld) -> None:
     """Fail fast when a blocking read would prevent its synchronous owner ticking."""
-    try:
-        synchronous = world.get_settings().synchronous_mode
-    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
-        raise CarlaAdapterError(str(exc)) from exc
-    if synchronous:
-        message = (
-            "Blocking sensor collection is unavailable in synchronous mode; use "
-            "subscribe_sensor, tick as the world owner, drain_sensor, "
-            "then close_sensor_subscription."
-        )
-        raise CarlaAdapterError(message)
+    message = (
+        "Blocking sensor collection is unavailable in synchronous mode; use "
+        "subscribe_sensor, tick as the world owner, drain_sensor, "
+        "then close_sensor_subscription."
+    )
+    require_world_mode(world, synchronous_mode=False, message=message)
 
 
 def save_sensor_frames(

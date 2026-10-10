@@ -86,6 +86,7 @@ class SensorSubscription:
         self._condition = threading.Condition()
         self._close_lock = threading.Lock()
         self._closed = False
+        self._stop_acknowledged = False
         self._dropped = 0
         self._listen()
 
@@ -180,12 +181,11 @@ class SensorSubscription:
             return self._samples.popleft().data
 
     def close(self) -> None:
-        """Stop the listener once and release queued data, including on errors."""
+        """Freeze queued data and retry upstream Stop until its return is acknowledged."""
         with self._close_lock:
             with self._condition:
-                if self._closed:
-                    return
-                self._freeze()
+                if not self._closed:
+                    self._freeze()
             self._stop()
 
     def close_and_drain(self, frame: int) -> SensorDrain:
@@ -193,8 +193,7 @@ class SensorSubscription:
         _validate_frame(frame)
         with self._close_lock:
             try:
-                if not self._closed:
-                    self._stop()
+                self._stop()
             finally:
                 with self._condition:
                     ready = tuple(self._samples)
@@ -210,10 +209,13 @@ class SensorSubscription:
 
     def _stop(self) -> None:
         """Call upstream outside the queue lock so final callbacks cannot deadlock."""
+        if self._stop_acknowledged:
+            return
         try:
             self._sensor.stop()
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
             raise CarlaAdapterError(str(exc)) from exc
+        self._stop_acknowledged = True
 
     def _require_open(self) -> None:
         """Reject use after listener cleanup."""

@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 from carla_agentic_toolkit.experiment_metrics import METRIC_VERSION, summarize_trace
 from carla_agentic_toolkit.experiment_trace import identity_digest, load_trace
 from carla_agentic_toolkit.managed_spec import ExperimentSpec
+from carla_agentic_toolkit.replicate_index import normalize_replicate_index
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -25,7 +26,7 @@ MATCH_METADATA = (
     "controller_version",
     "package_version",
     "code_sha256",
-    "seed",
+    "replicate_index",
     "environment",
 )
 MEAN_METRICS = (
@@ -45,7 +46,8 @@ MEAN_METRICS = (
 )
 DEFINITIONS = {
     "matching": (
-        "Exact spec except policy/replay_run_id, fixture except actor_ids, seed, environment, "
+        "Exact spec except policy/replay_run_id and exact fixture except actor_ids, "
+        "plus matching replicate_index, environment, and "
         "package/code/planner/controller/fixture versions. "
         "Every cohort needs equal rules/Jev counts."
     ),
@@ -86,6 +88,7 @@ def compare_traces(paths: Sequence[Path]) -> dict[str, Any]:
         "metric_version": METRIC_VERSION,
         "comparable": comparable,
         "blockers": blockers,
+        "warnings": _replicate_warnings(runs),
         "match_groups": groups,
         "runs": runs,
         "policies": {
@@ -149,6 +152,12 @@ def _match_identity(
     spec = metadata.get("spec")
     if not isinstance(spec, dict):
         return {}, ["missing or ambiguous reproduction metadata/spec"]
+    try:
+        metadata = normalize_replicate_index(metadata)
+        spec = normalize_replicate_index(spec)
+        fixture = normalize_replicate_index(fixture)
+    except ValueError as error:
+        return {}, [f"invalid replicate index evidence: {error}"]
     errors = _identity_errors(metadata, spec, fixture)
     identity = {key: metadata.get(key) for key in MATCH_METADATA}
     identity["spec"] = _without(spec, {"policy", "replay_run_id"})
@@ -166,9 +175,21 @@ def _identity_errors(
         errors.append("comparison supports only saved rules and Jev trials")
     if not _fixture_complete(fixture):
         errors.append("missing or ambiguous exact fixture evidence")
-    if metadata.get("seed") != spec.get("seed"):
-        errors.append("metadata seed differs from the saved spec")
+    errors.extend(_replicate_errors(metadata, spec, fixture))
     return errors
+
+
+def _replicate_errors(
+    metadata: dict[str, Any], spec: dict[str, Any], fixture: dict[str, Any]
+) -> list[str]:
+    sources = {"metadata": metadata}
+    if "replicate_index" in fixture:
+        sources["fixture"] = fixture
+    return [
+        f"{name} replicate index differs from the saved spec"
+        for name, source in sources.items()
+        if source.get("replicate_index") != spec.get("replicate_index")
+    ]
 
 
 def _metadata_errors(metadata: dict[str, Any], spec: dict[str, Any]) -> list[str]:
@@ -202,6 +223,7 @@ def _pose_complete(pose: object) -> bool:
 
 def _valid_saved_spec(spec: dict[str, Any]) -> bool:
     try:
+        spec = normalize_replicate_index(spec)
         return ExperimentSpec.model_validate(spec).model_dump() == spec
     except ValueError:
         return False
@@ -244,6 +266,24 @@ def _matching_blockers(groups: list[dict[str, Any]]) -> list[str]:
         f"missing or unequal policy counterpart for cohort {group['match_id']}"
         for group in groups
         if len(group["rules"]) != len(group["jev"])
+    ]
+
+
+def _replicate_warnings(runs: list[dict[str, Any]]) -> list[str]:
+    indices: dict[str, set[int]] = defaultdict(set)
+    for run in runs:
+        if run["match_id"] is not None:
+            evidence = run["matching_evidence"]
+            context = _without(evidence, {"replicate_index"})
+            context["spec"] = _without(evidence["spec"], {"replicate_index"})
+            context["fixture"] = _without(evidence["fixture"], {"replicate_index"})
+            indices[identity_digest(context)].add(evidence["replicate_index"])
+    return [
+        f"Replicate indices {sorted(values)} share the same recorded initial condition "
+        f"in matching context {context}. Replicate labels do not sample independent "
+        "initial conditions or guarantee bitwise-repeatable outcomes."
+        for context, values in sorted(indices.items())
+        if len(values) > 1
     ]
 
 

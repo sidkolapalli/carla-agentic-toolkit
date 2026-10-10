@@ -38,12 +38,15 @@ def test_capture_persists_requested_output_and_publication_metadata(
         "nested": Path("captures/front.png"),
         "absolute": tmp_path / "absolute/front.png",
     }[path_kind]
-    world = Mock()
+    world = Mock(id=17)
     world.get_settings.return_value.synchronous_mode = False
-    sensor = Mock()
+    world.get_settings.return_value.no_rendering_mode = False
+    sensor = Mock(id=7, type_id="sensor.camera.rgb")
     sensor.listen.side_effect = lambda callback: callback(NativeImage())
     adapter = PythonCarlaAdapter()
-    monkeypatch.setattr(adapter, "_client", Mock())
+    client = Mock()
+    client.get_world.return_value = world
+    monkeypatch.setattr(adapter, "_client", Mock(return_value=client))
     monkeypatch.setattr(adapter, "_world", Mock(return_value=world))
     monkeypatch.setattr(adapter, "_sensor_actor", Mock(return_value=sensor))
     snapshots = RunSnapshots()

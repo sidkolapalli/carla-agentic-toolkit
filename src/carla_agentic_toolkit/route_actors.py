@@ -43,7 +43,6 @@ class RouteActors:
         self.session.own(handle, controller=f"route:{role}", protected=True)
         self.handles[role] = handle
         if not walker:
-            handle.set_autopilot(False)
             self._sensor(role, handle)
 
     def _blueprint(self, role: str, *, walker: bool) -> object:

@@ -84,10 +84,10 @@ class MergeExperiment:
             self._attach_sensors(role, actor)
 
     def fixture_metadata(self) -> dict[str, object]:
-        """Expose exact poses, seeds, units, and reviewed controller versions."""
+        """Expose exact poses, replicate labels, units, and reviewed controller versions."""
         return {
             **self._require_corridor().to_dict(),
-            "seed": self.spec.seed,
+            "replicate_index": self.spec.replicate_index,
             "planner_version": PLANNER_VERSION,
             "controller_version": TRACKER_VERSION,
             "settings": asdict(self.settings),
@@ -109,7 +109,6 @@ class MergeExperiment:
         blueprint.set_attribute("role_name", f"managed:{self.session.run_id}:{role}")
         actor = self.session.world.spawn_actor(blueprint, _transform(pose))
         self.session.own(actor, controller=f"{role}:{TRACKER_VERSION}", protected=True)
-        actor.set_autopilot(False)
         return actor
 
     def _attach_sensors(self, role: str, actor: object) -> None:

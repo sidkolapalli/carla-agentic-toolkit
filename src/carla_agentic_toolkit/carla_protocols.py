@@ -41,8 +41,8 @@ class CarlaClient(Protocol):
     def get_server_version(self) -> object:
         """Return CARLA server version."""
 
-    def load_world(self, map_name: str) -> CarlaWorld:
-        """Load a world by map name."""
+    def load_world(self, map_name: str, *, reset_settings: bool = True) -> CarlaWorld:
+        """Load a world, resetting settings by default as CARLA does."""
 
     def get_trafficmanager(self, port: int = 8000) -> CarlaTrafficManager:
         """Return a Traffic Manager on the requested port."""

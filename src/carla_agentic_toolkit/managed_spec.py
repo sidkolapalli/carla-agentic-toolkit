@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Literal, Self
+from collections.abc import Mapping
+from typing import Literal, Self, cast
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from carla_agentic_toolkit.errors import UnsupportedFeatureError
+from carla_agentic_toolkit.replicate_index import normalize_replicate_index
 
 
 class ExperimentSpec(BaseModel):
@@ -21,7 +23,7 @@ class ExperimentSpec(BaseModel):
     scenario: Literal["lead_brake", "cut_in", "pedestrian_crossing"] | None = None
     host: str = Field(default="127.0.0.1", min_length=1, max_length=253)
     port: int = Field(default=2000, ge=1, le=65533)
-    seed: int = Field(default=7, ge=0, le=2**31 - 1)
+    replicate_index: int = Field(default=7, ge=0, le=2**31 - 1)
     policy: Literal["rules", "jev", "replay"] = "rules"
     replay_run_id: str | None = Field(default=None, pattern=r"^[0-9a-f]{32}$")
     timing_mode: Literal["simulation_time", "paced"] = "simulation_time"
@@ -39,6 +41,19 @@ class ExperimentSpec(BaseModel):
     decision_timeout_seconds: float = Field(default=5.0, ge=0.1, le=30.0)
     max_requests: int = Field(default=40, ge=1, le=200)
     max_trace_bytes: int = Field(default=16_777_216, ge=65_536, le=67_108_864)
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_replicate_label(cls, values: object) -> object:
+        """Accept historical seed input without publishing a randomization claim."""
+        if isinstance(values, Mapping):
+            return normalize_replicate_index(cast("Mapping[str, object]", values))
+        return values
+
+    @property
+    def seed(self) -> int:
+        """Expose the historical Python spelling as a read-only repetition label."""
+        return self.replicate_index
 
     @model_validator(mode="after")
     def explicit_route_scenario(self) -> Self:

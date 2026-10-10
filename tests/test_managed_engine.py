@@ -133,8 +133,8 @@ def _patch_engine(monkeypatch: pytest.MonkeyPatch, policy: PendingPolicy) -> Fak
     world = FakeWorld()
     client = SimpleNamespace(
         get_world=lambda: world,
-        get_server_version=lambda: "fake",
-        get_client_version=lambda: "fake",
+        get_server_version=lambda: "0.9.16-test",
+        get_client_version=lambda: "0.9.16-test",
     )
     monkeypatch.setattr(managed_engine, "connect_client", lambda _spec: client)
     monkeypatch.setattr(managed_engine, "build_experiment", FakeExperiment)

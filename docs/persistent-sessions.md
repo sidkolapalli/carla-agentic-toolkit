@@ -51,6 +51,73 @@ Each request receives the same trusted API and safe builtins; the `result` varia
 is reset before execution. Validation runs on every request. A script exception
 is returned explicitly and may leave earlier variable assignments in place.
 
+Native creation starts with a durable pending intent bound to its originating
+episode. Returned actor IDs are journaled immediately, not after a complete batch
+finishes. Each walker is recorded before its controller, and a screenshot's
+temporary camera is recorded before capture and released only after confirmed
+cleanup. Resolving an intent requires fresh same-episode verification and a
+durable completion write, including for a definitive no-actor spawn response.
+A creation-journal, episode-verification, or completion-write failure permanently
+blocks later creation and makes request results fail even if code ignores the
+API error. Verified rollback can resolve the known actor and its intent without
+making execution successful; unverified rollback retains the actor ID and error
+for recovery. A lost reply or interrupted completion leaves the lease dirty even
+if no actor IDs were recorded. Recovery can attempt cleanup of durably known
+same-episode IDs and restore journaled settings, but cannot declare cleanup
+complete while a creation intent is unresolved. That uncertainty requires
+operator investigation; unknown IDs are not guessed or automatically reconciled.
+Do not delete recovery markers or use another state directory or endpoint to
+bypass the barrier; that does not verify actor cleanup.
+
+Ordinary CARLA RPCs use a 10-second cap, bounded by the remaining request and
+absolute session lifetime. Map-changing calls temporarily use a 120-second cap,
+but the same request and absolute deadlines still apply; a request's timeout can
+therefore be shorter than the map cap. A native map failure is non-retryable and
+includes one best-effort read-only world-ID/map observation. It does not
+automatically repeat the mutation, rebind ownership, or clear the journal. See
+[RPC timeouts and map changes](script-workflows.md#bound-rpc-timeouts-and-map-changes)
+for the diagnostic fields and recovery requirement.
+
+World-settings changes also persist across requests in the same session. A
+session that enables synchronous mode owns ticking for its lifetime; advance
+frames explicitly with `api.tick()` or `api.tick_n()`. The toolkit journals the
+original settings before their first change and restores them when the session
+closes. Use `api.restore_world_settings(previous_settings)` from a successful
+`api.set_sync_mode()` result to restore them earlier within the session.
+Enabling synchronous mode through `api.set_sync_mode()` or restoring
+`synchronous_mode=True` through `api.restore_world_settings()` is refused while
+the traffic controller is active or stopping. Stop it and confirm both status
+fields are false before switching modes.
+
+Traffic Manager workflows require an asynchronous world and a
+[dedicated toolkit-owned sidecar](client-setup.md#traffic-manager).
+`configure_traffic_manager` rejects `synchronous_mode=True` in either world mode;
+synchronous Traffic Manager support remains tracked in
+[#26](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/26). Seeds do not
+make asynchronous traffic reproducible. Attempted global settings persist across
+requests and are journaled per port for cleanup on close. Only attempted fields
+are reset to the declared targets: following distance 2.0 meters, percentage
+speed difference 0.0, seed 0, and synchronous mode `False`. CARLA has no getters
+for these globals, so this is not original-value restoration or readback
+verification. Legacy mode-only entries restore only their recorded sync field.
+Setting seed 0 also resets all traffic lights; see
+[Traffic Manager cleanup policy](script-workflows.md#keep-traffic-and-simulation-timing-explicit).
+
+One failed density frame wait stops the controller with `frame_wait_failed`,
+`frame_wait_phase`, and any `reset_progress`; it does not silently sleep or retry.
+Confirmed actor changes remain available for cleanup, while an incomplete reset
+does not replace previous count or applied-revision evidence. See the
+[density failure policy](script-workflows.md#density-frame-wait-failures) before
+explicitly restarting it.
+
+`api.tick()` and `api.tick_n()` are synchronous-only and reject asynchronous
+worlds with a structured error before sending a tick cue. `api.watch_actor()` and
+`api.wait()` are asynchronous-only; a synchronous watch is rejected before the
+spectator changes. Waiting clamps the requested wall-clock duration to 0-60
+seconds and observes native frames instead of sleeping or ticking. Each frame
+wait is bounded by one second, the remaining requested duration, and the
+remaining request and absolute-session RPC budgets; it does not reset deadlines.
+
 Use action `telemetry` with `config: {"actor_id": 123, "interval_seconds": 0.2}`
 to sample one session-owned actor using the trusted, non-ticking vehicle telemetry
 method. Intervals must be 0.1–10 seconds. `actor_id: null` disables sampling.
@@ -59,11 +126,19 @@ Sampling occurs between script requests, so a running script or slow RPC delays
 it. This interface does not promise real-time control or sensor-frame alignment.
 
 Call `close` when finished. It terminates the complete sandbox process group and
-destroys session-created actors, including actors left alive by a successful script.
+restores and verifies the journaled world settings, then destroys session-created
+actors, including actors left alive by a successful script.
 `cancel` also terminates an active or blocked request and reports cancellation.
 Client disconnect triggers the same cleanup for every owned session. `active`
 stays true until the worker is dead and cleanup finishes. Cleanup failure leaves
 durable recovery evidence and prevents another mutation from acquiring the lease.
+Inspect `cleanup.settings_restored` as well as `cleanup.failures`; unverified world
+settings restoration keeps the lease dirty even when actor cleanup succeeds.
+Traffic Manager cleanup setter failures also leave the lease dirty. Its
+`traffic_manager_restore_targets` evidence lists per-port attempted-field targets;
+`traffic_manager_async_ports` lists only ports with a recorded sync field.
+Successful declared Traffic Manager restoration does not mean its global values
+were observed or verified through getters.
 
 If a native cleanup worker exits abnormally or does not publish a readable result,
 `cleanup.worker` records its `exit_code` and `result_available`. Negative exit codes
@@ -91,6 +166,8 @@ timeouts are at most 60 seconds. Idle time starts after readiness and is refresh
 by client activity, including reads. Absolute lifetime starts at launch and cannot
 be extended. Rust independently enforces the absolute deadline and polls the
 trusted cancellation marker even when Python is stuck in a native call.
+The parent fixes each request deadline when publishing it; worker pickup does not
+reset that budget or extend the absolute lifetime.
 
 The existing Landlock filesystem/network policy, 4 GiB address-space limit,
 60-second cumulative CPU limit, process/file limits, and environment scrubbing
@@ -106,3 +183,7 @@ and cleanup failures. Live CARLA validation performed spawn, throttle, and brake
 requests using one retained vehicle, sampled telemetry, then verified no actor leak
 and unchanged asynchronous world settings. Dedicated simulator checks remain
 necessary after changing the installed CARLA or sandbox runtime.
+Those historical checks do not validate interrupted multi-create recovery or
+large-map timeout behavior, or the dedicated Traffic Manager sidecar guards and
+declared cleanup targets; live CARLA 0.9.16 acceptance for those paths remains
+pending.

@@ -24,6 +24,8 @@ def recover(
     error_type: str,
     *,
     endpoint: bool = False,
+    retryable: bool = True,
+    hint: str | None = None,
 ) -> Callable[[Callable[..., JsonObject]], Callable[..., JsonObject]]:
     """Route one facade method through the recoverable operation policy."""
 
@@ -31,9 +33,12 @@ def recover(
         @wraps(method)
         def recovered(self: ScriptOperations, *args: object, **kwargs: object) -> JsonObject:
             details = {"host": self._adapter.host, "port": self._adapter.port} if endpoint else {}
+            if hint is not None:
+                details["hint"] = hint
             return self._operation(
                 error_type,
                 lambda: method(self, *args, **kwargs),
+                retryable=retryable,
                 **details,
             )
 
@@ -52,6 +57,8 @@ class ScriptOperations:
         self,
         error_type: str,
         operation: Callable[[], JsonObject],
+        *,
+        retryable: bool = True,
         **details: object,
     ) -> JsonObject:
         """Return a CARLA value or one uniform recoverable failure."""
@@ -71,12 +78,20 @@ class ScriptOperations:
                 "ok": False,
                 "error_type": error_type,
                 "message": str(exc),
-                "retryable": True,
                 "error": str(exc),
                 **details,
                 **getattr(exc, "details", {}),
+                "retryable": _retryable_error(exc, retryable),
             }
 
     def _snapshot(self, uri: str, payload: JsonObject) -> JsonObject:
         self._snapshots.register_snapshot(uri, payload)
         return payload
+
+
+def _retryable_error(exc: RuntimeError, requested: bool) -> bool:  # noqa: FBT001
+    return (
+        requested
+        and not isinstance(exc, OwnershipError)
+        and getattr(exc, "details", {}).get("retryable") is not False
+    )
