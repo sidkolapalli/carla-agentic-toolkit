@@ -96,6 +96,41 @@ collision delivery, tracking error, usage and cleanup evidence. Route reports ad
 measured progress, the fixed goal, accepted choices by source, local guard frame
 counts, and minimum observed separating-axis body-box clearance.
 
+### Physical hazard validity
+
+New `route-hazards-v2` executions keep the command schedule separate from
+`hazard_trial` measurements. The physical deadline is declared before actuation:
+six simulation seconds after the pedestrian trigger, or 2.5 seconds after the
+cut-in trigger. Ending a command window is not evidence that its motion occurred.
+
+Cut-in validity means the observed snapshot actor-origin position moves from
+outside into the driving lane before its deadline. It does not mean the vehicle
+has aligned with the lane centre or achieved body clearance. A pedestrian's
+snapshot actor-origin position must enter the lane and then cross its centreline
+before the deadline. These points are not the native bounding-box centre. Both
+use the fixed local route tangent and native route lane width at the hazard's
+setup position. Event times
+are the first qualifying observed frame, not an interpolated exact crossing time.
+The trace retains latest position, planar velocity and speed, displacement from
+the trigger position, and first entry/crossing evidence. Late entry is still
+recorded but does not repair a missed deadline. These full-owned diagnostics
+remain outside the provider's range-filtered inputs.
+
+The final `hazard_trial` includes validity, failure reason, deadline and terminal
+cause even on frame limits, cancellation and infrastructure failure. Ego route
+completion stays in `outcome`, and cleanup remains separate. An explicitly
+invalid hazard trial makes the run's top-level `ok` false without rewriting a
+completed ego route or pretending that ordinary trial invalidity is a simulator
+failure. Trace summaries expose this evidence as `route_hazard_trial`. Legacy
+traces without it, and the lead-brake scenario without a defined physical
+completion criterion, remain explicitly unverified; no historical evidence is
+manufactured valid.
+
+This reporting change does not correct or explain the retained UE5 walker speed
+defect. No speed multiplier, teleport, or AI-controller fallback is applied.
+Corrected physical motion, geometry and a no-key baseline still require dedicated
+native validation before any new bounded live provider trial.
+
 The crossing estimate projects current world velocity and yaw over four seconds
 at 0.1s intervals using padded 2D boxes. It ignores future acceleration, turns,
 occlusion, perception error and intent. New observations retain the actor origin

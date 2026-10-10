@@ -146,6 +146,7 @@ class ExperimentRun:
         self.error: str | None = None
         self.outcome: dict[str, object] = {"completed": False, "status": "partial"}
         self.cleanup: dict[str, object] = {"ok": True, "not_started": True}
+        self.fixture_summary: dict[str, object] = {}
 
     @property
     def world_generation(self) -> str:
@@ -343,7 +344,8 @@ class ExperimentRun:
             self.trace.close()
         reports = self._report_paths()
         result = {
-            "ok": self.state == "completed" and self.outcome.get("completed") is True,
+            **self.fixture_summary,
+            "ok": self._successful(),
             "run_id": self.run_id,
             "state": self.state,
             "error": self.error,
@@ -356,14 +358,31 @@ class ExperimentRun:
         self.publish_status(result)
         return result
 
+    def _successful(self) -> bool:
+        return (
+            self.state == "completed"
+            and self.outcome.get("completed") is True
+            and _valid_trial(self.fixture_summary)
+        )
+
     def _final_events(self) -> None:
         if self.error is not None:
             self.event("infrastructure_error", {"error": self.error})
         if self.state == "cancelled":
             self.outcome = {"completed": False, "status": "cancelled"}
             self.event("outcome", self.outcome)
+        self._finalize_fixture()
         self.event("cleanup", self.cleanup)
         self.event("lifecycle", {"state": self.state, "error": self.error})
+
+    def _finalize_fixture(self) -> None:
+        summarize = getattr(self.experiment, "final_summary", None)
+        if callable(summarize):
+            termination = (
+                self.state if self.state in {"cancelled", "failed"} else str(self.outcome["status"])
+            )
+            self.fixture_summary = summarize(termination=termination)
+            self.event("fixture_summary", self.fixture_summary)
 
     def _report_paths(self) -> dict[str, str]:
         try:
@@ -377,6 +396,11 @@ class ExperimentRun:
 
 def _intervened(intervention: dict[str, object]) -> bool:
     return intervention.get("fallback") is True or bool(intervention.get("reason"))
+
+
+def _valid_trial(summary: dict[str, object]) -> bool:
+    trial = summary.get("hazard_trial")
+    return not isinstance(trial, dict) or trial.get("valid") is not False
 
 
 def _source_digest() -> str:

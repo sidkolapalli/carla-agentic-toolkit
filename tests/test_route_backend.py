@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 def prepared(
-    monkeypatch: pytest.MonkeyPatch, scenario: str = "lead_brake"
+    monkeypatch: pytest.MonkeyPatch, scenario: str = "lead_brake", *, path: RoutePath | None = None
 ) -> tuple[Session, route_experiment.RouteExperiment]:
     """Use real route/session contracts with CARLA-free actor handles that cannot tick."""
     module = SimpleNamespace(
@@ -37,7 +37,7 @@ def prepared(
         Vector3D=SimpleNamespace,
     )
     monkeypatch.setattr(route_actors, "import_module", lambda _name: module)
-    path = RoutePath((RoutePoint(0.0, 0.0), RoutePoint(165.0, 0.0)))
+    path = path or RoutePath((RoutePoint(0.0, 0.0), RoutePoint(165.0, 0.0)))
     monkeypatch.setattr(route_experiment, "select_route", lambda _map: path)
     spec = ExperimentSpec.model_validate({"fixture": "town10-route-ue5-v1", "scenario": scenario})
     session = Session(spec=spec)

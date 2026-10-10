@@ -3,7 +3,7 @@
 from collections import Counter, defaultdict
 from typing import Any
 
-ROUTE_METRIC_VERSION = "route-observed-metrics-v1"
+ROUTE_METRIC_VERSION = "route-observed-metrics-v2"
 
 
 def route_metrics(events: tuple[dict[str, Any], ...]) -> dict[str, Any]:
@@ -18,7 +18,18 @@ def route_metrics(events: tuple[dict[str, Any], ...]) -> dict[str, Any]:
         "route_minimum_observed_box_clearance_m": _minimum_clearance(observations),
         "route_accepted_choices_by_source": _choices(events),
         "route_local_guard_frames": _guard_counts(events),
+        "route_hazard_trial": _hazard_trial(events),
     }
+
+
+def _hazard_trial(events: tuple[dict[str, Any], ...]) -> dict[str, Any]:
+    for event in reversed(events):
+        if event["kind"] not in {"fixture_summary", "execution"}:
+            continue
+        trial = event["data"].get("hazard_trial")
+        if isinstance(trial, dict):
+            return trial
+    return {"valid": None, "status": "unverified"}
 
 
 def _route_observation(event: dict[str, Any]) -> bool:
