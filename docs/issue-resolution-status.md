@@ -387,6 +387,35 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   #135 fixed-step cadence metadata; all required static checks remain green.
 - Published checkpoint `3ddc6df` passes GitHub CI (run 38022205599). No issue
   closure or PR merge has occurred.
+- #154: fifty-six regressions demonstrated RED with twenty-eight controls;
+  84 new cases and 207 broader checks pass. The isolated gate passes with 2,288
+  Python tests, two skips and nine Rust tests. Trusted HOST/PORT environment
+  defaults resolve independently only for omitted direct, MCP and session
+  inputs; malformed configuration or explicit null/bool/string ports are not
+  silently defaulted. Windows forwards exactly those two nonsecret values as
+  separate argv data. Native finite/persistent Landlock health checks using
+  omitted endpoints reach the configured 0.10.0 server, spawn no actors and
+  verify unchanged state and the same clean lease. Stable literal-IP/mirrored
+  networking guidance is documented; lease identity and dirty-state logic are
+  unchanged and no changing WSL address is treated as a safe lease alias.
+- Integrated #154 gate: 2,441 Python tests passed, two skipped and nine Rust
+  tests passed; all required static checks pass. Integration retains #156's
+  explicit streaming/secondary fields and resolves omitted HOST/PORT before
+  constructing that expanded execution request.
+- #96 diagnostic: the original `walker.pedestrian.0015` route-position command
+  is reproduced without a key, multiplier or teleport on native 0.10.0. At the
+  same settled position, six seconds of a received 2 m/s control produce only
+  0.585938 m movement and 0.0976563 m/s median native velocity in both unpaced
+  and wall-paced fixed-step modes. Async mode yields the same native median
+  and 0.585197 m displacement over 6.001256 seconds. These measurements rule
+  out pacing alone, not every engine/control cause. Bounded raw snapshot chunks
+  retain positions, z, velocities and control/box data. All three owned walkers
+  are authoritatively deleted and original native state/same lease verified.
+  The first diagnostic exceeded the receipt-size limit after cleanup; its
+  measurements are not claimed as retained evidence. This reproduces failure,
+  not a valid crossing, video, physical fix or provider acceptance run.
+- Published checkpoint `92428f3` passes GitHub CI (run 38023235735). Issues stay
+  open until merge and their completed acceptance checks.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native
   health confirms matching 0.9.16 releases and no warnings; a genuine 0.10.0 client
@@ -460,7 +489,7 @@ vehicle.taxi.ford
 | [#82](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/82) | Validate and publish the source-only experimental alpha with release evidence | External verification pending: independent private-report submission and receipt. |
 | [#87](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/87) | Expose managed experiment controls and publish a reproducible rules-versus-Jev demo | Skipped for now at the user's request; original article input remains unavailable. |
 | [#94](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/94) | Exercise Jev along a route with controlled traffic hazards | Pending genuine UE5 live scenario validation; provider calls explicitly disabled by the user. |
-| [#96](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/96) | Fix UE5 pedestrian hazard motion and verify physical scenario completion | Pending UE5 walker diagnostics and physical-completion validation. |
+| [#96](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/96) | Fix UE5 pedestrian hazard motion and verify physical scenario completion | Native no-key defect reproduced in sync, paced-sync and async; independent completion checks in progress; physical fix/valid crossing and provider acceptance pending. |
 | [#120](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/120) | Restore world and Traffic Manager settings after script and persistent-session runs instead of marking the lease clean | Implemented; full gate passed; live CARLA validation pending. |
 | [#121](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/121) | Count already-destroyed actors as cleaned up and release successful batch destroys from the journal | Implemented; full gate passed; live validation pending. |
 | [#122](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/122) | Give the vehicle under test role_name hero and stop calling the other merge car ego | Implemented: configurable hero, canonical target and journal-only ownership; TDD, both native fixture role checks and full gate pass; unknown replies remain quarantined. |
@@ -495,7 +524,7 @@ vehicle.taxi.ford
 | [#151](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/151) | Name Traffic Manager presets and desired_speed units unambiguously | Implemented naming and permitted profile-interaction documentation; TDD, native two-pass speed read, and full gate pass. |
 | [#152](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/152) | Filter safe traffic vehicles by base_type instead of a name list | Implemented locally: exact native car classification with legacy fallback; TDD, both native inventory checks, and full gate pass. |
 | [#153](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/153) | Read weather back from CARLA and make the showcase prompt engine-aware | Implemented; TDD, both native readback/restoration checks, and integrated full gate pass. |
-| [#154](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/154) | Support a configured default CARLA host and a stable lease key under WSL2 | Pending implementation. |
+| [#154](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/154) | Support a configured default CARLA host and a stable lease key under WSL2 | Implemented omission-only endpoint defaults and stable-IP guidance; TDD, actual Landlock configured-endpoint checks and full gate pass; lease protection unchanged. |
 | [#155](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/155) | Drop the cached CARLA client in persistent sessions after a simulator restart | Pending implementation. |
 | [#156](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/156) | Allow non-default CARLA streaming and secondary ports in the sandbox | Implemented configuration; TDD, actual Landlock finite/persistent native streaming and full gate pass; hidden socket denial cannot be inferred from a timeout. |
 | [#157](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/157) | Close a script's subscription before destroying an inherited sensor | Implemented locally: original-handle unsubscribe, retry acknowledgement, and same-episode guards; full gate passed. |
