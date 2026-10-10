@@ -709,7 +709,7 @@ class CarlaScriptApi(ScriptOwnershipOperations):
         self._prepare_owned_creation()
         payload = self._adapter.save_screenshot(
             output_path=Path(output_path),
-            attributes=attributes or {"image_size_x": "640", "image_size_y": "360"},
+            attributes=attributes or {"image_size_x": "480", "image_size_y": "270"},
         )
         if publish:
             payload["publish"] = True

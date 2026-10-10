@@ -214,15 +214,15 @@ def _assert_lossless_refusal(report: dict[str, object], sensor: Sensor) -> None:
 
 
 def test_screenshot_default_is_publication_sized(tmp_path: Path) -> None:
-    """The temporary camera uses the requested 640x360 publication default."""
+    """The temporary camera uses the bounded 480x270 publication default."""
     adapter = Mock()
     adapter.save_screenshot.return_value = {"capture_id": "screenshot", "path": "view.png"}
 
     build_api(adapter, RunSnapshots()).save_screenshot(str(tmp_path / "view.png"))
 
     assert adapter.save_screenshot.call_args.kwargs["attributes"] == {
-        "image_size_x": "640",
-        "image_size_y": "360",
+        "image_size_x": "480",
+        "image_size_y": "270",
     }
 
 

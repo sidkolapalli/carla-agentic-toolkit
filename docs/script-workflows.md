@@ -78,9 +78,13 @@ Publication permits at most four images, each no larger than 512 KiB, within a
 budget, so two images below the individual limit can still exceed it. Every
 published path must resolve below `CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR`.
 
-`api.save_screenshot("captures/view.png", publish=True)` defaults to a 640x360
+`api.save_screenshot("captures/view.png", publish=True)` defaults to a 480x270
 RGB camera. This smaller default is not a size guarantee: scene content,
 encoding, result text, and the number of images still affect both byte limits.
+Issue #123 proposed 640x360, but a dedicated CARLA 0.9.16 native screenshot at
+that size produced 525,488 PNG bytes, exceeding the 524,288-byte limit. The
+480x270 default leaves space even for uncompressed RGBA PNG pixel data and
+ordinary encoding overhead. Explicit caller dimensions are not reduced.
 A publication-only failure retains the execution's original `ok`, `result`,
 snapshots, and cleanup evidence, and adds
 `publication_error={"error_type": ..., "error": ...}`. The image content is

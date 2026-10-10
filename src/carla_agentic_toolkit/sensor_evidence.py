@@ -64,7 +64,7 @@ def _require_converter_output(sensor_type: str, path: Path, name: str) -> None:
 
 
 def save_frame(frame: object, path: Path, converter: object | None = None) -> None:
-    """Require a callable native writer and the durable file it acknowledges."""
+    """Require a callable native writer and an existing file it acknowledges."""
     writer = getattr(frame, "save_to_disk", None)
     if not callable(writer):
         message = "CARLA sensor frame has no callable save_to_disk writer."
