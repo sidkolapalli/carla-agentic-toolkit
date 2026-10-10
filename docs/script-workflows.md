@@ -177,6 +177,31 @@ An origin already within the arrival tolerance is not followed away from the end
 and `carla-snapshot://route/latest` snapshot. New scripts should use
 `follow_waypoints`. Historical discovery receipts remain unchanged.
 
+## Weather and visual showcases
+
+`api.set_weather(parameters)` returns the server's current `get_weather()`
+readback after the setter call, not the requested parameters. A server can clamp
+or ignore a request; even matching values do not prove a rendered weather effect.
+An unavailable getter returns `available: false`, and a failed read propagates
+the failure rather than manufacturing applied values. The setter may already
+have run in either case.
+
+Save a usable `api.get_weather()` baseline before attempting a change, record
+that attempt before the setter call, and restore the baseline in `finally` only
+if attempted. Check the restoration readback and report unavailable or failed
+restoration separately. Weather is not covered by the world-settings journal.
+
+The static `run_visual_showcase` prompt does not connect to CARLA when retrieved.
+Its generated script starts with health/version checks before world inspection,
+selects a car from the actual vehicle blueprint catalog, and sets color only
+when the returned attribute is modifiable. It requires asynchronous mode and
+enabled rendering for the camera. CARLA's
+[0.10.0 release announcement](https://carla.org/2024/12/19/release-0.10.0/)
+documents fixed daylight and unavailable weather changes, so that release's
+showcase skips weather mutation and reports the limitation instead of promising
+rain or golden-hour lighting. Other builds still require authoritative readback;
+the weather runtime does not infer capabilities from a version string.
+
 ## Name actors across calls
 
 After creating an actor and obtaining its ID, give it a conversational name:

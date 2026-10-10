@@ -202,18 +202,33 @@ def _register_prompts(mcp: MCPServer) -> None:
         """Prompt for a self-cleaning visual scenario."""
         return (
             "Use one execute_carla_script call to create an 8-second visual CARLA demo. "
+            "First save health = api.health_check(). Check for an ok: false result, then "
+            'inspect health["connected"] and health["warnings"] before any world inspection. '
+            "If disconnected, failed, or compatibility warnings are present, return a "
+            "health-only result with available versions and next action; do not mutate. "
+            'Retain the full health["server_version"] string. '
             "Run only in asynchronous mode. "
-            "Save the current weather. Spawn one red Tesla Model 3 at the first free "
-            "spawn point with role_name carla-agentic-toolkit-showcase. Apply rainy golden-hour "
-            "weather and vehicle lights, apply gentle throttle with api.apply_vehicle_control(), "
+            'Query api.list_blueprints("vehicle.*") and choose an available car blueprint '
+            "from that actual catalog, reporting failure if none is suitable. Set red color "
+            "only if its returned attributes include color with is_modifiable=True. "
+            "Spawn it at a free spawn point with role_name carla-agentic-toolkit-showcase. "
+            "For server release 0.10.0, skip weather changes and flag its fixed-daylight "
+            "limitation. Otherwise, save usable api.get_weather() readback before any "
+            "weather attempt, mark the attempt before calling api.set_weather(), and report "
+            "its actual returned readback without promising rain or lighting effects. "
+            "Save the spectator transform. Apply vehicle lights only when supported, "
+            "apply gentle throttle with api.apply_vehicle_control(), "
             "and call api.watch_actor(actor_id, seconds=8.0) for a smooth yaw-relative "
             "chase view that restores the spectator, then apply the brake. "
-            "Check every operation for an ok: false result. "
+            "Check every operation for an ok: false or available: false result. "
             "Attach a 320-by-180 RGB camera and publish "
-            "a frame to captures/showcase.png. Return "
-            "map, speed before/after, capture metadata, restored-state checks, and "
+            "a frame to captures/showcase.png only with rendering enabled. Return "
+            "versions, selected blueprint, weather limitations/readback, map, speed "
+            "before/after, capture metadata, restored-state checks, and "
             "leftovers. In finally, detach sensors, destroy only actors created by this "
-            "script, and restore both weather and spectator transform."
+            "script, restore weather only if attempted with a saved baseline, and restore "
+            "the saved spectator transform. Check restoration readback and report failures; "
+            "do not infer cleanup success from the requested values."
         )
 
 

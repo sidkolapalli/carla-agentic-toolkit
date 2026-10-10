@@ -180,6 +180,60 @@ def test_synchronous_stepping_prompt_restores_settings_and_explains_tick_ownersh
     assert (fragment in content.text) is present
 
 
+@pytest.mark.parametrize(
+    ("fragment", "present"),
+    [
+        ("api.health_check()", True),
+        ('health["connected"]', True),
+        ('health["warnings"]', True),
+        ('health["server_version"]', True),
+        ("health-only", True),
+        ("before any world inspection", True),
+        ('api.list_blueprints("vehicle.*")', True),
+        ("available car blueprint", True),
+        ("color", True),
+        ("is_modifiable", True),
+        ("0.10.0", True),
+        ("skip weather changes", True),
+        ("readback", True),
+        ("only if attempted", True),
+        ("Tesla Model 3", False),
+        ("Apply rainy golden-hour", False),
+        ("asynchronous mode", True),
+        ("finally", True),
+    ],
+)
+def test_visual_showcase_prompt_uses_health_and_available_engine_features(
+    fragment: str, *, present: bool
+) -> None:
+    """The served demo must discover actual vehicles and flag fixed UE5 weather."""
+    prompt = asyncio.run(build_server().get_prompt("run_visual_showcase"))
+    assert isinstance(prompt, GetPromptResult)
+    content = cast("TextContent", prompt.messages[0].content)
+
+    assert (fragment in content.text) is present
+
+
+def test_visual_showcase_prompt_is_static_and_does_not_connect_or_execute(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Prompt retrieval is guidance, never authority to inspect or mutate a simulator."""
+    calls = []
+
+    def forbidden(*_args: object, **_kwargs: object) -> None:
+        calls.append("simulator operation")
+        message = "retrieving a prompt must not access CARLA"
+        raise AssertionError(message)
+
+    monkeypatch.setattr(server_module, "execute_script", forbidden)
+    monkeypatch.setattr("carla_agentic_toolkit.adapter.PythonCarlaAdapter.health_check", forbidden)
+
+    prompt = asyncio.run(build_server().get_prompt("run_visual_showcase"))
+
+    assert isinstance(prompt, GetPromptResult)
+    assert calls == []
+
+
 def test_server_supports_latest_mcp_protocol(monkeypatch: pytest.MonkeyPatch) -> None:
     """The server should negotiate MCP 2026-07-28 and return structured output."""
     monkeypatch.setattr(server_module, "execute_script", _successful_script)

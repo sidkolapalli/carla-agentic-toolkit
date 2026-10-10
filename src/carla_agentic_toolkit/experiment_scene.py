@@ -131,12 +131,12 @@ def weather(world: CarlaWorld) -> dict[str, object]:
 
 
 def set_weather(world: CarlaWorld, parameters: dict[str, float]) -> dict[str, object]:
-    """Set weather parameters when supported."""
+    """Set weather parameters and return the server's current readback."""
     if not hasattr(world, "set_weather"):
         return unavailable("world.set_weather is not available in this CARLA build.")
     carla_weather = weather_parameters(import_module("carla"), parameters)
     cast("Any", world).set_weather(carla_weather)
-    return {"weather": object_public_fields(carla_weather)}
+    return weather(world)
 
 
 def weather_parameters(module: object, parameters: dict[str, float]) -> object:
