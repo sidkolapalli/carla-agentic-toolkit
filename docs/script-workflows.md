@@ -61,6 +61,13 @@ unknown rendering is refused before spawning or listening. CPU sensors and
 listener cleanup remain available. Off-screen rendering does not imply
 no-rendering mode. See [rendering requirements](sensor-timing.md#rendering-requirements).
 
+`save_screenshot` keeps the first delivered frame of its temporary spectator RGB
+camera. It does not discard warmup frames or force manual exposure; supplied
+blueprint attributes take precedence. The dedicated bright/dark
+[first-frame check](first-frame-exposure-check.md) did not reproduce a material
+brightness difference on the tested CARLA 0.9.16 setup. This is not a guarantee
+that exposure has settled in other scenes or builds.
+
 Published PNG/JPEG captures include native `ImageContent` for vision-capable
 clients and a `carla-output://capture/...` Resource link for later reads. JSON
 text remains first for clients that ignore images. The linked file must remain

@@ -142,6 +142,17 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   comparison JSON/HTML, and media bytes are unchanged. Renderer CLI imports pass
   in the locked project environment; isolated offline script execution cannot
   resolve the uncached pinned Pillow dependency, and no install was attempted.
+- #162: the conditional live-first check passes on a dedicated Windows-native
+  CARLA 0.9.16 server: 30 fresh-camera frames in each verified bright/dark scene,
+  real first/last image inspection, no drops, and first-to-last encoded mean
+  brightness changes below 0.02 on a 0-255 scale. No runtime fix is justified by
+  these samples. The [measurement and limits](first-frame-exposure-check.md)
+  describe the unchanged first-frame capture contract. All weather/settings,
+  episode, spectator, and actor baselines are restored. The 0.10.0 map reports
+  native weather disabled; its two no-camera refusals were explicitly recovered
+  after read-only verification of the same dirty leases. No private receipts or
+  images were published, and no artificial TDD regression was added for this
+  evidence/documentation-only result.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native
   health confirms matching 0.9.16 releases and no warnings; a genuine 0.10.0 client
@@ -158,8 +169,8 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
 - #87 is skipped at the user's request; #82 requires independent reporting
   verification. #152's native inventory and pre/post checks are complete on
   CARLA 0.9.16 (Windows) and 0.10.0 (WSL); its full gate passes.
-  #162 requires live camera
-  evidence before changing behavior.
+  #162's live comparison did not reproduce a material brightness difference in
+  the tested 0.9.16 setup; no default warmup or manual-exposure fix was applied.
 
 ## Native Safe-Filter Lists
 
@@ -257,7 +268,7 @@ vehicle.taxi.ford
 | [#159](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/159) | Make managed recovery's fresh-snapshot check work in an asynchronous world | Implemented locally: shared mode-aware fresh-snapshot recovery; TDD and full gate passed. |
 | [#160](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/160) | Call Sensor.is_listening as a method | Implemented; full gate passed; optional live warning check pending. |
 | [#161](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/161) | Refuse or warn when attaching cameras in no-rendering mode | Implemented locally; TDD, native rendering check, and full gate pass. |
-| [#162](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/162) | Let camera auto-exposure settle before keeping a one-shot capture | Live bright/dark first-frame comparison required before choosing a change. |
+| [#162](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/162) | Let camera auto-exposure settle before keeping a one-shot capture | Investigated locally: not reproduced in the supported live bright/dark check; unchanged capture contract and limitations documented. |
 | [#163](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/163) | Reuse SensorSubscription in the demo capture script | Pending implementation. |
 | [#164](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/164) | Add ground-truth helpers and richer image digests for perception tests | Pending implementation. |
 | [#165](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/165) | Report substepping settings and stop swallowing density wait_for_tick timeouts | Implemented locally: six-field reporting and fatal frame waits with lifecycle evidence; TDD, native reporting check, and full gate pass. |
