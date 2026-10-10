@@ -23,6 +23,7 @@ from carla_agentic_toolkit.ownership import RunOwnership, cleanup_owned_actors, 
 from carla_agentic_toolkit.rpc_timeouts import RUN_DEADLINE_FILENAME, RpcTimeoutPolicy, run_deadline
 from carla_agentic_toolkit.script_api import CarlaScriptApi
 from carla_agentic_toolkit.script_settings import SETTINGS_FILENAME, RunSettings
+from carla_agentic_toolkit.script_values import value_constructors
 from carla_agentic_toolkit.snapshots import RunSnapshots
 
 RESULT_NAME = "result"
@@ -167,6 +168,7 @@ def run_script_file(  # noqa: PLR0913 - direct callers may omit parent-initializ
             globals_after_run = runpy.run_path(
                 str(script_path),
                 init_globals={
+                    **value_constructors(),
                     "__builtins__": _safe_builtins(),
                     API_NAME: api,
                     RESULT_NAME: None,

@@ -13,6 +13,7 @@ from carla_agentic_toolkit.script_runner import (
     _script_outcome,
     _validate_script,
 )
+from carla_agentic_toolkit.script_values import value_constructors
 from carla_agentic_toolkit.snapshots import RunSnapshots
 
 if TYPE_CHECKING:
@@ -45,6 +46,7 @@ class PersistentNamespace:
         rejection = _validate_script(code)
         if rejection is not None:
             return _error("script_rejected", rejection, stdout="")
+        self._namespace.update(value_constructors())
         self._namespace.update(__builtins__=_safe_builtins(), api=self._api, result=None)
         stream = _BoundedWriter(MAX_SCRIPT_STDOUT_BYTES)
         error = self._execute(code, stream)

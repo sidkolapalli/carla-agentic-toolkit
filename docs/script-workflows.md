@@ -30,6 +30,84 @@ The default tool starts a new script process for each call. Ordinary Python
 variables do not survive the call. See [persistent script sessions](persistent-sessions.md)
 when a workflow needs a retained namespace or asynchronous request handling.
 
+## CARLA names and values
+
+Scripts receive pure-Python `Location(x=0.0, y=0.0, z=0.0)`,
+`Vector3D(x=0.0, y=0.0, z=0.0)`, `Rotation(pitch=0.0, yaw=0.0, roll=0.0)` and
+`Transform(location, rotation)` constructors. `Transform()` supplies fresh zero
+components; supplied components are copied. Their argument order follows the
+[CARLA 0.9.16 value API](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Location).
+They are mutable JSON-backed values with public component attributes, not native
+CARLA objects or the toolkit's immutable internal DTOs. Native vector/transform
+math is not exposed by these stand-ins. The import ban remains unchanged.
+
+Use these values wherever the facade accepts location, vector or transform
+dictionaries, including nested spawn/camera requests and path lists. Existing
+input parsers still validate their components; constructors do not bypass that
+validation. Returned results remain JSON-compatible dictionaries. The four
+constructor names are reserved injected globals, reasserted on each persistent
+request like `api`; saved values and unrelated variables remain available.
+
+```python
+pose = Transform(Location(1.0, 2.0, 3.0), Rotation(0.0, 90.0, 0.0))
+pose.location.z = 4.0
+result = api.set_actor_transform(actor_id, pose)
+```
+
+Parent actors use `attach_to` IDs: `api.attach_sensor(kind, attach_to, transform)`
+and `api.attach_event_sensor(kind, attach_to)`. Camera request dictionaries use
+`"attach_to"` too. Deprecated `parent_id` method keywords and `parent_actor_id`
+camera keys remain accepted throughout the 0.1.x compatibility period; removal
+requires an announced later release. Matching dual aliases are accepted, but
+conflicting values are rejected before ownership preparation or native calls.
+The native CARLA API takes actor handles; this curated facade continues to take
+IDs and resolve them through its existing adapter.
+
+`api.get_waypoint(location, project_to_road=True, lane_type="Driving")` now follows
+CARLA's positional order. The old second positional string lane name remains
+accepted during the same compatibility period, including
+`api.get_waypoint(location, "Sidewalk", project_to_road=False)`. The existing
+`lane_type=` keyword remains valid; conflicting positional/keyword lane names
+are rejected. Lane types are still names, not imported native enum values.
+
+`api.describe_api()` includes `carla_equivalent` for every method. It names the
+primary native operation where unambiguous; `null` identifies toolkit-only or
+composite workflows. These are correspondence hints, not drop-in signatures or
+native return types: facade validation, timing, ownership, readback and cleanup
+policies still apply. In particular, waypoint following is not CARLA's topology
+route planner, and response batches use `apply_batch_sync`, not `apply_batch`.
+
+| Script method | Primary CARLA operation |
+| --- | --- |
+| `list_worlds` | `carla.Client.get_available_maps` |
+| `load_world` | `carla.Client.load_world` |
+| `reload_world` | `carla.Client.reload_world` |
+| `tick` | `carla.World.tick` |
+| `attach_camera`, `attach_sensor`, `attach_event_sensor` | `carla.World.spawn_actor` |
+| `get_spawn_points` | `carla.Map.get_spawn_points` |
+| `get_waypoint` | `carla.Map.get_waypoint` |
+| `get_topology` | `carla.Map.get_topology` |
+| `enable_environment_objects` | `carla.World.enable_environment_objects` |
+| `generate_opendrive_world` | `carla.Client.generate_opendrive_world` |
+| `get_vehicle_physics` | `carla.Vehicle.get_physics_control` |
+| `apply_vehicle_control` | `carla.Vehicle.apply_control` |
+| `set_actor_transform`, `set_spectator` | `carla.Actor.set_transform` |
+| `set_vehicle_lights` | `carla.Vehicle.set_light_state` |
+| `set_target_velocity` | `carla.Actor.set_target_velocity` |
+| `set_walker_destination` | `carla.WalkerAIController.go_to_location` |
+| `apply_walker_control` | `carla.Walker.apply_control` |
+| `freeze_traffic_lights` | `carla.World.freeze_all_traffic_lights` |
+| `set_traffic_light_state` | `carla.TrafficLight.set_state` |
+| `get_weather` | `carla.World.get_weather` |
+| `set_weather` | `carla.World.set_weather` |
+| `replay_recording` | `carla.Client.replay_file` |
+| `query_recording_collisions` | `carla.Client.show_recorder_collisions` |
+| `query_recording_actors_blocked` | `carla.Client.show_recorder_actors_blocked` |
+| `apply_batch` | `carla.Client.apply_batch_sync` |
+| `record_episode` | `carla.Client.start_recorder` |
+| `stop_recording` | `carla.Client.stop_recorder` |
+| All remaining facade methods | `null` (toolkit/composite workflow) |
+
 ## Check errors and snapshots
 
 Recoverable CARLA operation failures return a value containing `ok: false`,

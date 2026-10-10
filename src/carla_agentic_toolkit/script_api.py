@@ -25,6 +25,7 @@ from carla_agentic_toolkit.ownership import (
 )
 from carla_agentic_toolkit.ownership_release import release_controller_destroyed
 from carla_agentic_toolkit.rpc_timeouts import MAP_FAILURE_HINT
+from carla_agentic_toolkit.script_arguments import parent_alias, waypoint_order
 from carla_agentic_toolkit.script_operations import recover as _recover
 from carla_agentic_toolkit.script_ownership_operations import ScriptOwnershipOperations
 from carla_agentic_toolkit.sensor_evidence import require_publication_converter
@@ -330,14 +331,15 @@ class CarlaScriptApi(ScriptOwnershipOperations):
         return self._snapshot(f"carla-snapshot://captures/{capture.capture_id}", payload)
 
     @_recover("attach_sensor_failed")
+    @parent_alias
     def attach_sensor(
         self,
         kind: str,
-        parent_id: int | None,
+        attach_to: int | None,
         transform: dict[str, object],
         attributes: dict[str, str] | None = None,
     ) -> JsonObject:
-        """Attach any supported CARLA sensor kind to an actor."""
+        """Attach a sensor to attach_to; parent_id is deprecated but still accepted."""
         blueprint_id = sensor_blueprint(kind)
         parsed_transform = parse_transform(transform)
         self._prepare_owned_creation()
@@ -345,7 +347,7 @@ class CarlaScriptApi(ScriptOwnershipOperations):
             blueprint_id=blueprint_id,
             transform=parsed_transform,
             attributes=attributes or {},
-            parent_actor_id=parent_id,
+            parent_actor_id=attach_to,
         )
         self._track_owned((sensor.sensor_id,))
         return self._snapshot(f"carla-snapshot://sensors/{sensor.sensor_id}", sensor.to_dict())
@@ -399,16 +401,17 @@ class CarlaScriptApi(ScriptOwnershipOperations):
         """Stop one subscription when the owner finishes reading its sensor."""
         return self._adapter.close_sensor_subscription(sensor_id)
 
+    @parent_alias
     def attach_event_sensor(
         self,
         kind: str,
-        parent_id: int,
+        attach_to: int,
         attributes: dict[str, str] | None = None,
     ) -> JsonObject:
-        """Attach a collision, lane-invasion, or obstacle event sensor."""
+        """Attach an event sensor to attach_to; parent_id is a deprecated alias."""
         return self.attach_sensor(
             kind=kind,
-            parent_id=parent_id,
+            attach_to=attach_to,
             transform=zero_transform(),
             attributes=attributes,
         )
@@ -430,14 +433,14 @@ class CarlaScriptApi(ScriptOwnershipOperations):
         return self._snapshot("carla-snapshot://map/spawn-points", payload)
 
     @_recover("get_waypoint_failed")
+    @waypoint_order
     def get_waypoint(
         self,
         location: dict[str, object],
+        project_to_road: bool = True,  # noqa: FBT001, FBT002 -- Match CARLA's positional API.
         lane_type: str = "Driving",
-        *,
-        project_to_road: bool = True,
     ) -> JsonObject:
-        """Return waypoint metadata for a world location."""
+        """Use CARLA location/project_to_road/lane_type order; old positional lane is deprecated."""
         return self._adapter.get_waypoint(
             location=parse_location(location),
             lane_type=lane_type,

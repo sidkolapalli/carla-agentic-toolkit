@@ -19,6 +19,7 @@ from carla_agentic_toolkit.models import (
     Transform,
     VehicleBehaviorRequest,
 )
+from carla_agentic_toolkit.script_arguments import parent_value
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
@@ -82,7 +83,7 @@ def parse_camera_attach_request(payload: dict[str, object]) -> CameraAttachReque
         blueprint_id=_string_field(payload, "blueprint_id"),
         transform=_transform(_mapping_field(payload, "transform")),
         attributes=_string_mapping_field(payload, "attributes"),
-        parent_actor_id=_optional_int_field(payload, "parent_actor_id"),
+        parent_actor_id=parent_value(payload, legacy_name="parent_actor_id"),
     )
 
 
