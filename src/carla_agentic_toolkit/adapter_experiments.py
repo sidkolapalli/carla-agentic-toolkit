@@ -26,6 +26,7 @@ from carla_agentic_toolkit.rpc_timeouts import RpcTimeoutPolicy, call_map_rpc
 from carla_agentic_toolkit.sensor_rendering import require_sensor_rendering
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from pathlib import Path
 
     from carla_agentic_toolkit.actor_creation import SpawnObservers
@@ -48,6 +49,7 @@ class PythonCarlaExperimentMixin(PythonCarlaGroundTruthMixin, PythonCarlaSensorL
     _settings_journal: RunSettings | None
     _rpc_timeout_policy: RpcTimeoutPolicy
     _sensor_queue_budget: SensorQueueBudget
+    _delete_walker_rollback: Callable[[CarlaWorld, int, int], DestroyResult]
 
     def _client(self) -> CarlaClient:
         """Return a configured CARLA client."""
@@ -55,6 +57,10 @@ class PythonCarlaExperimentMixin(PythonCarlaGroundTruthMixin, PythonCarlaSensorL
 
     def configure_rpc_timeout(self, client: object) -> None:
         """Refresh a native client against the execution's remaining RPC budget."""
+        raise NotImplementedError
+
+    def _frame_wait_timeout(self, client: CarlaClient) -> float:
+        """Refresh the concrete adapter's current remaining native deadline."""
         raise NotImplementedError
 
     @staticmethod
@@ -442,11 +448,23 @@ class PythonCarlaExperimentMixin(PythonCarlaGroundTruthMixin, PythonCarlaSensorL
         seed: int | None = None,
     ) -> dict[str, object]:
         """Spawn pedestrians and AI walker controllers."""
+        from carla_agentic_toolkit.walker_lifecycle import WalkerLifecycle  # noqa: PLC0415
+
+        client = self._client()
+        world = self._world(client)
         return experiment_walkers.spawn_walker_actors(
-            self._world(self._client()),
+            world,
             count=count,
             speed=speed,
             seed=seed,
+            lifecycle=WalkerLifecycle(
+                world,
+                require_episode=self._require_cleanup_episode,
+                timeout_seconds=lambda: self._frame_wait_timeout(client),
+                delete_actor=lambda actor_id, identity: self._delete_walker_rollback(
+                    world, actor_id, identity
+                ),
+            ),
             **self._creation_options(),
         )
 

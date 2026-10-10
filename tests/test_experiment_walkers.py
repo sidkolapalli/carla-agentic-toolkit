@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 from typing import TYPE_CHECKING, cast
 
 import pytest
@@ -36,6 +37,10 @@ class FakeActor:
         """Start the controller unless configured to fail."""
         self._fail("start")
 
+    def stop(self) -> None:
+        """Acknowledge controller removal before native deletion."""
+        self._fail("stop")
+
     def set_max_speed(self, _speed: float) -> None:
         """Configure the controller speed unless configured to fail."""
         self._fail("speed")
@@ -57,28 +62,51 @@ class FakeWorld:
     destroyed: list[int] = field(default_factory=list)
     destroy_result: bool = True
     walker_cleanup_error: bool = False
+    id: int = 17
+    frame: int = 0
+    actors: dict[int, FakeActor] = field(default_factory=dict)
+
+    def set_pedestrians_seed(self, _seed: int) -> None:
+        """Accept the supplied native navigation seed."""
+
+    def get_settings(self) -> SimpleNamespace:
+        """Observe asynchronous mode without claiming a tick owner."""
+        return SimpleNamespace(synchronous_mode=False)
+
+    def get_snapshot(self) -> SimpleNamespace:
+        """Return the publication used by the startup barrier."""
+        return SimpleNamespace(frame=self.frame, find=self.actors.get)
+
+    def wait_for_tick(self, _seconds: float) -> SimpleNamespace:
+        """Publish created actors before controller Start."""
+        self.frame += 1
+        return self.get_snapshot()
 
     def try_spawn_actor(self, _blueprint: object, _transform: object) -> FakeActor | None:
         """Return a pedestrian or simulate a failed initial spawn."""
         if self.failure_stage == "walker":
             return None
-        return FakeActor(
+        actor = FakeActor(
             WALKER_ID,
             self.destroyed,
             failure_stage="destroy" if self.walker_cleanup_error else "",
             destroy_result=self.destroy_result,
         )
+        self.actors[actor.id] = actor
+        return actor
 
     def spawn_actor(self, _blueprint: object, _transform: object, _walker: object) -> FakeActor:
         """Return a controller or fail before one is created."""
         if self.failure_stage == "controller":
             raise RuntimeError(self.failure_stage)
-        return FakeActor(
+        actor = FakeActor(
             CONTROLLER_ID,
             self.destroyed,
             failure_stage=self.failure_stage,
             destroy_result=self.destroy_result,
         )
+        self.actors[actor.id] = actor
+        return actor
 
 
 def _spawn(world: FakeWorld, monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:

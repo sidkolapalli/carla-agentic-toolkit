@@ -119,6 +119,12 @@ def _rollback_created(
 
 
 def _rollback_one(adapter: PythonCarlaAdapter, actor_id: int, identity: int) -> DestroyResult:
+    guarded_rollback = getattr(adapter, "rollback_created_actor", None)
+    if callable(guarded_rollback):
+        try:
+            return guarded_rollback(actor_id, identity)
+        except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+            return DestroyResult(actor_id, destroyed=False, error=str(exc))
     batch = getattr(adapter, "apply_batch", None)
     if callable(batch):
         return destroy_authoritatively(

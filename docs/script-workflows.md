@@ -108,6 +108,36 @@ route planner, and response batches use `apply_batch_sync`, not `apply_batch`.
 | `stop_recording` | `carla.Client.stop_recorder` |
 | All remaining facade methods | `null` (toolkit/composite workflow) |
 
+### AI walker lifecycle
+
+`spawn_walkers(count, speed=1.4, seed=None)` seeds native navigation with
+`World.set_pedestrians_seed` when a seed is supplied, including zero, before
+sampling spawn locations. The seed also controls blueprint selection. It does
+not guarantee identical trajectories: maps, timing, other clients and later
+navigation calls still affect the run. This is a global navigation seed change;
+CARLA exposes no prior-seed getter, and cleanup does not claim to restore it.
+
+After each walker/controller pair is created and journaled, the creating client
+publishes a fresh frame containing that walker before `WalkerAIController.start`:
+one explicit owner Tick in synchronous mode, or WaitForTick in asynchronous mode.
+The barrier is bounded by five seconds and the remaining execution/request RPC
+budget. A failed or stale barrier never starts that controller.
+
+The **same creating client/process must continue Tick/WaitForTick** to update AI
+navigation; asynchronous `api.wait` observes frames on that client. Server ticks
+from another client alone do not advance this client's navigation logic. If the
+creating client disappears, a leftover walker may continue straight with its
+last server-side WalkerControl; it is not frozen or continuing navmesh planning.
+
+Setup rollback, in-run cleanup and trusted recovery Stop known same-episode AI
+controllers before deleting controllers or walkers. A failed Stop retains the
+controller and the owned walker population for retry; the ID-only journal cannot
+identify individual controller-parent pairs, so retention is conservative.
+Cleanup never discovers or adopts unrelated actors. A normal Stop return is an
+acknowledgement, not a native navigation-state readback guarantee. See CARLA's
+[walker lifecycle](https://carla.readthedocs.io/en/0.9.16/core_actors/#walkers) and
+[traffic example](https://github.com/carla-simulator/carla/blob/0.9.16/PythonAPI/examples/generate_traffic.py).
+
 ## Check errors and snapshots
 
 Recoverable CARLA operation failures return a value containing `ok: false`,

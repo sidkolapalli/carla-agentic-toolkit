@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.actor_runtime import actor_snapshot, destroy_actor
+from carla_agentic_toolkit.adapter_actor_cleanup import PythonCarlaActorCleanupMixin
 from carla_agentic_toolkit.adapter_creation import PythonCarlaCreationMixin
 from carla_agentic_toolkit.adapter_experiments import PythonCarlaExperimentMixin
 from carla_agentic_toolkit.adapter_objects import (
@@ -87,7 +88,10 @@ if TYPE_CHECKING:
 
 
 class PythonCarlaAdapter(
-    PythonCarlaCreationMixin, PythonCarlaSettingsMixin, PythonCarlaExperimentMixin
+    PythonCarlaCreationMixin,
+    PythonCarlaSettingsMixin,
+    PythonCarlaExperimentMixin,
+    PythonCarlaActorCleanupMixin,
 ):
     """Adapter backed by CARLA's official Python API."""
 
@@ -265,11 +269,6 @@ class PythonCarlaAdapter(
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
             raise CarlaAdapterError(str(exc)) from exc
         return tuple(actor_snapshot(actor) for actor in actors)
-
-    def destroy_actors(self, actor_ids: tuple[int, ...]) -> tuple[DestroyResult, ...]:
-        """Destroy explicit CARLA actors by ID."""
-        world = self._world(self._client())
-        return tuple(self._destroy_actor(world, actor_id) for actor_id in actor_ids)
 
     def _destroy_actor(self, world: CarlaWorld, actor_id: int) -> DestroyResult:
         """Use created sensor handles even before the next snapshot exposes their IDs."""

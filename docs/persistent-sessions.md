@@ -83,6 +83,18 @@ operator investigation; unknown IDs are not guessed or automatically reconciled.
 Do not delete recovery markers or use another state directory or endpoint to
 bypass the barrier; that does not verify actor cleanup.
 
+AI walkers additionally require a fresh creating-client frame before controller
+Start. `spawn_walkers` performs one owner Tick (synchronous) or WaitForTick
+(asynchronous) per pair, bounded by five seconds and the remaining RPC budget.
+Continue frame waits on this same persistent client for navigation updates;
+ticks from another client do not keep its AI navigation alive. If the client
+dies, leftover walkers can continue their last straight-line server control,
+not navmesh planning. Cleanup Stops known AI controllers before deletion;
+failed Stop acknowledgements keep their owned walker population dirty. A supplied
+seed initializes native navigation before sampling, but is not a full deterministic
+replay guarantee or a getter-backed restoration target. See
+[AI walker lifecycle](script-workflows.md#ai-walker-lifecycle).
+
 Ordinary CARLA RPCs use a 10-second cap, bounded by the remaining request and
 absolute session lifetime. Map-changing calls temporarily use a 120-second cap,
 but the same request and absolute deadlines still apply; a request's timeout can

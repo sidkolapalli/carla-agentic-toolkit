@@ -74,6 +74,22 @@ class CreationWorld:
     interrupt_stage: str = ""
     id: int = WORLD_ID
     actors: list[CreatedActor] = field(default_factory=list)
+    frame: int = 0
+
+    def get_snapshot(self) -> SimpleNamespace:
+        """Retain a real frame and published created-actor lookup."""
+        return SimpleNamespace(frame=self.frame, find=self._snapshot_actor)
+
+    def _snapshot_actor(self, actor_id: int) -> CreatedActor | None:
+        return next((actor for actor in self.actors if actor.id == actor_id), None)
+
+    def wait_for_tick(self, _seconds: float) -> SimpleNamespace:
+        """Publish the transform barrier before the tested controller interruption."""
+        self.frame += 1
+        return self.get_snapshot()
+
+    def set_pedestrians_seed(self, _seed: int) -> None:
+        """Accept native seed setup without altering interruption counters."""
 
     def spawn_actor(self, *_args: object) -> CreatedActor:
         """Return a raw actor ID or interrupt the next spawn before it returns."""
