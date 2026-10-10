@@ -1,4 +1,8 @@
-"""Built-in Traffic Manager behavior profiles."""
+"""Built-in Traffic Manager presets, unrelated to CARLA BehaviorAgent classes.
+
+Applying any preset sets a percentage speed difference, which clears the
+vehicle's exact desired speed in Traffic Manager.
+"""
 
 from __future__ import annotations
 
@@ -7,7 +11,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True, slots=True)
 class BehaviorProfile:
-    """Traffic Manager behavior settings for one profile."""
+    """Traffic Manager settings for one preset, not a BehaviorAgent configuration."""
 
     speed_difference: float
     distance_to_leading_vehicle: float
@@ -73,5 +77,5 @@ _PROFILES = {
 
 
 def behavior_profile(name: str) -> BehaviorProfile | None:
-    """Return a built-in vehicle behavior profile."""
+    """Return a built-in Traffic Manager preset, not a BehaviorAgent profile."""
     return _PROFILES.get(name)

@@ -224,7 +224,10 @@ class CarlaScriptApi(ScriptOwnershipOperations):
         settings: dict[str, object],
         traffic_manager_port: int = 8000,
     ) -> JsonObject:
-        """Set per-vehicle Traffic Manager behavior in an asynchronous world only."""
+        """Tune async TM km/h: desired_speed_kmh; desired_speed deprecated; profiles override speed.
+
+        Speeds are in km/h. Reapplying a TM preset clears this exact speed target.
+        """
         return self._adapter.tune_traffic_vehicle(
             actor_id=actor_id,
             traffic_manager_port=traffic_manager_port,
@@ -282,7 +285,7 @@ class CarlaScriptApi(ScriptOwnershipOperations):
 
     @_recover("set_vehicle_behavior_failed")
     def set_vehicle_behavior(self, request: dict[str, object]) -> JsonObject:
-        """Apply a behavior profile to explicit vehicle actors in an asynchronous world only."""
+        """Apply asynchronous TM presets, not BehaviorAgent profiles, to explicit vehicles."""
         self._require_async_traffic_controller()
         payload = self._traffic_controller.set_vehicle_behavior(
             parse_vehicle_behavior_request(request)

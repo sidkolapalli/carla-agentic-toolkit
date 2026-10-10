@@ -344,6 +344,39 @@ recorder replay remains unsupported. See [sensor timing](sensor-timing.md) befor
 combining operations with an explicit tick owner. Live CARLA 0.9.16 sidecar checks
 of these guards and cleanup targets remain pending.
 
+### Traffic Manager presets and speed units
+
+`normal`, `cautious`, `aggressive`, `impatient`, and `stalled` are toolkit
+Traffic Manager presets. They set TM speed-difference percentages, following
+distance, lane changes, and ignore percentages; they are not CARLA's
+[BehaviorAgent classes](https://github.com/carla-simulator/carla/blob/0.9.16/PythonAPI/carla/agents/navigation/behavior_types.py).
+
+Use `api.tune_traffic_vehicle(vehicle_id, {"desired_speed_kmh": 36.0})` for a
+36 km/h target. The deprecated `desired_speed` input alias uses the same km/h
+units, not m/s. Successful results use `desired_speed_kmh`. Both aliases must be
+finite nonnegative numbers; if both are present they must agree. Booleans and
+conflicting values are rejected before Traffic Manager access. Other toolkit
+fields explicitly ending in `_mps`, including observed vehicle speeds, remain
+in meters per second.
+
+CARLA 0.9.16's
+[target-speed lookup](https://github.com/carla-simulator/carla/blob/0.9.16/LibCarla/source/carla/trafficmanager/Parameters.cpp#L235-L244)
+returns this exact target, and its
+[motion planner divides it by 3.6](https://github.com/carla-simulator/carla/blob/0.9.16/LibCarla/source/carla/trafficmanager/MotionPlanStage.cpp#L123-L130).
+The target is not a guarantee of measured speed; hazards and motion planning may
+reduce it.
+
+Applying or reapplying a preset
+[clears the vehicle's exact desired-speed target](https://github.com/carla-simulator/carla/blob/0.9.16/LibCarla/source/carla/trafficmanager/Parameters.cpp#L39-L45)
+when it sets `vehicle_percentage_speed_difference`. The density controller
+reapplies registered presets on every maintenance pass, so a subsequent pass
+overrides an explicit desired speed. There is no persistent per-vehicle speed
+override cache. Stop the controller and confirm both `active` and `stopping` are
+false before tuning an exact target; do not reapply a preset while relying on
+that target. Mock-backed
+tests cover two real maintenance passes; the measured-speed check on a dedicated
+CARLA 0.9.16 instance remains pending.
+
 With `safe_filter=True`, vehicle selection keeps only the native
 `base_type="car"` classification when that attribute exists. Present blank or
 other values are excluded. Older blueprints without the attribute use the
