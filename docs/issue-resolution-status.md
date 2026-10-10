@@ -474,18 +474,19 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   2,574 Python tests, two skips and nine Rust tests; required static checks all
   pass. The existing hazard frame-limit test now separately asserts the mandatory
   reset setup frame and exactly one runtime tick, preserving its outcome checks.
-- #133 native acceptance failed on dedicated CARLA 0.10.0: `reload_world(False)`
+- #133 initial native acceptance failed on dedicated CARLA 0.10.0: `reload_world(False)`
   raised `std::exception` before a returned episode ID could be acknowledged.
-  No fixture actors were created. The same lease retains its `pending` journal
-  and original six settings; the observed world is still synchronous with the
+  No fixture actors were created. The same lease retained its `pending` journal
+  and original six settings; the observed world was still synchronous with the
   requested setup settings, not restored. Read-only diagnosis confirms two
   available maps, the current Town10HD_Opt map, unchanged native state and
   unchanged dirty evidence. There was no reload retry, episode adoption, blind
   cleanup or provider call. The exception text does not establish whether the
   failure was rejection, timeout or publication; per-internal-RPC limits are
-  distinct from the supervisor wall limit. Consecutive-repetition acceptance
-  remains pending, and this dedicated endpoint is quarantined pending operator
-  review. Failed receipts and journals remain private and retained.
+  distinct from the supervisor wall limit. That attempt left the endpoint
+  quarantined pending operator review; the later approved replacement and
+  explicit ten-second acceptance are recorded below. Failed receipts and
+  journals remain private and retained.
 - #133 native follow-up on the separate dedicated CARLA 0.9.16 Windows server
   also fails before acknowledgement, reporting a 5-second simulator timeout.
   A later read observes a changed episode; no fixture actors were created, and
@@ -498,8 +499,10 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   Further failing diagnostic assertions require an unknown episode result rather
   than an unobserved unchanged-world claim. The pending journal remains unchanged;
   no late publication is adopted.
-  All 61 focused reload/session/hazard checks pass. Both native endpoints remain
-  quarantined, and neither failed attempt establishes repetition acceptance.
+  All 61 focused reload/session/hazard checks pass. Both native endpoints were
+  quarantined at that stage; neither failed attempt establishes repetition
+  acceptance. The 0.9.16 journal remains pending; only the dedicated 0.10.0
+  service was subsequently replaced with user approval, as recorded below.
   The final integrated gate passes with 2,576 Python tests, two skips and nine
   Rust tests; Ruff/format, Ty, Radon all A and all Rust checks pass.
 - #139/#133 settings-write follow-up: three genuine startup/close/recovery
@@ -530,14 +533,16 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   shutdown before settings restoration. Worker death cannot prove deregistration;
   unknown host/reload evidence remains quarantined. The final combined full gate
   passes with 2,721 Python tests, two skips and nine Rust tests; all required static
-  checks pass. No native density or provider acceptance was run. The parent remains
-  open for that live acceptance and its external child/process prerequisites.
+  checks pass. Native density had not run at that source checkpoint; the later
+  provider-free native lifecycle result is recorded below. The parent remains
+  open for its external child/process prerequisites and acceptance limits.
 - Published pre-density checkpoint `0ebfe80` passes GitHub CI (run 38030227260). Issues stay
   open until merge and their completed acceptance checks.
 - Published combined checkpoint `67bc8f7` passes GitHub CI (run 38031100187).
   Its local gate remains 2,721 Python tests, two intentional skips and nine Rust
   tests, with all required static checks passing. This does not replace native
   acceptance or authorize issue closure before merge.
+- Published documentation checkpoint `6dfcdc7` passes GitHub CI (run 38053001385).
 - #133 operator replacement and native retry on 2026-10-10: the user approved
   replacing only the known dedicated CARLA 0.10.0 test service. Fresh process and
   listener checks found its old processes already absent and all reserved ports
@@ -558,9 +563,49 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   snapshot at frame zero with no actor entries. This is not proof that the loaded
   scene is empty or fully published. Readback and exact pending bytes remained
   unchanged during diagnosis. No late episode was adopted, no reload was retried
-  against dirty state and no Traffic Manager was constructed. The dedicated 0.10.0 endpoint
-  is quarantined again. Consecutive-repetition #133 and dependent native #26 density
-  acceptance remain incomplete; all new receipts stay local and private.
+  against dirty state and no Traffic Manager was constructed. This five-second
+  attempt left the dedicated 0.10.0 endpoint quarantined again. All receipts stay
+  local and private; the next approved replacement and successful checks follow.
+- #133 explicit ten-second native acceptance on 2026-10-10: under the existing
+  dedicated-service replacement approval, fresh exact process/start/parent and
+  listener ownership checks identified only the known test launcher/native pair.
+  The same recovering lease retained the second pending journal and four failed
+  receipts byte-for-byte in a hash-verified archive. A durable decommission intent
+  preceded stopping only the known native process; its launcher exited without
+  a separate stop command. Replacement identities, closed old
+  ports, matching release, exact original asynchronous scene configuration and
+  two advancing published frames were verified before explicit operator resolution.
+  This is not managed recovery or same-episode restoration; the 0.9.16 service,
+  firewall and script sandbox permissions were untouched.
+  Two consecutive provider-free `lead_brake` route repetitions then passed with
+  explicit `rpc_timeout_seconds: 10.0` and a separate 180-second external TERM
+  deadline plus ten-second KILL grace. Both durably acknowledged the returned
+  replacement episode before map access, reset and published all 15 traffic
+  lights, and recorded identical initial light states excluding ephemeral actor
+  IDs/frame. Each prepared the real fixture and advanced three owner steps, then
+  authoritatively deleted all owned actors and verified the original six settings
+  and acknowledged episode's exact inventory/weather/spectator baseline. The same
+  endpoint lease was clean after both. This satisfies the consecutive-light-state
+  check for that explicit profile, not the default five-second profile, completed
+  hazards, all scenarios or provider acceptance. The global default remains five
+  seconds and maximum ten; generic earlier exceptions do not identify a failure
+  cause. Saved specifications, historical evidence and failed bytes are unchanged.
+- #26 provider-free native density lifecycle on 2026-10-10: the trusted WSL worker
+  opened a proven same-process local TM on 8500, rebound it only to the acknowledged
+  replacement episode, kept it asynchronous during protected fixture preparation,
+  then requested synchronization. Five background registrations were acknowledged
+  over 20 consecutive owner frames with four-attempt/four-missing-removal boundary
+  limits and no unresolved spawn intent. Fixture actors remained protected and
+  original actors were never adopted. Snapshot positions and the 150-metre range
+  exclusion were checked; all backgrounds were out of range, so positive in-range
+  telemetry was not exercised by this first run. No missing-removal event, completed
+  route/hazard or physical-motion guarantee follows from the smoke check.
+  Authoritative owned deletion, async/shutdown acknowledgements, closed original
+  TM listener, exact original six settings and acknowledged episode inventory,
+  weather and spectator were verified before the same lease was reported clean.
+  RPC 10 seconds and external 180/10-second bounds were explicit. Provider calls
+  remained zero; no sidecar or arbitrary-script bind grant was used. #26 remains
+  open for its external child/process prerequisites and remaining acceptance.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native
   health confirms matching 0.9.16 releases and no warnings; a genuine 0.10.0 client
@@ -572,10 +617,11 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   same reserved ports for journaled native acceptance. A separate CARLA 0.10.0
   server on RPC 3500 is reachable from WSL: matching-client read-only health
   confirms Town10HD_Opt, all six settings, no warnings, and no vehicles, walkers,
-  or sensors before #133's failed reload. That endpoint now retains the pending
-  journal and requested synchronous settings described above; it must not be
-  described as currently clean. #159's separate managed worker-death checks pass
-  as described above. The quarantined WSL
+  or sensors before #133's failed reload. Its failed journals remain archived
+  after approved operator replacement; the later explicit ten-second repetition
+  and density checks verify a clean lease and asynchronous baseline, as recorded
+  above. The separate 0.9.16 pending journal remains unresolved. #159's separate
+  managed worker-death checks pass as described above. The quarantined WSL
   loopback:2000 endpoint remains untouched.
 - #87 is skipped at the user's request; #82 requires independent reporting
   verification. #152's native inventory and pre/post checks are complete on
@@ -632,7 +678,7 @@ vehicle.taxi.ford
 
 | Issue | Work | Status |
 | --- | --- | --- |
-| [#26](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/26) | Support bounded CARLA sessions and managed closed-loop experiments | Optional density implemented locally with TDD/full gate; native acceptance and external child/process prerequisites remain. |
+| [#26](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/26) | Support bounded CARLA sessions and managed closed-loop experiments | Optional density implemented with TDD/full gate and native bounded lifecycle/cleanup check; positive in-range telemetry and external child/process prerequisites remain. |
 | [#82](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/82) | Validate and publish the source-only experimental alpha with release evidence | External verification pending: independent private-report submission and receipt. |
 | [#87](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/87) | Expose managed experiment controls and publish a reproducible rules-versus-Jev demo | Skipped for now at the user's request; original article input remains unavailable. |
 | [#94](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/94) | Exercise Jev along a route with controlled traffic hazards | Pending genuine UE5 live scenario validation; provider calls explicitly disabled by the user. |
@@ -650,7 +696,7 @@ vehicle.taxi.ford
 | [#130](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/130) | Reject synchronous Traffic Manager requests and unguarded autopilot traffic that the sidecar cannot step | Implemented; full gate passed; live sidecar validation pending. |
 | [#131](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/131) | Make managed experiment seeds vary the initial condition, or rename them as replicates | Implemented locally: canonical replicate index, strict legacy input, and identical-initial-condition warnings; TDD and full gate pass. |
 | [#132](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/132) | Do not create a Traffic Manager in the managed worker by calling set_autopilot(False) | Implemented; full gate passed; live CARLA validation pending. |
-| [#133](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/133) | Reload the world and reset traffic lights before each managed repetition | Implemented with TDD/full gate; native reload failed before acknowledgement, same endpoint quarantined; consecutive-repetition acceptance pending. |
+| [#133](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/133) | Reload the world and reset traffic lights before each managed repetition | Implemented with TDD/full gate; two native UE5 repetitions share initial light states with explicit RPC 10s and verified cleanup. Default 5s attempts failed; evidence preserved through approved replacement, not episode adoption. |
 | [#134](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/134) | Seed, settle and stop AI walker controllers as CARLA's walker lifecycle requires | Implemented; TDD, native 0.9.16 async/sync lifecycle and full gate pass; UE5 spawns refused; navigation seed restoration is not claimed. |
 | [#135](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/135) | Wait for periodic sensor data by default and stop waiting once a later frame arrives | Implemented: bounded periodic waiting, later-frame wakeup and honest cadence evidence; TDD, native RGB/GNSS checks, and full gate pass. |
 | [#136](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/136) | Journal spawned actors as each is created and decouple the per-RPC timeout from the script budget | Implemented; full gate passed; live CARLA validation pending. |

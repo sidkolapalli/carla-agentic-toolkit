@@ -87,9 +87,14 @@ remains failed.
 
 This opt-in does not relax generated-script or persistent-session asynchronous
 TM guards, or the Rust sandbox's TCP-bind denial. It is a separate trusted-worker
-path, not a new script permission. Dedicated native density acceptance remains
-blocked pending managed-reload resolution; offline tests do not establish live
-CARLA/TM population behavior or repeatability.
+path, not a new script permission. A provider-free native UE5 lifecycle check
+passed with five acknowledged registrations over 20 owner frames, verified
+owned-only cleanup, closed local TM and restored baseline. All backgrounds were
+outside the 150-metre range in that first run; it did not exercise positive
+in-range telemetry or missing-owned removal. It is not a completed route/hazard,
+provider, physical-motion or repeatability guarantee. See the
+[issue ledger](issue-resolution-status.md) for the explicit RPC/wall profile and
+remaining acceptance limits.
 
 ## Vehicle roles and names
 
@@ -477,8 +482,33 @@ scheduled experiment steps, and no frame-zero or bitwise-repeatability guarantee
 is made. The existing client deadline applies to internal reload RPCs, not to the
 aggregate native call: CARLA can make several RPCs and publication waits inside
 [LoadEpisode](https://github.com/carla-simulator/carla/blob/0.10.0/LibCarla/source/carla/client/detail/Simulator.cpp#L87-L112).
-The separate supervisor wall deadline still bounds the worker. Native consecutive
-repetition acceptance remains pending; historical trace and media bytes are unchanged.
+The separate supervisor wall deadline still bounds the worker. Two provider-free
+consecutive `lead_brake` route repetitions passed on dedicated CARLA 0.10.0 with
+an explicit `rpc_timeout_seconds: 10.0` and a separate 180-second external wall
+deadline. Both recorded the same initial native light states and verified cleanup
+in their acknowledged replacement episodes. This is setup/lifecycle evidence,
+not a completed hazard, provider or all-scenario validation. Historical trace and
+media bytes are unchanged.
+
+For new native UE5 specifications on that tested host, the verified RPC profile is:
+
+```json
+{
+  "fixture": "town10-route-ue5-v1",
+  "scenario": "lead_brake",
+  "rpc_timeout_seconds": 10.0
+}
+```
+
+Configure the dedicated endpoint separately. The global default remains five
+seconds and the supported maximum remains ten; this explicit profile does not
+change script defaults, saved specifications or provider deadlines. Five-second
+native attempts on the tested server failed before reload acknowledgement and
+retained their pending journals. The ten-second result does not identify the
+precise native failure phase or promise that every server will reload in that
+time. Never retry a reload against a dirty lease; the failed evidence required
+verified operator decommission/replacement before the new successful attempt.
+See the [issue ledger](issue-resolution-status.md) for acceptance limits.
 
 Recovery distinguishes these phases. `prepared` means no reload call was attempted,
 so a still-matching original episode can be restored and verified. An acknowledged

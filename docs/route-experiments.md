@@ -58,6 +58,13 @@ instrumentation; this integration does not perform visual perception.
 Use a dedicated, initially asynchronous Town10HD or Town10HD_Opt server with no
 existing vehicles, walkers or sensors, and a matching CARLA 0.10.0 Python client.
 The same [managed ownership and recovery rules](managed-experiments.md) apply.
+For new native reruns on the tested UE5 host, explicitly set
+`rpc_timeout_seconds` to `10.0`; two provider-free consecutive `lead_brake`
+repetitions passed with that profile. The default five-second attempts did not
+acknowledge reload; their pending evidence was preserved through verified
+operator replacement before the successful attempt. This is not acceptance for every
+scenario or provider-backed route. Saved example specifications and historical
+evidence are unchanged; see [repetition setup](managed-experiments.md#repetition-setup).
 The tested `policy` vehicle uses `controlled_vehicle_role` (default `hero`);
 background actors and recording instruments have distinct non-hero roles.
 Roles do not establish creation ownership. All fixture actors and the demo camera
