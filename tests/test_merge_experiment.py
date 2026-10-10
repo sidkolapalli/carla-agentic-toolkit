@@ -115,6 +115,21 @@ class Session:
         """Record creation and controller identity independently."""
         self.owned.append((actor.id, controller, protected))
 
+    def spawn_actor(
+        self,
+        blueprint: Blueprint,
+        transform: object,
+        *,
+        role_name: str,
+        controller: str,
+        attach_to: object | None = None,
+    ) -> Actor:
+        """Reflect the centralized owner boundary while leaving durable tests to real leases."""
+        assert blueprint.attributes["role_name"] == role_name
+        actor = self.world.spawn_actor(blueprint, transform, attach_to=attach_to)
+        self.own(actor, controller=controller, protected=True)
+        return actor
+
     def on_close(self, callback: Callable[[], object]) -> None:
         """Retain trailing sensor evidence callbacks for the timing owner."""
         self.callbacks.append(callback)
@@ -161,7 +176,8 @@ def test_prepare_assigns_unique_controllers_without_autopilot(
     vehicles = session.world.actors[:2]
     assert [actor.autopilot for actor in vehicles] == [[], []]
     assert len({item[0] for item in session.owned}) == len(session.world.actors)
-    assert all(actor.role.startswith("managed:run-test:") for actor in session.world.actors)
+    assert vehicles[0].role == "hero"
+    assert all(actor.role.startswith("managed:run-test:") for actor in session.world.actors[1:])
 
 
 @pytest.mark.parametrize(
@@ -232,7 +248,7 @@ def test_observation_uses_one_snapshot_and_empty_events_never_block(
     session, experiment = _prepare(monkeypatch)
     value = experiment.observe(_snapshot(session))
     payload = value.to_dict()
-    assert (value.frame, value.policy.frame, value.ego.frame, payload["observation_mode"]) == (
+    assert (value.frame, value.policy.frame, value.target.frame, payload["observation_mode"]) == (
         10,
         10,
         10,

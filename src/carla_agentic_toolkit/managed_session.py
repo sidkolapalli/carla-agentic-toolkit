@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from functools import partial
 from typing import TYPE_CHECKING, cast
 
@@ -12,9 +12,15 @@ from carla_agentic_toolkit.authoritative_destroy import (
     destroy_authoritatively,
     destroy_result_cleaned,
 )
+from carla_agentic_toolkit.managed_creation import (
+    CreationOptions,
+    ManagedCreationJournal,
+    OwnedActor,
+    recover_owned,
+    spawn_managed,
+)
 from carla_agentic_toolkit.managed_replacement import check_replaced_world
 from carla_agentic_toolkit.managed_world import (
-    ACTOR_PATTERNS,
     SessionInvariantError,
     apply_world_settings,
     require_dedicated_world,
@@ -29,22 +35,12 @@ if TYPE_CHECKING:
 
     from carla_agentic_toolkit.carla_protocols import (
         CarlaActor,
+        CarlaBlueprint,
         CarlaClient,
         CarlaSnapshot,
     )
     from carla_agentic_toolkit.managed_spec import ExperimentSpec
     from carla_agentic_toolkit.simulator_lease import SimulatorLease
-
-
-@dataclass(frozen=True, slots=True)
-class OwnedActor:
-    """Creation identity is distinct from controller assignment and protection."""
-
-    actor_id: int
-    type_id: str
-    role_name: str
-    controller: str
-    protected: bool
 
 
 class ManagedSession:
@@ -64,10 +60,10 @@ class ManagedSession:
         self.world_generation = uuid.uuid4().hex
         self.world_id = world_identity(self.world)
         self.expected_frame = self.world.get_snapshot().frame
-        self.role_prefix = f"managed:{run_id}:"
         self._original_settings: dict[str, object] = {}
         self._owned: dict[int, OwnedActor] = {}
         self._handles: dict[int, CarlaActor] = {}
+        self.creation = ManagedCreationJournal(self.world_id, self._journal)
         self._closing_callbacks: list[Callable[[], object]] = []
         self._opened = False
         self._cleanup: dict[str, object] | None = None
@@ -135,6 +131,28 @@ class ManagedSession:
         self._journal()
         self.assert_current()
 
+    def spawn_actor(
+        self,
+        blueprint: CarlaBlueprint,
+        transform: object,
+        *,
+        role_name: str,
+        controller: str,
+        attach_to: CarlaActor | None = None,
+    ) -> CarlaActor:
+        """Persist a plan before native creation and its raw returned ID before setup."""
+        return spawn_managed(
+            self,
+            blueprint,
+            transform,
+            CreationOptions(role_name, controller, attach_to),
+        )
+
+    def record_returned(self, actor: CarlaActor, record: OwnedActor) -> None:
+        """Retain the native handle before a raw-ID journal write can fail."""
+        self._handles[record.actor_id] = actor
+        self._owned[record.actor_id] = record
+
     def assign_controller(self, actor_id: int, controller: str) -> None:
         """Reject adoption or arbitration by a second controller."""
         existing = self._owned.get(actor_id)
@@ -166,9 +184,9 @@ class ManagedSession:
                 "run_id": self.run_id,
                 "world_id": self.world_id,
                 "world_generation": self.world_generation,
-                "role_prefix": self.role_prefix,
                 "settings": self._original_settings,
                 "actors": [asdict(actor) for actor in self._owned.values()],
+                **self.creation.fields(),
             }
         )
 
@@ -179,7 +197,7 @@ class ManagedSession:
         return self._cleanup.copy()
 
     def _close_once(self) -> dict[str, object]:
-        failures: list[str] = []
+        failures = self.creation.failures()
         trailing = self._close_subscriptions(failures)
         if not self._opened:
             return {"ok": not failures, "failures": failures, "trailing": trailing}
@@ -208,7 +226,6 @@ class ManagedSession:
             return check_replaced_world(self.client, current, self._original_settings, failures)
         if self._recovering:
             self._refresh_recovery_snapshot()
-        self._recover_uncertain_spawns()
         self._destroy_owned(failures)
         if world_identity(self.client.get_world()) != self.world_id:
             message = "The world was replaced during actor cleanup; settings restore refused."
@@ -229,6 +246,8 @@ class ManagedSession:
             error = self._destroy(record)
             if error:
                 failures.append(error)
+            else:
+                self.creation.confirmed_destroyed(record.actor_id)
 
     def _refresh_recovery_snapshot(self) -> None:
         """Publish one cleanup frame only after the dead worker's lease is reacquired."""
@@ -240,23 +259,6 @@ class ManagedSession:
             message = "The world was replaced while refreshing recovery actor state."
             raise SessionInvariantError(message)
         self._recovery_frame = frame
-
-    def _recover_uncertain_spawns(self) -> None:
-        for pattern in ACTOR_PATTERNS:
-            actors = cast("list[CarlaActor]", self.world.get_actors().filter(pattern))
-            for actor in actors:
-                self._recover_actor(actor)
-
-    def _recover_actor(self, actor: CarlaActor) -> None:
-        role_name = actor.attributes.get("role_name", "")
-        if actor.id not in self._owned and role_name.startswith(self.role_prefix):
-            self._owned[actor.id] = OwnedActor(
-                actor.id,
-                actor.type_id,
-                role_name,
-                "recovery",
-                protected=True,
-            )
 
     def _destroy(self, record: OwnedActor) -> str | None:
         actor = self._actor_handle(record.actor_id)
@@ -293,10 +295,9 @@ class ManagedSession:
         session = cls(spec, client, lease, str(state["run_id"]))
         session.world_id = int(str(state["world_id"]))
         session._original_settings = cast("dict[str, object]", state["settings"])
-        session._owned = {
-            actor.actor_id: actor
-            for actor in (OwnedActor(**item) for item in cast("list[dict]", state["actors"]))
-        }
+        session.creation = ManagedCreationJournal(session.world_id, session._journal)
+        session.creation.load(state)
+        session._owned = recover_owned(state, session.creation)
         session._opened = True
         session._recovering = True
         return session.close()

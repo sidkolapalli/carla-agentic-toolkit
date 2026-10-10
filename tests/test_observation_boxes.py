@@ -161,7 +161,9 @@ def _merge(actors: dict[str, Actor]) -> MergeExperiment:
         "Broken",
         "Broken",
     )
-    cast("dict[str, object]", vars(experiment)["_actors"]).update(actors)
+    cast("dict[str, object]", vars(experiment)["_actors"]).update(
+        {"policy": actors["policy"], "target": actors["ego"]}
+    )
     return experiment
 
 
@@ -358,7 +360,8 @@ def test_fixture_metadata_records_raw_local_box_location_rotation_and_extent(bac
         "rotation": {"pitch": 0.0, "yaw": 25.0, "roll": 0.0},
         "extent": {"x": 2.0, "y": 0.9, "z": 1.2},
     }
-    assert boxes == dict.fromkeys(actors, expected)
+    roles = ("policy", "target") if backend == "merge" else tuple(actors)
+    assert boxes == dict.fromkeys(roles, expected)
 
 
 def test_legacy_route_actor_without_box_retains_old_approximation() -> None:

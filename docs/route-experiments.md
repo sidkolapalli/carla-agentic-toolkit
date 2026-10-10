@@ -58,6 +58,11 @@ instrumentation; this integration does not perform visual perception.
 Use a dedicated, initially asynchronous Town10HD or Town10HD_Opt server with no
 existing vehicles, walkers or sensors, and a matching CARLA 0.10.0 Python client.
 The same [managed ownership and recovery rules](managed-experiments.md) apply.
+The tested `policy` vehicle uses `controlled_vehicle_role` (default `hero`);
+background actors and recording instruments have distinct non-hero roles.
+Roles do not establish creation ownership. All fixture actors and the demo camera
+use the pre-spawn intent and immediate returned-ID journal described in the
+[managed guide](managed-experiments.md#vehicle-roles-and-names).
 Copy a specification and set its reachable `host` and `port`.
 
 ```bash

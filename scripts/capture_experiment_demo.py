@@ -227,8 +227,12 @@ class CameraExperiment(MergeExperiment):
         }
         for key, value in attributes.items():
             blueprint.set_attribute(key, value)
-        camera = self.session.world.spawn_actor(blueprint, self._camera_transform())
-        self.session.own(camera, controller="demo-camera", protected=True)
+        camera = self.session.spawn_actor(
+            blueprint,
+            self._camera_transform(),
+            role_name=attributes["role_name"],
+            controller="demo-camera",
+        )
         self.session.on_close(lambda: self._close_camera(camera))
         self.recorder.subscribe(camera)
 

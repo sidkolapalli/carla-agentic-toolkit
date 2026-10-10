@@ -27,6 +27,30 @@ the two vehicles. It does not reload a different map, admit background density, 
 enable Traffic Manager. Use the existing source setup and sandbox preflight in the
 [client guide](client-setup.md) before enabling generated-script tools alongside it.
 
+## Vehicle roles and names
+
+The vehicle under test has `role_name="hero"` by default in both merge and route
+fixtures. Set `controlled_vehicle_role` to a nonempty label of at most 64
+characters, without whitespace or control characters, to override it. Other
+vehicles, walkers, sensors and recording cameras retain distinct, non-hero
+labels. CARLA's recorder
+[identifies hero vehicles by this role](https://carla.readthedocs.io/en/0.9.16/adv_recorder/#collisions);
+a role is descriptive, not proof of ownership or permission to delete an actor.
+
+New merge observations call the independently controlled other car `target`;
+the tested car remains `policy`. `target_speed_mps` is the tested car's requested
+speed, while `target_vehicle_speed_mps` is the other car's speed (default 5 m/s).
+The legacy `ego_speed_mps` input alias is accepted; both names must contain valid,
+equal values when supplied together. New specs, metadata and traces emit only
+the canonical name.
+
+Historical merge records are not rewritten. Readers map observation `ego` to
+`target`, fixture `ego_start` to `target_start`, and the old destination-lane
+anchor `target_start` to `target_lane_start`. Conflicting dual names are rejected.
+A complete legacy spec without a recorded controlled role remains readable, but
+cannot be matched to a new spec explicitly recording `hero`: readers do not
+invent historical role provenance.
+
 ## UE5 fixture
 
 CARLA 0.10.0 removes `vehicle.tesla.model3` and changes to Chaos vehicle physics.
@@ -110,8 +134,34 @@ The simulator lease covers mutations and cleanup. Failed or unverified recovery
 retains dirty evidence and blocks another cooperating owner. Inspect the failure;
 do not delete dirty lease evidence merely to bypass it.
 
-Same-episode recovery verifies a fresh actor snapshot before discovering or
-destroying actors. It requests one tick only in synchronous mode; in asynchronous
+Every managed vehicle, sensor and demo camera has a version-1 spawn journal.
+The owner saves an episode-bound plan before the native call, then the returned
+actor ID before metadata reads, listener setup or other post-spawn work. A
+separate completion write follows origin verification. Journal-write failures
+invalidate execution; known returned handles remain available for conservative
+cleanup in the current worker.
+
+Fresh recovery may delete only durably recorded IDs in the original episode,
+with the recorded type/role guard and authoritative deletion acknowledgement.
+An ID recorded before an interrupted completion write can be recovered. A lost
+reply with no durable ID cannot: matching role, blueprint, pose, or appearance
+outside an earlier inventory does not prove who created an actor. Recovery does
+not guess or adopt those actors. It can clean known IDs and restore same-episode
+settings, but unresolved outcomes retain the dirty lease until reviewed manual
+resolution. Trusted compatibility registration with `own()` does not resolve an
+unrelated unknown spawn intent.
+
+This deliberately differs from uncertain-spawn adoption proposed in
+[#122](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/122): without an
+authoritative creation ID, adopting a resembling actor could delete another
+client's actor. Historical managed dirty markers without version-1 intent
+coverage also remain quarantined after best-effort known-ID cleanup. Their
+original marker bytes are preserved, not upgraded to manufacture coverage. Do
+not erase them to bypass recovery. Live role and interrupted-spawn acceptance
+for this revision remains pending.
+
+Same-episode recovery verifies a fresh actor snapshot before looking up or
+destroying recorded actors. It requests one tick only in synchronous mode; in asynchronous
 mode it waits up to five seconds for a frame. The delivered frame must be newer
 than the previous snapshot, and the published snapshot must have reached that
 frame or a later one. This covers interruption before synchronous settings were

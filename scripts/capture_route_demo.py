@@ -63,10 +63,13 @@ class CameraRoute(RouteExperiment):
         for key, value in attributes.items():
             blueprint.set_attribute(key, value)
         transform = carla.Transform(carla.Location(x=-8.0, z=16.0), carla.Rotation(pitch=-50.0))
-        camera = self.session.world.spawn_actor(
-            blueprint, transform, attach_to=self.actors.handles["policy"]
+        camera = self.session.spawn_actor(
+            blueprint,
+            transform,
+            attach_to=self.actors.handles["policy"],
+            role_name=attributes["role_name"],
+            controller="route-demo-camera",
         )
-        self.session.own(camera, controller="route-demo-camera", protected=True)
         self.session.on_close(lambda: self._close_camera(camera))
         self.recorder.subscribe(camera)
 

@@ -42,7 +42,7 @@ def observation_error(value: MergeObservation, state: ManeuverState) -> str | No
 
 
 def _actor_observation_error(value: MergeObservation) -> str | None:
-    actors = (value.policy, value.ego, *value.neighbors)
+    actors = (value.policy, value.target, *value.neighbors)
     if any(actor.frame != value.frame for actor in actors):
         return "misaligned_observation"
     if not all(_actor_finite(actor) for actor in actors):

@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 from carla_agentic_toolkit.experiment_metrics import METRIC_VERSION, summarize_trace
 from carla_agentic_toolkit.experiment_trace import identity_digest, load_trace
+from carla_agentic_toolkit.managed_names import normalize_merge_fixture, normalize_merge_spec
 from carla_agentic_toolkit.managed_spec import ExperimentSpec
 from carla_agentic_toolkit.replicate_index import normalize_replicate_index
 
@@ -155,12 +156,13 @@ def _match_identity(
     try:
         metadata = normalize_replicate_index(metadata)
         spec = normalize_replicate_index(spec)
-        fixture = normalize_replicate_index(fixture)
+        canonical_spec = normalize_merge_spec(spec)
+        fixture = normalize_merge_fixture(normalize_replicate_index(fixture))
     except ValueError as error:
-        return {}, [f"invalid replicate index evidence: {error}"]
+        return {}, [f"invalid matching evidence: {error}"]
     errors = _identity_errors(metadata, spec, fixture)
     identity = {key: metadata.get(key) for key in MATCH_METADATA}
-    identity["spec"] = _without(spec, {"policy", "replay_run_id"})
+    identity["spec"] = _without(canonical_spec, {"policy", "replay_run_id"})
     identity["fixture"] = _without(fixture, {"actor_ids"})
     return identity, errors
 
@@ -213,7 +215,7 @@ def _environment_errors(environment: object) -> list[str]:
 
 
 def _fixture_complete(fixture: dict[str, Any]) -> bool:
-    poses = ("policy_start", "ego_start", "target_start")
+    poses = ("policy_start", "target_start", "target_lane_start")
     return all(_pose_complete(fixture.get(key)) for key in poses) and bool(fixture.get("settings"))
 
 
@@ -223,10 +225,15 @@ def _pose_complete(pose: object) -> bool:
 
 def _valid_saved_spec(spec: dict[str, Any]) -> bool:
     try:
-        spec = normalize_replicate_index(spec)
-        return ExperimentSpec.model_validate(spec).model_dump() == spec
+        historical_role = "ego_speed_mps" in spec and "controlled_vehicle_role" not in spec
+        spec = normalize_merge_spec(normalize_replicate_index(spec))
+        expected = ExperimentSpec.model_validate(spec).model_dump()
+        if historical_role:
+            expected.pop("controlled_vehicle_role")
     except ValueError:
         return False
+    else:
+        return expected == spec
 
 
 def _saved_spec(metadata: dict[str, Any]) -> dict[str, Any]:

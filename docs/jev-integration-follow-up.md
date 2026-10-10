@@ -11,7 +11,7 @@ selection is still applicable before the shared controller acts on it. A provide
 response alone is not a completed maneuver. The evidence must connect the scene,
 request, accepted choice, executed controls and physical outcome.
 
-This is a narrow experiment: one independently controlled ego and one merging
+This is a narrow experiment: one independently controlled target car and one merging
 vehicle in the versioned `town10-merge-v1` fixture. It uses a dedicated CARLA
 instance and a verified straight corridor with adjacent driving lanes. It is not
 a general driving policy, an arbitrary-map planner, or a safety evaluation.
@@ -85,7 +85,8 @@ with package-source fingerprint
 `85f1aa3aae493397edb61b242e4cc7a0cf2b57619a372837d3fe5d1ed0ff4d68`.
 The environment used CARLA server/API 0.9.16, Python 3.12.14 and WSL2 kernel
 6.18.33.2. These were `simulation_time` runs with a 0.05-second fixed step, a
-6 m/s policy target and a 5 m/s ego target. Jev made 36 recorded requests across
+6 m/s policy target and a 5 m/s other-car target (historically labelled `ego`, now
+`target`). Jev made 36 recorded requests across
 its three runs.
 
 | Saved measure | Rules | Jev |

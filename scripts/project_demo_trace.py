@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from carla_agentic_toolkit.experiment_trace import MAX_TRACE_BYTES, load_trace
+from carla_agentic_toolkit.managed_names import normalize_merge_observation
 from carla_agentic_toolkit.replicate_index import normalize_replicate_index
 
 ACTOR_FIELDS = (
@@ -157,7 +158,7 @@ def _decision(event: dict[str, Any]) -> dict[str, Any]:
 
 
 def _observation(event: dict[str, Any]) -> dict[str, Any]:
-    data = event["data"]
+    data = normalize_merge_observation(event["data"])
     _check_observation_identity(event, data)
     lane = _mapping(data, "lane")
     return {
@@ -166,16 +167,17 @@ def _observation(event: dict[str, Any]) -> dict[str, Any]:
         "simulation_seconds": _number(data, "simulation_seconds"),
         "phase": _text(data, "phase"),
         "policy": _actor(_mapping(data, "policy")),
-        "ego": _actor(_mapping(data, "ego")),
+        "target": _actor(_mapping(data, "target")),
         "lane": {key: _number(lane, key) for key in ("width_m", "target_offset_m")},
     }
 
 
 def _check_observation_identity(event: dict[str, Any], data: dict[str, Any]) -> None:
-    observed = tuple(data.get(key) for key in ("run_id", "world_generation", "frame"))
-    expected = tuple(event[key] for key in ("run_id", "world_generation", "frame"))
-    actors = (_mapping(data, "policy"), _mapping(data, "ego"))
-    if observed != expected or any(actor.get("frame") != event["frame"] for actor in actors):
+    observed = (data.get("run_id"), data.get("world_generation"), data.get("frame"))
+    expected = (event["run_id"], event["world_generation"], event["frame"])
+    actors = (_mapping(data, "policy"), _mapping(data, "target"))
+    actor_frames = tuple(actor.get("frame") for actor in actors)
+    if observed != expected or actor_frames != (event["frame"], event["frame"]):
         message = "Observation identity does not match its trace envelope."
         raise ValueError(message)
     if actors[0].get("actor_id") != event["actor_id"]:

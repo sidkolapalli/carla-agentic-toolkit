@@ -70,7 +70,7 @@ class MergeObservation:
     frame: int
     simulation_seconds: float
     policy: ActorObservation
-    ego: ActorObservation
+    target: ActorObservation
     lane: LaneGeometry
     neighbors: tuple[ActorObservation, ...] = ()
     sensors: tuple[dict[str, object], ...] = ()
@@ -98,7 +98,7 @@ class PlannerSettings:
 
     fixed_delta_seconds: float = 0.05
     target_speed_mps: float = 6.0
-    ego_speed_mps: float = 5.0
+    target_vehicle_speed_mps: float = 5.0
     preparation_steps: int = 10
     settling_steps: int = 10
     expiry_frames: int = 20

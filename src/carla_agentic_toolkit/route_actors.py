@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from carla_agentic_toolkit.actor_boxes import project_actor_box
 from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.managed_names import managed_role
 from carla_agentic_toolkit.merge_sensor_evidence import MergeSensor
 from carla_agentic_toolkit.route_fixture import VEHICLE_BLUEPRINT, WALKER_BLUEPRINT
 from carla_agentic_toolkit.route_models import RouteActor
@@ -32,7 +33,6 @@ class RouteActors:
 
     def spawn(self, role: str, point: RoutePoint, *, walker: bool = False) -> None:
         """Register ownership immediately after spawn, before sensor or actuator calls."""
-        world = self.session.world
         blueprint = self._blueprint(role, walker=walker)
         carla = cast("Any", import_module("carla"))
         spawn_clearance_m = 1.2 if walker else 0.5
@@ -40,8 +40,12 @@ class RouteActors:
             carla.Location(x=point.x, y=point.y, z=point.z + spawn_clearance_m),
             carla.Rotation(yaw=point.yaw_degrees),
         )
-        handle = world.spawn_actor(blueprint, transform)
-        self.session.own(handle, controller=f"route:{role}", protected=True)
+        handle = self.session.spawn_actor(
+            blueprint,
+            transform,
+            role_name=managed_role(self.session.spec, self.session.run_id, role),
+            controller=f"route:{role}",
+        )
         self.handles[role] = handle
         if not walker:
             self._sensor(role, handle)
@@ -50,18 +54,24 @@ class RouteActors:
         blueprint = self.session.world.get_blueprint_library().find(
             WALKER_BLUEPRINT if walker else VEHICLE_BLUEPRINT
         )
-        blueprint.set_attribute("role_name", f"managed:{self.session.run_id}:{role}")
+        blueprint.set_attribute(
+            "role_name", managed_role(self.session.spec, self.session.run_id, role)
+        )
         if walker and blueprint.has_attribute("is_invincible"):
             blueprint.set_attribute("is_invincible", "false")
         return blueprint
 
     def _sensor(self, role: str, handle: object) -> None:
         blueprint = self.session.world.get_blueprint_library().find("sensor.other.collision")
-        blueprint.set_attribute("role_name", f"managed:{self.session.run_id}:{role}-collision")
-        sensor = self.session.world.spawn_actor(
-            blueprint, import_module("carla").Transform(), attach_to=handle
+        role_name = managed_role(self.session.spec, self.session.run_id, f"{role}-collision")
+        blueprint.set_attribute("role_name", role_name)
+        sensor = self.session.spawn_actor(
+            blueprint,
+            import_module("carla").Transform(),
+            attach_to=handle,
+            role_name=role_name,
+            controller="sensor-listener",
         )
-        self.session.own(sensor, controller="sensor-listener", protected=True)
         subscription = SensorSubscription(cast("CarlaSensor", sensor), event_sensor=True)
         self.sensors.append(
             MergeSensor(

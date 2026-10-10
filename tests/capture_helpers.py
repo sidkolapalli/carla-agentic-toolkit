@@ -69,12 +69,16 @@ def camera_case(
     session = Mock()
     session.spec = capture.ExperimentSpec()
     session.run_id = "capture-test"
-    session.world.spawn_actor.return_value = camera
+    session.spawn_actor.return_value = camera
     experiment = capture.CameraExperiment(cast("ManagedSession", session), tmp_path)
     monkeypatch.setattr(capture.MergeExperiment, "prepare", lambda _experiment: None)
     monkeypatch.setattr(capture.CameraExperiment, "_camera_transform", lambda _experiment: object())
     experiment.prepare()
-    session.own.assert_called_once_with(camera, controller="demo-camera", protected=True)
+    assert session.spawn_actor.call_args.kwargs == {
+        "role_name": "managed:capture-test:demo-camera",
+        "controller": "demo-camera",
+    }
+    session.spawn_actor.assert_called_once()
     session.on_close.assert_called_once()
     return experiment, camera
 

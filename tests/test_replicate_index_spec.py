@@ -193,5 +193,5 @@ def test_fixture_metadata_labels_repeated_fixed_initial_conditions(
 def _assert_fixed_initial_conditions(
     observed: dict[str, object], baseline: dict[str, object]
 ) -> None:
-    for field in ("policy_start", "ego_start", "target_start", "settings"):
+    for field in ("policy_start", "target_start", "target_lane_start", "settings"):
         assert observed[field] == baseline[field]

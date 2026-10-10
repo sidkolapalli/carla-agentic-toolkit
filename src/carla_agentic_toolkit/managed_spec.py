@@ -8,6 +8,7 @@ from typing import Literal, Self, cast
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from carla_agentic_toolkit.errors import UnsupportedFeatureError
+from carla_agentic_toolkit.managed_names import normalize_merge_spec
 from carla_agentic_toolkit.replicate_index import normalize_replicate_index
 
 
@@ -35,7 +36,10 @@ class ExperimentSpec(BaseModel):
     max_wall_seconds: float = Field(default=180.0, ge=1.0, le=3600.0)
     rpc_timeout_seconds: float = Field(default=5.0, ge=0.1, le=10.0)
     target_speed_mps: float = Field(default=6.0, ge=1.0, le=12.0)
-    ego_speed_mps: float = Field(default=5.0, ge=1.0, le=12.0)
+    target_vehicle_speed_mps: float = Field(default=5.0, ge=1.0, le=12.0)
+    controlled_vehicle_role: str = Field(
+        default="hero", min_length=1, max_length=64, pattern=r"^[^\s\x00-\x1f\x7f-\x9f]+$"
+    )
     observation_range_m: float = Field(default=80.0, ge=20.0, le=150.0)
     decision_interval_steps: int = Field(default=10, ge=1, le=100)
     decision_timeout_seconds: float = Field(default=5.0, ge=0.1, le=30.0)
@@ -47,13 +51,20 @@ class ExperimentSpec(BaseModel):
     def normalize_replicate_label(cls, values: object) -> object:
         """Accept historical seed input without publishing a randomization claim."""
         if isinstance(values, Mapping):
-            return normalize_replicate_index(cast("Mapping[str, object]", values))
+            return normalize_merge_spec(
+                normalize_replicate_index(cast("Mapping[str, object]", values))
+            )
         return values
 
     @property
     def seed(self) -> int:
         """Expose the historical Python spelling as a read-only repetition label."""
         return self.replicate_index
+
+    @property
+    def ego_speed_mps(self) -> float:
+        """Read the deprecated other-car spelling; new specs emit target_vehicle_speed_mps."""
+        return self.target_vehicle_speed_mps
 
     @model_validator(mode="after")
     def explicit_route_scenario(self) -> Self:

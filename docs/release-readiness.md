@@ -35,7 +35,7 @@ independently tested; #82 retains that verification gap.
 
 The [2026-10-05 route study](evidence/route-study-2026-10-05/README.md) adds
 full-frame numerical data and six PNG/SVG graphs to the route experiments.
-All three ego cars reached the 135m goal, but the pedestrian never entered the
+All three policy cars reached the 135m goal, but the pedestrian never entered the
 lane. #96 tracks that defect and physical scenario acceptance. #94 stays open
 until the missing crossing validation is complete. Those known limitations are
 disclosed in the public alpha; they are not reported as successful hazard tests.
