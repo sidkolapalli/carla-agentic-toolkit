@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from carla_agentic_toolkit.errors import CarlaAdapterError
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 _RELEASE_PREFIX = re.compile(r"^([0-9]+\.[0-9]+\.[0-9]+)")
 
@@ -33,11 +37,15 @@ class VersionInfo:
         return ()
 
 
-def read_version_info(client: object) -> VersionInfo:
+def read_version_info(
+    client: object, *, on_error: Callable[[Exception], bool] | None = None
+) -> VersionInfo:
     """Read both native version getters without reconnecting or retrying."""
+    client_version, stopped = _read_version(client, "get_client_version", on_error)
+    server_version = None if stopped else _read_version(client, "get_server_version", on_error)[0]
     return VersionInfo(
-        client_version=_read_version(client, "get_client_version"),
-        server_version=_read_version(client, "get_server_version"),
+        client_version=client_version,
+        server_version=server_version,
     )
 
 
@@ -47,15 +55,17 @@ def require_matching_release(info: VersionInfo) -> None:
         raise CarlaAdapterError(warnings[0])
 
 
-def _read_version(client: object, getter_name: str) -> str | None:
+def _read_version(
+    client: object, getter_name: str, on_error: Callable[[Exception], bool] | None
+) -> tuple[str | None, bool]:
     try:
         getter = getattr(client, getter_name, None)
         if not callable(getter):
-            return None
+            return None, False
         value = getter()
-    except Exception:  # noqa: BLE001 - diagnostics cannot erase an acknowledged native result.
-        return None
-    return value if isinstance(value, str) else None
+    except Exception as exc:  # noqa: BLE001 - diagnostics retain independent default reads.
+        return None, on_error(exc) if on_error is not None else False
+    return (value if isinstance(value, str) else None), False
 
 
 def _release_prefix(version: str | None) -> str | None:

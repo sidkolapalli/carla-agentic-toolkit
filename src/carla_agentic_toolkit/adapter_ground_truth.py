@@ -18,8 +18,7 @@ class PythonCarlaGroundTruthMixin:
         """Return the concrete adapter's budget-configured native client."""
         raise NotImplementedError
 
-    @staticmethod
-    def _world(client: CarlaClient) -> CarlaWorld:
+    def _world(self, client: CarlaClient) -> CarlaWorld:
         """Return the current world without ticking."""
         raise NotImplementedError
 

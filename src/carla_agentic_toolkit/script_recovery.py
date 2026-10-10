@@ -11,6 +11,7 @@ import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from carla_agentic_toolkit.connection_journal import CONNECTION_FILENAME, ConnectionJournal
 from carla_agentic_toolkit.creation_health import add_creation_failures
 from carla_agentic_toolkit.errors import OwnershipError
 from carla_agentic_toolkit.managed_control_io import read_control, write_control
@@ -110,6 +111,16 @@ def _bound_actor_ids(actor_ids: tuple[int, ...]) -> None:
         raise ValueError(message)
 
 
+def _connection_record(path: Path, *, required: bool) -> ConnectionJournal | None:
+    connection_path = path.with_name(CONNECTION_FILENAME)
+    if not required and not connection_path.exists() and not connection_path.is_symlink():
+        return None
+    _validate_journal_file(connection_path, filename=CONNECTION_FILENAME)
+    connection = ConnectionJournal(connection_path)
+    connection.require_healthy()
+    return connection
+
+
 def _validate_deadline(timeout: float) -> None:
     if not 0 < timeout <= MAX_CLEANUP_SECONDS:
         message = "Cleanup deadline must be positive and at most 30 seconds."
@@ -125,6 +136,7 @@ def cleanup_script_ownership(  # noqa: PLR0913 - retain the existing five positi
     *,
     require_settings: bool = False,
     destroy_actors: bool = True,
+    require_connection: bool = False,
 ) -> dict[str, object]:
     """Clean under the caller's inherited lease and a hard native-process deadline."""
     ownership = None
@@ -132,6 +144,7 @@ def cleanup_script_ownership(  # noqa: PLR0913 - retain the existing five positi
         _validate_deadline(timeout_seconds)
         ownership = _ownership(ownership_path)
         settings = _settings_record(ownership_path, required=require_settings)
+        connection = _connection_record(ownership_path, required=require_connection)
         offline = _offline_cleanup(ownership, settings, destroy_actors=destroy_actors)
         if offline is not None:
             return offline
@@ -142,6 +155,7 @@ def cleanup_script_ownership(  # noqa: PLR0913 - retain the existing five positi
                 ownership_path,
                 require_settings=settings is not None,
                 destroy_actors=destroy_actors,
+                require_connection=connection is not None,
             ),
             lease_descriptor,
             timeout_seconds,
@@ -166,13 +180,14 @@ def _empty_cleanup_evidence(settings: RunSettings | None) -> dict[str, object]:
     return report if settings is None else report | {"settings_restored": True}
 
 
-def _cleanup_request(
+def _cleanup_request(  # noqa: PLR0913 -- Keep independent journal validation flags explicit.
     host: str,
     port: int,
     path: Path,
     *,
     require_settings: bool,
     destroy_actors: bool,
+    require_connection: bool = False,
 ) -> dict[str, object]:
     return {
         "host": host,
@@ -180,6 +195,7 @@ def _cleanup_request(
         "ownership_path": str(path),
         "require_settings": require_settings,
         "destroy_actors": destroy_actors,
+        "require_connection": require_connection,
     }
 
 
@@ -239,16 +255,18 @@ def _cleanup_connected(
     settings: RunSettings | None = None,
     *,
     destroy_actors: bool = True,
+    connection: ConnectionJournal | None = None,
 ) -> dict[str, object]:
     from carla_agentic_toolkit.ownership import cleanup_owned_actors  # noqa: PLC0415
 
+    _check_connection_episode(adapter, connection, ownership)
     restored = _restore_settings(adapter, settings)
     if restored.get("failures"):
         return add_creation_failures(restored, ownership)
     if not _actor_cleanup_needed(ownership, settings, destroy_actors=destroy_actors):
         return add_creation_failures(restored, ownership)
     # Restore timing before publishing any actor snapshot on the same connection.
-    world = adapter._client().get_world()  # noqa: SLF001
+    world = _cleanup_world(adapter, connection)
     original_world = world_identity(world)
     if original_world != ownership.world_id():
         return _clear_old_world(ownership, restored)
@@ -257,6 +275,26 @@ def _cleanup_connected(
         message = "World changed while publishing the script cleanup snapshot."
         raise RuntimeError(message)
     return restored | cleanup_owned_actors(adapter, ownership)
+
+
+def _cleanup_world(adapter: PythonCarlaAdapter, connection: ConnectionJournal | None) -> CarlaWorld:
+    world = adapter._client().get_world()  # noqa: SLF001
+    if connection is not None:
+        connection.require_identity(world_identity(world))
+    return world
+
+
+def _check_connection_episode(
+    adapter: PythonCarlaAdapter, connection: ConnectionJournal | None, ownership: RunOwnership
+) -> None:
+    if connection is None:
+        return
+    identity = connection.world_id()
+    if identity is not None:
+        connection.require_identity(world_identity(adapter._client().get_world()))  # noqa: SLF001
+        if ownership.actor_ids() and ownership.world_id() != identity:
+            message = "Persistent actor ownership differs from its connection origin."
+            raise RuntimeError(message)
 
 
 def _clear_old_world(ownership: RunOwnership, restored: dict[str, object]) -> dict[str, object]:
@@ -295,11 +333,16 @@ def _worker_cleanup(
         path = Path(str(request["ownership_path"]))
         ownership = _ownership(path)
         settings = _settings_record(path, required=request.get("require_settings") is True)
+        connection = _connection_record(path, required=request.get("require_connection") is True)
         adapter = PythonCarlaAdapter(
             host=str(request["host"]), port=int(str(request["port"])), timeout=5.0
         )
         report = _cleanup_connected(
-            adapter, ownership, settings, destroy_actors=request.get("destroy_actors") is not False
+            adapter,
+            ownership,
+            settings,
+            destroy_actors=request.get("destroy_actors") is not False,
+            connection=connection,
         )
     except (OSError, RuntimeError, TypeError, ValueError) as error:
         report = _failure(str(error))
@@ -334,14 +377,35 @@ def _recover_lease_settings(
 ) -> dict[str, object]:
     try:
         path = Path(str(state.get("ownership_path", "")))
-        require_settings = "settings_path" in state
-        if require_settings and state["settings_path"] != str(path.with_name(SETTINGS_FILENAME)):
-            return _failure("Settings journal must be beside the recorded ownership journal.")
+        require_settings = _require_settings_path(state, path)
+        require_connection = _require_connection_path(state, path)
         return cleanup_script_ownership(
-            host, port, path, descriptor, timeout, require_settings=require_settings
+            host,
+            port,
+            path,
+            descriptor,
+            timeout,
+            require_settings=require_settings,
+            require_connection=require_connection,
         )
     except (OSError, RuntimeError, TypeError, ValueError) as error:
         return _failure(str(error))
+
+
+def _require_settings_path(state: dict[str, object], path: Path) -> bool:
+    required = "settings_path" in state
+    if required and state["settings_path"] != str(path.with_name(SETTINGS_FILENAME)):
+        message = "Settings journal must be beside the recorded ownership journal."
+        raise ValueError(message)
+    return required
+
+
+def _require_connection_path(state: dict[str, object], path: Path) -> bool:
+    required = state.get("kind") == "script_session" or "connection_path" in state
+    if required and state.get("connection_path") != str(path.with_name(CONNECTION_FILENAME)):
+        message = "Persistent connection journal must be beside the ownership journal."
+        raise ValueError(message)
+    return required
 
 
 def main() -> None:

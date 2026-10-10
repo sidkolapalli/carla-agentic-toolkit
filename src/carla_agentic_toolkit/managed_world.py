@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from carla_agentic_toolkit.errors import UnsupportedFeatureError
+from carla_agentic_toolkit.persistent_connection import require_operation_episode
 
 if TYPE_CHECKING:
     from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaWorld
@@ -52,6 +53,7 @@ def apply_world_settings(world: CarlaWorld, values: dict[str, object]) -> None:
     settings = world.get_settings()
     for key in SETTINGS_FIELDS:
         setattr(settings, key, values[key])
+    require_operation_episode(world)
     world.apply_settings(settings)
 
 

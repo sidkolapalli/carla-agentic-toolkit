@@ -144,7 +144,12 @@ def creation_case(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> CreationCa
     manager.get_port.return_value = 8000
     client = cast(
         "CarlaClient",
-        SimpleNamespace(get_world=lambda: world, get_trafficmanager=lambda _port: manager),
+        SimpleNamespace(
+            get_world=lambda: world,
+            get_trafficmanager=lambda _port: manager,
+            get_client_version=lambda: "0.9.16-client",
+            get_server_version=lambda: "0.9.16-server",
+        ),
     )
     adapter = PythonCarlaAdapter()
     monkeypatch.setattr(adapter, "_client", lambda: client)

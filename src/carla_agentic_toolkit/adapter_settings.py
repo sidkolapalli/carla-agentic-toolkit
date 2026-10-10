@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from carla_agentic_toolkit.carla_versions import read_version_info
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.experiment_common import world_state
 from carla_agentic_toolkit.managed_world import apply_world_settings
@@ -14,6 +13,7 @@ from carla_agentic_toolkit.world_timing import world_synchronous_mode
 
 if TYPE_CHECKING:
     from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaWorld
+    from carla_agentic_toolkit.carla_versions import VersionInfo
     from carla_agentic_toolkit.models import WorldState
     from carla_agentic_toolkit.script_settings import RunSettings
 
@@ -25,18 +25,25 @@ class PythonCarlaSettingsMixin:
 
     _settings_journal: RunSettings | None
 
+    if TYPE_CHECKING:
+
+        def _version_info(self, client: CarlaClient) -> VersionInfo: ...
+
+        def _require_persistent_available(self) -> None: ...
+
     def _client(self) -> CarlaClient:
         """Return a configured CARLA client."""
         raise NotImplementedError
 
-    @staticmethod
-    def _world(client: CarlaClient) -> CarlaWorld:
+    def _world(self, client: CarlaClient) -> CarlaWorld:
         """Return the current CARLA world."""
         raise NotImplementedError
 
     def _world_state(self, world: CarlaWorld, *, client: CarlaClient) -> WorldState:
         """Add version diagnostics using the operation's retained native client."""
-        return world_state(world, warnings=read_version_info(client).warnings)
+        versions = self._version_info(client)
+        self._require_persistent_available()
+        return world_state(world, warnings=versions.warnings)
 
     def get_world_settings(self) -> dict[str, object]:
         """Return all timing and rendering settings for a later explicit restore."""

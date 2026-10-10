@@ -127,6 +127,23 @@ automatically repeat the mutation, rebind ownership, or clear the journal. See
 [RPC timeouts and map changes](script-workflows.md#bound-rpc-timeouts-and-map-changes)
 for the diagnostic fields and recovery requirement.
 
+A native RPC timeout or transport failure, including a version diagnostic read,
+discards the cached client. A failed diagnostic stops any remaining native version getter,
+without repeating the failed operation or reconnecting again within that request.
+The next request can connect a fresh client; local input and unsupported-capability
+errors do not invalidate it. The first compatible world access durably binds the
+session's episode before mutation. Non-world requests remain lazy, and incompatible
+or unknown-version health diagnostics still skip world inspection.
+
+If the native `world.id` changes without a successful toolkit `load_world`,
+`reload_world`, or OpenDRIVE generation, the session reports non-retryable
+`simulator_restarted`, even when code ignores the operation error. Ownership,
+settings, retained sensor handles, and their original episode IDs are not rebound
+or cleared. Close the session and investigate its retained evidence; a reconnect
+does not authorize mutation or cleanup in the replacement episode. CARLA actor
+IDs are only unique within their episode; see the official
+[world identity contract](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World).
+
 World-settings changes also persist across requests in the same session. A
 session that enables synchronous mode owns ticking for its lifetime; advance
 frames explicitly with `api.tick()` or `api.tick_n()`. The toolkit journals the
@@ -209,6 +226,14 @@ deadline. It clears the recovery barrier only after verified cleanup. Missing,
 corrupt, legacy nonempty journals without episode identity, and ambiguous evidence
 remain quarantined; the command never accepts an arbitrary journal path. Actor IDs
 from an old simulator episode cannot authorize destruction in a replacement world.
+Persistent recovery additionally requires the canonical adjacent
+`persistent-connection.json` recorded at launch. Its restart evidence is restrictive
+only: it never grants actor adoption or deletion authority. A recorded restart,
+an unexpected current episode, missing or malformed required connection evidence,
+or a legacy persistent lease without that evidence remains dirty. This also applies
+when the settings journal is empty and only actor IDs were recorded. A failed
+connection-journal write blocks further native use and cannot be ignored into a
+successful request. Finite-script recovery retains its existing contract.
 
 Idle and absolute timeouts are positive and at most 3600 seconds; per-request
 timeouts are at most 60 seconds. Idle time starts after readiness and is refreshed

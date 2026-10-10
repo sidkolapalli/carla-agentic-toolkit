@@ -10,7 +10,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from carla_agentic_toolkit import adapter as adapter_module
+from carla_agentic_toolkit import adapter_connection as adapter_module
 from carla_agentic_toolkit import traffic_runtime
 from carla_agentic_toolkit.adapter import PythonCarlaAdapter
 from carla_agentic_toolkit.errors import CarlaAdapterError

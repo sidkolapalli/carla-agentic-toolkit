@@ -187,9 +187,14 @@ def test_injected_location_reaches_real_native_waypoint_translation(
         LaneType=SimpleNamespace(Driving="native-driving", Sidewalk="native-sidewalk"),
     )
     monkeypatch.setattr(experiment_navigation, "import_module", lambda _name: module)
-    world = SimpleNamespace(get_map=lambda: SimpleNamespace(get_waypoint=get_waypoint))
+    world = SimpleNamespace(id=17, get_map=lambda: SimpleNamespace(get_waypoint=get_waypoint))
+    client = SimpleNamespace(
+        get_world=lambda: world,
+        get_client_version=lambda: "0.9.16-client",
+        get_server_version=lambda: "0.9.16-server",
+    )
     adapter = PythonCarlaAdapter()
-    monkeypatch.setattr(adapter, "_client", lambda: SimpleNamespace(get_world=lambda: world))
+    monkeypatch.setattr(adapter, "_client", lambda: client)
     api = CarlaScriptApi(adapter, RunSnapshots())
 
     outcome = PersistentNamespace(api).execute(

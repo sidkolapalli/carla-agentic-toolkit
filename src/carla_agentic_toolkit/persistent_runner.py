@@ -8,6 +8,7 @@ import time
 from typing import TYPE_CHECKING, Protocol
 
 from carla_agentic_toolkit.adapter import PythonCarlaAdapter
+from carla_agentic_toolkit.connection_journal import CONNECTION_FILENAME
 from carla_agentic_toolkit.ownership import RunOwnership
 from carla_agentic_toolkit.persistent_namespace import PersistentNamespace, SessionSnapshots
 from carla_agentic_toolkit.rpc_timeouts import RpcTimeoutPolicy, deadline_value
@@ -197,6 +198,7 @@ def main() -> None:
         settings_journal=RunSettings(
             args.ownership_file.with_name(SETTINGS_FILENAME), require_existing=True
         ),
+        persistent_connection_path=args.ownership_file.with_name(CONNECTION_FILENAME),
     )
     snapshots = SessionSnapshots()
     ownership = RunOwnership(args.ownership_file)

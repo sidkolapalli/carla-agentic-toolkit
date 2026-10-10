@@ -183,7 +183,12 @@ def test_worker_keeps_sync_across_requests_and_restores_settings_on_session_clos
         assert isinstance(settings, RunSettings)
         adapter = PythonCarlaAdapter(settings_journal=settings)
         adapter._connected_client = cast(  # noqa: SLF001
-            "CarlaClient", SimpleNamespace(get_world=lambda: world)
+            "CarlaClient",
+            SimpleNamespace(
+                get_world=lambda: world,
+                get_client_version=lambda: "0.9.16-client",
+                get_server_version=lambda: "0.9.16-server",
+            ),
         )
         adapters.append(adapter)
         return adapter

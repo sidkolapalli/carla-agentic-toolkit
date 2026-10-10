@@ -63,8 +63,7 @@ class PythonCarlaExperimentMixin(PythonCarlaGroundTruthMixin, PythonCarlaSensorL
         """Refresh the concrete adapter's current remaining native deadline."""
         raise NotImplementedError
 
-    @staticmethod
-    def _world(client: CarlaClient) -> CarlaWorld:
+    def _world(self, client: CarlaClient) -> CarlaWorld:
         """Return the current CARLA world."""
         raise NotImplementedError
 
@@ -638,8 +637,13 @@ class PythonCarlaExperimentMixin(PythonCarlaGroundTruthMixin, PythonCarlaSensorL
             self._settings_journal.capture_world(self._world(self._client()))
 
     def _rebind_replacement_settings(self, world: CarlaWorld) -> None:
+        self._acknowledge_world_replacement(world)
         if self._settings_journal is not None:
             self._settings_journal.rebind_world(world)
+
+    if TYPE_CHECKING:
+
+        def _acknowledge_world_replacement(self, world: CarlaWorld) -> None: ...
 
     def apply_batch(
         self, commands: list[dict[str, object]], *, do_tick: bool = False

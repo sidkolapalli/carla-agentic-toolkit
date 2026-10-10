@@ -12,6 +12,7 @@ from dataclasses import asdict, replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from carla_agentic_toolkit.connection_journal import CONNECTION_FILENAME, ConnectionJournal
 from carla_agentic_toolkit.ownership import OWNERSHIP_FILENAME, RunOwnership
 from carla_agentic_toolkit.sandbox import (
     ExecutionRequest,
@@ -71,6 +72,7 @@ class SessionProcess:
         config_path = self.work / "session.json"
         RunOwnership(self.work / OWNERSHIP_FILENAME).clear()
         RunSettings(self.work / SETTINGS_FILENAME).initialize()
+        ConnectionJournal(self.work / CONNECTION_FILENAME).initialize()
         write_message(
             config_path,
             {
@@ -134,6 +136,7 @@ class SessionProcess:
                 lease_descriptor=self.lease.descriptor,
                 timeout_seconds=5.0,
                 require_settings=True,
+                require_connection=True,
             )
             outcome = replace(outcome, cleanup=report)
             self._save_cleanup(outcome)
@@ -168,4 +171,5 @@ class SessionProcess:
             "session_id": self.session_id,
             "ownership_path": str(self.work / OWNERSHIP_FILENAME),
             "settings_path": str(self.work / SETTINGS_FILENAME),
+            "connection_path": str(self.work / CONNECTION_FILENAME),
         }

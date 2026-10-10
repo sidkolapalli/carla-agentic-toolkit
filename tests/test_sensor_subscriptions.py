@@ -9,8 +9,8 @@ from unittest.mock import Mock
 import pytest
 
 from carla_agentic_toolkit import adapter as adapter_module
+from carla_agentic_toolkit import adapter_connection, script_runner
 from carla_agentic_toolkit import experiment_perception as perception
-from carla_agentic_toolkit import script_runner
 from carla_agentic_toolkit.adapter import PythonCarlaAdapter
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.models import CameraAttachRequest, Location, Rotation, Transform
@@ -129,8 +129,8 @@ def test_adapter_retains_client_stream_for_synchronous_reads(
     """A paused world's observations must use the established client stream, not a new empty one."""
     established = Mock()
     factory = Mock(side_effect=[established, Mock()])
-    monkeypatch.setattr(adapter_module, "_carla_client_factory", Mock(return_value=factory))
-    monkeypatch.setattr(adapter_module, "_require_carla_client", lambda value: value)
+    monkeypatch.setattr(adapter_connection, "_carla_client_factory", Mock(return_value=factory))
+    monkeypatch.setattr(adapter_connection, "_require_carla_client", lambda value: value)
     adapter = PythonCarlaAdapter()
 
     first = adapter._client()  # noqa: SLF001 -- Verify the connection lifetime boundary.

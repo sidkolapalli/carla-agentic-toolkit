@@ -46,6 +46,9 @@ class PersistentNamespace:
         rejection = _validate_script(code)
         if rejection is not None:
             return _error("script_rejected", rejection, stdout="")
+        begin = getattr(self._api, "_begin_persistent_request", None)
+        if callable(begin):
+            begin()
         self._namespace.update(value_constructors())
         self._namespace.update(__builtins__=_safe_builtins(), api=self._api, result=None)
         stream = _BoundedWriter(MAX_SCRIPT_STDOUT_BYTES)
@@ -55,8 +58,13 @@ class PersistentNamespace:
             if error is not None
             else _script_outcome(self._namespace.get("result"), stream.getvalue(), self._snapshots)
         )
+        return self._finish_outcome(outcome)
+
+    def _finish_outcome(self, outcome: dict[str, object]) -> dict[str, object]:
         finalize = getattr(self._api, "_finalize_owned_outcome", None)
-        return finalize(outcome) if callable(finalize) else outcome
+        outcome = finalize(outcome) if callable(finalize) else outcome
+        finish = getattr(self._api, "_finish_persistent_outcome", None)
+        return finish(outcome) if callable(finish) else outcome
 
     def _execute(self, code: str, stream: _BoundedWriter) -> dict[str, object] | None:
         try:
