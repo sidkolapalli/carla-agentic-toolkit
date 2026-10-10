@@ -451,6 +451,29 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
 - Integrated #96 reporting gate: 2,480 Python tests passed, two skipped and nine
   Rust tests passed; all required static checks pass. Native physical correction
   and genuine valid-crossing acceptance remain pending.
+- #96 native backport preparation: the installed 0.10.0 package's `VERSION`
+  records CARLA `ada75f920642e18cace0a9f85ecf9d4077ddb531`, engine
+  `6cf20383302899026a5e777219ba4206afe47d38` and content
+  `a32a1930bc319caba3e0cde845e46e23b9136e81`. An isolated pinned source
+  checkout now contains six uncompiled editor tests for actual controller
+  possession/input/speed, velocity dispatch and dormant state. A four-file
+  candidate backport of the relevant upstream
+  [e32b425](https://github.com/carla-simulator/carla/commit/e32b425ead03a2120fc87ae9e89100ce6cfadf1c)
+  and [5362fa5](https://github.com/carla-simulator/carla/commit/5362fa5efdf5b3e7907159814dd4faca65a065fd)
+  changes passes patch applicability and independent source review. Production
+  source stays unpatched until genuine editor RED; neither compilation, GREEN,
+  installation nor a physical fix is claimed. Virtual velocity dispatch needs
+  a full compatible Carla module rebuild, followed by native snapshot and
+  physical crossing acceptance. The exact engine source/editor was not found
+  in targeted local searches; the official engine repository is inaccessible
+  to the configured GitHub account. Installation is user-authorized but awaits
+  source access, not a substitute engine or a floating dependency upgrade.
+- #96 fresh six-case diagnostic attempt: compatible-version preflight stops
+  with the dedicated server unavailable, before any actor or settings change.
+  Its recorded test processes are absent. The failed receipt is preserved;
+  separate client-free checks confirm the same lease is clean/reacquirable and
+  the local TM listener is absent. No motion samples, new native RED, restored
+  simulator baseline or acceptance success are claimed for this attempt.
 - #155: 32 genuine regressions fail before persistent-only transport invalidation,
   originating-episode guards and durable connection evidence; 49 new cases and
   282 broader checks pass. Ordinary transport failure drops only the cached
