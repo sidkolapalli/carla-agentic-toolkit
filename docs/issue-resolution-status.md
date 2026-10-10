@@ -461,13 +461,23 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   [e32b425](https://github.com/carla-simulator/carla/commit/e32b425ead03a2120fc87ae9e89100ce6cfadf1c)
   and [5362fa5](https://github.com/carla-simulator/carla/commit/5362fa5efdf5b3e7907159814dd4faca65a065fd)
   changes passes patch applicability and independent source review. Production
-  source stays unpatched until genuine editor RED; neither compilation, GREEN,
-  installation nor a physical fix is claimed. Virtual velocity dispatch needs
+  source stays unpatched until genuine editor RED; editor test compilation,
+  GREEN and a physical fix remain unverified. Virtual velocity dispatch needs
   a full compatible Carla module rebuild, followed by native snapshot and
-  physical crossing acceptance. The exact engine source/editor was not found
-  in targeted local searches; the official engine repository is inaccessible
-  to the configured GitHub account. Installation is user-authorized but awaits
-  source access, not a substitute engine or a floating dependency upgrade.
+  physical crossing acceptance. No matching source/editor was found locally.
+  After the user enabled Epic account access, the exact licensed engine source
+  was acquired and its build version verified as 5.5.0. All 105,096 engine
+  dependency files downloaded; the pinned Unreal Build Tool compiles with zero
+  warnings/errors. CARLA's pinned assets downloaded and are being materialized
+  and integrity-checked. Disconnected CMake configuration and all 372 native
+  client/server/dependency build actions pass with the existing MSVC/Python SDK.
+  The first editor build stops on an absent native .NET Framework SDK, not a
+  pedestrian regression. The user-authorized, Microsoft-signed 4.8 Developer
+  Pack installs successfully without restart; registered native headers and
+  x64 library are verified. Retrying the real editor target passes Unreal
+  header generation with warnings-as-errors; C++ compilation remains underway.
+  No engine setup hooks, global engine registration, provider call, native
+  test RED/GREEN, patched server or valid crossing is claimed by this setup.
 - #96 fresh six-case diagnostic attempt: compatible-version preflight stops
   with the dedicated server unavailable, before any actor or settings change.
   Its recorded test processes are absent. The failed receipt is preserved;
