@@ -127,3 +127,54 @@ def test_public_image_digests_use_the_resolved_sensor_fov(operation: str) -> Non
         "listeners": 1,
         "stops": 1,
     }
+
+
+@pytest.mark.parametrize("operation", ["standalone", "stream", "drain"])
+@pytest.mark.parametrize("buffer_kind", ["bytes", "bytearray", "readonly-view", "mutable-view"])
+def test_native_style_byte_buffers_preserve_exact_bgra_hash(
+    operation: str,
+    buffer_kind: str,
+) -> None:
+    """Actual LibCarla memoryviews and other complete byte buffers are valid images."""
+    image = _image()
+    buffers = {
+        "bytes": RAW_BGRA,
+        "bytearray": bytearray(RAW_BGRA),
+        "readonly-view": memoryview(RAW_BGRA),
+        "mutable-view": memoryview(bytearray(RAW_BGRA)),
+    }
+    image.raw_data = buffers[buffer_kind]
+    digest = _buffer_digest(image, operation)
+    _assert_image_metadata(digest)
+
+
+def _buffer_digest(image: SimpleNamespace, operation: str) -> dict[str, object]:
+    if operation == "standalone":
+        return experiment_perception.sensor_frame_digest(image, camera_attributes={"fov": "73"})
+    case = make_case()
+    camera = case.world.actors[19]
+    camera.samples = [image]
+    camera.attributes["fov"] = "73"
+    if operation == "stream":
+        payload = case.api.read_sensor_stream(19, 1)
+    else:
+        case.api.subscribe_sensor(19)
+        payload = case.api.drain_sensor(19, IMAGE_FRAME)
+        case.api.close_sensor_subscription(19)
+    return cast("list[dict[str, object]]", payload["frames"])[0]
+
+
+@pytest.mark.parametrize("buffer_kind", ["incomplete", "noncontiguous", "nonbyte", "released"])
+def test_malformed_buffer_views_cannot_receive_raw_bgra_labels(buffer_kind: str) -> None:
+    """Buffer protocol support must not weaken completeness or byte-layout validation."""
+    released = memoryview(RAW_BGRA)
+    released.release()
+    image = _image()
+    image.raw_data = {
+        "incomplete": memoryview(RAW_BGRA[:-1]),
+        "noncontiguous": memoryview(RAW_BGRA * 2)[::2],
+        "nonbyte": memoryview(RAW_BGRA).cast("I"),
+        "released": released,
+    }[buffer_kind]
+    with pytest.raises(CarlaAdapterError):
+        experiment_perception.sensor_frame_digest(image)

@@ -191,12 +191,29 @@ def _is_bgra_measurement(frame: object, sensor_type: str | None) -> bool:
     return hasattr(frame, "width") or hasattr(frame, "height")
 
 
-def _image_measurements(frame: object) -> tuple[int, int, bytes]:
+def _image_measurements(frame: object) -> tuple[int, int, memoryview]:
     image = cast("Any", frame)
     width = _positive_dimension(image.width, "width")
     height = _positive_dimension(image.height, "height")
-    raw = image.raw_data
-    if not isinstance(raw, bytes) or len(raw) != width * height * 4:
+    raw = _bgra_buffer(image.raw_data, width * height * 4)
+    return width, height, raw
+
+
+def _bgra_buffer(raw: object, expected_bytes: int) -> memoryview:
+    if not isinstance(raw, bytes | bytearray | memoryview):
         message = "Image raw_data must contain complete 32-bit BGRA pixels."
         raise CarlaAdapterError(message)
-    return width, height, raw
+    view = memoryview(raw)
+    if not _complete_byte_view(view, expected_bytes):
+        message = "Image raw_data must contain contiguous complete 32-bit BGRA bytes."
+        raise CarlaAdapterError(message)
+    return view
+
+
+def _complete_byte_view(view: memoryview, expected_bytes: int) -> bool:
+    return (
+        view.c_contiguous
+        and view.ndim == 1
+        and view.itemsize == 1
+        and view.nbytes == expected_bytes
+    )
