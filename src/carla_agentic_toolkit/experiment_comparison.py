@@ -163,8 +163,24 @@ def _match_identity(
     errors = _identity_errors(metadata, spec, fixture)
     identity = {key: metadata.get(key) for key in MATCH_METADATA}
     identity["spec"] = _without(canonical_spec, {"policy", "replay_run_id"})
-    identity["fixture"] = _without(fixture, {"actor_ids"})
+    identity["fixture"] = _fixture_identity(fixture)
     return identity, errors
+
+
+def _fixture_identity(fixture: dict[str, Any]) -> dict[str, Any]:
+    values = _without(fixture, {"actor_ids"})
+    lights = values.get("initial_traffic_lights")
+    if isinstance(lights, dict):
+        evidence = _without(lights, {"frame"})
+        states = evidence.get("lights")
+        if isinstance(states, list):
+            normalized = [
+                _without(state, {"actor_id"}) if isinstance(state, dict) else state
+                for state in states
+            ]
+            evidence["lights"] = sorted(normalized, key=identity_digest)
+        values["initial_traffic_lights"] = evidence
+    return values
 
 
 def _identity_errors(

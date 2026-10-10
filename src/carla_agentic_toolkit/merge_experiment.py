@@ -95,6 +95,7 @@ class MergeExperiment:
             "controller_version": TRACKER_VERSION,
             "settings": asdict(self.settings),
             "observation_mode": self.spec.observation_mode,
+            "initial_traffic_lights": self.session.initial_traffic_lights,
             "vehicle_blueprint": FIXTURE_VEHICLES[self.spec.fixture],
             "actor_ids": {role: int(cast("Any", actor).id) for role, actor in self._actors.items()},
             "actor_bounding_boxes": {

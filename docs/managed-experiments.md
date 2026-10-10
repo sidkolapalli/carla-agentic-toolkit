@@ -375,6 +375,48 @@ Mode setup may advance CARLA frames inside `apply_settings`; setup is distinct f
 the scheduled experiment budget. Scripts that manage their own sensors should follow
 the [explicit sensor timing contract](sensor-timing.md).
 
+### Repetition setup
+
+Before preflight, the session refuses any retained actor ownership or creation
+intents; their original-episode evidence stays intact and quarantined. Each managed
+repetition then verifies a dedicated asynchronous world and journals its original
+six settings. It records a `reload.phase` of `prepared`, applies the
+requested synchronous/fixed/substep settings, then records `pending` immediately
+before one native `client.reload_world(False)` call. `False` keeps those settings;
+the same map is reloaded with a new episode, following CARLA's
+[synchronous-before-reload guidance](https://github.com/carla-simulator/carla/blob/0.9.16/Docs/adv_synchrony_timestep.md#physics-determinism).
+The native returned world ID is durably recorded as `acknowledged` before any map
+query or setup RPC, with the empty creation journal bound to this new episode.
+The verified map name is then journaled. Runtime guards, actor cleanup and recovery
+use that acknowledged ID; the pre-setup settings remain the restoration target.
+
+The setup-frame barrier runs again in the new world. The session then calls
+`reset_all_traffic_lights()` and publishes exactly one separately accounted setup
+frame before reading native states. The `setup_frames` event records
+`traffic_light_reset_frame` alongside the quiet barrier's `settled_frame`.
+Fixture metadata records `initial_traffic_lights`: its publication frame and each
+light's actor ID, OpenDRIVE ID, pole index, world location and actual state. Native
+[traffic-light getters use the last delivered tick](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight),
+so reset acknowledgement alone is not state evidence. Missing capabilities,
+unavailable states, stale publication or episode/frame drift refuse runtime setup.
+This metadata is not added to selector inputs.
+
+Native settings/reload internals may also advance setup frames. None of these are
+scheduled experiment steps, and no frame-zero or bitwise-repeatability guarantee
+is made. The existing per-RPC deadline still applies to reload. Native consecutive
+repetition acceptance remains pending; historical trace and media bytes are unchanged.
+
+Recovery distinguishes these phases. `prepared` means no reload call was attempted,
+so a still-matching original episode can be restored and verified. An acknowledged
+returned ID allows same-episode restoration even if a later map read failed.
+A lost reply, invalid returned identity or failed returned-ID journal write keeps
+unresolved reload evidence and a dirty lease. The toolkit never guesses the new
+episode from its map or settings, retries reload automatically, or writes old
+settings into an unknown replacement. A read-only baseline match under
+[replaced-world cleanup](#replaced-world-cleanup) cannot clear an unresolved reload.
+Known original-episode cleanup can still be attempted without claiming that the
+uncertain reload outcome was resolved.
+
 ## Limits, storage, and evidence
 
 | Setting | Default | Supported bound |

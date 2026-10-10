@@ -44,6 +44,9 @@ class CarlaClient(Protocol):
     def load_world(self, map_name: str, *, reset_settings: bool = True) -> CarlaWorld:
         """Load a world, resetting settings by default as CARLA does."""
 
+    def reload_world(self, *, reset_settings: bool = True) -> CarlaWorld:
+        """Reload the same map, optionally retaining current settings."""
+
     def get_trafficmanager(self, port: int = 8000) -> CarlaTrafficManager:
         """Return a Traffic Manager on the requested port."""
 
@@ -62,6 +65,9 @@ class CarlaWorld(Protocol):
 
     def get_settings(self) -> CarlaWorldSettings:
         """Return world settings."""
+
+    def reset_all_traffic_lights(self) -> None:
+        """Reset all native traffic-light cycles to their initial state."""
 
     def get_actors(self, actor_ids: list[int] | None = None, /) -> CarlaActorList:
         """Return cached actors, or directly resolve the supplied actor IDs."""

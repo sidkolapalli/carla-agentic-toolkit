@@ -80,6 +80,7 @@ class RouteExperiment:
     def fixture_metadata(self) -> dict[str, object]:
         """Keep exact route and hazard ground truth in the trace, outside provider inputs."""
         return {
+            "initial_traffic_lights": self.session.initial_traffic_lights,
             "fixture_version": self.spec.fixture,
             "scenario": self.spec.scenario,
             "scenario_version": SCENARIO_VERSION,

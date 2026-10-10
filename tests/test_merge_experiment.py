@@ -108,6 +108,9 @@ class Session:
     map: Map = field(default_factory=lambda: Map(Waypoint()))
     run_id: str = "run-test"
     world_generation: str = "generation-test"
+    initial_traffic_lights: dict[str, object] = field(
+        default_factory=lambda: {"frame": 10, "lights": []}
+    )
     owned: list[tuple[int, str, bool]] = field(default_factory=list)
     callbacks: list[Callable[[], object]] = field(default_factory=list)
 

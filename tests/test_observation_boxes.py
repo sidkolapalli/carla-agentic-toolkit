@@ -148,7 +148,12 @@ def _route(actors: dict[str, Actor]) -> RouteActors:
 
 def _merge(actors: dict[str, Actor]) -> MergeExperiment:
     experiment = MergeExperiment(
-        SimpleNamespace(spec=ExperimentSpec(), run_id="boxes", world_generation="world")
+        SimpleNamespace(
+            spec=ExperimentSpec(),
+            run_id="boxes",
+            world_generation="world",
+            initial_traffic_lights={"frame": 10, "lights": []},
+        )
     )
     experiment.corridor = MergeCorridor(
         Pose(0, 0, 0, 0),
@@ -345,9 +350,10 @@ def test_fixture_metadata_records_raw_local_box_location_rotation_and_extent(bac
     else:
         experiment = RouteExperiment(
             SimpleNamespace(
+                initial_traffic_lights={"frame": 10, "lights": []},
                 spec=ExperimentSpec.model_validate(
                     {"fixture": "town10-route-ue5-v1", "scenario": "lead_brake"}
-                )
+                ),
             )
         )
         experiment.actors = _route(actors)

@@ -33,6 +33,7 @@ def prepare_engine(monkeypatch: pytest.MonkeyPatch) -> FakeWorld:
     world = FakeWorld()
     client = SimpleNamespace(
         get_world=lambda: world,
+        reload_world=world.reload_world,
         get_client_version=lambda: "0.9.16-test",
         get_server_version=lambda: "0.9.16-test",
     )
@@ -101,7 +102,9 @@ def test_trace_overflow_returns_failed_evidence_after_cleanup(
 def test_frame_violation_keeps_new_actor_handle_for_cleanup(tmp_path: Path) -> None:
     """A successful spawn followed by an external tick still has an owned cleanup handle."""
     world = FakeWorld()
-    client = cast("CarlaClient", SimpleNamespace(get_world=lambda: world))
+    client = cast(
+        "CarlaClient", SimpleNamespace(get_world=lambda: world, reload_world=world.reload_world)
+    )
     with SimulatorLease("localhost", 3000, state_root=tmp_path) as lease:
         session = ManagedSession(ExperimentSpec(), client, lease, "new-spawn")
         session.open()
@@ -162,7 +165,9 @@ def test_crash_recovery_requires_a_fresh_actor_snapshot(
 ) -> None:
     """A new client's empty cache cannot prove that crashed-run actors are absent."""
     world = FakeWorld()
-    client = cast("CarlaClient", SimpleNamespace(get_world=lambda: world))
+    client = cast(
+        "CarlaClient", SimpleNamespace(get_world=lambda: world, reload_world=world.reload_world)
+    )
     with SimulatorLease("localhost", 3000, state_root=tmp_path) as lease:
         session = ManagedSession(ExperimentSpec(), client, lease, "fresh-recovery")
         session.open()
@@ -206,6 +211,8 @@ def test_setup_barrier_distinguishes_late_delivery_from_external_ticks(
     settled_frame = 101
 
     def snapshot() -> SimpleNamespace:
+        if not continuous and world.frame > settled_frame:
+            return SimpleNamespace(frame=world.frame)
         world.frame = 100 + (
             int(clock.now / 0.02) if continuous else int(clock.now >= delivery_seconds)
         )
@@ -214,7 +221,9 @@ def test_setup_barrier_distinguishes_late_delivery_from_external_ticks(
     monkeypatch.setattr(managed_world, "time", clock, raising=False)
     monkeypatch.setattr(managed_session, "require_dedicated_world", lambda *_args: None)
     monkeypatch.setattr(world, "get_snapshot", snapshot)
-    client = cast("CarlaClient", SimpleNamespace(get_world=lambda: world))
+    client = cast(
+        "CarlaClient", SimpleNamespace(get_world=lambda: world, reload_world=world.reload_world)
+    )
     with SimulatorLease("localhost", 3000, state_root=tmp_path) as lease:
         session = ManagedSession(ExperimentSpec(), client, lease, "setup-barrier")
         if continuous:
@@ -222,9 +231,14 @@ def test_setup_barrier_distinguishes_late_delivery_from_external_ticks(
                 session.open()
         else:
             session.open()
-            assert session.expected_frame == settled_frame
-            assert session.setup_frame_barrier["advanced_frames"] == 1
+            _assert_settled_setup(session, settled_frame)
         assert session.close()["ok"] is True
+
+
+def _assert_settled_setup(session: ManagedSession, settled_frame: int) -> None:
+    assert session.setup_frame_barrier["settled_frame"] == settled_frame
+    assert session.expected_frame == settled_frame + 1
+    assert session.setup_frame_barrier["advanced_frames"] == 1
 
 
 def test_initial_empty_actor_cache_is_not_dedicated_world_evidence(
@@ -240,7 +254,9 @@ def test_initial_empty_actor_cache_is_not_dedicated_world_evidence(
         return world.get_snapshot()
 
     monkeypatch.setattr(world, "wait_for_tick", fresh)
-    client = cast("CarlaClient", SimpleNamespace(get_world=lambda: world))
+    client = cast(
+        "CarlaClient", SimpleNamespace(get_world=lambda: world, reload_world=world.reload_world)
+    )
     with SimulatorLease("localhost", 3000, state_root=tmp_path) as lease:
         session = ManagedSession(ExperimentSpec(), client, lease, "preflight")
         with pytest.raises(SessionInvariantError, match="existing actors"):

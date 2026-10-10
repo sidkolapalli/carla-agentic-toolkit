@@ -84,6 +84,10 @@ class ReplacingClient:
         """Permit external clients to replace the episode independently of the session."""
         return self.world
 
+    def reload_world(self, reset_settings: bool = True) -> FakeWorld:  # noqa: FBT001, FBT002
+        """Replace the fixture episode before external replacement tests."""
+        return self.world.reload_world(reset_settings)
+
 
 @pytest.fixture
 def batch(monkeypatch: pytest.MonkeyPatch) -> Mock:

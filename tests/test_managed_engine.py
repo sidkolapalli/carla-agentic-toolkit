@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from carla_agentic_toolkit.experiment_trace import TraceRead
     from carla_agentic_toolkit.managed_session import ManagedSession
 
-FINAL_FRAME = 104
+FINAL_FRAME = 105
 EGO_ID = 2
 IMPULSE_MAGNITUDE = 5.0
 
@@ -133,6 +133,7 @@ def _patch_engine(monkeypatch: pytest.MonkeyPatch, policy: PendingPolicy) -> Fak
     world = FakeWorld()
     client = SimpleNamespace(
         get_world=lambda: world,
+        reload_world=world.reload_world,
         get_server_version=lambda: "0.9.16-test",
         get_client_version=lambda: "0.9.16-test",
     )
@@ -205,7 +206,7 @@ def test_paced_run_ticks_while_provider_is_pending(
 def _assert_observation_frames(read: TraceRead) -> None:
     assert read.complete
     frames = [event["frame"] for event in read.events if event["kind"] == "observation"]
-    assert frames == [102, 103, 104]
+    assert frames == [103, 104, 105]
 
 
 class CollisionExperiment(FakeExperiment):
@@ -293,7 +294,7 @@ def test_frame_budget_does_not_create_an_unobserved_extra_tick(
 def _assert_no_extra_tick(world: FakeWorld, trace: TraceRead) -> None:
     setup = next(event for event in trace.events if event["kind"] == "setup_frames")
     setup_data = cast("dict[str, object]", setup["data"])
-    assert world.frame == cast("int", setup_data["settled_frame"]) + 1
+    assert world.frame == cast("int", setup_data["traffic_light_reset_frame"]) + 1
 
 
 def test_last_frame_cancellation_is_not_overwritten_by_frame_limit(

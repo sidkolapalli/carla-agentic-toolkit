@@ -88,6 +88,10 @@ class RecoveryClient:
         """Return the currently active episode, not a Mock identity."""
         return self.world
 
+    def reload_world(self, reset_settings: bool = True) -> FakeWorld:  # noqa: FBT001, FBT002
+        """Retain the fixture proxy while binding a different reload episode."""
+        return self.world.reload_world(reset_settings)
+
 
 def _destroy_batch(
     client: CarlaClient, commands: list[dict[str, object]], *, do_tick: bool
@@ -233,7 +237,7 @@ def test_failed_recovery_refresh_cannot_destroy_or_restore(
     world, client, _original = _abandoned_session(tmp_path, monkeypatch, "before_clean")
     world.settings["synchronous_mode"] = synchronous
     world.behavior = behavior
-    replacement = FakeWorld(id=8, actors=[SimpleNamespace(id=ACTOR_ID)])
+    replacement = FakeWorld(id=world.id + 1, actors=[SimpleNamespace(id=ACTOR_ID)])
     if behavior == "replaced":
         world.on_refresh = partial(setattr, client, "world", replacement)
     before = world.settings.copy()

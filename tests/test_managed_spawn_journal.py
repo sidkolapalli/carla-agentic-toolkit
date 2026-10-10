@@ -83,7 +83,9 @@ def _rotation(**values: float) -> SimpleNamespace:
 def spawn_case(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[SpawnCase]:
     """Open the real managed owner before adding any actor to its dedicated world."""
     world = SpawnWorld()
-    client = cast("CarlaClient", SimpleNamespace(get_world=lambda: world))
+    client = cast(
+        "CarlaClient", SimpleNamespace(get_world=lambda: world, reload_world=world.reload_world)
+    )
     native = SimpleNamespace(Location=_vector, Rotation=_rotation, Transform=_native_transform)
     monkeypatch.setattr(merge_experiment, "import_module", lambda _name: native)
     monkeypatch.setattr(experiment_replay, "apply_batch", _apply_destroy_batch)
@@ -346,10 +348,10 @@ def test_lost_reply_never_adopts_resembling_actor(
     assert spawn_case.lease.recovery_state
 
 
-def _plan(actor_id: int | None) -> dict[str, object]:
+def _plan(actor_id: int | None, world_id: int) -> dict[str, object]:
     return {
         "intent_id": 1,
-        "world_id": 7,
+        "world_id": world_id,
         "type_id": "vehicle.test",
         "role_name": "hero",
         "controller": "policy",
@@ -366,7 +368,9 @@ def test_fresh_recovery_uses_only_durable_returned_ids(
 ) -> None:
     """Known-ID completion uncertainty is recoverable; an unknown result stays quarantined."""
     world = FakeWorld()
-    client = cast("CarlaClient", SimpleNamespace(get_world=lambda: world))
+    client = cast(
+        "CarlaClient", SimpleNamespace(get_world=lambda: world, reload_world=world.reload_world)
+    )
     before = world.settings.copy()
     monkeypatch.setattr(experiment_replay, "apply_batch", _apply_destroy_batch)
     with SimulatorLease("localhost", 3000, state_root=tmp_path) as lease:
@@ -374,7 +378,7 @@ def test_fresh_recovery_uses_only_durable_returned_ids(
         session.open()
         state = lease.recovery_state | {
             "spawn_journal_version": 1,
-            "spawn_intents": [_plan(actor_id)],
+            "spawn_intents": [_plan(actor_id, world.id)],
         }
         lease.mark_dirty(state)
     world.actors.append(
@@ -403,7 +407,9 @@ def test_legacy_marker_cannot_authorize_prefix_adoption(
 ) -> None:
     """Old journals lacked pre-native intent coverage and cannot prove unknown outcomes absent."""
     world = FakeWorld()
-    client = cast("CarlaClient", SimpleNamespace(get_world=lambda: world))
+    client = cast(
+        "CarlaClient", SimpleNamespace(get_world=lambda: world, reload_world=world.reload_world)
+    )
     monkeypatch.setattr(experiment_replay, "apply_batch", _apply_destroy_batch)
     with SimulatorLease("localhost", 3000, state_root=tmp_path) as lease:
         session = ManagedSession(ExperimentSpec(), client, lease, RUN_ID)
@@ -456,7 +462,9 @@ def test_noninteger_version_cannot_manufacture_coverage(
 ) -> None:
     """Only the recorded integer schema version can establish new intent coverage."""
     world = FakeWorld()
-    client = cast("CarlaClient", SimpleNamespace(get_world=lambda: world))
+    client = cast(
+        "CarlaClient", SimpleNamespace(get_world=lambda: world, reload_world=world.reload_world)
+    )
     monkeypatch.setattr(experiment_replay, "apply_batch", _apply_destroy_batch)
     with SimulatorLease("localhost", 3000, state_root=tmp_path) as lease:
         session = ManagedSession(ExperimentSpec(), client, lease, RUN_ID)

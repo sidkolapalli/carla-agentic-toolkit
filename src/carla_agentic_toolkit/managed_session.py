@@ -20,6 +20,12 @@ from carla_agentic_toolkit.managed_creation import (
     spawn_managed,
 )
 from carla_agentic_toolkit.managed_replacement import check_replaced_world
+from carla_agentic_toolkit.managed_setup import (
+    ManagedReload,
+    require_setup_episode,
+    reset_traffic_lights,
+    returned_world_identity,
+)
 from carla_agentic_toolkit.managed_world import (
     SessionInvariantError,
     apply_world_settings,
@@ -38,6 +44,7 @@ if TYPE_CHECKING:
         CarlaBlueprint,
         CarlaClient,
         CarlaSnapshot,
+        CarlaWorld,
     )
     from carla_agentic_toolkit.managed_spec import ExperimentSpec
     from carla_agentic_toolkit.simulator_lease import SimulatorLease
@@ -64,10 +71,13 @@ class ManagedSession:
         self._owned: dict[int, OwnedActor] = {}
         self._handles: dict[int, CarlaActor] = {}
         self.creation = ManagedCreationJournal(self.world_id, self._journal)
+        self.reload = ManagedReload(self.world_id, self.map.name, self._journal)
         self._closing_callbacks: list[Callable[[], object]] = []
         self._opened = False
+        self._ready = False
         self._cleanup: dict[str, object] | None = None
         self.setup_frame_barrier: dict[str, object] = {}
+        self.initial_traffic_lights: dict[str, object] = {}
         self._recovering = False
         self._recovery_frame: int | None = None
 
@@ -76,10 +86,14 @@ class ManagedSession:
         if self._opened:
             message = "Session is already open."
             raise SessionInvariantError(message)
+        if self._owned or self.creation.intents:
+            message = "Cannot reload with retained actor ownership or creation intents."
+            raise SessionInvariantError(message)
         require_dedicated_world(self.world, self.client, self.spec, self.world_id)
         self._original_settings = world_settings(self.world)
         self._journal()
         self._opened = True
+        self.reload.prepare()
         values = self._original_settings | {
             "synchronous_mode": True,
             "fixed_delta_seconds": self.spec.fixed_delta_seconds,
@@ -87,15 +101,40 @@ class ManagedSession:
             "max_substeps": self.spec.max_substeps,
             "max_substep_delta_time": self.spec.max_substep_delta_time,
         }
+        require_setup_episode(self.client, self.world_id)
         apply_world_settings(self.world, values)
+        self._reload_world()
+        if world_settings(self.world) != values:
+            message = "Managed reload did not preserve the requested world settings."
+            raise SessionInvariantError(message)
         self.setup_frame_barrier = settle_setup_frames(
             self.world, self.client, self.spec, self.world_id
         )
-        self.expected_frame = cast("int", self.setup_frame_barrier["settled_frame"])
+        self.initial_traffic_lights = reset_traffic_lights(self.world, self.client, self.world_id)
+        self.expected_frame = cast("int", self.initial_traffic_lights["frame"])
+        self.setup_frame_barrier["traffic_light_reset_frame"] = self.expected_frame
+        self._ready = True
+
+    def _reload_world(self) -> None:
+        require_setup_episode(self.client, self.world_id)
+        self.reload.pending()
+        require_setup_episode(self.client, self.world_id)
+        returned = self.client.reload_world(reset_settings=False)
+        identity = returned_world_identity(returned, self.world_id)
+        self._bind_reloaded_world(returned, identity)
+        self.reload.acknowledge(identity)
+        require_setup_episode(self.client, identity)
+        self.map = self.world.get_map()
+        require_setup_episode(self.client, identity)
+        self.reload.bind_map(self.map.name)
+
+    def _bind_reloaded_world(self, world: CarlaWorld, world_id: int) -> None:
+        self.world, self.world_id = world, world_id
+        self.creation = ManagedCreationJournal(world_id, self._journal)
 
     def assert_current(self) -> None:
         """Reject world replacement and any unaccounted-for frame advancement."""
-        if not self._opened or self._cleanup is not None:
+        if not self._ready or self._cleanup is not None:
             message = "Session is not running."
             raise SessionInvariantError(message)
         if world_identity(self.client.get_world()) != self.world_id:
@@ -187,6 +226,7 @@ class ManagedSession:
                 "settings": self._original_settings,
                 "actors": [asdict(actor) for actor in self._owned.values()],
                 **self.creation.fields(),
+                **self.reload.fields(),
             }
         )
 
@@ -197,7 +237,7 @@ class ManagedSession:
         return self._cleanup.copy()
 
     def _close_once(self) -> dict[str, object]:
-        failures = self.creation.failures()
+        failures = self.creation.failures() + self.reload.failures()
         trailing = self._close_subscriptions(failures)
         if not self._opened:
             return {"ok": not failures, "failures": failures, "trailing": trailing}
@@ -297,6 +337,7 @@ class ManagedSession:
         session._original_settings = cast("dict[str, object]", state["settings"])
         session.creation = ManagedCreationJournal(session.world_id, session._journal)
         session.creation.load(state)
+        session.reload.load(state.get("reload"), session.world_id)
         session._owned = recover_owned(state, session.creation)
         session._opened = True
         session._recovering = True

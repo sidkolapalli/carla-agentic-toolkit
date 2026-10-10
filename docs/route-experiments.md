@@ -85,9 +85,13 @@ scheduler and local guard, but is a separate, unvalidated route timing cohort.
 The run ends on near-stationary arrival at the destination, a delivered collision,
 excessive route tracking error, cancellation, or the frame/wall deadline.
 Long signal waits are included in the 120 simulation-second bound. Traffic-light
-phase is observed rather than reset; separate trials can encounter different
-signal timing. Treat initial single runs as exploratory evidence, not a matched
-performance benchmark.
+cycles are now reset after the managed settings-preserving reload, followed by one
+published setup frame. Actual initial states and stable light identities are saved
+in fixture metadata; see [repetition setup](managed-experiments.md#repetition-setup).
+The October 2026 historical recordings observed signal phases without this reset
+and remain exploratory evidence, not a matched performance benchmark. Their raw
+traces and media are unchanged. Resetting cycles does not guarantee identical
+physics, native setup frame counts or provider timing across new repetitions.
 
 ## Inspect the response
 

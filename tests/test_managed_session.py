@@ -74,6 +74,16 @@ class FakeWorld:
         self.frame += 1 + self.extra_tick
         return self.frame
 
+    def reload_world(self, reset_settings: bool = True) -> FakeWorld:  # noqa: FBT001, FBT002
+        """Keep this fixture reference usable while advancing its native episode identity."""
+        assert reset_settings is False
+        self.id += 1
+        self.actors.clear()
+        return self
+
+    def reset_all_traffic_lights(self) -> None:
+        """Reset the numerical fixture's empty traffic-light catalog."""
+
 
 @pytest.fixture(autouse=True)
 def authoritative_batch(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -97,7 +107,9 @@ def _destroy_response(world: FakeWorld, command: dict[str, object]) -> dict[str,
 
 
 def _session(world: FakeWorld, lease: SimulatorLease) -> ManagedSession:
-    client = cast("CarlaClient", SimpleNamespace(get_world=lambda: world))
+    client = cast(
+        "CarlaClient", SimpleNamespace(get_world=lambda: world, reload_world=world.reload_world)
+    )
     return ManagedSession(ExperimentSpec(), client, lease, "test-run")
 
 
@@ -158,7 +170,7 @@ def test_reload_invalidates_handles_without_destroying_reused_actor_id(tmp_path:
         )
         world.actors.append(actor)
         session.own(cast("CarlaActor", actor), controller="ego", protected=True)
-        world.id = 8
+        world.id += 1
         with pytest.raises(SessionInvariantError, match="world"):
             session.step()
         report = session.close()

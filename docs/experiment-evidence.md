@@ -112,6 +112,13 @@ Jev sample counts. Missing counterparts, duplicate run IDs, missing versions, ch
 poses, and mismatched constraints withhold comparative metrics. Saved run summaries
 and genuine provider metadata remain visible.
 
+New managed fixtures include `initial_traffic_lights` from the published reset
+setup frame. Matching excludes only that setup publication frame and each light's
+per-episode actor ID, and normalizes inventory ordering. OpenDRIVE ID, pole index,
+location, actual native state and any other recorded light fields remain exact
+conditions. Raw reset evidence is retained in each run's fixture and source trace.
+Historical absence is not filled in or equated with newly recorded reset evidence.
+
 Legacy `seed` labels are normalized to `replicate_index` only for comparison;
 source traces and their hashes are unchanged. No missing specification fields
 are filled in to make historical runs match. Replicate indices vary nothing.

@@ -37,7 +37,9 @@ class CleanupCase:
 def cleanup_case(tmp_path: Path) -> Iterator[CleanupCase]:
     """Own an actor whose cached destroy result cannot prove server state."""
     world = FakeWorld()
-    client = cast("CarlaClient", SimpleNamespace(get_world=lambda: world))
+    client = cast(
+        "CarlaClient", SimpleNamespace(get_world=lambda: world, reload_world=world.reload_world)
+    )
     with SimulatorLease("localhost", 3000, state_root=tmp_path) as lease:
         session = ManagedSession(ExperimentSpec(), client, lease, "authoritative")
         session.open()

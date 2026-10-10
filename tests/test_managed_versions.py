@@ -63,6 +63,7 @@ def _boundary(
     world = StartupWorld()
     client = SimpleNamespace(
         get_world=Mock(return_value=world),
+        reload_world=world.reload_world,
         get_client_version=Mock(return_value=client_value),
         get_server_version=Mock(return_value=server_value),
     )
