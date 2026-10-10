@@ -188,10 +188,10 @@ codex mcp add carla -- \
 
 In prompts, tell the agent to connect to CARLA at
 `host.docker.internal:<rpc-port>`; for example,
-`host.docker.internal:3000`. The sandbox permits that RPC port, its next two
-streaming ports, Traffic Manager port 8000, and any additional Traffic Manager
-ports explicitly supplied to the tool. Output persists in the
-`carla-agentic-toolkit-output` Docker volume.
+`host.docker.internal:3000`. The sandbox permits that RPC port, the selected
+[streaming and secondary ports](#carla-port-layout), Traffic Manager port 8000,
+and any additional Traffic Manager ports explicitly supplied to the tool. Output
+persists in the `carla-agentic-toolkit-output` Docker volume.
 
 ## 1. Prepare the Server from source
 
@@ -453,6 +453,33 @@ Git Bash rewrites Linux-looking environment values such as `/home/user` before
 passing them to Windows programs. Prefer PowerShell for launcher commands. If
 Git Bash is required, prefix the command with `MSYS_NO_PATHCONV=1`.
 
+### CARLA port layout
+
+CARLA defaults to streaming at RPC+1 and secondary at RPC+2, but supports
+`-carla-streaming-port` and `-carla-secondary-port` overrides. The defaults and
+command-line handling are defined in
+[CARLA 0.9.16 settings](https://github.com/carla-simulator/carla/blob/0.9.16/Unreal/CarlaUE4/Plugins/Carla/Source/Carla/Settings/CarlaSettings.cpp).
+Supply the actual layout to `execute_carla_script`, for example:
+
+```json
+{"code":"result = api.health_check()","port":3000,"streaming_port":3100,"secondary_port":3200}
+```
+
+`streaming_port` and `secondary_port` are optional exact integers in 1..65535.
+Omitting a field or passing `null` retains its adjacent default. Each explicit
+value replaces that default connect permission; it does not also allow the old
+adjacent port. RPC, selected streaming/secondary, 8000, and explicit
+`traffic_manager_ports` are deduplicated and sorted. These inputs do not change
+the simulator's configuration or grant TCP bind permission. Persistent sessions
+accept the same fields in their [open config](persistent-sessions.md).
+
+The native Python sensor API does not expose its streaming endpoint or a
+structured Landlock denial. A sensor timeout alone therefore cannot establish
+which port was attempted or whether it was denied. Check the server's configured
+layout against these inputs rather than treating any delivery timeout as proof
+of a blocked port. Local kernel tests cover selected and denied connections;
+live nonadjacent CARLA sensor-delivery acceptance is separate.
+
 ### Traffic Manager
 
 The sandbox can connect to Traffic Manager but cannot bind a TCP server port or
@@ -559,11 +586,13 @@ authentication, deployment, and a packaged sandbox runner.
   closed rather than treating unreadable policy as unrestricted.
 - **`invalid_request`:** execution inputs are rejected before filesystem or
   process setup. `host` must be non-empty; the base RPC port is `1..65533` so
-  CARLA's two adjacent ports remain valid; Traffic Manager ports are
-  `1..65535`; and `timeout_seconds` is finite and in `(0, 3600]`. Hostnames are
+  CARLA's adjacent defaults remain valid; optional `streaming_port`,
+  `secondary_port`, and Traffic Manager ports are `1..65535`; and
+  `timeout_seconds` is finite and in `(0, 3600]`. Optional endpoint ports accept
+  `null`, not booleans, strings, or floats. Hostnames are
   resolved by CARLA, while Landlock limits ports rather than destination hosts.
 - **`carla_connection_error`:** start CARLA and verify the reported host and RPC
-  port plus the adjacent streaming/secondary ports and Traffic Manager port. The
+  port plus the configured streaming/secondary ports and Traffic Manager port. The
   Rust watchdog allows two seconds beyond CARLA's client deadline so this error
   can be serialized; genuine script budget exhaustion remains `script_timeout`.
 - **`CARLA_AGENTIC_TOOLKIT_WSL_PROJECT must be an absolute Linux path` in Git Bash:** use

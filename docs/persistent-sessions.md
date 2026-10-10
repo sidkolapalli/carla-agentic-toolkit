@@ -14,13 +14,28 @@ Call `open` with a `config` object:
 ```
 
 `traffic_manager_ports` is an optional array of at most 16 integer TCP ports in
-1..65535. It adds connect permissions to the existing RPC/RPC+1/RPC+2/8000 policy;
-omitting it or passing an empty array preserves that policy. Booleans, strings,
+1..65535. It adds connect permissions alongside RPC, the selected streaming and
+secondary ports, and 8000. Omitting it or passing an empty array preserves that
+policy. Booleans, strings,
 floats, and out-of-range ports are rejected before a lease or worker is created.
 Permissions are frozen at open and cannot be widened by a later script request.
 Use the same explicit port in the API's `traffic_manager_port` arguments. This
 does not derive a port from the RPC endpoint, select a different CARLA server,
 or permit binding: the matching dedicated TM sidecar must already be running.
+
+`streaming_port` and `secondary_port` are optional exact integer TCP ports in
+1..65535. Missing or `null` values retain RPC+1 and RPC+2 respectively. An explicit
+value replaces its adjacent default permission; it does not add both endpoints.
+For a nonadjacent server layout, include these fields in the same open config:
+
+```json
+{"host":"127.0.0.1","port":3000,"streaming_port":3100,"secondary_port":3200}
+```
+
+They are validated before lease or worker setup, preserved in the worker config,
+and frozen for the session. These permissions neither reconfigure CARLA nor allow
+binding a TCP server. See [CARLA port layout](client-setup.md#carla-port-layout)
+for native streaming-timeout diagnostic limits.
 
 The returned unpredictable `session_id` belongs to this stdio server instance.
 Another client cannot read, execute, or cancel it, even if it knows that ID. At most

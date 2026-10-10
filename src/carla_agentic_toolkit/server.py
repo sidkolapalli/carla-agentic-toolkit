@@ -17,6 +17,7 @@ from mcp.types import (
     TextContent,
     ToolAnnotations,
 )
+from pydantic import StrictInt  # noqa: TC002 - MCP evaluates annotations at registration.
 
 from carla_agentic_toolkit import __version__
 from carla_agentic_toolkit.output_content import (
@@ -64,12 +65,14 @@ def _register_script_tool(mcp: MCPServer) -> None:
         ),
         structured_output=True,
     )
-    def execute_carla_script(
+    def execute_carla_script(  # noqa: PLR0913 - Public endpoint permission inputs.
         code: str,
         host: str = "127.0.0.1",
         port: int = 2000,
         timeout_seconds: float = 30.0,
         traffic_manager_ports: list[int] | None = None,
+        streaming_port: StrictInt | None = None,
+        secondary_port: StrictInt | None = None,
     ) -> dict[str, object]:
         """Run one Python script against the curated CARLA `api` object.
 
@@ -84,6 +87,8 @@ def _register_script_tool(mcp: MCPServer) -> None:
                 port=port,
                 timeout_seconds=timeout_seconds,
                 traffic_manager_ports=traffic_manager_ports or (),
+                streaming_port=streaming_port,
+                secondary_port=secondary_port,
             )
         return _tool_result(outcome)
 

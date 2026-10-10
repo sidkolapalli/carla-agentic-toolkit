@@ -21,6 +21,8 @@ from carla_agentic_toolkit.ownership import (
     cleanup_report,
 )
 from carla_agentic_toolkit.rpc_timeouts import RUN_DEADLINE_FILENAME
+from carla_agentic_toolkit.runtime_ports import allowed_tcp_ports as _allowed_tcp_ports
+from carla_agentic_toolkit.runtime_ports import optional_port_error
 from carla_agentic_toolkit.sandbox_cleanup import failed_cleanup_outcome, verified_settings_outcome
 from carla_agentic_toolkit.sandbox_paths import output_dir_path
 from carla_agentic_toolkit.sandbox_paths import read_only_paths as _read_only_paths
@@ -39,7 +41,6 @@ if TYPE_CHECKING:
 __all__ = ["ScriptOutcome", "execute_script", "output_dir_path"]
 
 DEFAULT_TIMEOUT_SECONDS = 30.0
-DEFAULT_TRAFFIC_MANAGER_PORT = 8000
 MAX_TCP_PORT = 65535
 MAX_CARLA_BASE_PORT = MAX_TCP_PORT - 2
 MAX_TIMEOUT_SECONDS = 3600.0
@@ -80,6 +81,8 @@ class ExecutionRequest:
     port: int
     timeout_seconds: float
     traffic_manager_ports: Sequence[int]
+    streaming_port: int | None = None
+    secondary_port: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -95,18 +98,24 @@ class RunnerCommandRequest:
     timeout_seconds: float
     traffic_manager_ports: Sequence[int]
     recorder_dir: str | None
+    streaming_port: int | None = None
+    secondary_port: int | None = None
 
 
-def execute_script(
+def execute_script(  # noqa: PLR0913 - Explicit endpoint permissions are public inputs.
     code: str,
     *,
     host: str = "127.0.0.1",
     port: int = 2000,
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
     traffic_manager_ports: Sequence[int] = (),
+    streaming_port: int | None = None,
+    secondary_port: int | None = None,
 ) -> ScriptOutcome:
     """Run a CARLA script in the Rust sandbox process."""
-    request = ExecutionRequest(host, port, timeout_seconds, traffic_manager_ports)
+    request = ExecutionRequest(
+        host, port, timeout_seconds, traffic_manager_ports, streaming_port, secondary_port
+    )
     invalid = _validate_execution(request)
     if invalid is not None:
         return _failure("invalid_request", invalid)
@@ -157,6 +166,8 @@ def _execute_with_runner(
                     timeout_seconds=request.timeout_seconds,
                     traffic_manager_ports=request.traffic_manager_ports,
                     recorder_dir=os.environ.get("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR"),
+                    streaming_port=request.streaming_port,
+                    secondary_port=request.secondary_port,
                 )
             )
             return _run_owned_sandbox(command, work_dir, request, runner, lease)
@@ -265,6 +276,8 @@ def _validate_execution(request: ExecutionRequest) -> str | None:
         _port_error(request.port),
         _timeout_error(request.timeout_seconds),
         _traffic_ports_error(request.traffic_manager_ports),
+        optional_port_error(request.streaming_port, "streaming_port"),
+        optional_port_error(request.secondary_port, "secondary_port"),
     ):
         if error is not None:
             return error
@@ -321,6 +334,8 @@ def _runner_command(request: RunnerCommandRequest) -> list[str]:
     tcp_ports = _allowed_tcp_ports(
         port=request.port,
         traffic_manager_ports=request.traffic_manager_ports,
+        streaming_port=request.streaming_port,
+        secondary_port=request.secondary_port,
     )
     command = [
         str(request.runner),
@@ -434,13 +449,6 @@ def _object_mapping(value: object) -> dict[str, object]:
     if not isinstance(value, dict):
         return {}
     return {str(key): item for key, item in value.items()}
-
-
-def _allowed_tcp_ports(*, port: int, traffic_manager_ports: Sequence[int]) -> tuple[int, ...]:
-    """Return CARLA-related TCP ports allowed by Landlock."""
-    ports = {port, port + 1, port + 2, DEFAULT_TRAFFIC_MANAGER_PORT}
-    ports.update(int(item) for item in traffic_manager_ports)
-    return tuple(sorted(item for item in ports if 0 < item <= MAX_TCP_PORT))
 
 
 def _sandbox_runner() -> Path | None:

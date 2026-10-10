@@ -55,7 +55,12 @@ class SessionProcess:
         self.cancel_path = self.control / "cancel"
         self.process: subprocess.Popen[str] | None = None
         self.request = ExecutionRequest(
-            config.host, config.port, config.absolute_timeout_seconds, config.traffic_manager_ports
+            config.host,
+            config.port,
+            config.absolute_timeout_seconds,
+            config.traffic_manager_ports,
+            streaming_port=config.streaming_port,
+            secondary_port=config.secondary_port,
         )
 
     def start(self) -> None:
@@ -86,6 +91,8 @@ class SessionProcess:
             self.config.absolute_timeout_seconds,
             self.config.traffic_manager_ports,
             os.environ.get("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR"),
+            streaming_port=self.config.streaming_port,
+            secondary_port=self.config.secondary_port,
         )
         command = _runner_command(request)
         command[command.index("--module") + 1] = "carla_agentic_toolkit.persistent_runner"

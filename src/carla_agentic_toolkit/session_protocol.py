@@ -10,6 +10,8 @@ import uuid
 from dataclasses import dataclass, fields
 from typing import TYPE_CHECKING, Any, cast
 
+from carla_agentic_toolkit.runtime_ports import validate_optional_port
+
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -38,6 +40,8 @@ class SessionConfig:
     absolute_timeout_seconds: float = 300.0
     request_timeout_seconds: float = 30.0
     traffic_manager_ports: tuple[int, ...] = ()
+    streaming_port: int | None = None
+    secondary_port: int | None = None
 
     @classmethod
     def parse(cls, value: dict[str, object]) -> SessionConfig:
@@ -57,6 +61,8 @@ class SessionConfig:
     def validate(self) -> None:
         """Require explicit finite endpoints and resource deadlines."""
         self._validate_endpoint()
+        validate_optional_port(self.streaming_port, "streaming_port")
+        validate_optional_port(self.secondary_port, "secondary_port")
         if not isinstance(self.traffic_manager_ports, tuple):
             message = "traffic_manager_ports must be an immutable tuple in SessionConfig."
             raise TypeError(message)
