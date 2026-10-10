@@ -407,6 +407,9 @@ CARLA opens recorder files on the simulator host, not in WSL. With
 sent under that directory and success reports the exact path CARLA accepted.
 An empty CARLA response becomes `record_episode_failed`; no response claims the
 file was copied into `CARLA_AGENTIC_TOOLKIT_WSL_OUTPUT_DIR`.
+The optional `additional_data=True` recorder flag includes extra velocities,
+bounding boxes, traffic-light timings and vehicle physics controls; its default
+is `False`, matching CARLA. See [recorder options and query categories](script-workflows.md#put-outputs-on-the-correct-host).
 
 If CARLA itself runs on Windows, WSL2 mirrored networking can use
 `127.0.0.1`. With WSL2's default NAT networking, get the Windows host address

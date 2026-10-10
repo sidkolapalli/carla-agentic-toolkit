@@ -709,7 +709,7 @@ class CarlaScriptApi(ScriptOwnershipOperations):
         replay_sensors: bool = False,
         do_tick: bool = True,
     ) -> JsonObject:
-        """Replay a CARLA recorder file."""
+        """Replay a CARLA recorder file; only do_tick=True is supported."""
         return self._adapter.replay_recording(
             path=Path(path),
             start=start,
@@ -726,7 +726,7 @@ class CarlaScriptApi(ScriptOwnershipOperations):
         actor_type: str = "a",
         other_type: str = "a",
     ) -> JsonObject:
-        """Return recorder collision report text."""
+        """Query collisions: h=hero, v=vehicle, w=walker, t=traffic light, o=other, a=any."""
         return self._adapter.query_recording_collisions(
             path=Path(path),
             actor_type=actor_type,
@@ -786,9 +786,9 @@ class CarlaScriptApi(ScriptOwnershipOperations):
 
     # Recording, evidence, and bounded pacing.
     @_recover("record_episode_failed")
-    def record_episode(self, output_path: str) -> JsonObject:
-        """Start the CARLA recorder at a path."""
-        recording = self._adapter.record_episode(Path(output_path))
+    def record_episode(self, output_path: str, *, additional_data: bool = False) -> JsonObject:
+        """Start CARLA recording; additional_data=False omits optional physics metadata."""
+        recording = self._adapter.record_episode(Path(output_path), additional_data=additional_data)
         return self._snapshot(
             f"carla-snapshot://recordings/{recording.recording_id}", recording.to_dict()
         )

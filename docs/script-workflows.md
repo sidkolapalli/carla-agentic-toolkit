@@ -369,6 +369,27 @@ host. The toolkit reports the exact path CARLA accepted and does not copy the
 recording between hosts. This distinction matters when CARLA runs on Windows
 and the toolkit runs in WSL2; see the [Windows setup](client-setup.md#windows-11-with-wsl2).
 
+`record_episode("episode.log", additional_data=False)` uses CARLA's default
+recorder format. Set `additional_data=True` to include vehicle and pedestrian
+linear/angular velocities, traffic-light timings, execution time, actor trigger
+and bounding boxes, and vehicle physics controls. These are simulator recorder
+fields, not raw camera or lidar captures. See the [CARLA recorder reference](https://carla.readthedocs.io/en/0.9.16/adv_recorder/).
+Managed experiments still write toolkit numerical traces and do not start the
+native recorder automatically.
+
+`query_recording_collisions` accepts category letters for each participant:
+`h` is a hero actor (`role_name=hero`), `v` a vehicle, `w` a walker, `t` a traffic
+light, `o` another actor, and `a` any actor. For example, query the accepted
+recording path with `actor_type="v", other_type="w"` for vehicle/walker
+collisions; `"a", "a"` leaves the category filter off. Collision evidence depends
+on an attached collision detector, so an empty report does not prove absence of
+collisions.
+
+`replay_recording` supports only its default `do_tick=True`. CARLA's native
+`replay_file` does not expose a non-ticking replay mode; `do_tick=False` is refused
+before replay starts. Use the simulator-accepted recording path when replaying
+or querying a log, rather than assuming the log exists on the toolkit host.
+
 ## Choose another execution mode when needed
 
 [Persistent script sessions](persistent-sessions.md) retain Python variables and

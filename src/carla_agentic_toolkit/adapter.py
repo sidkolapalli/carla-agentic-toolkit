@@ -449,12 +449,15 @@ class PythonCarlaAdapter(
         require_async_traffic_world(self._world(client))
         return set_traffic_vehicle_path(client, request)
 
-    def record_episode(self, output_path: Path) -> RecordingInfo:
-        """Start recording an episode at the simulator-side path."""
+    def record_episode(self, output_path: Path, *, additional_data: bool = False) -> RecordingInfo:
+        """Start simulator-side recording, optionally including additional physics data."""
+        if type(additional_data) is not bool:
+            msg = "additional_data must be a boolean."
+            raise CarlaAdapterError(msg)
         requested_path = _server_recorder_path(output_path)
         client = self._client()
         try:
-            accepted_path = client.start_recorder(requested_path)
+            accepted_path = client.start_recorder(requested_path, additional_data=additional_data)
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
             raise CarlaAdapterError(str(exc)) from exc
         if not accepted_path:

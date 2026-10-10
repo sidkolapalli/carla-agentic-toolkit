@@ -594,7 +594,7 @@ class PythonCarlaExperimentMixin:
         replay_sensors: bool = False,
         do_tick: bool = True,
     ) -> dict[str, object]:
-        """Replay a CARLA recorder file."""
+        """Replay a CARLA recorder file; only do_tick=True is supported."""
         return experiment_replay.replay_recording(
             self._client(),
             experiment_replay.ReplayRequest(
@@ -614,7 +614,7 @@ class PythonCarlaExperimentMixin:
         actor_type: str = "a",
         other_type: str = "a",
     ) -> dict[str, object]:
-        """Return recorder collision report text."""
+        """Query collisions: h=hero, v=vehicle, w=walker, t=traffic light, o=other, a=any."""
         return experiment_replay.recording_collisions(
             self._client(),
             path=path,

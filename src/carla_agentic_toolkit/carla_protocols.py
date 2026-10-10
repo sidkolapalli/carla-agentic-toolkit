@@ -47,8 +47,8 @@ class CarlaClient(Protocol):
     def get_trafficmanager(self, port: int = 8000) -> CarlaTrafficManager:
         """Return a Traffic Manager on the requested port."""
 
-    def start_recorder(self, path: str) -> str:
-        """Start the recorder and return the simulator-accepted path."""
+    def start_recorder(self, path: str, *, additional_data: bool = False) -> str:
+        """Start recording with optional additional data and return the accepted path."""
 
     def stop_recorder(self) -> None:
         """Stop the CARLA recorder."""
