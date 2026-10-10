@@ -11,13 +11,14 @@ from carla_agentic_toolkit.experiment_common import (
     optional_transform_dict,
     sensor_actor,
 )
+from carla_agentic_toolkit.experiment_ground_truth import image_metadata
 from carla_agentic_toolkit.sensor_evidence import save_frame
 from carla_agentic_toolkit.sensor_rendering import require_sensor_rendering
 from carla_agentic_toolkit.sensor_subscription import SensorSubscription, validate_capacity
 from carla_agentic_toolkit.world_timing import require_world_mode
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Mapping
     from pathlib import Path
 
     from carla_agentic_toolkit.carla_protocols import CarlaSensor, CarlaWorld
@@ -45,7 +46,7 @@ def read_sensor_stream(  # noqa: PLR0913 -- Keep operation and lifecycle/memory 
         "sensor_id": sensor_id,
         "requested_frames": frame_count,
         "received_frames": len(frames),
-        "frames": [sensor_frame_digest(frame) for frame in frames],
+        "frames": sensor_frame_digests(frames, sensor),
         "paths": [str(path) for path in saved_paths],
     }
 
@@ -175,7 +176,21 @@ def save_sensor_frame(
     return path
 
 
-def sensor_frame_digest(frame: object) -> dict[str, object]:
+def sensor_frame_digests(frames: list[object], sensor: CarlaSensor) -> list[dict[str, object]]:
+    """Share retained sensor context between stream and non-ticking drain results."""
+    attributes = getattr(sensor, "attributes", None)
+    return [
+        sensor_frame_digest(frame, camera_attributes=attributes, sensor_type=sensor.type_id)
+        for frame in frames
+    ]
+
+
+def sensor_frame_digest(
+    frame: object,
+    *,
+    camera_attributes: Mapping[str, str] | None = None,
+    sensor_type: str | None = None,
+) -> dict[str, object]:
     """Return compact metadata for a sensor frame or event."""
     return {
         "frame": int_attr(frame, "frame"),
@@ -184,6 +199,7 @@ def sensor_frame_digest(frame: object) -> dict[str, object]:
         "actor_id": nested_id(frame, "actor"),
         "other_actor_id": nested_id(frame, "other_actor"),
         "transform": optional_transform_dict(getattr(frame, "transform", None)),
+        **image_metadata(frame, camera_attributes, sensor_type),
     }
 
 

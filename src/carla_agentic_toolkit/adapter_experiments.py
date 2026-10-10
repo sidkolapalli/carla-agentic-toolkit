@@ -16,6 +16,7 @@ from carla_agentic_toolkit import (
     experiment_walkers,
 )
 from carla_agentic_toolkit.actor_identity import read_actor_identity
+from carla_agentic_toolkit.adapter_ground_truth import PythonCarlaGroundTruthMixin
 from carla_agentic_toolkit.authoritative_destroy import destroy_result_cleaned
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.managed_world import world_identity
@@ -39,7 +40,7 @@ if TYPE_CHECKING:
     from carla_agentic_toolkit.sensor_memory import SensorQueueBudget
 
 
-class PythonCarlaExperimentMixin:
+class PythonCarlaExperimentMixin(PythonCarlaGroundTruthMixin):
     """Experiment capabilities layered onto the core Python CARLA adapter."""
 
     _sensor_subscriptions: dict[int, SensorSubscription]
@@ -249,7 +250,9 @@ class PythonCarlaExperimentMixin:
         return {
             "sensor_id": sensor_id,
             **batch.to_dict(),
-            "frames": [experiment_perception.sensor_frame_digest(item) for item in frames],
+            "frames": experiment_perception.sensor_frame_digests(
+                frames, self._subscribed_sensor_handles[sensor_id]
+            ),
             "paths": [str(path) for path in paths],
         }
 

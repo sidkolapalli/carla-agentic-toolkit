@@ -7,6 +7,7 @@ import re
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, cast
 
+from carla_agentic_toolkit.actor_boxes import bounding_box_metadata
 from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
 from carla_agentic_toolkit.experiment_common import (
     call_required,
@@ -14,9 +15,12 @@ from carla_agentic_toolkit.experiment_common import (
     transform_dict,
     vector_dict,
 )
+from carla_agentic_toolkit.experiment_ground_truth import finite_vector
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    from carla_agentic_toolkit.models import Location
 
 MAX_ENVIRONMENT_OBJECTS = 1000
 MAX_ENVIRONMENT_IDS = 1000
@@ -63,16 +67,76 @@ def get_level_bounding_boxes(
     *,
     label: str = "Any",
     max_count: int = 200,
+    origin: Location | None = None,
+    max_distance: float | None = None,
 ) -> dict[str, object]:
-    """Return bounded level geometry for one runtime semantic label."""
+    """Select nearest bounds when an origin is supplied; otherwise retain native order."""
     _validate_max_count(max_count)
+    _validate_spatial_query(origin, max_distance)
     enum_value = _enum_value("CityObjectLabel", label)
     boxes = list(cast("Any", call_required(world, "get_level_bbs", enum_value)))
+    if origin is None:
+        return {
+            "label": label,
+            "bounding_boxes": [_bounding_box(item) for item in boxes[:max_count]],
+            "truncated": len(boxes) > max_count,
+        }
+    selected = _spatial_boxes(boxes, origin, max_distance)
     return {
         "label": label,
-        "bounding_boxes": [_bounding_box(item) for item in boxes[:max_count]],
-        "truncated": len(boxes) > max_count,
+        "bounding_boxes": selected[:max_count],
+        "truncated": len(selected) > max_count,
     }
+
+
+def _validate_spatial_query(origin: Location | None, max_distance: float | None) -> None:
+    if origin is not None:
+        finite_vector(origin)
+    if max_distance is None:
+        return
+    if origin is None:
+        message = "max_distance requires an explicit origin."
+        raise CarlaAdapterError(message)
+    _validate_max_distance(max_distance)
+
+
+def _validate_max_distance(max_distance: float) -> None:
+    distance = _distance_value(max_distance)
+    if not math.isfinite(distance) or distance < 0:
+        message = "max_distance must be a finite nonnegative number."
+        raise CarlaAdapterError(message)
+
+
+def _distance_value(max_distance: float) -> float:
+    if isinstance(max_distance, bool) or not isinstance(max_distance, int | float):
+        message = "max_distance must be a finite nonnegative number."
+        raise CarlaAdapterError(message)
+    try:
+        return float(max_distance)
+    except OverflowError as exc:
+        message = "max_distance must be a representable finite number."
+        raise CarlaAdapterError(message) from exc
+
+
+def _spatial_boxes(
+    boxes: list[object], origin: Location, max_distance: float | None
+) -> list[dict[str, object]]:
+    measured = [_distance_box(item, origin) for item in boxes]
+    eligible = [
+        item
+        for item in measured
+        if max_distance is None or cast("float", item["distance_m"]) <= max_distance
+    ]
+    return sorted(eligible, key=lambda item: cast("float", item["distance_m"]))
+
+
+def _distance_box(box: object, origin: Location) -> dict[str, object]:
+    measured = bounding_box_metadata(box)
+    distance = math.dist(tuple(measured["location"].values()), (origin.x, origin.y, origin.z))
+    if not math.isfinite(distance):
+        message = "Level bounding box distance must be finite."
+        raise CarlaAdapterError(message)
+    return {**measured, "distance_m": distance}
 
 
 def enable_environment_objects(

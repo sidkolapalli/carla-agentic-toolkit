@@ -26,6 +26,7 @@ from carla_agentic_toolkit.ownership import (
 from carla_agentic_toolkit.ownership_release import release_controller_destroyed
 from carla_agentic_toolkit.rpc_timeouts import MAP_FAILURE_HINT
 from carla_agentic_toolkit.script_arguments import parent_alias, waypoint_order
+from carla_agentic_toolkit.script_ground_truth import ScriptGroundTruthOperations
 from carla_agentic_toolkit.script_operations import recover as _recover
 from carla_agentic_toolkit.script_ownership_operations import ScriptOwnershipOperations
 from carla_agentic_toolkit.sensor_evidence import require_publication_converter
@@ -54,7 +55,7 @@ if TYPE_CHECKING:
     from carla_agentic_toolkit.snapshots import RunSnapshots
 
 
-class CarlaScriptApi(ScriptOwnershipOperations):
+class CarlaScriptApi(ScriptGroundTruthOperations, ScriptOwnershipOperations):
     """High-level CARLA operations callable from a sandboxed script."""
 
     def __init__(

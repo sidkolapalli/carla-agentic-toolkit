@@ -319,6 +319,57 @@ resolve each name before using its ID. Use `api.forget_actor()` to remove a name
 without destroying the actor.
 Names are a convenience and do not grant ownership or authorization.
 
+## Query perception ground truth
+
+These read-only queries do not tick, listen, spawn, change settings, or move the
+spectator:
+
+```python
+level = api.get_level_bounding_boxes(
+    "Buildings", max_count=20,
+    origin={"x": 12.0, "y": 3.0, "z": 1.0}, max_distance=50.0,
+)
+actors = api.get_actor_bounding_boxes([vehicle_id])
+camera = api.get_camera_intrinsics(camera_id)
+```
+
+`get_level_bounding_boxes` accepts a `max_count` of 1-1000. With an explicit
+`origin`, it orders by three-dimensional distance to the native box center and
+includes `distance_m` on each bound. `max_distance` is optional, finite and
+nonnegative; the radius boundary is inclusive. Filtering and nearest-first
+ordering happen before truncation, and `truncated` describes only the eligible
+bounds. Without an origin, the query retains CARLA's native order; a distance
+filter without an origin is refused. No implicit spectator origin is used.
+
+`get_actor_bounding_boxes` accepts 1-1000 positive actor IDs. Its `frame` comes
+from one `world.get_snapshot()` shared by every result. Each actor transform is
+read through `snapshot.find(actor_id)`, then passed unchanged to the native
+`bounding_box.get_world_vertices()` method. Results identify
+`coordinate_space="world"`, eight `vertices`, and the measured local box
+`location`, `rotation`, and `extent` in `bounding_box`. Actor box metadata is a
+separate actor-description read, not dynamic physics from another frame. An
+absent actor or snapshot entry returns a structured error, never a live-transform
+fallback. Missing, invalid or nonfinite geometry is an error.
+
+`get_camera_intrinsics` reads the camera's actual `image_size_x`, `image_size_y`
+and horizontal `fov` attributes. It returns `width`, `height`, `fov`, and
+`intrinsic_matrix` following CARLA's
+[bounding-box tutorial](https://carla.readthedocs.io/en/0.9.16/tuto_G_bounding_boxes/):
+`fx=fy=width/(2*tan(fov/2))`, `cx=width/2`, `cy=height/2`. Dimensions must be
+positive integers and FOV must be finite and strictly between 0 and 180 degrees.
+Missing attributes are errors, not guessed defaults. This metadata query does
+not require rendering or install a sensor listener.
+
+Image digests from `read_sensor_stream` and `drain_sensor` include the delivered
+image's `width` and `height`, FOV from the retained camera's attributes, and
+`sha256` of the in-memory `raw_data`. Their `sha256_representation` is explicitly
+`carla.Image.raw_data (32-bit BGRA)`, matching capture-demo receipts. The digest
+does not hash an encoded PNG or a display-converted copy. Without camera context,
+the standalone digest reports `fov=null`; provided invalid context is an error.
+CPU measurements, DVS events and optical-flow samples retain their existing
+non-BGRA digest behavior. Compare image `frame` with the actor-box `frame` before
+joining independently acquired observations.
+
 ## Own the lifecycle and cleanup
 
 Successful finite scripts retain their created actors. Call
