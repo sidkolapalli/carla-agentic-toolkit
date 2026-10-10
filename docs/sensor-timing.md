@@ -11,7 +11,8 @@ The script API and Python adapter expose this sequence:
 1. Attach the sensor to an existing actor.
 2. Call `subscribe_sensor(sensor_id, capacity=32)` before an owner tick.
 3. Advance through the owner's `tick()` and retain its returned frame ID.
-4. Call `drain_sensor(sensor_id, frame, timeout_seconds=...)`.
+4. Call `drain_sensor(sensor_id, frame)` to use the bounded two-second delivery wait,
+   or pass an explicit `timeout_seconds`.
 5. Call `close_sensor_subscription(sensor_id)` when finished, then destroy the actor
    when it is no longer needed.
 
@@ -50,9 +51,27 @@ lag behind simulator ticks; a missing periodic frame is explicitly timed out rat
 than relabeled as a current observation.
 
 Collision, lane-invasion and obstacle blueprints default to event mode. An empty event
-drain is normal and never waits, even when a timeout is supplied. Periodic drains wait
-only for delivery of the requested frame, with a finite timeout bounded to 30 seconds.
-The same subscription primitives work with an asynchronously advancing world.
+drain is normal and never waits, even when a timeout is supplied. Periodic drains
+default to a two-second wait at the script, adapter, and subscription boundaries;
+explicit waits remain bounded to 30 seconds. A queued frame at or beyond the requested
+frame ends the wait. A later sample retains its own frame and stays queued: it is not
+returned as the missing requested measurement. No delivery wait advances the world.
+Managed GNSS observation uses the same positive wait; managed collision and lane
+events remain nonblocking. The same primitives work in an asynchronously advancing
+world.
+
+Periodic delivery metadata includes `no_sample_due` and nullable `schedule` evidence.
+An actual requested sample reports `no_sample_due=False`. With a readable
+`sensor_tick` and fixed step, two consecutive measurements whose frames and timestamps
+agree with an integral cadence establish an observed phase. A skipped frame within
+that evidence reports `no_sample_due=True`, does not wait, and is not timed out.
+Missing due frames remain timed out, including frames discarded by queue overflow.
+Before phase confirmation, for requests preceding the first observed sample, or when
+cadence is nonintegral or its clock evidence changes, `no_sample_due` is `null`.
+A first or later callback cannot prove pre-subscription emission history. Phase
+inference assumes the observed cadence remains stable until contradicted; it is not
+a guarantee of future sensor emission. Unknown missing frames use the bounded wait
+unless a queued future frame already ends it.
 
 Trusted managed consumers can call `SensorSubscription.close_and_drain(frame)` to stop
 upstream and then freeze the queue. It returns all bounded trailing samples, including

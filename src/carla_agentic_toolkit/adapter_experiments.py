@@ -17,17 +17,13 @@ from carla_agentic_toolkit import (
 )
 from carla_agentic_toolkit.actor_identity import read_actor_identity
 from carla_agentic_toolkit.adapter_ground_truth import PythonCarlaGroundTruthMixin
+from carla_agentic_toolkit.adapter_sensor_listening import PythonCarlaSensorListeningMixin
 from carla_agentic_toolkit.authoritative_destroy import destroy_result_cleaned
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.managed_world import world_identity
 from carla_agentic_toolkit.models import CameraAttachRequest, Location, SensorInfo, Transform
 from carla_agentic_toolkit.rpc_timeouts import RpcTimeoutPolicy, call_map_rpc
 from carla_agentic_toolkit.sensor_rendering import require_sensor_rendering
-from carla_agentic_toolkit.sensor_subscription import (
-    EVENT_SENSOR_TYPES,
-    SensorSubscription,
-    validate_capacity,
-)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -38,9 +34,10 @@ if TYPE_CHECKING:
     from carla_agentic_toolkit.models import CaptureInfo, DestroyResult, WorldState
     from carla_agentic_toolkit.script_settings import RunSettings
     from carla_agentic_toolkit.sensor_memory import SensorQueueBudget
+    from carla_agentic_toolkit.sensor_subscription import SensorSubscription
 
 
-class PythonCarlaExperimentMixin(PythonCarlaGroundTruthMixin):
+class PythonCarlaExperimentMixin(PythonCarlaGroundTruthMixin, PythonCarlaSensorListeningMixin):
     """Experiment capabilities layered onto the core Python CARLA adapter."""
 
     _sensor_subscriptions: dict[int, SensorSubscription]
@@ -201,68 +198,6 @@ class PythonCarlaExperimentMixin(PythonCarlaGroundTruthMixin):
         if sensor is not None:
             return sensor
         return experiment_common.sensor_actor(self._world(self._client()), sensor_id)
-
-    def subscribe_sensor(
-        self, sensor_id: int, *, event_sensor: bool | None = None, capacity: int = 32
-    ) -> dict[str, object]:
-        """Install a bounded listener before the owner advances the world."""
-        validate_capacity(capacity)
-        if sensor_id in self._sensor_subscriptions:
-            message = f"Sensor {sensor_id} already has an active subscription."
-            raise CarlaAdapterError(message)
-        world = self._world(self._client())
-        identity = self._sensor_cleanup_identity(sensor_id, world)
-        self._require_cleanup_episode(identity)
-        sensor = self._sensor_actor(sensor_id)
-        self._require_cleanup_episode(identity)
-        require_sensor_rendering(world, sensor.type_id)
-        if sensor.type_id.startswith("sensor.camera."):
-            self._require_cleanup_episode(identity)
-        is_event = sensor.type_id in EVENT_SENSOR_TYPES if event_sensor is None else event_sensor
-        self._sensor_subscriptions[sensor_id] = SensorSubscription(
-            sensor, event_sensor=is_event, capacity=capacity, byte_budget=self._sensor_queue_budget
-        )
-        self._subscribed_sensor_handles[sensor_id] = sensor
-        self._subscription_world_ids[sensor_id] = identity
-        return {"sensor_id": sensor_id, "event_sensor": is_event, "capacity": capacity}
-
-    def drain_sensor(
-        self,
-        sensor_id: int,
-        frame: int,
-        *,
-        timeout_seconds: float = 0.0,
-        output_dir: Path | None = None,
-        save_frames: bool = False,
-    ) -> dict[str, object]:
-        """Read available samples for an owner frame without issuing simulator ticks."""
-        experiment_perception.validate_save_frames(save_frames=save_frames)
-        subscription = self._subscription(sensor_id)
-        batch = subscription.drain(frame, timeout_seconds=timeout_seconds)
-        frames = list(batch.frames)
-        paths = experiment_perception.save_drained_frames(
-            frames,
-            sensor_id,
-            output_dir,
-            sensor_type=self._subscribed_sensor_handles[sensor_id].type_id,
-            save_frames=save_frames,
-        )
-        return {
-            "sensor_id": sensor_id,
-            **batch.to_dict(),
-            "frames": experiment_perception.sensor_frame_digests(
-                frames, self._subscribed_sensor_handles[sensor_id]
-            ),
-            "paths": [str(path) for path in paths],
-        }
-
-    def _subscription(self, sensor_id: int) -> SensorSubscription:
-        """Require a listener owned by this adapter execution."""
-        try:
-            return self._sensor_subscriptions[sensor_id]
-        except KeyError as exc:
-            message = f"Sensor {sensor_id} has no subscription; call subscribe_sensor first."
-            raise CarlaAdapterError(message) from exc
 
     def close_sensor_subscription(self, sensor_id: int) -> dict[str, object]:
         """Idempotently close one owned listener without destroying its sensor actor."""

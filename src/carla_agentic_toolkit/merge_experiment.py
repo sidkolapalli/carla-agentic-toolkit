@@ -130,7 +130,11 @@ class MergeExperiment:
             blueprint, import_module("carla").Transform(), attach_to=actor
         )
         self.session.own(sensor, controller="sensor-listener", protected=True)
-        subscription = SensorSubscription(cast("CarlaSensor", sensor), event_sensor=kind != "gnss")
+        subscription = SensorSubscription(
+            cast("CarlaSensor", sensor),
+            event_sensor=kind != "gnss",
+            fixed_delta_seconds=self.spec.fixed_delta_seconds,
+        )
         self._sensors.append(
             MergeSensor(int(sensor.id), int(cast("Any", actor).id), role, kind, subscription)
         )

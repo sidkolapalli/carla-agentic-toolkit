@@ -383,7 +383,7 @@ class CarlaScriptApi(ScriptGroundTruthOperations, ScriptOwnershipOperations):
         sensor_id: int,
         frame: int,
         *,
-        timeout_seconds: float = 0.0,
+        timeout_seconds: float = 2.0,
         output_dir: str | None = None,
         save_frames: bool = False,
     ) -> JsonObject:
