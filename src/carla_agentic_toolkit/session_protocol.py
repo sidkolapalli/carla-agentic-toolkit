@@ -20,6 +20,8 @@ MAX_REQUEST_SECONDS = 60.0
 POLL_SECONDS = 0.02
 PROTOCOL_VERSION = 1
 MAX_CARLA_PORT = 65533
+MAX_TCP_PORT = 65535
+MAX_SESSION_TM_PORTS = 16
 
 
 class ProtocolError(ValueError):
@@ -35,6 +37,7 @@ class SessionConfig:
     idle_timeout_seconds: float = 60.0
     absolute_timeout_seconds: float = 300.0
     request_timeout_seconds: float = 30.0
+    traffic_manager_ports: tuple[int, ...] = ()
 
     @classmethod
     def parse(cls, value: dict[str, object]) -> SessionConfig:
@@ -42,13 +45,22 @@ class SessionConfig:
         if not isinstance(value, dict) or set(value) - {item.name for item in fields(cls)}:
             message = "Session config contains unsupported fields."
             raise ValueError(message)
-        result = cls(**cast("dict[str, Any]", value))
+        normalized = dict(value)
+        if "traffic_manager_ports" in normalized:
+            normalized["traffic_manager_ports"] = _traffic_ports(
+                normalized["traffic_manager_ports"]
+            )
+        result = cls(**cast("dict[str, Any]", normalized))
         result.validate()
         return result
 
     def validate(self) -> None:
         """Require explicit finite endpoints and resource deadlines."""
         self._validate_endpoint()
+        if not isinstance(self.traffic_manager_ports, tuple):
+            message = "traffic_manager_ports must be an immutable tuple in SessionConfig."
+            raise TypeError(message)
+        _traffic_ports(self.traffic_manager_ports)
         bounded_seconds(self.idle_timeout_seconds, "idle_timeout_seconds", MAX_SESSION_SECONDS)
         bounded_seconds(
             self.absolute_timeout_seconds, "absolute_timeout_seconds", MAX_SESSION_SECONDS
@@ -64,6 +76,22 @@ class SessionConfig:
         if type(self.port) is not int or not 1 <= self.port <= MAX_CARLA_PORT:
             message = "port must be an integer in 1..65533."
             raise ValueError(message)
+
+
+def _traffic_ports(value: object) -> tuple[int, ...]:
+    message = (
+        f"traffic_manager_ports must be a list of at most {MAX_SESSION_TM_PORTS} "
+        f"integers in 1..{MAX_TCP_PORT}."
+    )
+    if not isinstance(value, list | tuple) or len(value) > MAX_SESSION_TM_PORTS:
+        raise ValueError(message)
+    if not all(_valid_traffic_port(port) for port in value):
+        raise ValueError(message)
+    return cast("tuple[int, ...]", tuple(value))
+
+
+def _valid_traffic_port(value: object) -> bool:
+    return type(value) is int and 1 <= value <= MAX_TCP_PORT
 
 
 def bounded_seconds(value: object, name: str, maximum: float) -> float:

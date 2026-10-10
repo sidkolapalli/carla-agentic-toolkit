@@ -10,8 +10,17 @@ trusted worker.
 Call `open` with a `config` object:
 
 ```json
-{"host":"127.0.0.1","port":2000,"idle_timeout_seconds":60,"absolute_timeout_seconds":300,"request_timeout_seconds":30}
+{"host":"127.0.0.1","port":2000,"idle_timeout_seconds":60,"absolute_timeout_seconds":300,"request_timeout_seconds":30,"traffic_manager_ports":[8500]}
 ```
+
+`traffic_manager_ports` is an optional array of at most 16 integer TCP ports in
+1..65535. It adds connect permissions to the existing RPC/RPC+1/RPC+2/8000 policy;
+omitting it or passing an empty array preserves that policy. Booleans, strings,
+floats, and out-of-range ports are rejected before a lease or worker is created.
+Permissions are frozen at open and cannot be widened by a later script request.
+Use the same explicit port in the API's `traffic_manager_port` arguments. This
+does not derive a port from the RPC endpoint, select a different CARLA server,
+or permit binding: the matching dedicated TM sidecar must already be running.
 
 The returned unpredictable `session_id` belongs to this stdio server instance.
 Another client cannot read, execute, or cancel it, even if it knows that ID. At most

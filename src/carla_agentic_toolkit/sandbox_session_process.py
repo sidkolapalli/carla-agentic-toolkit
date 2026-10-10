@@ -36,6 +36,7 @@ class SessionProcess:
 
     def __init__(self, session_id: str, config: SessionConfig) -> None:
         """Create private paths only after a lease is successfully acquired."""
+        config.validate()
         self.config = config
         self.absolute_deadline = time.monotonic() + config.absolute_timeout_seconds
         self.session_id = session_id
@@ -54,7 +55,7 @@ class SessionProcess:
         self.cancel_path = self.control / "cancel"
         self.process: subprocess.Popen[str] | None = None
         self.request = ExecutionRequest(
-            config.host, config.port, config.absolute_timeout_seconds, ()
+            config.host, config.port, config.absolute_timeout_seconds, config.traffic_manager_ports
         )
 
     def start(self) -> None:
@@ -83,7 +84,7 @@ class SessionProcess:
             self.config.host,
             self.config.port,
             self.config.absolute_timeout_seconds,
-            (),
+            self.config.traffic_manager_ports,
             os.environ.get("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR"),
         )
         command = _runner_command(request)
