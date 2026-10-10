@@ -189,6 +189,17 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
 - Integrated #145/#146/#151 gate: 1,753 Python tests passed, two skipped, nine
   Rust tests passed; Ruff/format, Ty, Radon CC/MI all A, Rustfmt, Clippy, and
   Rust build pass. Independent issue commits are preserved.
+- #129: eight regressions demonstrated RED with one passing legacy control;
+  19 focused navigation/API tests pass. `follow_waypoints` names the greedy
+  traversal accurately; the deprecated `generate_route` alias remains available.
+  Results report final Euclidean distance and arrival within one step, including
+  early stopping when already near the destination. Full gate passes with
+  1,762 Python tests, two skips, and nine Rust tests. A matching native CARLA
+  0.10.0 read-only Town10 query crosses actual junctions, reaches its 200-waypoint
+  budget, and correctly reports not reached with 65.0974 metres remaining.
+  An independent final-waypoint distance agrees; actor, episode, six settings,
+  weather, and spectator baselines are unchanged. This is not Linux sandbox
+  evidence or a complete-route-planning claim.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native
   health confirms matching 0.9.16 releases and no warnings; a genuine 0.10.0 client
@@ -271,7 +282,7 @@ vehicle.taxi.ford
 | [#126](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/126) | Bind actor aliases to the episode and check liveness against the server | Pending implementation. |
 | [#127](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/127) | Fall back to a batch destroy for sensors and managed actors when destroy() returns False | Implemented; full gate passed; live CARLA validation pending. |
 | [#128](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/128) | Return structured errors for unknown blueprints, attributes and sensor kinds | Implemented; full gate passed; live CARLA validation pending. |
-| [#129](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/129) | Report whether generate_route reached its destination, or rename it to follow_waypoints | Pending implementation. |
+| [#129](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/129) | Report whether generate_route reached its destination, or rename it to follow_waypoints | Implemented permitted greedy-follower naming and honest arrival results; TDD, native junction check, and full gate pass. |
 | [#130](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/130) | Reject synchronous Traffic Manager requests and unguarded autopilot traffic that the sidecar cannot step | Implemented; full gate passed; live sidecar validation pending. |
 | [#131](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/131) | Make managed experiment seeds vary the initial condition, or rename them as replicates | Implemented locally: canonical replicate index, strict legacy input, and identical-initial-condition warnings; TDD and full gate pass. |
 | [#132](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/132) | Do not create a Traffic Manager in the managed worker by calling set_autopilot(False) | Implemented; full gate passed; live CARLA validation pending. |

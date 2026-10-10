@@ -444,7 +444,27 @@ class CarlaScriptApi(ScriptOwnershipOperations):
         step_meters: float = 2.0,
         max_steps: int = 200,
     ) -> JsonObject:
-        """Generate a waypoint route between two locations."""
+        """Follow greedy links via a deprecated alias; not a topology route planner."""
+        return self._waypoint_route(start, end, step_meters, max_steps)
+
+    @_recover("follow_waypoints_failed")
+    def follow_waypoints(
+        self,
+        start: dict[str, object],
+        end: dict[str, object],
+        step_meters: float = 2.0,
+        max_steps: int = 200,
+    ) -> JsonObject:
+        """Follow greedy waypoint links; report reached_destination, not topology planning."""
+        return self._waypoint_route(start, end, step_meters, max_steps)
+
+    def _waypoint_route(
+        self,
+        start: dict[str, object],
+        end: dict[str, object],
+        step_meters: float,
+        max_steps: int,
+    ) -> JsonObject:
         payload = self._adapter.generate_route(
             start=parse_location(start),
             end=parse_location(end),

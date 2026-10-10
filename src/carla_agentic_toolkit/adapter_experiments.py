@@ -295,7 +295,7 @@ class PythonCarlaExperimentMixin:
         step_meters: float = 2.0,
         max_steps: int = 200,
     ) -> dict[str, object]:
-        """Generate an A-to-B waypoint route by following official waypoint.next links."""
+        """Follow greedy waypoint links and report actual remaining destination distance."""
         return experiment_navigation.route(
             self._world(self._client()),
             start=start,

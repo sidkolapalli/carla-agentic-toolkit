@@ -105,6 +105,25 @@ getters, waits for a frame, or ticks implicitly. Check the error before using th
 telemetry; advance the synchronous clock explicitly or observe an asynchronous
 frame before retrying.
 
+## Follow waypoint links
+
+`api.follow_waypoints(start, end, step_meters=2.0, max_steps=200)` is a greedy
+follower, not a topology-searching route planner. At each junction it selects
+the successor nearest the destination in straight-line distance. A nearer
+branch can lead away from the destination even when another branch reaches it.
+The query does not tick, move an actor, or guarantee a drivable complete route.
+
+The result includes the waypoint list, `reached_destination`, and
+`remaining_distance_m`: the Euclidean distance from the final waypoint to the
+requested end, including elevation. Arrival means that distance is at most
+`step_meters`; it is not exact endpoint equality. A road end or step budget can
+leave `reached_destination=False`. Check it before treating the path as complete.
+An origin already within the arrival tolerance is not followed away from the end.
+
+`generate_route` remains a deprecated compatibility alias with the same result
+and `carla-snapshot://route/latest` snapshot. New scripts should use
+`follow_waypoints`. Historical discovery receipts remain unchanged.
+
 ## Name actors across calls
 
 After creating an actor and obtaining its ID, give it a conversational name:
