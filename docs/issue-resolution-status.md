@@ -436,7 +436,22 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   The first diagnostic exceeded the receipt-size limit after cleanup; its
   measurements are not claimed as retained evidence. This reproduces failure,
   not a valid crossing, video, physical fix or provider acceptance run.
-- Published checkpoint `5678211` passes GitHub CI (run 38023782658). Issues stay
+- #96 reporting/validity implementation: 28 genuine regressions fail before
+  fixed local-lane geometry, independent measured entry/crossing deadlines and
+  terminal fixture summaries. All 188 affected checks pass; its isolated gate
+  passes with 2,385 Python tests, two skips and nine Rust tests. Full owned
+  snapshots record actual positions, z, velocity and displacement before any
+  provider range filter. The snapshot actor-origin criterion is distinct from
+  native bounding-box centre/body clearance. Late entry remains invalid for its
+  original deadline, and route completion, cleanup and infrastructure outcomes
+  stay separate. Diagnostic/provider events cannot manufacture physical
+  validity; old traces without measured evidence remain unverified. This does
+  not correct native UE5 pedestrian speed or establish a valid live crossing.
+  Commands, historical evidence and provider inputs are unchanged.
+- Integrated #96 reporting gate: 2,480 Python tests passed, two skipped and nine
+  Rust tests passed; all required static checks pass. Native physical correction
+  and genuine valid-crossing acceptance remain pending.
+- Published checkpoint `386f022` passes GitHub CI (run 38024612487). Issues stay
   open until merge and their completed acceptance checks.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native
@@ -511,7 +526,7 @@ vehicle.taxi.ford
 | [#82](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/82) | Validate and publish the source-only experimental alpha with release evidence | External verification pending: independent private-report submission and receipt. |
 | [#87](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/87) | Expose managed experiment controls and publish a reproducible rules-versus-Jev demo | Skipped for now at the user's request; original article input remains unavailable. |
 | [#94](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/94) | Exercise Jev along a route with controlled traffic hazards | Pending genuine UE5 live scenario validation; provider calls explicitly disabled by the user. |
-| [#96](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/96) | Fix UE5 pedestrian hazard motion and verify physical scenario completion | Native no-key defect reproduced in sync, paced-sync and async; independent completion checks in progress; physical fix/valid crossing and provider acceptance pending. |
+| [#96](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/96) | Fix UE5 pedestrian hazard motion and verify physical scenario completion | Partial: independent measured completion checks implemented with TDD/full gate; native motion defect reproduced but physical fix/valid crossing and provider acceptance pending. |
 | [#120](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/120) | Restore world and Traffic Manager settings after script and persistent-session runs instead of marking the lease clean | Implemented; full gate passed; live CARLA validation pending. |
 | [#121](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/121) | Count already-destroyed actors as cleaned up and release successful batch destroys from the journal | Implemented; full gate passed; live validation pending. |
 | [#122](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/122) | Give the vehicle under test role_name hero and stop calling the other merge car ego | Implemented: configurable hero, canonical target and journal-only ownership; TDD, both native fixture role checks and full gate pass; unknown replies remain quarantined. |
