@@ -20,6 +20,7 @@ from carla_agentic_toolkit.models import (
     VehicleBehaviorRequest,
 )
 from carla_agentic_toolkit.script_arguments import parent_value
+from carla_agentic_toolkit.tm_access import require_traffic_manager_port
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
@@ -341,6 +342,9 @@ def _provided_fields(
     parsers: Mapping[str, Callable[[Mapping[str, object], str], object]],
 ) -> dict[str, object]:
     """Parse only supplied non-null fields so model defaults stay authoritative."""
-    return {
+    fields = {
         key: parser(payload, key) for key, parser in parsers.items() if payload.get(key) is not None
     }
+    if "traffic_manager_port" in parsers:
+        require_traffic_manager_port(fields.get("traffic_manager_port", 8000))
+    return fields

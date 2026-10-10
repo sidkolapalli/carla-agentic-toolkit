@@ -22,6 +22,7 @@ from carla_agentic_toolkit.models import (
     TrafficManagerSettings,
     TrafficPopulationRequest,
 )
+from carla_agentic_toolkit.tm_access import get_traffic_manager
 from carla_agentic_toolkit.traffic_manager_policy import require_async_traffic_manager_request
 
 if TYPE_CHECKING:
@@ -58,10 +59,7 @@ class _SpawnTrafficContext:
 
 def traffic_manager(client: CarlaClient, traffic_manager_port: int) -> CarlaTrafficManager:
     """Return a validated CARLA Traffic Manager."""
-    try:
-        candidate = client.get_trafficmanager(traffic_manager_port)
-    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
-        raise CarlaAdapterError(str(exc)) from exc
+    candidate = get_traffic_manager(client, traffic_manager_port)
     if _missing_traffic_manager_api(candidate):
         msg = "CARLA Traffic Manager does not expose the expected API."
         raise CarlaAdapterError(msg)

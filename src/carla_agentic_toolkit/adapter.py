@@ -25,7 +25,7 @@ from carla_agentic_toolkit.authoritative_destroy import (
     destroy_batch_result,
 )
 from carla_agentic_toolkit.carla_versions import read_version_info
-from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.errors import CarlaAdapterError, CarlaApiUnavailableError
 from carla_agentic_toolkit.experiment_common import (
     actor_counts,
     map_name,
@@ -553,9 +553,8 @@ class PythonCarlaAdapter(
         """Create and configure a CARLA client."""
         try:
             client_factory = _carla_client_factory()
-        except (ImportError, TypeError) as exc:  # pragma: no cover - optional CARLA package
-            msg = "CARLA Python API is not importable."
-            raise CarlaAdapterError(msg) from exc
+        except (ImportError, TypeError) as exc:
+            raise CarlaApiUnavailableError(str(exc)) from exc
         try:
             client_candidate = client_factory(self._host, self._port)
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:

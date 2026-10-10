@@ -30,6 +30,7 @@ from carla_agentic_toolkit.script_ground_truth import ScriptGroundTruthOperation
 from carla_agentic_toolkit.script_operations import recover as _recover
 from carla_agentic_toolkit.script_ownership_operations import ScriptOwnershipOperations
 from carla_agentic_toolkit.sensor_evidence import require_publication_converter
+from carla_agentic_toolkit.tm_access import require_traffic_manager_port
 from carla_agentic_toolkit.tool_inputs import (
     parse_autopilot_request,
     parse_camera_attach_request,
@@ -233,6 +234,7 @@ class CarlaScriptApi(ScriptGroundTruthOperations, ScriptOwnershipOperations):
 
         Speeds are in km/h. Reapplying a TM preset clears this exact speed target.
         """
+        require_traffic_manager_port(traffic_manager_port)
         return self._adapter.tune_traffic_vehicle(
             actor_id=actor_id,
             traffic_manager_port=traffic_manager_port,
@@ -252,14 +254,14 @@ class CarlaScriptApi(ScriptGroundTruthOperations, ScriptOwnershipOperations):
     @_recover("start_traffic_controller_failed")
     def start_traffic_controller(self, request: dict[str, object]) -> JsonObject:
         """Start an in-script Traffic Manager controller in an asynchronous world only."""
-        self._require_async_traffic_controller()
-        self._prepare_owned_controller()
         parsed = parse_traffic_controller_start_request(
             request,
             host=self._adapter.host,
             port=self._adapter.port,
             timeout_seconds=self._adapter.timeout,
         )
+        self._require_async_traffic_controller()
+        self._prepare_owned_controller()
         status = self._traffic_controller.start(parsed)
         return self._controller_status_payload(status.to_dict())
 
@@ -276,9 +278,9 @@ class CarlaScriptApi(ScriptGroundTruthOperations, ScriptOwnershipOperations):
     @_recover("set_traffic_density_failed")
     def set_traffic_density(self, request: dict[str, object]) -> JsonObject:
         """Converge in-script traffic to a requested density in an asynchronous world only."""
+        parsed = parse_traffic_density_request(request)
         self._require_async_traffic_controller()
         self._prepare_owned_controller()
-        parsed = parse_traffic_density_request(request)
         status = self._traffic_controller.set_density(parsed)
         return self._controller_status_payload(status.to_dict())
 
@@ -291,10 +293,9 @@ class CarlaScriptApi(ScriptGroundTruthOperations, ScriptOwnershipOperations):
     @_recover("set_vehicle_behavior_failed")
     def set_vehicle_behavior(self, request: dict[str, object]) -> JsonObject:
         """Apply asynchronous TM presets, not BehaviorAgent profiles, to explicit vehicles."""
+        parsed = parse_vehicle_behavior_request(request)
         self._require_async_traffic_controller()
-        payload = self._traffic_controller.set_vehicle_behavior(
-            parse_vehicle_behavior_request(request)
-        ).to_dict()
+        payload = self._traffic_controller.set_vehicle_behavior(parsed).to_dict()
         return self._snapshot("carla-snapshot://traffic/behaviors", payload)
 
     def _controller_status_payload(self, payload: JsonObject) -> JsonObject:

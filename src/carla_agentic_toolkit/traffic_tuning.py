@@ -8,11 +8,12 @@ from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
 from carla_agentic_toolkit.experiment_common import actor, call_required, carla_location
+from carla_agentic_toolkit.tm_access import get_traffic_manager
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from carla_agentic_toolkit.carla_protocols import CarlaWorld
+    from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaWorld
     from carla_agentic_toolkit.models import TrafficVehiclePathRequest
 
 MAX_TCP_PORT = 65535
@@ -129,7 +130,7 @@ def _manager_and_actor(client: object, port: int, actor_id: int) -> tuple[object
     if isinstance(port, bool) or not isinstance(port, int) or not 1 <= port <= MAX_TCP_PORT:
         msg = f"traffic_manager_port must be in 1..{MAX_TCP_PORT}."
         raise CarlaAdapterError(msg)
-    manager = call_required(client, "get_trafficmanager", port)
+    manager = get_traffic_manager(cast("CarlaClient", client), port)
     world = call_required(client, "get_world")
     return manager, actor(cast("CarlaWorld", world), actor_id)
 

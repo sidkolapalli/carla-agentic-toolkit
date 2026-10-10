@@ -541,8 +541,22 @@ authentication, deployment, and a packaged sandbox runner.
   6.15-or-newer kernel, then run `wsl --update`. Do not bypass a failed check.
 - **Windows cannot reach `wsl.exe`:** install or update WSL from an elevated
   PowerShell prompt, then reopen the client.
-- **CARLA API is not importable:** install the API version matching the simulator
-  into the checkout's `.venv`, then rerun the import preflight.
+- **`carla_api_unavailable`:** the message retains the original import or ABI
+  error. Install the API matching the simulator and Python version into the
+  checkout's `.venv`, resolve missing native libraries, then rerun the import
+  preflight. This is a local client failure, not a simulator connection failure.
+- **`traffic_manager_port_not_allowed`:** the message names the requested TM
+  port. Include it in `traffic_manager_ports` when creating the one-shot
+  execution or persistent session; script TM methods still require the same
+  explicit port. Rejected ports fail before any CARLA connection or mutation.
+- **`traffic_manager_unavailable`:** CARLA reported a TM bind error for the
+  named port. Start a dedicated TM sidecar outside the sandbox for this
+  simulator, keep it running, or select its actual port. The failure can also
+  reflect another native bind problem; it does not prove no server exists.
+  Do not grant sandbox bind permissions to work around it.
+- **`traffic_manager_network_policy_error`:** connect-port evidence supplied by
+  the sandbox runner is malformed. Rebuild the reviewed runner; access fails
+  closed rather than treating unreadable policy as unrestricted.
 - **`invalid_request`:** execution inputs are rejected before filesystem or
   process setup. `host` must be non-empty; the base RPC port is `1..65533` so
   CARLA's two adjacent ports remain valid; Traffic Manager ports are

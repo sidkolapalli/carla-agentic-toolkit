@@ -10,6 +10,30 @@ class CarlaAdapterError(RuntimeError):
         self.details = details or {}
 
 
+class CarlaApiUnavailableError(CarlaAdapterError):
+    """Distinguish local client import/ABI failures from simulator connectivity."""
+
+    def __init__(self, cause: str) -> None:
+        """Retain the native import diagnostic without suggesting a network retry."""
+        super().__init__(
+            f"CARLA Python API is not importable: {cause}",
+            details={"error_type": "carla_api_unavailable", "retryable": False},
+        )
+
+
+class TrafficManagerUnavailableError(CarlaAdapterError):
+    """Report native TM bind failure without claiming its exact underlying cause."""
+
+    def __init__(self, port: int, cause: str) -> None:
+        """Suggest a prestarted dedicated sidecar, never additional bind permissions."""
+        super().__init__(
+            f"Traffic Manager on port {port} could not be reached or created. "
+            "Start a dedicated TM sidecar outside the sandbox for this simulator, "
+            f"or use its correct port. Native diagnostic: {cause}",
+            details={"error_type": "traffic_manager_unavailable", "traffic_manager_port": port},
+        )
+
+
 class ActorRegistryError(RuntimeError):
     """Raised when persistent actor-name state cannot satisfy an operation."""
 

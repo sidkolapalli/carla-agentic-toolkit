@@ -106,6 +106,10 @@ fn run() -> Result<Value> {
         .env("XDG_CACHE_HOME", args.work_dir.join("cache"))
         .env("XDG_CONFIG_HOME", args.work_dir.join("config"))
         .env("PYTHONNOUSERSITE", "1")
+        .env(
+            "CARLA_AGENTIC_TOOLKIT_TCP_CONNECT_PORTS",
+            serde_json::to_string(&args.tcp_connect)?,
+        )
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
