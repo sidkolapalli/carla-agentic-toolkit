@@ -56,7 +56,8 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   verified against both upstream release notices. Relative link and diff checks pass.
 - #138: 18 timing regressions failed before the shared mode guards and frame-backed
   wait implementation; 131 focused tests pass. The frozen full gate passed with
-  967 Python tests, two skips, and nine Rust tests. Live tick-cue checks remain pending.
+  967 Python tests, two skips, and nine Rust tests. Native tick-cue acceptance is
+  recorded below.
 - #142: covered by the map-error RED/fix in #136. Four additional native-exception
   contract cases verify the exact reload failure, retained ownership, and subsequent
   same-episode sensor cleanup; 52 focused tests pass. Full gate passed with 971
@@ -413,6 +414,16 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   local. Invalid attribute values that native CARLA accepts are not falsely
   described as rejected. Full gate: 2,452 Python tests passed, two skipped and
   nine Rust tests passed; Ruff/format, Ty, Radon all A and Rust checks pass.
+- #138 native acceptance: an actual Landlock persistent session on matching
+  CARLA 0.10.0 rejects async `tick`, `tick_n(3)` and `tick_n(0)`, while async
+  `wait(0.2)` completes through frame waits. After switching to fixed-step sync,
+  the native frame stays paused: no old helper tick cues are observed. Both
+  zero/nonzero waits and watching are refused with their synchronous-mode
+  diagnostics. Three explicit owner ticks advance exactly frames 104809-104811
+  and no more during the subsequent paused check. Close restores all six original
+  settings, exact actor/episode/weather/spectator baseline and the same lease.
+  No actors were created and no provider was used. Existing TDD/gate proof is
+  unchanged; this native check does not replace the other issues' crash windows.
 - #96 diagnostic: the original `walker.pedestrian.0015` route-position command
   is reproduced without a key, multiplier or teleport on native 0.10.0. At the
   same settled position, six seconds of a received 2 m/s control produce only
@@ -519,7 +530,7 @@ vehicle.taxi.ford
 | [#135](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/135) | Wait for periodic sensor data by default and stop waiting once a later frame arrives | Implemented: bounded periodic waiting, later-frame wakeup and honest cadence evidence; TDD, native RGB/GNSS checks, and full gate pass. |
 | [#136](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/136) | Journal spawned actors as each is created and decouple the per-RPC timeout from the script budget | Implemented; full gate passed; live CARLA validation pending. |
 | [#137](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/137) | Describe the alpha demo as a step-by-step procedure, not a reproducible result | Implemented; documentation checks pass. |
-| [#138](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/138) | Guard tick, tick_n, watch_actor and api.wait by synchronous mode | Implemented; full gate passed; live CARLA validation pending. |
+| [#138](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/138) | Guard tick, tick_n, watch_actor and api.wait by synchronous mode | Implemented; TDD, actual Landlock native mode/tick-cue checks and full gate pass. |
 | [#139](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/139) | Do not mark the managed lease clean after a world replacement without checking settings | Implemented fail-closed verification policy; full gate passed; live validation pending. |
 | [#140](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/140) | Use bounding_box.location and rotation in ground-truth boxes and clearance metrics | Implemented; TDD, both native fixture/corner checks, and full gate pass; historical evidence unchanged. |
 | [#141](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/141) | Surface CARLA client/server version mismatches in toolkit warnings | Implemented locally, including native-verified version-only health; TDD and full gate passed. |
