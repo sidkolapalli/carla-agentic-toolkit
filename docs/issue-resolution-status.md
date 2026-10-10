@@ -606,6 +606,24 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   RPC 10 seconds and external 180/10-second bounds were explicit. Provider calls
   remained zero; no sidecar or arbitrary-script bind grant was used. #26 remains
   open for its external child/process prerequisites and remaining acceptance.
+- #26 separate in-range native diagnostic: the next run required the first
+  density receipt's exact successful cleanup baseline, closed host proof and
+  same clean lease, then opened a fresh proven local TM. A probe-only map view
+  reordered actual native spawn transforms near the already prepared route start;
+  it did not modify transforms, teleport/adopt actors, expand the 150-metre range
+  or change production sources. The session's unwrapped native map reference
+  was restored before fixture cleanup. Five registrations over 20 consecutive
+  owner frames supplied
+  99 matching in-range background observations from the exact owner snapshots,
+  at measured distances 7.10-34.69 metres. This exercises positive telemetry under
+  an explicitly arranged spawn order, not default placement or complete route,
+  hazard, physical-motion or deterministic-traffic acceptance. Missing removal
+  was not exercised. Exact owned deletion, original six settings and acknowledged
+  episode inventory/weather/spectator, local TM async/shutdown acknowledgement
+  and original listener closure were verified again. A separate receipt-only
+  post-run check reacquired the same clean lease and confirmed no TM listener,
+  without constructing a native client. Providers remained disabled; RPC 10s
+  and external 180/10-second bounds and original failed evidence were unchanged.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native
   health confirms matching 0.9.16 releases and no warnings; a genuine 0.10.0 client
@@ -678,7 +696,7 @@ vehicle.taxi.ford
 
 | Issue | Work | Status |
 | --- | --- | --- |
-| [#26](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/26) | Support bounded CARLA sessions and managed closed-loop experiments | Optional density implemented with TDD/full gate and native bounded lifecycle/cleanup check; positive in-range telemetry and external child/process prerequisites remain. |
+| [#26](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/26) | Support bounded CARLA sessions and managed closed-loop experiments | Optional density implemented with TDD/full gate, native bounded lifecycle/cleanup and separately arranged in-range telemetry checks; external child/process prerequisites and remaining acceptance limits persist. |
 | [#82](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/82) | Validate and publish the source-only experimental alpha with release evidence | External verification pending: independent private-report submission and receipt. |
 | [#87](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/87) | Expose managed experiment controls and publish a reproducible rules-versus-Jev demo | Skipped for now at the user's request; original article input remains unavailable. |
 | [#94](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/94) | Exercise Jev along a route with controlled traffic hazards | Pending genuine UE5 live scenario validation; provider calls explicitly disabled by the user. |

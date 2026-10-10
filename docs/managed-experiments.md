@@ -91,8 +91,15 @@ path, not a new script permission. A provider-free native UE5 lifecycle check
 passed with five acknowledged registrations over 20 owner frames, verified
 owned-only cleanup, closed local TM and restored baseline. All backgrounds were
 outside the 150-metre range in that first run; it did not exercise positive
-in-range telemetry or missing-owned removal. It is not a completed route/hazard,
-provider, physical-motion or repeatability guarantee. See the
+in-range telemetry or missing-owned removal. A separate diagnostic reordered
+actual native spawn transforms near the prepared route start, without changing
+transforms, teleporting/adopting actors or expanding the range limit. Its fresh
+local TM lifecycle passed with 99 same-owner-snapshot in-range observations over
+20 frames and verified cleanup; the session's unwrapped native map reference was
+restored before fixture cleanup. This is explicitly
+arranged telemetry evidence, not the default spawn ordering or a missing-removal
+check. Neither run is a completed route/hazard, provider, physical-motion or
+repeatability guarantee. See the
 [issue ledger](issue-resolution-status.md) for the explicit RPC/wall profile and
 remaining acceptance limits.
 
