@@ -581,7 +581,7 @@ class CarlaScriptApi(ScriptOwnershipOperations):
 
     @_recover("get_vehicle_telemetry_failed")
     def get_vehicle_telemetry(self, actor_id: int) -> JsonObject:
-        """Return transform, speed, control, and traffic-light telemetry."""
+        """Return frame/time-bound motion plus separate control, speed-limit and light reads."""
         payload = self._adapter.get_vehicle_telemetry(actor_id)
         return self._snapshot(f"carla-snapshot://actors/{actor_id}/telemetry", payload)
 

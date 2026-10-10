@@ -247,3 +247,31 @@ class CarlaSnapshot(Protocol):
     """Subset of a CARLA world snapshot."""
 
     frame: int
+
+
+class CarlaTimestamp(Protocol):
+    """Simulation time carried by a native world snapshot."""
+
+    elapsed_seconds: float
+
+
+class CarlaActorSnapshot(Protocol):
+    """Frame-frozen native actor motion, separate from a live actor handle."""
+
+    def get_transform(self) -> CarlaTransformObject:
+        """Return this frame's actor transform."""
+
+    def get_velocity(self) -> CarlaVector:
+        """Return this frame's actor velocity."""
+
+    def get_acceleration(self) -> CarlaVector:
+        """Return this frame's actor acceleration."""
+
+
+class CarlaTelemetrySnapshot(CarlaSnapshot, Protocol):
+    """World snapshot capabilities needed for frame-coherent vehicle telemetry."""
+
+    timestamp: CarlaTimestamp
+
+    def find(self, actor_id: int) -> CarlaActorSnapshot | None:
+        """Find an actor's motion in this specific frame, not the latest actor cache."""

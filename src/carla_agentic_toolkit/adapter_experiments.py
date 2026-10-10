@@ -444,7 +444,7 @@ class PythonCarlaExperimentMixin:
         )
 
     def get_vehicle_telemetry(self, actor_id: int) -> dict[str, object]:
-        """Return vehicle state useful for closed-loop control."""
+        """Return frame-coherent motion with separately read control and road state."""
         return experiment_vehicle.vehicle_telemetry(self._world(self._client()), actor_id)
 
     def set_actor_transform(self, *, actor_id: int, transform: Transform) -> dict[str, object]:

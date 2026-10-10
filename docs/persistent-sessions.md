@@ -47,6 +47,11 @@ api.apply_vehicle_control(vehicle, throttle=0.0, brake=1.0)
 result = {"steps": steps, "telemetry": api.get_vehicle_telemetry(vehicle)}
 ```
 
+Vehicle telemetry includes `frame` and `elapsed_seconds` for its single-snapshot
+motion values. Control, speed limit, and traffic-light state are separate actor
+reads; check for an error if the actor has not reached the snapshot yet. See
+[frame-coherent telemetry](script-workflows.md#read-frame-coherent-vehicle-telemetry).
+
 Each request receives the same trusted API and safe builtins; the `result` variable
 is reset before execution. Validation runs on every request. A script exception
 is returned explicitly and may leave earlier variable assignments in place.

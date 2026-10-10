@@ -85,6 +85,26 @@ delayed and dropped frames; empty collision-event drains do not wait. The
 synchronous worlds. Follow [sensor timing and advancement](sensor-timing.md)
 for frame ownership, delivery and listener cleanup.
 
+## Read frame-coherent vehicle telemetry
+
+`api.get_vehicle_telemetry(actor_id)` reads one native
+[world snapshot](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WorldSnapshot).
+Its `frame` and `elapsed_seconds` identify the simulation frame and seconds since
+the current episode began. `transform`, `velocity`, and `acceleration` come from
+that frame's `ActorSnapshot`; `speed_mps` is the magnitude of the same velocity
+returned in `velocity`. This applies in both synchronous and asynchronous worlds.
+
+`control`, `speed_limit`, and `traffic_light_state` are separate actor reads:
+`ActorSnapshot` does not contain them, so they are not guaranteed to describe the
+reported frame. Their existing unavailable-value behavior is unchanged.
+
+If the actor is absent from the selected snapshot, including immediately after
+a spawn before frame publication, the call returns `ok=False` with
+`error_type="get_vehicle_telemetry_failed"`. It never substitutes newer actor
+getters, waits for a frame, or ticks implicitly. Check the error before using the
+telemetry; advance the synchronous clock explicitly or observe an asynchronous
+frame before retrying.
+
 ## Name actors across calls
 
 After creating an actor and obtaining its ID, give it a conversational name:
