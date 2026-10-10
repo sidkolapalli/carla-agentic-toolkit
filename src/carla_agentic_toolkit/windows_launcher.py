@@ -24,6 +24,8 @@ class WslLaunchConfig:
     uv: PurePosixPath
     output_dir: PurePosixPath
     recorder_dir: str | None
+    default_host: str | None = None
+    default_port: str | None = None
 
     @classmethod
     def from_environment(cls) -> WslLaunchConfig:
@@ -54,6 +56,8 @@ class WslLaunchConfig:
             uv=uv,
             output_dir=output_dir,
             recorder_dir=os.environ.get("CARLA_AGENTIC_TOOLKIT_RECORDER_DIR"),
+            default_host=os.environ.get("CARLA_AGENTIC_TOOLKIT_HOST"),
+            default_port=os.environ.get("CARLA_AGENTIC_TOOLKIT_PORT"),
         )
 
     def command(self, program: Sequence[str]) -> list[str]:
@@ -72,11 +76,23 @@ class WslLaunchConfig:
             "/usr/bin/env",
             f"CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR={self.output_dir}",
             *recorder_environment,
+            *self._endpoint_environment(),
             str(self.uv),
             "--directory",
             project_dir,
             "run",
             *program,
+        ]
+
+    def _endpoint_environment(self) -> list[str]:
+        """Forward exactly two optional defaults as data, preserving empty invalid values."""
+        return [
+            f"{name}={value}"
+            for name, value in (
+                ("CARLA_AGENTIC_TOOLKIT_HOST", self.default_host),
+                ("CARLA_AGENTIC_TOOLKIT_PORT", self.default_port),
+            )
+            if value is not None
         ]
 
 

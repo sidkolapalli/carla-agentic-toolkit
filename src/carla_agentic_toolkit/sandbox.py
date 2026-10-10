@@ -15,6 +15,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from carla_agentic_toolkit.endpoint_defaults import OMITTED, EndpointOmitted, resolve_endpoint
+from carla_agentic_toolkit.endpoint_defaults import host_error as _host_error
+from carla_agentic_toolkit.endpoint_defaults import port_error as _port_error
 from carla_agentic_toolkit.ownership import (
     OWNERSHIP_FILENAME,
     RunOwnership,
@@ -105,16 +108,25 @@ class RunnerCommandRequest:
 def execute_script(  # noqa: PLR0913 - Explicit endpoint permissions are public inputs.
     code: str,
     *,
-    host: str = "127.0.0.1",
-    port: int = 2000,
+    host: str | EndpointOmitted = OMITTED,
+    port: int | EndpointOmitted = OMITTED,
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
     traffic_manager_ports: Sequence[int] = (),
     streaming_port: int | None = None,
     secondary_port: int | None = None,
 ) -> ScriptOutcome:
     """Run a CARLA script in the Rust sandbox process."""
+    try:
+        resolved_host, resolved_port = resolve_endpoint(host, port)
+    except ValueError as exc:
+        return _failure("invalid_request", str(exc))
     request = ExecutionRequest(
-        host, port, timeout_seconds, traffic_manager_ports, streaming_port, secondary_port
+        resolved_host,
+        resolved_port,
+        timeout_seconds,
+        traffic_manager_ports,
+        streaming_port,
+        secondary_port,
     )
     invalid = _validate_execution(request)
     if invalid is not None:
@@ -281,20 +293,6 @@ def _validate_execution(request: ExecutionRequest) -> str | None:
     ):
         if error is not None:
             return error
-    return None
-
-
-def _host_error(host: object) -> str | None:
-    if not isinstance(host, str) or not host.strip():
-        return "host must be a non-empty string."
-    return None
-
-
-def _port_error(port: object) -> str | None:
-    if isinstance(port, bool) or not isinstance(port, int):
-        return f"port must be an integer in 1..{MAX_CARLA_BASE_PORT}."
-    if not 1 <= port <= MAX_CARLA_BASE_PORT:
-        return f"port must be an integer in 1..{MAX_CARLA_BASE_PORT}."
     return None
 
 

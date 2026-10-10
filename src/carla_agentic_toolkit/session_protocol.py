@@ -7,9 +7,10 @@ import math
 import os
 import stat
 import uuid
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, field, fields
 from typing import TYPE_CHECKING, Any, cast
 
+from carla_agentic_toolkit.endpoint_defaults import default_host, default_port
 from carla_agentic_toolkit.runtime_ports import validate_optional_port
 
 if TYPE_CHECKING:
@@ -34,8 +35,8 @@ class ProtocolError(ValueError):
 class SessionConfig:
     """Explicit wall-clock budgets; CPU/memory/process caps remain sandbox-wide."""
 
-    host: str = "127.0.0.1"
-    port: int = 2000
+    host: str = field(default_factory=default_host)
+    port: int = field(default_factory=default_port)
     idle_timeout_seconds: float = 60.0
     absolute_timeout_seconds: float = 300.0
     request_timeout_seconds: float = 30.0

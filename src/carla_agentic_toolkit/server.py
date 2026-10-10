@@ -17,9 +17,10 @@ from mcp.types import (
     TextContent,
     ToolAnnotations,
 )
-from pydantic import StrictInt  # noqa: TC002 - MCP evaluates annotations at registration.
+from pydantic import Field, StrictInt, StrictStr
 
 from carla_agentic_toolkit import __version__
+from carla_agentic_toolkit.endpoint_defaults import default_host, default_port
 from carla_agentic_toolkit.output_content import (
     OutputContentError,
     PublishedCapture,
@@ -29,6 +30,8 @@ from carla_agentic_toolkit.output_content import (
 from carla_agentic_toolkit.sandbox import ScriptOutcome, execute_script, output_dir_path
 
 _execution_lock = threading.Lock()
+_HOST_DEFAULT = Field(default_factory=default_host)
+_PORT_DEFAULT = Field(default_factory=default_port)
 
 
 def build_server() -> MCPServer:
@@ -67,8 +70,8 @@ def _register_script_tool(mcp: MCPServer) -> None:
     )
     def execute_carla_script(  # noqa: PLR0913 - Public endpoint permission inputs.
         code: str,
-        host: str = "127.0.0.1",
-        port: int = 2000,
+        host: StrictStr = _HOST_DEFAULT,
+        port: StrictInt = _PORT_DEFAULT,
         timeout_seconds: float = 30.0,
         traffic_manager_ports: list[int] | None = None,
         streaming_port: StrictInt | None = None,

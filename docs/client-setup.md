@@ -396,6 +396,8 @@ The client entry must set these environment variables:
 | `CARLA_AGENTIC_TOOLKIT_WSL_UV` | Absolute Linux path reported by `command -v uv` |
 | `CARLA_AGENTIC_TOOLKIT_WSL_OUTPUT_DIR` | Absolute Linux path for durable output |
 | `CARLA_AGENTIC_TOOLKIT_RECORDER_DIR` | Optional absolute recorder directory understood by the CARLA simulator host |
+| `CARLA_AGENTIC_TOOLKIT_HOST` | Optional default simulator host, forwarded unchanged to the WSL server |
+| `CARLA_AGENTIC_TOOLKIT_PORT` | Optional default RPC port as an ASCII decimal string in 1..65533 |
 
 Use the Claude Code, Codex, or VS Code configuration shape above, replacing the
 program with `carla-agentic-toolkit-windows` and adding the four required variables. Output is
@@ -418,6 +420,41 @@ from inside WSL and pass it as the tool's `host` input:
 ```bash
 ip route show default | awk '{print $3}'
 ```
+
+### Default simulator endpoint
+
+Set optional `CARLA_AGENTIC_TOOLKIT_HOST` and `CARLA_AGENTIC_TOOLKIT_PORT` values
+in the MCP client's server environment to avoid repeating the endpoint on each
+call. For example, add these nonsecret entries alongside the existing launcher
+configuration, using the reachable address of your dedicated simulator:
+
+```json
+{"CARLA_AGENTIC_TOOLKIT_HOST":"172.18.112.1","CARLA_AGENTIC_TOOLKIT_PORT":"3000"}
+```
+
+The Windows launcher forwards exactly these two optional settings to the WSL
+server as individual environment arguments. Linux server entries can set them
+directly. They affect omitted `host` and `port` inputs in `execute_carla_script`,
+the Python `execute_script` launcher, and persistent-session open config. Explicit
+values override each field independently, including an unused malformed default.
+Unset settings retain `127.0.0.1` and `2000`. Defaults are read at each request or
+session-config construction; a created session keeps its selected endpoint.
+
+A configured host must be nonblank. The configured port must contain one to five
+ASCII decimal digits and be in 1..65533. Malformed selected defaults are rejected
+before lease, filesystem or worker setup. Explicit `null`, boolean or malformed
+endpoint inputs are errors, not requests to use a default.
+
+**Keep recovery identity stable.** Prefer WSL mirrored networking with
+`127.0.0.1`, or a fixed literal address used consistently by all cooperating
+clients. The lease still coalesces aliases by their resolved IP and RPC port;
+these defaults do not invent a stable identity across changing NAT addresses.
+Keep the same private `CARLA_AGENTIC_TOOLKIT_STATE_DIR` for operation and recovery.
+If a WSL restart changes the NAT address while dirty recovery evidence exists,
+investigate that evidence and the simulator's actual state before resuming.
+Changing addresses, RPC ports or state roots does not verify cleanup and must
+not be used to bypass quarantine. No automatic lease migration or dirty-marker
+deletion is performed.
 
 ### Verify in order
 

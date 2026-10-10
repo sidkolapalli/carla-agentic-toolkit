@@ -13,6 +13,14 @@ Call `open` with a `config` object:
 {"host":"127.0.0.1","port":2000,"idle_timeout_seconds":60,"absolute_timeout_seconds":300,"request_timeout_seconds":30,"traffic_manager_ports":[8500]}
 ```
 
+Omitted `host` and `port` fields use the trusted server environment's optional
+`CARLA_AGENTIC_TOOLKIT_HOST` and `CARLA_AGENTIC_TOOLKIT_PORT`, otherwise
+`127.0.0.1` and `2000`. Explicit values override each default independently;
+explicit invalid values never fall back. A session freezes its selected endpoint
+at open. See [default simulator endpoint](client-setup.md#default-simulator-endpoint)
+for WSL forwarding and stable-address recovery requirements. Configuring a new
+address or private state root does not resolve existing dirty evidence.
+
 `traffic_manager_ports` is an optional array of at most 16 integer TCP ports in
 1..65535. It adds connect permissions alongside RPC, the selected streaming and
 secondary ports, and 8000. Omitting it or passing an empty array preserves that
