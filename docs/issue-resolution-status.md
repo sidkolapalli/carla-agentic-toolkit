@@ -519,7 +519,20 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   continuation is unchanged. The integrated full gate passes with 2,614 Python
   tests, two skips and nine Rust tests; all required static checks pass. Native
   simulator restart acceptance remains pending.
-- Published checkpoint `ca3bdb4` passes GitHub CI (run 38028260045). Issues stay
+- #26 optional synchronous-density feature: 69 genuine regressions demonstrate
+  RED during implementation; 107 new cases include 38 passing controls. The
+  frozen focused set passes all 112 cases, including five existing root controls.
+  Strict optional configuration uses a dedicated proven-local Linux TM host;
+  default no-density serialization, fixture ownership and script bind denial are
+  unchanged. Real local-socket proof tests and mock-backed CARLA checks cover
+  durable host/actor intents, startup/reload/spawn proof boundaries, bounded
+  four-spawn/four-missing-removal work, same-snapshot observations, and guarded
+  shutdown before settings restoration. Worker death cannot prove deregistration;
+  unknown host/reload evidence remains quarantined. The final combined full gate
+  passes with 2,721 Python tests, two skips and nine Rust tests; all required static
+  checks pass. No native density or provider acceptance was run. The parent remains
+  open for that live acceptance and its external child/process prerequisites.
+- Published pre-density checkpoint `0ebfe80` passes GitHub CI (run 38030227260). Issues stay
   open until merge and their completed acceptance checks.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native
@@ -592,7 +605,7 @@ vehicle.taxi.ford
 
 | Issue | Work | Status |
 | --- | --- | --- |
-| [#26](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/26) | Support bounded CARLA sessions and managed closed-loop experiments | Pending optional synchronous-density work; external child prerequisites remain. |
+| [#26](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/26) | Support bounded CARLA sessions and managed closed-loop experiments | Optional density implemented locally with TDD/full gate; native acceptance and external child/process prerequisites remain. |
 | [#82](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/82) | Validate and publish the source-only experimental alpha with release evidence | External verification pending: independent private-report submission and receipt. |
 | [#87](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/87) | Expose managed experiment controls and publish a reproducible rules-versus-Jev demo | Skipped for now at the user's request; original article input remains unavailable. |
 | [#94](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/94) | Exercise Jev along a route with controlled traffic hazards | Pending genuine UE5 live scenario validation; provider calls explicitly disabled by the user. |
