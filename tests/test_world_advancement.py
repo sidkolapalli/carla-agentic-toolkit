@@ -70,7 +70,7 @@ def test_failed_population_advancement_cleans_created_actors_and_retains_failure
     monkeypatch.setattr(
         adapter_module, "populate_traffic_actors", Mock(return_value=([11, 12], []))
     )
-    monkeypatch.setattr(adapter_module, "world_state", Mock())
+    monkeypatch.setattr(adapter, "_world_state", Mock())
     cleanup = Mock(
         return_value=(
             DestroyResult(12, destroyed=True, error=None),

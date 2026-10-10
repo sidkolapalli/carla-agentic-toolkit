@@ -15,6 +15,7 @@ from carla_agentic_toolkit import (
     experiment_vehicle,
     experiment_walkers,
 )
+from carla_agentic_toolkit.actor_identity import read_actor_identity
 from carla_agentic_toolkit.authoritative_destroy import destroy_result_cleaned
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.managed_world import world_identity
@@ -27,6 +28,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from carla_agentic_toolkit.actor_creation import SpawnObservers
+    from carla_agentic_toolkit.actor_identity import ActorIdentity
     from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaSensor, CarlaWorld
     from carla_agentic_toolkit.models import CaptureInfo, DestroyResult, WorldState
     from carla_agentic_toolkit.script_settings import RunSettings
@@ -278,6 +280,10 @@ class PythonCarlaExperimentMixin:
     def get_spawn_points(self) -> dict[str, object]:
         """Return legal vehicle spawn transforms from the loaded map."""
         return experiment_navigation.spawn_points(self._world(self._client()))
+
+    def get_actor_identity(self, actor_id: int) -> ActorIdentity | None:
+        """Read server liveness and stable episode evidence for a persistent alias."""
+        return read_actor_identity(self._client(), actor_id)
 
     def get_waypoint(
         self,

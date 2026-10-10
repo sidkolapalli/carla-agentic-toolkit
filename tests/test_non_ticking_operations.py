@@ -33,7 +33,7 @@ def _adapter(monkeypatch: pytest.MonkeyPatch) -> tuple[PythonCarlaAdapter, Mock]
     monkeypatch.setattr(adapter_module, "traffic_manager", Mock())
     monkeypatch.setattr(adapter_module, "populate_traffic_actors", Mock(return_value=([7], [])))
     monkeypatch.setattr(adapter_module, "set_actor_autopilot", Mock(return_value=([7], [])))
-    monkeypatch.setattr(adapter_module, "world_state", Mock())
+    monkeypatch.setattr(adapter, "_world_state", Mock())
     return adapter, world
 
 

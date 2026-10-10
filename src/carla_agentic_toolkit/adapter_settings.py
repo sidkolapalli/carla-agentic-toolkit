@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
+from carla_agentic_toolkit.carla_versions import read_version_info
 from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.experiment_common import world_state
 from carla_agentic_toolkit.managed_world import apply_world_settings
 from carla_agentic_toolkit.managed_world import world_settings as capture_world_settings
 from carla_agentic_toolkit.script_settings import validate_world_settings
@@ -33,8 +35,8 @@ class PythonCarlaSettingsMixin:
         raise NotImplementedError
 
     def _world_state(self, world: CarlaWorld, *, client: CarlaClient) -> WorldState:
-        """Build a world result using the operation's retained client."""
-        raise NotImplementedError
+        """Add version diagnostics using the operation's retained native client."""
+        return world_state(world, warnings=read_version_info(client).warnings)
 
     def get_world_settings(self) -> dict[str, object]:
         """Return all timing and rendering settings for a later explicit restore."""
