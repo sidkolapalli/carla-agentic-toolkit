@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 from unittest.mock import Mock
@@ -38,6 +38,10 @@ class Camera:
     stopping_image: Image | None = None
     stop_error: RuntimeError | None = None
     stops: int = 0
+    type_id: str = "sensor.camera.rgb"
+    attributes: dict[str, str] = field(
+        default_factory=lambda: {"image_size_x": "960", "image_size_y": "540", "fov": "80"}
+    )
 
     def listen(self, callback: Callable[[object], None]) -> None:
         """Retain the actual callback installed by the camera capture path."""

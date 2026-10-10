@@ -250,6 +250,29 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   settings, and spectator are verified after restoration on both servers.
 - Integrated weather gate: 1,898 Python tests passed, two skipped, nine Rust
   tests passed; Ruff/format, Ty, Radon CC/MI all A, Rustfmt, Clippy, and build pass.
+- #163: the recorder regression failed in five cases before subscription reuse;
+  the historical-reader phase failed in fourteen cases, with passing controls
+  retained. All 134 focused checks and its isolated 1,729-test gate pass, with
+  two skips and nine Rust tests. Raw BGRA pixels are hashed before PNG writing;
+  bounded queue/drop accounting and trailing Stop deliveries use the shared
+  subscription. Labelled receipts verify decoded BGRA, including alpha, using
+  real Pillow; unlabelled historical receipts still verify PNG bytes. Historical
+  receipts and media are unchanged.
+- #124: twenty regressions demonstrated RED with two controls; 336 focused tests
+  and its isolated 1,768-test gate pass, with two skips and nine Rust tests.
+  Actual camera dimensions reserve a shared 512 MiB pending-queue budget before
+  Listen, with byte-counted overflow and released reservations. Metadata drains
+  do not encode merely because output_dir is supplied; saving requires explicit
+  save_frames=True. Returned one-shot frames have a separate cap: neither cap is
+  a whole-process RSS guarantee. A trusted Linux/WSL CARLA 0.10.0 1080p probe
+  performs two 64-tick phases, each with 32 queue-fill ticks and 63 native samples.
+  Metadata without/with output_dir writes zero files; sampled RSS peaks are
+  320,847,872/329,068,544 bytes and measured process CPU deltas are 0.653/0.590 s.
+  Original actors, episode, six settings, weather, and spectator are verified;
+  the same lease is clean. This is not script-sandbox or RLIMIT acceptance.
+- Integrated #163/#124 gate: 1,942 Python tests passed, two skipped, nine Rust
+  tests passed; all required static checks pass. Native type and dimensions were
+  added to an incomplete camera test double without removing its assertions.
 - The user authorized CARLA startup for testing. A dedicated CARLA 0.9.16 process
   was started on RPC 3400 with separate pinned client runtimes. Windows-native
   health confirms matching 0.9.16 releases and no warnings; a genuine 0.10.0 client
@@ -328,7 +351,7 @@ vehicle.taxi.ford
 | [#121](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/121) | Count already-destroyed actors as cleaned up and release successful batch destroys from the journal | Implemented; full gate passed; live validation pending. |
 | [#122](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/122) | Give the vehicle under test role_name hero and stop calling the other merge car ego | Pending implementation. |
 | [#123](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/123) | Save and publish sensor evidence with correct file types and keep the result when publication fails | Implemented; TDD, native file/publication checks, and full gate pass; review evidence-backed 480x270 default instead of proposed 640x360. |
-| [#124](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/124) | Bound sensor queue memory and encoding cost by image size and sensor count | Pending implementation. |
+| [#124](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/124) | Bound sensor queue memory and encoding cost by image size and sensor count | Implemented: queue reservations, actual byte bounds, and explicit saving; TDD, native 1080p metadata RSS/CPU checks, and full gate pass; no whole-process memory guarantee. |
 | [#125](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/125) | Align load_world, reload_world and apply_batch defaults with CARLA or make them explicit | Implemented; full gate passed; live CARLA validation pending. |
 | [#126](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/126) | Bind actor aliases to the episode and check liveness against the server | Implemented; TDD, actual pre-tick naming and post-restart rejection, and full gate pass. |
 | [#127](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/127) | Fall back to a batch destroy for sensors and managed actors when destroy() returns False | Implemented; full gate passed; live CARLA validation pending. |
@@ -367,6 +390,6 @@ vehicle.taxi.ford
 | [#160](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/160) | Call Sensor.is_listening as a method | Implemented; full gate passed; optional live warning check pending. |
 | [#161](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/161) | Refuse or warn when attaching cameras in no-rendering mode | Implemented locally; TDD, native rendering check, and full gate pass. |
 | [#162](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/162) | Let camera auto-exposure settle before keeping a one-shot capture | Investigated locally: not reproduced in the supported live bright/dark check; unchanged capture contract and limitations documented. |
-| [#163](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/163) | Reuse SensorSubscription in the demo capture script | Pending implementation. |
+| [#163](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/163) | Reuse SensorSubscription in the demo capture script | Implemented: shared bounded listener, raw-BGRA digest provenance, and compatible historical PNG verification; TDD and full gate pass. |
 | [#164](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/164) | Add ground-truth helpers and richer image digests for perception tests | Pending implementation. |
 | [#165](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/165) | Report substepping settings and stop swallowing density wait_for_tick timeouts | Implemented locally: six-field reporting and fatal frame waits with lifecycle evidence; TDD, native reporting check, and full gate pass. |
