@@ -34,7 +34,11 @@ class Actor:
     @property
     def bounding_box(self) -> SimpleNamespace:
         """Expose static actor bounds, which are not frame-dependent kinematics."""
-        return SimpleNamespace(extent=SimpleNamespace(x=2.4, y=0.95, z=0.7))
+        return SimpleNamespace(
+            extent=SimpleNamespace(x=2.4, y=0.95, z=0.7),
+            location=SimpleNamespace(x=0.0, y=0.0, z=0.0),
+            rotation=SimpleNamespace(pitch=0.0, yaw=0.0, roll=0.0),
+        )
 
     def get_transform(self) -> None:
         """Reject mixing current actor state with an earlier snapshot."""
@@ -139,7 +143,7 @@ def _snapshot(session: Session, frame: int = 10) -> SimpleNamespace:
         actor = session.world.actors[actor_id - 1]
         return SimpleNamespace(
             get_transform=lambda: SimpleNamespace(
-                location=actor.location, rotation=SimpleNamespace(yaw=0.0)
+                location=actor.location, rotation=SimpleNamespace(pitch=0.0, yaw=0.0, roll=0.0)
             ),
             get_velocity=lambda: SimpleNamespace(x=0.0, y=0.0, z=0.0),
         )

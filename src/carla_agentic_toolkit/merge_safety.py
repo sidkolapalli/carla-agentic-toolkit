@@ -88,11 +88,10 @@ def gap_evidence(
 def _actor_gap(
     policy: ActorObservation, neighbor: ActorObservation, settings: PlannerSettings
 ) -> dict[str, object]:
-    ahead = neighbor.longitudinal_m >= policy.longitudinal_m
-    gap = (
-        abs(neighbor.longitudinal_m - policy.longitudinal_m)
-        - (policy.length_m + neighbor.length_m) / 2
-    )
+    policy_along, policy_radius = _longitudinal_box(policy)
+    neighbor_along, neighbor_radius = _longitudinal_box(neighbor)
+    ahead = neighbor_along >= policy_along
+    gap = abs(neighbor_along - policy_along) - policy_radius - neighbor_radius
     closing_speed = (
         policy.speed_mps - neighbor.speed_mps if ahead else neighbor.speed_mps - policy.speed_mps
     )
@@ -108,6 +107,12 @@ def _actor_gap(
         "required_gap_m": required,
         "safe": _gap_safe(gap, required, ttc, settings),
     }
+
+
+def _longitudinal_box(actor: ActorObservation) -> tuple[float, float]:
+    if actor.box is None:
+        return actor.longitudinal_m, actor.length_m / 2
+    return actor.box.longitudinal_m, actor.box.longitudinal_radius_m
 
 
 def _gap_safe(gap: float, required: float, ttc: float | None, settings: PlannerSettings) -> bool:

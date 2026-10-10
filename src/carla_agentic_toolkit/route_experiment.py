@@ -8,6 +8,7 @@ from collections import deque
 from dataclasses import asdict
 from typing import TYPE_CHECKING, Any, cast
 
+from carla_agentic_toolkit.actor_boxes import bounding_box_metadata
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.merge_models import LocalControl
 from carla_agentic_toolkit.route_actors import RouteActors
@@ -88,6 +89,10 @@ class RouteExperiment:
             "walker_blueprint": WALKER_BLUEPRINT,
             "traffic_control": "owned scripted vehicles; no Traffic Manager",
             "actor_ids": {role: int(actor.id) for role, actor in self.actors.handles.items()},
+            "actor_bounding_boxes": {
+                role: bounding_box_metadata(actor.bounding_box)
+                for role, actor in self.actors.handles.items()
+            },
             "observation_mode": self.spec.observation_mode,
         }
 

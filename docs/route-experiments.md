@@ -93,9 +93,37 @@ counts, and minimum observed separating-axis body-box clearance.
 
 The crossing estimate projects current world velocity and yaw over four seconds
 at 0.1s intervals using padded 2D boxes. It ignores future acceleration, turns,
-occlusion, perception error and intent. Its clearance is a separating-axis lower
-bound, not exact closest-body distance. Delivered collision events remain a
-separate measurement. Zero delivered events do not establish safety.
+occlusion, perception error and intent. New observations retain the actor origin
+in `x`, `y`, `z`, `yaw_degrees`, and route coordinates for tracking and trajectory
+metrics, and record a separate `box` with `center_m`, `yaw_degrees`, `length_m`,
+and `width_m`. The box center applies the snapshot actor transform to native
+`bounding_box.location`; its heading composes actor and box rotations. Full
+roll/pitch/yaw and all three half-extents contribute to an oriented XY enclosure
+of all eight native corners, rather than dropping the projected height of a
+tilted vehicle. A vertical forward axis uses the projected side axis to select
+the enclosure's heading.
+
+Clearance and predicted overlap use those corrected enclosures. The maximum
+separating-axis gap, clamped to zero for reported clearance, is a lower bound on
+projected native-box separation, not exact closest-body distance. Enclosures can
+overlap without native boxes or bodies colliding, especially when tilted or at
+different heights. The origin-based route-ahead estimate remains a separate
+approximation. Delivered collision events remain a separate measurement; zero
+delivered events do not establish safety.
+
+Fixture metadata records each role's native local box location, rotation and
+extent in `actor_bounding_boxes`, including owned walkers. Missing or invalid
+native bounds fail explicitly. This follows CARLA's
+[actor-relative bounding-box contract](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor)
+and [world-corner transformation](https://github.com/carla-simulator/carla/blob/0.9.16/LibCarla/source/carla/geom/BoundingBox.h#L76-L112).
+The [fixture-blueprint measurements](managed-experiments.md#observation-timing-and-control)
+include the route fixture's Lincoln on CARLA 0.10.0. They measure the omitted
+native center offset, not the resulting clearance error for every encounter.
+
+Historical traces, projections and recordings are unchanged. Legacy observations
+without `box` (or DTOs with `box=None`) keep the old actor-origin approximation;
+their recorded clearance cannot be retroactively claimed as this corrected
+lower bound or repaired by inventing zero offsets.
 
 Record a trial from a source checkout with its exact frame identities:
 

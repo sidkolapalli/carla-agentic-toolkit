@@ -271,6 +271,44 @@ connectivity, maneuver phase, and recent history. It is not an occlusion-aware s
 perception stack and does not infer hidden driver intentions. Collision, lane-invasion,
 and GNSS subscriptions preserve measurement frames, drops, delay, and trailing data.
 
+Merge observations keep actor-origin `position_m`, `longitudinal_m`, `lateral_m`
+and `yaw_error_degrees` for trajectory and local control. A separate `box`
+records `geometry` (world `center_m`, composed `yaw_degrees`, projected
+`length_m`/`width_m`) and its `longitudinal_m`/`longitudinal_radius_m` along the
+verified corridor. Bumper-gap/TTC evidence uses that box projection, not the
+control origin. The planar geometry conservatively encloses all eight corners
+after full actor and native box roll/pitch/yaw rotations, including projected
+vertical extent. It is not an exact body-distance or collision test.
+
+`actor_bounding_boxes` fixture metadata records every vehicle's native local
+location, rotation and half-extents, allowing the actor-relative offset to be
+audited. Native missing or invalid bounds fail explicitly. CARLA defines those
+bounds [relative to the actor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor).
+Historical trace/media bytes stay unchanged: legacy observations without `box`
+retain their old origin-based gap approximation, not a fabricated corrected
+measurement.
+
+Matching-client Windows-native measurements on dedicated servers on 2026-10-09
+recorded the following fixture bounds. Each owned probe actor was authoritatively
+deleted and the exact settings baseline verified afterward. Both local box
+rotations were zero.
+
+| Simulator / fixture vehicle | Native local box center (x, y, z), metres | Half-extents (x, y, z), metres | Horizontal local center offset |
+| --- | --- | --- | --- |
+| CARLA 0.9.16 / `vehicle.tesla.model3` | (0.029218862, -0.000000619, 0.735860407) | (2.395889759, 1.081725001, 0.743830025) | 0.029218862 m |
+| CARLA 0.10.0 / `vehicle.lincoln.mkz` | (-0.006215515, approximately 0, 0.763245225) | (2.445985079, 0.917823017, 0.762059450) | 0.006215515 m |
+
+These measure the omitted local center offsets, not a guaranteed clearance error
+or a closed-loop safety outcome. Rotation can project vertical offsets into the
+horizontal plane. The probes are Windows-native evidence, not Linux sandbox
+acceptance; fake-corner regressions cover the conservative tilted-box projection.
+
+The pure helper was cross-checked against those saved native world corners and
+`Transform.transform` centers with a 0.00005 m comparison tolerance for CARLA's
+float32 output. Three synthetic full-tilt configurations evaluated locally by
+LibCarla also agreed within that tolerance; they are native-library checks, not
+live tilted-vehicle motion or closed-loop acceptance.
+
 One session owns every scheduled tick. The fixture/controller and provider never
 tick. Each controlled vehicle has one assigned tracker; protected actors cannot be
 adopted or reset by background traffic. World replacement or unexpected advancement

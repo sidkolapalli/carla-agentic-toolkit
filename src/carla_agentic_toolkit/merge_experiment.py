@@ -9,6 +9,7 @@ from dataclasses import asdict, replace
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, cast
 
+from carla_agentic_toolkit.actor_boxes import bounding_box_metadata, project_actor_box
 from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
 from carla_agentic_toolkit.merge_fixture import (
     FIXTURE_VEHICLES,
@@ -17,6 +18,7 @@ from carla_agentic_toolkit.merge_fixture import (
     select_corridor,
     yaw_difference,
 )
+from carla_agentic_toolkit.merge_models import CorridorBox
 from carla_agentic_toolkit.merge_planner import (
     PLANNER_VERSION,
     TERMINAL_PHASES,
@@ -94,6 +96,10 @@ class MergeExperiment:
             "observation_mode": self.spec.observation_mode,
             "vehicle_blueprint": FIXTURE_VEHICLES[self.spec.fixture],
             "actor_ids": {role: int(cast("Any", actor).id) for role, actor in self._actors.items()},
+            "actor_bounding_boxes": {
+                role: bounding_box_metadata(cast("Any", actor).bounding_box)
+                for role, actor in self._actors.items()
+            },
         }
 
     def _spawn_vehicle(self, role: str, pose: Pose) -> object:
@@ -343,6 +349,17 @@ def _actor_value(
             float(velocity.x) * math.cos(math.radians(corridor.policy_start.yaw))
             + float(velocity.y) * math.sin(math.radians(corridor.policy_start.yaw))
         ),
+        box=_corridor_box(transform, cast("Any", actor).bounding_box, corridor),
+    )
+
+
+def _corridor_box(transform: object, bounds: object, corridor: MergeCorridor) -> CorridorBox:
+    box = project_actor_box(transform, bounds)
+    yaw = math.radians(corridor.policy_start.yaw)
+    return CorridorBox(
+        box,
+        corridor.project(box.center_m[0], box.center_m[1])[0],
+        box.radius((math.cos(yaw), math.sin(yaw))),
     )
 
 

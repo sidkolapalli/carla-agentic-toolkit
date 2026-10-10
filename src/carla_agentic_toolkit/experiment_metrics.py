@@ -42,8 +42,10 @@ METRIC_DEFINITIONS = {
     ),
     "route_metrics": (
         "Optional route-observed-metrics-v1: last measured route progress and goal in metres; "
-        "minimum visible-actor separating-axis box clearance is a 2D lower bound, not exact "
-        "distance or safety proof. Guard counts are frames, including signal stops. Choice "
+        "minimum visible-actor separating-axis clearance bounds corrected 2D box geometry; "
+        "legacy observations without box geometry retain their actor-origin approximation. "
+        "Neither is exact distance or a safety proof. Guard counts are frames, including signal "
+        "stops. Choice "
         "counts include only context-accepted replies, grouped by their recorded source. "
         "Constant-velocity crossing predictions in route observations are approximate and "
         "separate from the physical-metrics-v1 gap/TTC definition."

@@ -7,6 +7,7 @@ from dataclasses import asdict
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, cast
 
+from carla_agentic_toolkit.actor_boxes import project_actor_box
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.merge_sensor_evidence import MergeSensor
 from carla_agentic_toolkit.route_fixture import VEHICLE_BLUEPRINT, WALKER_BLUEPRINT
@@ -96,6 +97,7 @@ class RouteActors:
             projection.lateral_m,
             self.path.sample(projection.progress_m).lane_id,
             float(location.z),
+            project_actor_box(transform, actor.bounding_box),
         )
 
     def vehicle_control(self, role: str, control: LocalControl) -> None:

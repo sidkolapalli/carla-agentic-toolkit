@@ -55,7 +55,7 @@ def observed(experiment: route_experiment.RouteExperiment, frame: int = 100) -> 
         handle = handles[identity]
         return SimpleNamespace(
             get_transform=lambda: SimpleNamespace(
-                location=handle.location, rotation=SimpleNamespace(yaw=0.0)
+                location=handle.location, rotation=SimpleNamespace(pitch=0.0, yaw=0.0, roll=0.0)
             ),
             get_velocity=lambda: SimpleNamespace(x=0.0, y=0.0),
         )

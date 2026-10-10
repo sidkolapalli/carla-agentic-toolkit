@@ -3,9 +3,22 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from carla_agentic_toolkit.actor_boxes import ProjectedBox
 
 TERMINAL_PHASES = frozenset({"completed", "aborted"})
 COMMITTED_PHASES = frozenset({"committed", "settling"})
+
+
+@dataclass(frozen=True, slots=True)
+class CorridorBox:
+    """World-space box geometry and its conservative longitudinal corridor support."""
+
+    geometry: ProjectedBox
+    longitudinal_m: float
+    longitudinal_radius_m: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -24,6 +37,7 @@ class ActorObservation:
     position_m: tuple[float, float, float] = (0.0, 0.0, 0.0)
     velocity_mps: tuple[float, float, float] = (0.0, 0.0, 0.0)
     longitudinal_speed_mps: float | None = None
+    box: CorridorBox | None = None
 
 
 @dataclass(frozen=True, slots=True)

@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import math
 from typing import TYPE_CHECKING
 
+from carla_agentic_toolkit.actor_boxes import ProjectedBox
 from carla_agentic_toolkit.route_models import TrafficEvidence
 
 EMERGENCY_HORIZON_SECONDS = 1.1
@@ -13,29 +13,27 @@ if TYPE_CHECKING:
     from carla_agentic_toolkit.route_models import RouteActor, RouteObservation
 
 
-def _axes(actor: RouteActor) -> tuple[tuple[float, float], tuple[float, float]]:
-    yaw = math.radians(actor.yaw_degrees)
-    return (math.cos(yaw), math.sin(yaw)), (-math.sin(yaw), math.cos(yaw))
-
-
-def _radius(actor: RouteActor, axis: tuple[float, float], padding: float) -> float:
-    forward, side = _axes(actor)
-    return abs(forward[0] * axis[0] + forward[1] * axis[1]) * (actor.length_m / 2 + padding) + abs(
-        side[0] * axis[0] + side[1] * axis[1]
-    ) * (actor.width_m / 2 + padding)
+def _box(actor: RouteActor) -> ProjectedBox:
+    return actor.box or ProjectedBox(
+        (actor.x, actor.y, actor.z), actor.yaw_degrees, actor.length_m, actor.width_m
+    )
 
 
 def box_separation(
     first: RouteActor, second: RouteActor, *, seconds: float = 0.0, padding: float = 0.0
 ) -> float:
-    """Maximum separating-axis gap: a clearance lower bound; <=0 means box overlap."""
-    dx = second.x - first.x + (second.vx - first.vx) * seconds
-    dy = second.y - first.y + (second.vy - first.vy) * seconds
+    """Bound corrected planar box clearance; <=0 means enclosure overlap, not collision.
+
+    Legacy observations lacking a box retain their actor-origin approximation.
+    """
+    first_box, second_box = _box(first), _box(second)
+    dx = second_box.center_m[0] - first_box.center_m[0] + (second.vx - first.vx) * seconds
+    dy = second_box.center_m[1] - first_box.center_m[1] + (second.vy - first.vy) * seconds
     return max(
         abs(dx * axis[0] + dy * axis[1])
-        - _radius(first, axis, padding)
-        - _radius(second, axis, padding)
-        for axis in (*_axes(first), *_axes(second))
+        - first_box.radius(axis, padding=padding)
+        - second_box.radius(axis, padding=padding)
+        for axis in (*first_box.axes, *second_box.axes)
     )
 
 
