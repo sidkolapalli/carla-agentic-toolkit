@@ -169,7 +169,7 @@ docker run --rm -i --read-only --security-opt=no-new-privileges \
 For Claude Code:
 
 ```bash
-claude mcp add --scope local --transport stdio carla -- \
+claude mcp add --scope local --transport stdio carla-agentic-toolkit -- \
   docker run --rm -i --read-only --security-opt=no-new-privileges \
   --tmpfs /tmp:rw,nosuid,nodev,size=64m \
   --add-host=host.docker.internal:host-gateway \
@@ -179,7 +179,7 @@ claude mcp add --scope local --transport stdio carla -- \
 For Codex:
 
 ```bash
-codex mcp add carla -- \
+codex mcp add carla-agentic-toolkit -- \
   docker run --rm -i --read-only --security-opt=no-new-privileges \
   --tmpfs /tmp:rw,nosuid,nodev,size=64m \
   --add-host=host.docker.internal:host-gateway \
@@ -212,6 +212,11 @@ mkdir -p "$CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR"
 Use absolute paths in client configuration. Desktop and agent processes do not
 always inherit the same `PATH` as an interactive shell.
 
+Register the server as `carla-agentic-toolkit`. CARLA's own agent tools register
+a server named `carla`, and two entries with one name replace or shadow each
+other. If you registered an earlier setup as `carla`, remove it first, for
+example with `claude mcp remove carla` or `codex mcp remove carla`.
+
 Confirm the CARLA package and sandbox before configuring a client:
 
 ```bash
@@ -233,7 +238,7 @@ PY
 The following command was validated with Claude Code 2.1.207:
 
 ```bash
-claude mcp add --scope local --transport stdio carla \
+claude mcp add --scope local --transport stdio carla-agentic-toolkit \
   -e "CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR=$CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR" -- \
   "$UV_BIN" --directory "$CARLA_AGENTIC_TOOLKIT_HOME" run carla-agentic-toolkit
 
@@ -252,7 +257,7 @@ Inside Claude Code, run `/mcp` to inspect the connection and tools.
 The following command was validated with Codex CLI 0.145.0:
 
 ```bash
-codex mcp add carla --env "CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR=$CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR" -- \
+codex mcp add carla-agentic-toolkit --env "CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR=$CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR" -- \
   "$UV_BIN" --directory "$CARLA_AGENTIC_TOOLKIT_HOME" run carla-agentic-toolkit
 
 codex mcp list
@@ -263,14 +268,14 @@ extension, and ChatGPT desktop on the same host. CARLA operations can exceed
 Codex's default 60-second tool timeout, so the full entry should look like:
 
 ```toml
-[mcp_servers.carla]
+[mcp_servers.carla-agentic-toolkit]
 command = "/absolute/path/to/uv"
 args = ["--directory", "/absolute/path/to/carla-agentic-toolkit", "run", "carla-agentic-toolkit"]
 startup_timeout_sec = 30
 tool_timeout_sec = 120
 default_tools_approval_mode = "prompt"
 
-[mcp_servers.carla.env]
+[mcp_servers.carla-agentic-toolkit.env]
 CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR = "/absolute/path/to/carla-agentic-toolkit-output"
 ```
 
@@ -284,7 +289,7 @@ profile:
 ```json
 {
   "servers": {
-    "carla": {
+    "carla-agentic-toolkit": {
       "type": "stdio",
       "command": "/absolute/path/to/uv",
       "args": [
