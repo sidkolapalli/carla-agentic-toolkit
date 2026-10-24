@@ -64,5 +64,9 @@ def _wait_for_frame(
     timeout = min(1.0, remaining, rpc_timeout_seconds())
     try:
         world.wait_for_tick(timeout)
-    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+    except RuntimeError as exc:
+        # Only a wait that ran out at the window's end is normal; an earlier error is not.
+        if time.monotonic() < deadline:
+            raise CarlaAdapterError(str(exc)) from exc
+    except (AttributeError, TypeError, ValueError) as exc:
         raise CarlaAdapterError(str(exc)) from exc

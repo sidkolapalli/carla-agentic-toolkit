@@ -17,6 +17,8 @@ from carla_agentic_toolkit.snapshots import RunSnapshots
 from tests.test_spectator_watch_api import ACTOR_ID, World
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaWorld
     from carla_agentic_toolkit.models import JsonObject
 
@@ -144,6 +146,39 @@ def test_async_wait_uses_frames_until_requested_wall_time(timing_case: TimingCas
     assert timing_case.world.waits == [1.0] * 7 + [0.75, 0.5, 0.25]
     assert timing_case.world.tick_cues == 0
     timing_case.sleep.assert_not_called()
+
+
+def _periodic_frames(case: TimingCase, period: float) -> Callable[[float], object]:
+    """Deliver frames on a fixed server period; CARLA raises when none arrives in time."""
+
+    def wait_for_tick(timeout: float) -> object:
+        case.world.waits.append(timeout)
+        if timeout < period:
+            case.clock.elapsed += timeout
+            message = f"time-out of {timeout * 1000:.0f}ms while waiting for the simulator"
+            raise RuntimeError(message)
+        case.clock.elapsed += period
+        case.world.frame += 1
+        return SimpleNamespace(frame=case.world.frame)
+
+    return wait_for_tick
+
+
+def test_async_wait_ends_normally_when_the_window_closes_between_frames(
+    monkeypatch: pytest.MonkeyPatch, timing_case: TimingCase
+) -> None:
+    """The last frame wait expiring at the deadline is the end of the window, not a failure."""
+    monkeypatch.setattr(timing_case.world, "wait_for_tick", _periodic_frames(timing_case, 0.3))
+    assert timing_case.api.wait(1.0) == {"waited_seconds": 1.0}
+    assert timing_case.world.frame == INITIAL_FRAME + 3
+
+
+def test_async_wait_still_fails_when_no_frame_arrives_for_a_second(
+    monkeypatch: pytest.MonkeyPatch, timing_case: TimingCase
+) -> None:
+    """A stalled server is reported; only a timeout bounded by the window end is normal."""
+    monkeypatch.setattr(timing_case.world, "wait_for_tick", _periodic_frames(timing_case, 5.0))
+    _assert_timing_failure(timing_case.api.wait(2.0), "wait_failed")
 
 
 @pytest.mark.parametrize(
