@@ -24,7 +24,38 @@ from carla_agentic_toolkit.tm_access import require_traffic_manager_port
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
-    from typing import Any
+    from typing import TypedDict
+
+    # Optional request fields that ``_provided_fields`` parsed with the matching typed parser.
+    class _TrafficPortFields(TypedDict, total=False):
+        traffic_manager_port: int
+
+    class _TrafficCountFields(_TrafficPortFields, total=False):
+        vehicle_count: int
+        seed: int
+        safe_filter: bool
+        global_distance_to_leading_vehicle: float
+        global_percentage_speed_difference: float
+
+    class _TrafficPopulationFields(_TrafficCountFields, total=False):
+        advance_world: bool
+
+    class _TrafficDensityFields(_TrafficCountFields, total=False):
+        reset_existing: bool
+
+    class _AutopilotFields(_TrafficPortFields, total=False):
+        enabled: bool
+        advance_world: bool
+
+    class _VehiclePathFields(_TrafficPortFields, total=False):
+        empty_buffer: bool
+
+    class _TrafficManagerFields(_TrafficPortFields, total=False):
+        global_distance_to_leading_vehicle: float
+        global_percentage_speed_difference: float
+        seed: int
+        synchronous_mode: bool
+
 
 _SENSOR_BLUEPRINTS = {
     "rgb": "sensor.camera.rgb",
@@ -102,7 +133,7 @@ def parse_traffic_population_request(payload: dict[str, object]) -> TrafficPopul
             "global_percentage_speed_difference": _float_field,
         },
     )
-    return TrafficPopulationRequest(**cast("Any", fields))
+    return TrafficPopulationRequest(**cast("_TrafficPopulationFields", fields))
 
 
 def parse_traffic_density_request(payload: dict[str, object]) -> TrafficDensityRequest:
@@ -119,7 +150,7 @@ def parse_traffic_density_request(payload: dict[str, object]) -> TrafficDensityR
             "global_percentage_speed_difference": _float_field,
         },
     )
-    return TrafficDensityRequest(**cast("Any", fields))
+    return TrafficDensityRequest(**cast("_TrafficDensityFields", fields))
 
 
 def parse_traffic_controller_start_request(
@@ -147,7 +178,7 @@ def parse_autopilot_request(payload: dict[str, object]) -> AutopilotRequest:
     )
     return AutopilotRequest(
         actor_ids=tuple(_int_value(actor_id, "actor_ids") for actor_id in actor_ids),
-        **cast("Any", fields),
+        **cast("_AutopilotFields", fields),
     )
 
 
@@ -158,7 +189,7 @@ def parse_vehicle_behavior_request(payload: dict[str, object]) -> VehicleBehavio
     return VehicleBehaviorRequest(
         actor_ids=tuple(_int_value(actor_id, "actor_ids") for actor_id in actor_ids),
         profile=_string_field(payload, "profile"),
-        **cast("Any", fields),
+        **cast("_TrafficPortFields", fields),
     )
 
 
@@ -180,7 +211,7 @@ def parse_traffic_vehicle_path_request(
         actor_id=actor_id,
         path=tuple(_location(_mapping_value(item, "path")) for item in path_values),
         route=tuple(_string_value(item, "route") for item in route_values),
-        **cast("Any", fields),
+        **cast("_VehiclePathFields", fields),
     )
 
 
@@ -196,7 +227,7 @@ def parse_traffic_manager_request(payload: dict[str, object]) -> TrafficManagerR
             "synchronous_mode": _bool_field,
         },
     )
-    return TrafficManagerRequest(**cast("Any", fields))
+    return TrafficManagerRequest(**cast("_TrafficManagerFields", fields))
 
 
 def _spawn_request(payload: Mapping[str, object]) -> SpawnRequest:
