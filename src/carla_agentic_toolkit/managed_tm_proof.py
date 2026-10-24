@@ -88,9 +88,20 @@ def failures_from_state(state: dict[str, object]) -> list[str]:
     if not _requires_host_proof(state):
         return []
     value = state.get(EVIDENCE_KEY)
+    if _never_constructed(value, state):
+        return []
     if not isinstance(value, dict) or not _verified_closed(cast("dict[str, object]", value), state):
         return ["Managed Traffic Manager ownership is unresolved; manual recovery is required."]
     return []
+
+
+def _never_constructed(value: object, state: dict[str, object]) -> bool:
+    """Report an open refused before construction intent: no TM or density actors exist."""
+    return (
+        isinstance(value, dict)
+        and value.get("phase") == "not_started"
+        and not _density_records(state)
+    )
 
 
 def _requires_host_proof(state: dict[str, object]) -> bool:

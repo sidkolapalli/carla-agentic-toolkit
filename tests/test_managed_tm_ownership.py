@@ -12,6 +12,7 @@ import pytest
 
 from carla_agentic_toolkit.managed_session import ManagedSession
 from carla_agentic_toolkit.managed_spec import ExperimentSpec
+from carla_agentic_toolkit.managed_tm import failures_from_state
 from tests.managed_density_fakes import (
     DensityManager,
     density_spec,
@@ -120,6 +121,14 @@ def test_preexisting_same_pid_listener_cannot_be_adopted(host_case: HostCase) ->
     host_case.client.manager = DensityManager(host_case.world, host_case.port)
     _reject_open(host_case)
     _no_tm_mutation(host_case)
+
+
+def test_port_conflict_before_construction_leaves_no_unresolved_tm(host_case: HostCase) -> None:
+    """A refused open that never constructed a TM is not ownership requiring manual recovery."""
+    host_case.client.manager = DensityManager(host_case.world, host_case.port)
+    _reject_open(host_case)
+    assert _evidence(host_case)["phase"] == "not_started"
+    assert failures_from_state(host_case.lease.recovery_state) == []
 
 
 @pytest.mark.parametrize("capability", ["get_port", "set_synchronous_mode", "shut_down"])
