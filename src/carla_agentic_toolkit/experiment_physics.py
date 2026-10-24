@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from importlib import import_module
-from typing import Any, cast
+from typing import TYPE_CHECKING
 
 from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
 from carla_agentic_toolkit.experiment_common import (
@@ -14,6 +14,9 @@ from carla_agentic_toolkit.experiment_common import (
     vector_dict,
 )
 from carla_agentic_toolkit.models import Location
+
+if TYPE_CHECKING:
+    from carla_agentic_toolkit.carla_protocols import CarlaWorld
 
 _PHYSICS_ACTIONS = {
     "impulse": "add_impulse",
@@ -39,7 +42,7 @@ _SUPPORTED_FIELDS = frozenset((*_FLOAT_FIELDS, *_BOOL_FIELDS, "center_of_mass"))
 
 
 def configure_actor_physics(
-    world: object,
+    world: CarlaWorld,
     *,
     actor_id: int,
     simulate_physics: bool | None,
@@ -49,7 +52,7 @@ def configure_actor_physics(
     if simulate_physics is None and gravity is None:
         message = "At least one of simulate_physics or gravity is required."
         raise CarlaAdapterError(message)
-    target = actor(cast("Any", world), actor_id)
+    target = actor(world, actor_id)
     if simulate_physics is not None:
         call_required(target, "set_simulate_physics", _bool(simulate_physics))
     if gravity is not None:
@@ -62,7 +65,7 @@ def configure_actor_physics(
 
 
 def apply_actor_physics(
-    world: object,
+    world: CarlaWorld,
     *,
     actor_id: int,
     action: str,
@@ -76,18 +79,18 @@ def apply_actor_physics(
     module = import_module("carla")
     factory = object_factory(module, "Vector3D")
     carla_vector = factory(x=vector.x, y=vector.y, z=vector.z)
-    call_required(actor(cast("Any", world), actor_id), method_name, carla_vector)
+    call_required(actor(world, actor_id), method_name, carla_vector)
     return {"actor_id": actor_id, "action": action, "vector": vector.to_dict()}
 
 
-def get_vehicle_physics(world: object, actor_id: int) -> dict[str, object]:
+def get_vehicle_physics(world: CarlaWorld, actor_id: int) -> dict[str, object]:
     """Return a bounded common subset of VehiclePhysicsControl."""
-    control = call_required(actor(cast("Any", world), actor_id), "get_physics_control")
+    control = call_required(actor(world, actor_id), "get_physics_control")
     return _physics_payload(actor_id, control)
 
 
 def update_vehicle_physics(
-    world: object,
+    world: CarlaWorld,
     *,
     actor_id: int,
     changes: dict[str, object],
@@ -97,7 +100,7 @@ def update_vehicle_physics(
     if unknown:
         message = f"Unsupported vehicle physics fields: {sorted(unknown)}."
         raise CarlaAdapterError(message)
-    target = actor(cast("Any", world), actor_id)
+    target = actor(world, actor_id)
     control = call_required(target, "get_physics_control")
     for name, value in changes.items():
         _set_physics_field(control, name, value)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from importlib import import_module
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.actor_creation import (
     creation_identity,
@@ -25,8 +25,18 @@ if TYPE_CHECKING:
         NoActorObserver,
         SpawnObservers,
     )
-    from carla_agentic_toolkit.carla_protocols import CarlaActor, CarlaBlueprint, CarlaWorld
+    from carla_agentic_toolkit.carla_protocols import (
+        CarlaActor,
+        CarlaBlueprint,
+        CarlaVector,
+        CarlaWorld,
+    )
     from carla_agentic_toolkit.models import Location
+    from carla_agentic_toolkit.world_a_types import (
+        CarlaPedestrianWorld,
+        CarlaWalker,
+        CarlaWalkerController,
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -89,7 +99,7 @@ def set_walker_destination(
 ) -> dict[str, object]:
     """Send a walker AI controller to a destination."""
     destination = carla_location(import_module("carla"), location)
-    cast("Any", actor(world, controller_id)).go_to_location(destination)
+    cast("CarlaWalkerController", actor(world, controller_id)).go_to_location(destination)
     return {"controller_id": controller_id, "destination": location.to_dict()}
 
 
@@ -106,7 +116,7 @@ def apply_walker_control(
         direction=carla_location(carla_module, direction),
         speed=speed,
     )
-    cast("Any", actor(world, actor_id)).apply_control(control)
+    cast("CarlaWalker", actor(world, actor_id)).apply_control(control)
     return {"actor_id": actor_id, "direction": direction.to_dict(), "speed": speed}
 
 
@@ -156,13 +166,14 @@ def try_spawn_walker(
         observe_created_actor(controller, identity, context.on_spawn)
         state.controller_ids.append(int(controller.id))
         lifecycle.settle(int(walker.id))
-        cast("Any", controller).start()
+        ai_controller = cast("CarlaWalkerController", controller)
+        ai_controller.start()
         lifecycle.check()
-        cast("Any", controller).set_max_speed(context.speed)
+        ai_controller.set_max_speed(context.speed)
         lifecycle.check()
         destination = random_walker_location(context.world)
         lifecycle.check()
-        cast("Any", controller).go_to_location(destination)
+        ai_controller.go_to_location(destination)
     except OwnershipError:
         raise
     except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
@@ -224,9 +235,9 @@ def random_walker_transform(world: CarlaWorld) -> object:
     return transform_factory(location)
 
 
-def random_walker_location(world: CarlaWorld) -> object:
+def random_walker_location(world: CarlaWorld) -> CarlaVector:
     """Return a random navigation location for a walker."""
-    location = cast("Any", world).get_random_location_from_navigation()
+    location = cast("CarlaPedestrianWorld", world).get_random_location_from_navigation()
     if location is None:
         msg = "CARLA did not return a navigation location for walkers."
         raise CarlaAdapterError(msg)

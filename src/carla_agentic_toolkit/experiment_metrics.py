@@ -8,14 +8,17 @@ import math
 from collections import defaultdict
 from itertools import pairwise
 from statistics import fmean
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
+from carla_agentic_toolkit.metrics_types import event_data
 from carla_agentic_toolkit.route_metrics import route_metrics
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from carla_agentic_toolkit.experiment_trace import TraceRead
+    from carla_agentic_toolkit.metrics_types import TraceEvent, TraceEvents, TraceSummary
+    from carla_agentic_toolkit.models import JsonObject
 
 METRIC_VERSION = "physical-metrics-v1"
 LOW_SPEED_MPS = 0.2
@@ -55,7 +58,7 @@ METRIC_DEFINITIONS = {
 }
 
 
-def summarize_trace(read: TraceRead) -> dict[str, Any]:
+def summarize_trace(read: TraceRead) -> TraceSummary:
     """Compute a compact, reproducible summary from the immutable saved event stream."""
     events = read.events
     observations = _of_kind(events, "observation")
@@ -70,120 +73,124 @@ def summarize_trace(read: TraceRead) -> dict[str, Any]:
         "event_count": len(events),
         "last_sequence": events[-1]["sequence"] if events else None,
         "trace_errors": list(read.errors),
-        "metadata": [event["data"] for event in _of_kind(events, "metadata")],
+        "metadata": [event_data(event) for event in _of_kind(events, "metadata")],
         "coverage": {"observations": len(observations), "sensor_events": len(sensors)},
-        "metrics": _metrics(events, observations, sensors, decisions, outcomes),
+        "metrics": _metrics(read, observations, sensors, decisions, outcomes),
         "usage": _usage(decisions),
         "definitions": METRIC_DEFINITIONS,
     }
 
 
 def _metrics(
-    events: tuple[dict[str, Any], ...],
-    observations: list[dict[str, Any]],
-    sensors: list[dict[str, Any]],
-    decisions: list[dict[str, Any]],
-    outcomes: list[dict[str, Any]],
-) -> dict[str, Any]:
+    read: TraceRead,
+    observations: list[TraceEvent],
+    sensors: list[TraceEvent],
+    decisions: list[TraceEvent],
+    outcomes: list[TraceEvent],
+) -> JsonObject:
     """Keep event counters distinct from numerical physical measurements."""
     return {
         **_sensor_metrics(sensors),
         **_motion_metrics(observations),
-        **_decision_metrics(events, decisions),
-        **_duration_metrics(events, observations),
-        **route_metrics(events),
+        **_decision_metrics(read.events, decisions),
+        **_duration_metrics(read.events, observations),
+        **route_metrics(read.events),
         "completed": _completed(outcomes),
     }
 
 
-def _of_kind(events: tuple[dict[str, Any], ...], kind: str) -> list[dict[str, Any]]:
+def _of_kind(events: TraceEvents, kind: str) -> list[TraceEvent]:
     return [event for event in events if event["kind"] == kind]
 
 
-def _status(read: TraceRead, outcomes: list[dict[str, Any]]) -> str:
+def _status(read: TraceRead, outcomes: list[TraceEvent]) -> str:
     if not read.complete or _has_infrastructure_failure(read.events):
         return "infrastructure_invalid"
     if not outcomes:
         return "partial"
-    return str(outcomes[-1]["data"].get("status", "finished"))
+    return str(event_data(outcomes[-1]).get("status", "finished"))
 
 
-def _has_infrastructure_failure(events: tuple[dict[str, Any], ...]) -> bool:
+def _has_infrastructure_failure(events: TraceEvents) -> bool:
     return any(_invalid_event(event) for event in events)
 
 
-def _invalid_event(event: dict[str, Any]) -> bool:
+def _invalid_event(event: TraceEvent) -> bool:
     if event["kind"] in {"trace_interrupted", "infrastructure_error"}:
         return True
     if event["kind"] == "cleanup":
-        return _failed_cleanup(event["data"])
-    return event["data"].get("status") in {
+        return _failed_cleanup(event_data(event))
+    return event_data(event).get("status") in {
         "infrastructure_invalid",
         "simulator_error",
         "cleanup_failed",
     }
 
 
-def _failed_cleanup(data: dict[str, Any]) -> bool:
+def _failed_cleanup(data: JsonObject) -> bool:
     return (
         data.get("ok") is False or bool(data.get("failures")) or bool(data.get("sensor_failures"))
     )
 
 
-def _completed(outcomes: list[dict[str, Any]]) -> bool | None:
+def _completed(outcomes: list[TraceEvent]) -> bool | None:
     if not outcomes:
         return None
-    value = outcomes[-1]["data"].get("completed")
+    value = event_data(outcomes[-1]).get("completed")
     return value if isinstance(value, bool) else None
 
 
-def _sensor_metrics(sensors: list[dict[str, Any]]) -> dict[str, Any]:
+def _sensor_metrics(sensors: list[TraceEvent]) -> dict[str, float]:
     return {**_collision_metrics(sensors), **_sensor_delivery_metrics(sensors)}
 
 
-def _collision_metrics(sensors: list[dict[str, Any]]) -> dict[str, Any]:
-    collisions = [
-        event for event in sensors if isinstance(event["data"].get("collision_impulse"), dict)
+def _collision_metrics(sensors: list[TraceEvent]) -> dict[str, float]:
+    impulses = [
+        vector
+        for event in sensors
+        if isinstance(vector := event_data(event).get("collision_impulse"), dict)
     ]
     return {
-        "collision_events": len(collisions),
-        "collision_impulse_magnitude_sum_kg_mps": sum(_impulse(event) for event in collisions),
+        "collision_events": len(impulses),
+        "collision_impulse_magnitude_sum_kg_mps": sum(_impulse(vector) for vector in impulses),
     }
 
 
-def _sensor_delivery_metrics(sensors: list[dict[str, Any]]) -> dict[str, Any]:
+def _sensor_delivery_metrics(sensors: list[TraceEvent]) -> dict[str, int]:
     return {
         "lane_invasion_events": sum(_lane_invasion(event) for event in sensors),
         "sensor_dropped_samples": _dropped_samples(sensors),
-        "sensor_trailing_events": sum(event["data"].get("trailing") is True for event in sensors),
+        "sensor_trailing_events": sum(
+            event_data(event).get("trailing") is True for event in sensors
+        ),
     }
 
 
-def _impulse(event: dict[str, Any]) -> float:
-    vector = event["data"]["collision_impulse"]
+def _impulse(vector: JsonObject) -> float:
     values = [_number(vector.get(axis)) for axis in ("x", "y", "z")]
     if None in values:
         return 0.0
     return math.sqrt(sum(cast("float", value) ** 2 for value in values))
 
 
-def _lane_invasion(event: dict[str, Any]) -> bool:
-    value = event["data"].get("lane_invasion")
+def _lane_invasion(event: TraceEvent) -> bool:
+    value = event_data(event).get("lane_invasion")
     if not isinstance(value, dict):
         return False
     return (_number(value.get("count")) or 0) > 0
 
 
-def _dropped_samples(sensors: list[dict[str, Any]]) -> int:
+def _dropped_samples(sensors: list[TraceEvent]) -> int:
     streams: dict[tuple[object, ...], int] = {}
     for event in sensors:
-        identity = (event["world_generation"], event["actor_id"], event["data"].get("sensor_id"))
-        dropped = _number(event["data"].get("dropped_samples")) or 0
+        data = event_data(event)
+        identity = (event["world_generation"], event["actor_id"], data.get("sensor_id"))
+        dropped = _number(data.get("dropped_samples")) or 0
         streams[identity] = max(streams.get(identity, 0), int(dropped))
     return sum(streams.values())
 
 
-def _motion_metrics(observations: list[dict[str, Any]]) -> dict[str, Any]:
+def _motion_metrics(observations: list[TraceEvent]) -> dict[str, float | None]:
     groups = _actor_groups(observations)
     errors = _numbers(observations, "tracking_error_m")
     return {
@@ -195,36 +202,36 @@ def _motion_metrics(observations: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def _actor_groups(events: list[dict[str, Any]]) -> dict[tuple[object, ...], list[dict[str, Any]]]:
-    groups: dict[tuple[object, ...], list[dict[str, Any]]] = defaultdict(list)
+def _actor_groups(events: list[TraceEvent]) -> dict[tuple[object, ...], list[TraceEvent]]:
+    groups: dict[tuple[object, ...], list[TraceEvent]] = defaultdict(list)
     for event in events:
         groups[(event["world_generation"], event["actor_id"])].append(event)
     return groups
 
 
-def _hesitation(group: list[dict[str, Any]]) -> float:
+def _hesitation(group: list[TraceEvent]) -> float:
     return sum(_slow_interval(first, second) for first, second in pairwise(group))
 
 
-def _slow_interval(first: dict[str, Any], second: dict[str, Any]) -> float:
-    speed = _number(first["data"].get("speed_mps"))
+def _slow_interval(first: TraceEvent, second: TraceEvent) -> float:
+    speed = _number(event_data(first).get("speed_mps"))
     if speed is None or abs(speed) > LOW_SPEED_MPS:
         return 0.0
-    first_time = _number(first["data"].get("simulation_seconds"))
-    second_time = _number(second["data"].get("simulation_seconds"))
+    first_time = _number(event_data(first).get("simulation_seconds"))
+    second_time = _number(event_data(second).get("simulation_seconds"))
     if first_time is None or second_time is None:
         return 0.0
     return max(second_time - first_time, 0.0)
 
 
-def _reversals(group: list[dict[str, Any]]) -> int:
-    signed = [_longitudinal_speed(event["data"]) for event in group]
+def _reversals(group: list[TraceEvent]) -> int:
+    signed = [_longitudinal_speed(event_data(event)) for event in group]
     speeds = _moving_speeds(signed)
     signs = [speed > 0 for speed in speeds]
     return sum(first != second for first, second in pairwise(signs))
 
 
-def _longitudinal_speed(data: dict[str, Any]) -> float | None:
+def _longitudinal_speed(data: JsonObject) -> float | None:
     return _number(data.get("longitudinal_speed_mps", data.get("speed_mps")))
 
 
@@ -232,23 +239,21 @@ def _moving_speeds(speeds: list[float | None]) -> list[float]:
     return [speed for speed in speeds if speed is not None and abs(speed) > LOW_SPEED_MPS]
 
 
-def _decision_metrics(
-    events: tuple[dict[str, Any], ...], decisions: list[dict[str, Any]]
-) -> dict[str, Any]:
+def _decision_metrics(events: TraceEvents, decisions: list[TraceEvent]) -> dict[str, float | None]:
     interventions = _of_kind(events, "intervention")
     latency = _numbers(decisions, "latency_seconds")
     staleness = _numbers(decisions, "staleness_frames")
     return {
         "interventions": len(interventions),
-        "fallbacks": sum(event["data"].get("fallback") is True for event in interventions),
+        "fallbacks": sum(event_data(event).get("fallback") is True for event in interventions),
         "decision_latency_mean_seconds": fmean(latency) if latency else None,
         "decision_staleness_max_frames": max(staleness) if staleness else None,
     }
 
 
 def _duration_metrics(
-    events: tuple[dict[str, Any], ...], observations: list[dict[str, Any]]
-) -> dict[str, Any]:
+    events: TraceEvents, observations: list[TraceEvent]
+) -> dict[str, float | None]:
     wall = _wall_duration(events)
     simulation = _simulation_duration(observations)
     return {
@@ -258,22 +263,30 @@ def _duration_metrics(
     }
 
 
-def _wall_duration(events: tuple[dict[str, Any], ...]) -> float | None:
+def _wall_duration(events: TraceEvents) -> float | None:
     if not events[1:]:
         return None
-    return max(float(events[-1]["monotonic_seconds"]) - float(events[0]["monotonic_seconds"]), 0.0)
+    return max(_monotonic_seconds(events[-1]) - _monotonic_seconds(events[0]), 0.0)
 
 
-def _simulation_duration(observations: list[dict[str, Any]]) -> float | None:
-    worlds: dict[str, list[float]] = defaultdict(list)
+def _monotonic_seconds(event: TraceEvent) -> float:
+    value = event["monotonic_seconds"]
+    if isinstance(value, int | float):
+        return float(value)
+    message = "Trace monotonic_seconds must be numerical."
+    raise TypeError(message)
+
+
+def _simulation_duration(observations: list[TraceEvent]) -> float | None:
+    worlds: dict[object, list[float]] = defaultdict(list)
     for event in observations:
-        timestamp = _number(event["data"].get("simulation_seconds"))
+        timestamp = _number(event_data(event).get("simulation_seconds"))
         if timestamp is not None:
             worlds[event["world_generation"]].append(timestamp)
     return _world_durations(worlds)
 
 
-def _world_durations(worlds: dict[str, list[float]]) -> float | None:
+def _world_durations(worlds: dict[object, list[float]]) -> float | None:
     if not worlds:
         return None
     return sum(max(values) - min(values) for values in worlds.values())
@@ -285,15 +298,15 @@ def _real_time_factor(simulation: float | None, wall: float | None) -> float | N
     return simulation / wall
 
 
-def _usage(decisions: list[dict[str, Any]]) -> list[dict[str, Any]] | None:
-    usage = [event["data"].get("usage") for event in decisions]
+def _usage(decisions: list[TraceEvent]) -> list[object] | None:
+    usage = [event_data(event).get("usage") for event in decisions]
     if not usage or any(value is None for value in usage):
         return None
     return usage
 
 
-def _numbers(events: list[dict[str, Any]], key: str) -> list[float]:
-    values = (_number(event["data"].get(key)) for event in events)
+def _numbers(events: list[TraceEvent], key: str) -> list[float]:
+    values = (_number(event_data(event).get(key)) for event in events)
     return [value for value in values if value is not None]
 
 
@@ -320,7 +333,7 @@ def write_trace_report(path: Path) -> dict[str, Path]:
     return {"summary": summary_path, "report": report_path}
 
 
-def _report_html(summary: dict[str, Any]) -> str:
+def _report_html(summary: TraceSummary) -> str:
     rows = "".join(_metric_row(key, value) for key, value in summary["metrics"].items())
     definitions = html.escape(json.dumps(summary["definitions"], indent=2))
     metadata = html.escape(json.dumps(summary["metadata"], indent=2))

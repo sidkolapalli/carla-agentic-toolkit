@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import math
 from dataclasses import asdict, dataclass, replace
-from typing import Any, cast
+from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.errors import UnsupportedFeatureError
+
+if TYPE_CHECKING:
+    from carla_agentic_toolkit.merge_types import MergeMap, MergeWaypoint
 
 FIXTURE_VERSION = "town10-merge-v1"
 FIXTURE_VEHICLES = {
@@ -71,7 +74,8 @@ def select_corridor(world_map: object, *, fixture_version: str = FIXTURE_VERSION
     if fixture_version not in FIXTURE_VEHICLES:
         msg = f"Unsupported merge fixture: {fixture_version}."
         raise UnsupportedFeatureError(msg)
-    runtime_map = cast("Any", world_map)
+    # route_fixture passes an untyped native map; carla.Map provides these members.
+    runtime_map = cast("MergeMap", world_map)
     map_name = str(runtime_map.name).rsplit("/", maxsplit=1)[-1]
     if map_name not in {"Town10HD", "Town10HD_Opt"}:
         msg = f"{fixture_version} requires Town10HD or Town10HD_Opt, received {map_name}."
@@ -85,15 +89,13 @@ def select_corridor(world_map: object, *, fixture_version: str = FIXTURE_VERSION
     raise UnsupportedFeatureError(msg)
 
 
-def _waypoint_key(waypoint: object) -> tuple[int, int, int, float]:
-    value = cast("Any", waypoint)
+def _waypoint_key(value: MergeWaypoint) -> tuple[int, int, int, float]:
     return int(value.road_id), int(value.section_id), int(value.lane_id), float(value.s)
 
 
-def _candidate_corridor(start: object) -> MergeCorridor | None:
-    source = cast("Any", start)
+def _candidate_corridor(source: MergeWaypoint) -> MergeCorridor | None:
     target = source.get_right_lane()
-    if not _lane_pair_valid(source, target):
+    if target is None or not _lane_pair_valid(source, target):
         return None
     source_route, target_route = _verified_route(source), _verified_route(target)
     if not source_route or not target_route:
@@ -111,10 +113,7 @@ def _candidate_corridor(start: object) -> MergeCorridor | None:
     )
 
 
-def _lane_pair_valid(source: object, target: object | None) -> bool:
-    if target is None:
-        return False
-    left, right = cast("Any", source), cast("Any", target)
+def _lane_pair_valid(left: MergeWaypoint, right: MergeWaypoint) -> bool:
     permission = str(left.lane_change).split(".")[-1] in {"Right", "Both"}
     return all(
         (
@@ -134,13 +133,12 @@ def _lane_pair_valid(source: object, target: object | None) -> bool:
     )
 
 
-def _driving(waypoint: object) -> bool:
-    value = cast("Any", waypoint)
+def _driving(value: MergeWaypoint) -> bool:
     return str(value.lane_type).split(".")[-1] == "Driving" and not value.is_junction
 
 
-def _verified_route(start: object) -> tuple[Pose, ...]:
-    current = cast("Any", start)
+def _verified_route(start: MergeWaypoint) -> tuple[Pose, ...]:
+    current = start
     points: list[Pose] = []
     for _index in range(int(CORRIDOR_LENGTH_M / CORRIDOR_SAMPLE_M) + 1):
         if not _route_point_valid(current, start):
@@ -153,8 +151,7 @@ def _verified_route(start: object) -> tuple[Pose, ...]:
     return tuple(points)
 
 
-def _matching_successors(waypoint: object) -> list[object]:
-    value = cast("Any", waypoint)
+def _matching_successors(value: MergeWaypoint) -> list[MergeWaypoint]:
     return [
         item
         for item in value.next(CORRIDOR_SAMPLE_M)
@@ -162,7 +159,7 @@ def _matching_successors(waypoint: object) -> list[object]:
     ]
 
 
-def _route_point_valid(current: object, start: object) -> bool:
+def _route_point_valid(current: MergeWaypoint | None, start: MergeWaypoint) -> bool:
     if current is None:
         return False
     pose, initial = _pose(current), _pose(start)
@@ -177,8 +174,8 @@ def _route_point_valid(current: object, start: object) -> bool:
     )
 
 
-def _pose(waypoint: object) -> Pose:
-    transform = cast("Any", waypoint).transform
+def _pose(waypoint: MergeWaypoint) -> Pose:
+    transform = waypoint.transform
     location = transform.location
     return Pose(
         float(location.x), float(location.y), float(location.z), float(transform.rotation.yaw)

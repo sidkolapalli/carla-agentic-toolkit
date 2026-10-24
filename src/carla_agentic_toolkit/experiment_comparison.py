@@ -8,16 +8,32 @@ import json
 from collections import Counter, defaultdict
 from pathlib import Path
 from statistics import fmean
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from carla_agentic_toolkit.experiment_metrics import METRIC_VERSION, summarize_trace
 from carla_agentic_toolkit.experiment_trace import identity_digest, load_trace
 from carla_agentic_toolkit.managed_names import normalize_merge_fixture, normalize_merge_spec
 from carla_agentic_toolkit.managed_spec import ExperimentSpec
+from carla_agentic_toolkit.metrics_types import event_data, measured_number, metadata_identity
 from carla_agentic_toolkit.replicate_index import normalize_replicate_index
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Mapping, Sequence
+
+    from carla_agentic_toolkit.metrics_types import (
+        AggregateMetrics,
+        ComparisonReport,
+        ComparisonRun,
+        MatchGroup,
+        MatchingEvidence,
+        MeanMetric,
+        PolicySummary,
+        RateMetric,
+        RunUsage,
+        TraceEvents,
+        TraceSummary,
+    )
+    from carla_agentic_toolkit.models import JsonObject
 
 COMPARISON_VERSION = "matched-comparison-v1"
 MAX_INPUT_RUNS = 200
@@ -74,7 +90,7 @@ DEFINITIONS = {
 }
 
 
-def compare_traces(paths: Sequence[Path]) -> dict[str, Any]:
+def compare_traces(paths: Sequence[Path]) -> ComparisonReport:
     """Retain every distinct saved trial and fail closed on incomplete matching evidence."""
     if not 1 <= len(paths) <= MAX_INPUT_RUNS:
         message = f"Supply 1..{MAX_INPUT_RUNS} saved trace paths."
@@ -100,8 +116,8 @@ def compare_traces(paths: Sequence[Path]) -> dict[str, Any]:
     }
 
 
-def _load_runs(paths: Sequence[Path]) -> tuple[list[dict[str, Any]], list[str]]:
-    runs: list[dict[str, Any]] = []
+def _load_runs(paths: Sequence[Path]) -> tuple[list[ComparisonRun], list[str]]:
+    runs: list[ComparisonRun] = []
     blockers: list[str] = []
     identities: set[str] = set()
     for path in paths:
@@ -116,7 +132,7 @@ def _load_runs(paths: Sequence[Path]) -> tuple[list[dict[str, Any]], list[str]]:
     return runs, blockers
 
 
-def _read_run(path: Path) -> dict[str, Any]:
+def _read_run(path: Path) -> ComparisonRun:
     read = load_trace(path)
     summary = summarize_trace(read)
     metadata = _one_data(read.events, "metadata")
@@ -134,22 +150,22 @@ def _read_run(path: Path) -> dict[str, Any]:
         "exclusion_reasons": exclusions,
         "fixture": fixture,
         "decision_metadata": [
-            event["data"].get("metadata")
+            event_data(event).get("metadata")
             for event in read.events
             if event["kind"] == "decision_received"
         ],
     }
 
 
-def _one_data(events: tuple[dict[str, Any], ...], kind: str) -> dict[str, Any]:
-    matches = [event["data"] for event in events if event["kind"] == kind]
+def _one_data(events: TraceEvents, kind: str) -> JsonObject:
+    matches = [event_data(event) for event in events if event["kind"] == kind]
     return matches[0] if len(matches) == 1 else {}
 
 
 def _match_identity(
-    metadata: dict[str, Any],
-    fixture: dict[str, Any],
-) -> tuple[dict[str, Any], list[str]]:
+    metadata: JsonObject,
+    fixture: JsonObject,
+) -> tuple[MatchingEvidence, list[str]]:
     spec = metadata.get("spec")
     if not isinstance(spec, dict):
         return {}, ["missing or ambiguous reproduction metadata/spec"]
@@ -161,13 +177,13 @@ def _match_identity(
     except ValueError as error:
         return {}, [f"invalid matching evidence: {error}"]
     errors = _identity_errors(metadata, spec, fixture)
-    identity = {key: metadata.get(key) for key in MATCH_METADATA}
+    identity = metadata_identity(metadata)
     identity["spec"] = _without(canonical_spec, {"policy", "replay_run_id"})
     identity["fixture"] = _fixture_identity(fixture)
     return identity, errors
 
 
-def _fixture_identity(fixture: dict[str, Any]) -> dict[str, Any]:
+def _fixture_identity(fixture: JsonObject) -> JsonObject:
     values = _without(fixture, {"actor_ids"})
     lights = values.get("initial_traffic_lights")
     if isinstance(lights, dict):
@@ -184,9 +200,9 @@ def _fixture_identity(fixture: dict[str, Any]) -> dict[str, Any]:
 
 
 def _identity_errors(
-    metadata: dict[str, Any],
-    spec: dict[str, Any],
-    fixture: dict[str, Any],
+    metadata: JsonObject,
+    spec: JsonObject,
+    fixture: JsonObject,
 ) -> list[str]:
     errors = _metadata_errors(metadata, spec)
     if spec.get("policy") not in ("rules", "jev"):
@@ -197,9 +213,7 @@ def _identity_errors(
     return errors
 
 
-def _replicate_errors(
-    metadata: dict[str, Any], spec: dict[str, Any], fixture: dict[str, Any]
-) -> list[str]:
+def _replicate_errors(metadata: JsonObject, spec: JsonObject, fixture: JsonObject) -> list[str]:
     sources = {"metadata": metadata}
     if "replicate_index" in fixture:
         sources["fixture"] = fixture
@@ -210,7 +224,7 @@ def _replicate_errors(
     ]
 
 
-def _metadata_errors(metadata: dict[str, Any], spec: dict[str, Any]) -> list[str]:
+def _metadata_errors(metadata: JsonObject, spec: JsonObject) -> list[str]:
     errors = _environment_errors(metadata.get("environment"))
     if any(metadata.get(key) in (None, "", {}) for key in MATCH_METADATA):
         errors.append("missing required reproduction metadata")
@@ -230,7 +244,7 @@ def _environment_errors(environment: object) -> list[str]:
     return []
 
 
-def _fixture_complete(fixture: dict[str, Any]) -> bool:
+def _fixture_complete(fixture: JsonObject) -> bool:
     poses = ("policy_start", "target_start", "target_lane_start")
     return all(_pose_complete(fixture.get(key)) for key in poses) and bool(fixture.get("settings"))
 
@@ -239,7 +253,7 @@ def _pose_complete(pose: object) -> bool:
     return isinstance(pose, dict) and {"x", "y", "z", "yaw"} <= pose.keys()
 
 
-def _valid_saved_spec(spec: dict[str, Any]) -> bool:
+def _valid_saved_spec(spec: JsonObject) -> bool:
     try:
         historical_role = "ego_speed_mps" in spec and "controlled_vehicle_role" not in spec
         spec = normalize_merge_spec(normalize_replicate_index(spec))
@@ -252,16 +266,16 @@ def _valid_saved_spec(spec: dict[str, Any]) -> bool:
         return expected == spec
 
 
-def _saved_spec(metadata: dict[str, Any]) -> dict[str, Any]:
+def _saved_spec(metadata: JsonObject) -> JsonObject:
     spec = metadata.get("spec")
     return spec if isinstance(spec, dict) else {}
 
 
-def _without(data: dict[str, Any], omitted: set[str]) -> dict[str, Any]:
+def _without(data: Mapping[str, object], omitted: set[str]) -> JsonObject:
     return {key: value for key, value in data.items() if key not in omitted}
 
 
-def _exclusions(summary: dict[str, Any], events: tuple[dict[str, Any], ...]) -> list[str]:
+def _exclusions(summary: TraceSummary, events: TraceEvents) -> list[str]:
     reasons = []
     if summary["status"] in {"infrastructure_invalid", "partial", "cancelled"}:
         reasons.append(summary["status"])
@@ -274,15 +288,19 @@ def _exclusions(summary: dict[str, Any], events: tuple[dict[str, Any], ...]) -> 
     return reasons
 
 
-def _match_groups(runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    groups: dict[str, dict[str, list[str]]] = defaultdict(lambda: {"rules": [], "jev": []})
+def _match_groups(runs: list[ComparisonRun]) -> list[MatchGroup]:
+    groups: dict[str, dict[str, list[object]]] = defaultdict(lambda: {"rules": [], "jev": []})
     for run in runs:
         if run["match_id"] is not None:
-            groups[run["match_id"]][run["policy"]].append(run["run_id"])
-    return [{"match_id": key, **policies} for key, policies in sorted(groups.items())]
+            # A run has a match_id only once its saved policy was verified as "rules" or "jev".
+            groups[run["match_id"]][str(run["policy"])].append(run["run_id"])
+    return [
+        {"match_id": key, "rules": policies["rules"], "jev": policies["jev"]}
+        for key, policies in sorted(groups.items())
+    ]
 
 
-def _matching_blockers(groups: list[dict[str, Any]]) -> list[str]:
+def _matching_blockers(groups: list[MatchGroup]) -> list[str]:
     if not groups:
         return ["no complete matching cohorts"]
     return [
@@ -292,15 +310,12 @@ def _matching_blockers(groups: list[dict[str, Any]]) -> list[str]:
     ]
 
 
-def _replicate_warnings(runs: list[dict[str, Any]]) -> list[str]:
+def _replicate_warnings(runs: list[ComparisonRun]) -> list[str]:
     indices: dict[str, set[int]] = defaultdict(set)
     for run in runs:
         if run["match_id"] is not None:
-            evidence = run["matching_evidence"]
-            context = _without(evidence, {"replicate_index"})
-            context["spec"] = _without(evidence["spec"], {"replicate_index"})
-            context["fixture"] = _without(evidence["fixture"], {"replicate_index"})
-            indices[identity_digest(context)].add(evidence["replicate_index"])
+            context, index = _replicate_context(run["matching_evidence"])
+            indices[context].add(index)
     return [
         f"Replicate indices {sorted(values)} share the same recorded initial condition "
         f"in matching context {context}. Replicate labels do not sample independent "
@@ -310,12 +325,24 @@ def _replicate_warnings(runs: list[dict[str, Any]]) -> list[str]:
     ]
 
 
+def _replicate_context(evidence: MatchingEvidence) -> tuple[str, int]:
+    """Digest matched evidence without its replicate labels, which were validated as ints."""
+    context = _without(evidence, {"replicate_index"})
+    context["spec"] = _without(evidence["spec"], {"replicate_index"})
+    context["fixture"] = _without(evidence["fixture"], {"replicate_index"})
+    index = evidence["replicate_index"]
+    if not isinstance(index, int):
+        message = "Matched evidence has no integer replicate index."
+        raise TypeError(message)
+    return identity_digest(context), index
+
+
 def _policy_summary(
-    runs: list[dict[str, Any]],
+    runs: list[ComparisonRun],
     policy: str,
     *,
     comparable: bool,
-) -> dict[str, Any]:
+) -> PolicySummary:
     trials = [run for run in runs if run["policy"] == policy]
     eligible = _eligible(trials)
     return {
@@ -328,23 +355,23 @@ def _policy_summary(
     }
 
 
-def _eligible(runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _eligible(runs: list[ComparisonRun]) -> list[ComparisonRun]:
     return [run for run in runs if run["eligible"]]
 
 
-def _aggregate(runs: list[dict[str, Any]]) -> dict[str, Any]:
+def _aggregate(runs: list[ComparisonRun]) -> AggregateMetrics:
     metrics = [run["metrics"] for run in runs]
     return {
         "completion": _rate(sum(item["completed"] is True for item in metrics), len(metrics)),
         "observed_collision": _rate(
-            sum(item["collision_events"] > 0 for item in metrics),
+            sum(measured_number(item["collision_events"]) > 0 for item in metrics),
             len(metrics),
         ),
         **{key: _mean(metrics, key) for key in MEAN_METRICS},
     }
 
 
-def _rate(numerator: int, denominator: int) -> dict[str, Any]:
+def _rate(numerator: int, denominator: int) -> RateMetric:
     return {
         "numerator": numerator,
         "denominator": denominator,
@@ -352,15 +379,18 @@ def _rate(numerator: int, denominator: int) -> dict[str, Any]:
     }
 
 
-def _mean(metrics: list[dict[str, Any]], key: str) -> dict[str, Any]:
-    values = [item[key] for item in metrics if item[key] is not None]
+def _mean(metrics: list[JsonObject], key: str) -> MeanMetric:
+    values = [measured_number(item[key]) for item in metrics if item[key] is not None]
     return {"mean": fmean(values) if values else None, "denominator": len(values)}
 
 
-def _usage(runs: list[dict[str, Any]]) -> list[dict[str, Any]] | None:
-    if not runs or any(run["usage"] is None for run in runs):
-        return None
-    return [{"run_id": run["run_id"], "usage": run["usage"]} for run in runs]
+def _usage(runs: list[ComparisonRun]) -> list[RunUsage] | None:
+    usage: list[RunUsage] = [
+        {"run_id": run["run_id"], "usage": value}
+        for run in runs
+        if (value := run["usage"]) is not None
+    ]
+    return usage if runs and len(usage) == len(runs) else None
 
 
 def write_comparison_report(paths: Sequence[Path], output: Path) -> dict[str, Path]:
@@ -375,7 +405,7 @@ def write_comparison_report(paths: Sequence[Path], output: Path) -> dict[str, Pa
     return {"summary": json_path, "report": html_path}
 
 
-def _render_report(report: dict[str, Any], serialized: str) -> str:
+def _render_report(report: ComparisonReport, serialized: str) -> str:
     status = "Matched descriptive comparison" if report["comparable"] else "Comparison refused"
     rows = "".join(_policy_row(policy, values) for policy, values in report["policies"].items())
     return (
@@ -393,18 +423,18 @@ def _render_report(report: dict[str, Any], serialized: str) -> str:
     )
 
 
-def _policy_row(policy: str, values: dict[str, Any]) -> str:
+def _policy_row(policy: str, values: PolicySummary) -> str:
     return (
         f"<tr><td>{html.escape(policy)}</td><td>{values['sample_count']}</td>"
         f"<td>{values['eligible_count']}</td><td>{values['excluded_count']}</td></tr>"
     )
 
 
-def _metric_table(report: dict[str, Any]) -> str:
+def _metric_table(report: ComparisonReport) -> str:
     if not report["comparable"]:
         return "<p>Comparative metrics withheld. Inspect the blockers below.</p>"
-    rules = report["policies"]["rules"]["metrics"]
-    jev = report["policies"]["jev"]["metrics"]
+    rules = report["policies"]["rules"]["metrics"] or {}
+    jev = report["policies"]["jev"]["metrics"] or {}
     rows = "".join(_metric_row(key, rules[key], jev[key]) for key in rules)
     return (
         "<h2>Physical metrics</h2><table><tr><th>Metric</th><th>Rules</th><th>Jev</th></tr>"
@@ -413,7 +443,7 @@ def _metric_table(report: dict[str, Any]) -> str:
     )
 
 
-def _metric_row(key: str, rules: dict[str, Any], jev: dict[str, Any]) -> str:
+def _metric_row(key: str, rules: RateMetric | MeanMetric, jev: RateMetric | MeanMetric) -> str:
     cells = "".join(
         f"<td>{html.escape(json.dumps(value, sort_keys=True))}</td>" for value in (rules, jev)
     )

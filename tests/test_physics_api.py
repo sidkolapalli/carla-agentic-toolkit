@@ -146,6 +146,11 @@ class World:
         return Actors(self.actor)
 
 
+def fake_world(actor: object) -> CarlaWorld:
+    """Present the one-actor world fake where runtime helpers expect a CARLA world."""
+    return cast("CarlaWorld", World(actor))
+
+
 @dataclass
 class Vector3D:
     """CARLA vector/location factory fake."""
@@ -202,7 +207,7 @@ def test_runtime_calls_each_official_vector_physics_method(
     )
 
     result = experiment_physics.apply_actor_physics(
-        World(actor),
+        fake_world(actor),
         actor_id=ACTOR_ID,
         action=action,
         vector=Location(x=1.0, y=2.0, z=3.0),
@@ -231,13 +236,13 @@ def test_runtime_calls_official_actor_physics_methods(
     )
 
     configured = experiment_physics.configure_actor_physics(
-        World(actor),
+        fake_world(actor),
         actor_id=ACTOR_ID,
         simulate_physics=True,
         gravity=False,
     )
     applied = experiment_physics.apply_actor_physics(
-        World(actor),
+        fake_world(actor),
         actor_id=ACTOR_ID,
         action="impulse",
         vector=Location(x=1.0, y=2.0, z=3.0),
@@ -299,7 +304,7 @@ def test_runtime_reports_missing_physics_capability() -> None:
     """Absent methods should be feature diagnostics, not version assumptions."""
     with pytest.raises(UnsupportedFeatureError, match="set_simulate_physics"):
         experiment_physics.configure_actor_physics(
-            World(PhysicsActor({})),
+            fake_world(PhysicsActor({})),
             actor_id=ACTOR_ID,
             simulate_physics=True,
             gravity=None,
@@ -337,9 +342,9 @@ def test_vehicle_physics_read_and_partial_update(
         lambda _name: type("Carla", (), {"Location": Vector3D}),
     )
 
-    before = experiment_physics.get_vehicle_physics(World(actor), ACTOR_ID)
+    before = experiment_physics.get_vehicle_physics(fake_world(actor), ACTOR_ID)
     after = experiment_physics.update_vehicle_physics(
-        World(actor),
+        fake_world(actor),
         actor_id=ACTOR_ID,
         changes={"mass": UPDATED_MASS, "center_of_mass": VECTOR},
     )

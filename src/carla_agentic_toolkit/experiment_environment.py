@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 import re
 from importlib import import_module
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.actor_boxes import bounding_box_metadata
 from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
@@ -18,9 +18,10 @@ from carla_agentic_toolkit.experiment_common import (
 from carla_agentic_toolkit.experiment_ground_truth import finite_vector
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterable
 
     from carla_agentic_toolkit.models import Location
+    from carla_agentic_toolkit.world_b_types import CarlaBoundingBox, CarlaEnvironmentObject
 
 MAX_ENVIRONMENT_OBJECTS = 1000
 MAX_ENVIRONMENT_IDS = 1000
@@ -51,7 +52,8 @@ def get_environment_objects(
         message = "include_level_bounds must be a boolean."
         raise CarlaAdapterError(message)
     enum_value = _enum_value("CityObjectLabel", label)
-    objects = list(cast("Any", call_required(world, "get_environment_objects", enum_value)))
+    native = call_required(world, "get_environment_objects", enum_value)
+    objects = list(cast("Iterable[CarlaEnvironmentObject]", native))
     result: dict[str, object] = {
         "label": label,
         "objects": [_environment_object(item) for item in objects[:max_count]],
@@ -74,7 +76,9 @@ def get_level_bounding_boxes(
     _validate_max_count(max_count)
     _validate_spatial_query(origin, max_distance)
     enum_value = _enum_value("CityObjectLabel", label)
-    boxes = list(cast("Any", call_required(world, "get_level_bbs", enum_value)))
+    boxes = list(
+        cast("Iterable[CarlaBoundingBox]", call_required(world, "get_level_bbs", enum_value))
+    )
     if origin is None:
         return {
             "label": label,
@@ -119,7 +123,7 @@ def _distance_value(max_distance: float) -> float:
 
 
 def _spatial_boxes(
-    boxes: list[object], origin: Location, max_distance: float | None
+    boxes: list[CarlaBoundingBox], origin: Location, max_distance: float | None
 ) -> list[dict[str, object]]:
     measured = [_distance_box(item, origin) for item in boxes]
     eligible = [
@@ -206,8 +210,7 @@ def _validate_max_count(max_count: int) -> None:
         raise CarlaAdapterError(message)
 
 
-def _environment_object(value: object) -> dict[str, object]:
-    item = cast("Any", value)
+def _environment_object(item: CarlaEnvironmentObject) -> dict[str, object]:
     return {
         "id": int(item.id),
         "name": str(item.name),
@@ -217,8 +220,7 @@ def _environment_object(value: object) -> dict[str, object]:
     }
 
 
-def _bounding_box(value: object) -> dict[str, object]:
-    box = cast("Any", value)
+def _bounding_box(box: CarlaBoundingBox) -> dict[str, object]:
     rotation = box.rotation
     return {
         "location": vector_dict(box.location),

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Protocol, cast
 
 from carla_agentic_toolkit import (
     experiment_common,
@@ -36,6 +36,13 @@ if TYPE_CHECKING:
     from carla_agentic_toolkit.script_settings import RunSettings
     from carla_agentic_toolkit.sensor_memory import SensorQueueBudget
     from carla_agentic_toolkit.sensor_subscription import SensorSubscription
+
+
+class _PositionalReloadClient(Protocol):
+    """Native ``carla.Client.reload_world`` also accepts ``reset_settings`` positionally."""
+
+    def reload_world(self, reset_settings: bool = True, /) -> CarlaWorld:  # noqa: FBT001, FBT002 - native CARLA signature.
+        """Reload the same map, optionally retaining current settings."""
 
 
 class PythonCarlaExperimentMixin(PythonCarlaGroundTruthMixin, PythonCarlaSensorListeningMixin):
@@ -627,7 +634,7 @@ class PythonCarlaExperimentMixin(PythonCarlaGroundTruthMixin, PythonCarlaSensorL
         world = call_map_rpc(
             client,
             self._rpc_timeout_policy,
-            lambda: cast("Any", client).reload_world(reset_settings),
+            lambda: cast("_PositionalReloadClient", client).reload_world(reset_settings),
         )
         self._rebind_replacement_settings(world)
         self._forget_sensor_records()

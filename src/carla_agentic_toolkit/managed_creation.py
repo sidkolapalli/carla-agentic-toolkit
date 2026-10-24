@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, replace
-from typing import TYPE_CHECKING, Any, cast
+from dataclasses import asdict, dataclass, fields, replace
+from typing import TYPE_CHECKING, TypedDict, TypeGuard, cast
 
 from carla_agentic_toolkit.experiment_common import transform_dict
 from carla_agentic_toolkit.managed_world import SessionInvariantError
@@ -175,51 +175,67 @@ def _supported_version(value: object) -> bool:
     return type(value) is int and value == 1
 
 
+_INTENT_FIELDS = frozenset(item.name for item in fields(SpawnIntent))
+_REQUIRED_INTENT_FIELDS = _INTENT_FIELDS - {"actor_id"}
+_INVALID_INTENT = "Managed spawn intent identity or origin is invalid."
+
+
 def _read_intent(value: object, world_id: int) -> SpawnIntent:
     if not isinstance(value, dict):
         message = "Managed spawn intent evidence is invalid."
         raise SessionInvariantError(message)
-    try:
-        plan = SpawnIntent(**cast("dict[str, Any]", value))
-    except TypeError as exc:
+    evidence: dict[object, object] = value
+    # The same key mismatches the SpawnIntent constructor rejects with TypeError.
+    if not _REQUIRED_INTENT_FIELDS <= evidence.keys() <= _INTENT_FIELDS:
         message = "Managed spawn intent fields are invalid."
-        raise SessionInvariantError(message) from exc
-    _validate_intent(plan, world_id)
+        raise SessionInvariantError(message)
+    plan = SpawnIntent(
+        intent_id=_intent_id(evidence["intent_id"]),
+        world_id=_intent_id(evidence["world_id"]),
+        type_id=_intent_label(evidence["type_id"]),
+        role_name=_intent_label(evidence["role_name"]),
+        controller=_intent_label(evidence["controller"]),
+        protected=_intent_flag(evidence["protected"]),
+        transform=_intent_transform(evidence["transform"]),
+        attach_to=_optional_intent_id(evidence["attach_to"]),
+        actor_id=_optional_intent_id(evidence.get("actor_id")),
+    )
+    if plan.world_id != world_id:
+        raise SessionInvariantError(_INVALID_INTENT)
     return plan
 
 
-def _validate_intent(plan: SpawnIntent, world_id: int) -> None:
-    if not all(
-        (
-            _intent_ids_valid(plan, world_id),
-            _intent_labels_valid(plan),
-            type(plan.protected) is bool,
-            isinstance(plan.transform, dict),
-        )
-    ):
-        message = "Managed spawn intent identity or origin is invalid."
-        raise SessionInvariantError(message)
+def _intent_id(value: object) -> int:
+    if _positive_id(value):
+        return value
+    raise SessionInvariantError(_INVALID_INTENT)
 
 
-def _intent_ids_valid(plan: SpawnIntent, world_id: int) -> bool:
-    valid_ids = all(_positive_id(value) for value in (plan.intent_id, plan.world_id))
-    valid_optional = all(_optional_id(value) for value in (plan.actor_id, plan.attach_to))
-    return all((valid_ids, valid_optional, plan.world_id == world_id))
+def _optional_intent_id(value: object) -> int | None:
+    return None if value is None else _intent_id(value)
 
 
-def _intent_labels_valid(plan: SpawnIntent) -> bool:
-    return all(
-        isinstance(value, str) and value
-        for value in (plan.type_id, plan.role_name, plan.controller)
-    )
+def _intent_label(value: object) -> str:
+    if isinstance(value, str) and value:
+        return value
+    raise SessionInvariantError(_INVALID_INTENT)
 
 
-def _positive_id(value: object) -> bool:
+def _intent_flag(value: object) -> bool:
+    if isinstance(value, bool):
+        return value
+    raise SessionInvariantError(_INVALID_INTENT)
+
+
+def _intent_transform(value: object) -> dict[str, object]:
+    if isinstance(value, dict):
+        transform: dict[str, object] = value
+        return transform
+    raise SessionInvariantError(_INVALID_INTENT)
+
+
+def _positive_id(value: object) -> TypeGuard[int]:
     return type(value) is int and value > 0
-
-
-def _optional_id(value: object) -> bool:
-    return value is None or _positive_id(value)
 
 
 def require_returned_id(value: object) -> int:
@@ -227,14 +243,24 @@ def require_returned_id(value: object) -> int:
     if not _positive_id(value):
         message = "Native spawn did not return a valid actor ID."
         raise SessionInvariantError(message)
-    return cast("int", value)
+    return value
+
+
+class _OwnedActorRecord(TypedDict):
+    """The ``asdict(OwnedActor)`` shape the managed session journals under ``actors``."""
+
+    actor_id: int
+    type_id: str
+    role_name: str
+    controller: str
+    protected: bool
 
 
 def recover_owned(
     state: dict[str, object], journal: ManagedCreationJournal
 ) -> dict[int, OwnedActor]:
     """Merge durably returned IDs only, refusing incompatible evidence for one ID."""
-    values = cast("list[dict[str, Any]]", state["actors"])
+    values = cast("list[_OwnedActorRecord]", state["actors"])
     owned = {actor.actor_id: actor for actor in (OwnedActor(**item) for item in values)}
     for actor in journal.known_actors():
         _merge_returned(owned, actor)

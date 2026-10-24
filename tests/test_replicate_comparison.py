@@ -13,6 +13,8 @@ from carla_agentic_toolkit.managed_spec import ExperimentSpec
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from carla_agentic_toolkit.metrics_types import MatchingEvidence
+
 POLICIES: tuple[Literal["rules"], Literal["jev"]] = ("rules", "jev")
 
 
@@ -111,7 +113,7 @@ def _trace_bytes(paths: list[Path]) -> list[bytes]:
     return [path.read_bytes() for path in paths]
 
 
-def _replicate_labels(identity: dict[str, Any]) -> list[int]:
+def _replicate_labels(identity: MatchingEvidence) -> list[object]:
     return [
         section["replicate_index"] for section in (identity, identity["spec"], identity["fixture"])
     ]

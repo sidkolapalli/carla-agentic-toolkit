@@ -9,7 +9,7 @@ import pytest
 
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from tests.test_merge_experiment import Actor, _prepare, _snapshot
-from tests.test_route_backend import prepared
+from tests.test_route_backend import fake_handles, prepared
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -38,7 +38,7 @@ def _case(monkeypatch: pytest.MonkeyPatch, fixture: str) -> tuple[Any, Any, Simp
         session, experiment = _prepare(monkeypatch)
         return session, experiment, _snapshot(session, OWNER_FRAME)
     session, experiment = prepared(monkeypatch)
-    handles = {handle.id: handle for handle in experiment.actors.handles.values()}
+    handles = {handle.id: handle for handle in fake_handles(experiment).values()}
     snapshot = SimpleNamespace(
         frame=OWNER_FRAME,
         timestamp=SimpleNamespace(elapsed_seconds=5.0),

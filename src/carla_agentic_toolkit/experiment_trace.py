@@ -17,6 +17,7 @@ from carla_agentic_toolkit.simulator_lease import fcntl, private_state_root
 from carla_agentic_toolkit.trace_schema import (
     SCHEMA_VERSION,
     identity_digest,
+    json_object,
 )
 from carla_agentic_toolkit.trace_schema import (
     canonical_json as _canonical_json,
@@ -31,6 +32,8 @@ from carla_agentic_toolkit.trace_schema import (
 if TYPE_CHECKING:
     from pathlib import Path
     from types import TracebackType
+
+    from carla_agentic_toolkit.models import JsonObject
 
 __all__ = [
     "RecordedDecisionReplay",
@@ -57,6 +60,8 @@ class TraceLimitError(ValueError):
 class TraceRead:
     """Validated complete records plus evidence of damaged or interrupted records."""
 
+    # Kept Any: callers outside this module (experiment_comparison, scripts/route_study and tests)
+    # index nested event payloads directly; JsonObject would turn each lookup into object.
     events: tuple[dict[str, Any], ...]
     complete: bool
     errors: tuple[str, ...] = ()
@@ -128,7 +133,7 @@ class TraceStore:
         frame: int | None,
         actor_id: int | None = None,
         data: dict[str, object],
-    ) -> dict[str, Any]:
+    ) -> JsonObject:
         """Persist one validated event before acknowledging it to the coordinator."""
         with self._lock:
             event = self._event(kind, world_generation, frame, actor_id, data)
@@ -144,7 +149,7 @@ class TraceStore:
         frame: int | None,
         actor_id: int | None,
         data: dict[str, object],
-    ) -> dict[str, Any]:
+    ) -> JsonObject:
         """Copy numerical evidence into the one versioned event envelope."""
         event = {
             "schema_version": SCHEMA_VERSION,
@@ -274,7 +279,7 @@ def load_trace(path: Path) -> TraceRead:
     if path.stat().st_size > MAX_TRACE_BYTES:
         message = "Trace file exceeds the supported read limit."
         raise TraceLimitError(message)
-    events: list[dict[str, Any]] = []
+    events: list[JsonObject] = []
     errors: list[str] = []
     with path.open("rb") as stream:
         for line_number, line in enumerate(stream, start=1):
@@ -283,7 +288,7 @@ def load_trace(path: Path) -> TraceRead:
 
 
 def _read_record(
-    line: bytes, line_number: int, events: list[dict[str, Any]], errors: list[str]
+    line: bytes, line_number: int, events: list[JsonObject], errors: list[str]
 ) -> None:
     """Keep valid recovery events following a preserved interrupted JSON record."""
     try:
@@ -302,7 +307,7 @@ def _read_record(
     events.append(event)
 
 
-def _validate_event_order(event: dict[str, Any], events: list[dict[str, Any]]) -> None:
+def _validate_event_order(event: JsonObject, events: list[JsonObject]) -> None:
     """Reject duplicated, skipped, or mixed-run event sequences."""
     if event["sequence"] != len(events) + 1:
         message = "Trace event sequence is not contiguous."
@@ -335,7 +340,9 @@ class RecordedDecisionReplay:
         if not read.complete:
             message = "Recorded replay requires a complete trace."
             raise ValueError(message)
-        self._events = tuple(event for event in read.events if event["kind"] == "decision_received")
+        self._events: tuple[JsonObject, ...] = tuple(
+            event for event in read.events if event["kind"] == "decision_received"
+        )
 
     def decision_for(
         self,
@@ -345,7 +352,7 @@ class RecordedDecisionReplay:
         actor_id: int,
         observation: object,
         candidates: object,
-    ) -> dict[str, Any]:
+    ) -> JsonObject:
         """Fail closed when scene, candidate, actor, generation, or frame differs."""
         identity = (
             world_generation,
@@ -358,21 +365,22 @@ class RecordedDecisionReplay:
 
 
 def _matching_recorded_decision(
-    events: tuple[dict[str, Any], ...], identity: tuple[object, ...]
-) -> dict[str, Any]:
+    events: tuple[JsonObject, ...], identity: tuple[object, ...]
+) -> JsonObject:
     matches = [event for event in events if _decision_identity(event) == identity]
     if len(matches) != 1:
         message = "Recorded-response replay identity mismatch or ambiguous decision."
         raise ValueError(message)
-    decision = matches[0]["data"].get("decision", matches[0]["data"])
+    data = json_object(matches[0]["data"])
+    decision = data.get("decision", data)
     if not isinstance(decision, dict):
         message = "Recorded response has no decision object."
         raise TypeError(message)
     return json.loads(_canonical_json(decision))
 
 
-def _decision_identity(event: dict[str, Any]) -> tuple[object, ...]:
-    data = event["data"]
+def _decision_identity(event: JsonObject) -> tuple[object, ...]:
+    data = json_object(event["data"])
     return (
         event["world_generation"],
         event["frame"],

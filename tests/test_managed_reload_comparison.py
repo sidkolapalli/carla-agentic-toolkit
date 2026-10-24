@@ -46,7 +46,7 @@ def test_reload_ephemeral_light_fields_do_not_split_comparison_cohorts(tmp_path:
     _assert_unchanged(original)
 
 
-def _assert_single_light_identity(identity: dict[str, Any], first: dict[str, Any]) -> None:
+def _assert_single_light_identity(identity: object, first: dict[str, Any]) -> None:
     stable = {key: value for key, value in first["lights"][0].items() if key != "actor_id"}
     assert identity == {"lights": [stable]}
 
