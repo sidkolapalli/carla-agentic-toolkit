@@ -6,7 +6,7 @@ import math
 import time
 from collections import deque
 from dataclasses import asdict
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.actor_boxes import bounding_box_metadata
 from carla_agentic_toolkit.errors import CarlaAdapterError
@@ -32,10 +32,12 @@ from carla_agentic_toolkit.route_risk import emergency_reason, traffic_evidence
 from carla_agentic_toolkit.route_scenarios import SCENARIO_VERSION, HazardState, update_hazard
 
 if TYPE_CHECKING:
+    from carla_agentic_toolkit.carla_protocols import CarlaTelemetrySnapshot
     from carla_agentic_toolkit.managed_policy import PolicyDecision, PolicyRequest
     from carla_agentic_toolkit.managed_spec import ExperimentSpec
     from carla_agentic_toolkit.route_geometry import RoutePath
     from carla_agentic_toolkit.route_policy import SelectedAction
+    from carla_agentic_toolkit.route_types import RouteSession
 
 
 MAX_TRACKING_ERROR_M = 2.0
@@ -47,7 +49,7 @@ class RouteExperiment:
 
     def __init__(self, session: object) -> None:
         """Bind existing ownership and keep every actor and sensor in that lifecycle."""
-        self.session = cast("Any", session)
+        self.session = cast("RouteSession", session)
         self.spec: ExperimentSpec = self.session.spec
         self.path: RoutePath
         self.actors: RouteActors
@@ -103,17 +105,18 @@ class RouteExperiment:
 
     def observe(self, snapshot: object) -> RouteObservation:
         """All dynamic traffic measurements come from this one authoritative frame."""
-        frame = int(cast("Any", snapshot).frame)
+        frozen = cast("CarlaTelemetrySnapshot", snapshot)
+        frame = int(frozen.frame)
         if frame <= self.last_frame:
             message = "Route observations require increasing snapshot frames."
             raise CarlaAdapterError(message)
-        self.values = self.actors.observe(snapshot)
-        seconds = float(cast("Any", snapshot).timestamp.elapsed_seconds)
+        self.values = self.actors.observe(frozen)
+        seconds = float(frozen.timestamp.elapsed_seconds)
         if self.measurements is not None:
             self.measurements.observe(self.values, frame, seconds)
         policy = self.values["policy"]
         neighbors = self.actors.visible_neighbors(
-            self.values, snapshot, radius=self.spec.observation_range_m
+            self.values, frozen, radius=self.spec.observation_range_m
         )
         sensors = tuple(sensor.drain(frame) for sensor in self.actors.sensors)
         value = RouteObservation(

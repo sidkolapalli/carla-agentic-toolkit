@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from carla_agentic_toolkit.carla_protocols import CarlaActor, CarlaBlueprint, CarlaClient
+    from carla_agentic_toolkit.route_types import RouteControlledActor
 
 RUN_ID = "journal-run"
 ACTOR_ID = 11
@@ -291,7 +292,7 @@ def test_every_managed_sensor_and_demo_camera_has_pre_native_intent(
         ),
         "route_vehicle": lambda: route.spawn("policy", RoutePoint(0, 0)),
         "route_sensor": lambda: route._sensor(  # noqa: SLF001 -- Native sensor boundary.
-            "policy", parent
+            "policy", cast("CarlaActor", parent)
         ),
         "merge_camera": lambda: _merge_camera(case.session, monkeypatch, tmp_path),
         "route_camera": lambda: _route_camera(case.session, route, parent, monkeypatch, tmp_path),
@@ -320,7 +321,7 @@ def _route_camera(
     monkeypatch.setattr(capture_route_demo.RouteExperiment, "prepare", lambda _self: None)
     camera = capture_route_demo.CameraRoute(session, path / "route")
     camera.actors = route
-    camera.actors.handles["policy"] = parent
+    camera.actors.handles["policy"] = cast("RouteControlledActor", parent)
     camera.prepare()
 
 

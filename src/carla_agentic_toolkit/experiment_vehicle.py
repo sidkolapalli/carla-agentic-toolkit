@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from importlib import import_module
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.experiment_common import (
@@ -26,6 +26,7 @@ from carla_agentic_toolkit.experiment_common import (
 if TYPE_CHECKING:
     from carla_agentic_toolkit.carla_protocols import CarlaTelemetrySnapshot, CarlaWorld
     from carla_agentic_toolkit.models import Location, Transform
+    from carla_agentic_toolkit.world_b_types import CarlaDrivableVehicle, CarlaMovableActor
 
 
 def apply_vehicle_control(
@@ -39,7 +40,7 @@ def apply_vehicle_control(
     carla_module = import_module("carla")
     carla_control = vehicle_control(carla_module, control)
     try:
-        cast("Any", vehicle).apply_control(carla_control)
+        cast("CarlaDrivableVehicle", vehicle).apply_control(carla_control)
     except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
         raise CarlaAdapterError(str(exc)) from exc
     return {"actor_id": actor_id, "applied_control": control_dict(carla_control)}
@@ -78,7 +79,7 @@ def set_actor_transform(
     transform: Transform,
 ) -> dict[str, object]:
     """Teleport an actor to a transform."""
-    cast("Any", actor(world, actor_id)).set_transform(carla_transform(transform))
+    cast("CarlaMovableActor", actor(world, actor_id)).set_transform(carla_transform(transform))
     return {"actor_id": actor_id, "transform": transform.to_dict()}
 
 
@@ -86,7 +87,7 @@ def set_vehicle_lights(world: CarlaWorld, *, actor_id: int, state: str | int) ->
     """Set vehicle light state by integer mask or pipe-separated names."""
     carla_module = import_module("carla")
     light_state = vehicle_light_state(carla_module, state)
-    cast("Any", actor(world, actor_id)).set_light_state(light_state)
+    cast("CarlaDrivableVehicle", actor(world, actor_id)).set_light_state(light_state)
     return {"actor_id": actor_id, "light_state": str(light_state)}
 
 
@@ -98,7 +99,7 @@ def set_target_velocity(
 ) -> dict[str, object]:
     """Set actor target velocity."""
     target_velocity = carla_location(import_module("carla"), velocity)
-    cast("Any", actor(world, actor_id)).set_target_velocity(target_velocity)
+    cast("CarlaMovableActor", actor(world, actor_id)).set_target_velocity(target_velocity)
     return {"actor_id": actor_id, "target_velocity": velocity.to_dict()}
 
 
@@ -127,7 +128,6 @@ def vehicle_light_state(module: object, state: str | int) -> object:
     if isinstance(state, int):
         return factory(state)
     bitmask = 0
-    enum_type = cast("Any", module).VehicleLightState
     for part in state.split("|"):
-        bitmask |= int(getattr(enum_type, part.strip()))
+        bitmask |= int(getattr(factory, part.strip()))
     return factory(bitmask)

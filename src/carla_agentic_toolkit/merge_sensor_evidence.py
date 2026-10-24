@@ -3,11 +3,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.sensor_subscription import DEFAULT_SENSOR_DRAIN_SECONDS
 
 if TYPE_CHECKING:
+    from carla_agentic_toolkit.carla_protocols import CarlaVector
+    from carla_agentic_toolkit.merge_types import (
+        MergeCollisionEvent,
+        MergeGnssMeasurement,
+        MergeLaneInvasionEvent,
+        MergeMeasurement,
+    )
     from carla_agentic_toolkit.sensor_subscription import SensorDrain, SensorSubscription
 
 
@@ -54,14 +61,15 @@ class MergeSensor:
 
 def measurement_payload(kind: str, measurement: object) -> dict[str, object]:
     """Keep original physical event fields alongside sensor measurement frames."""
-    value = cast("Any", measurement)
+    # Native sensor callbacks deliver untyped data; every CARLA measurement has a frame.
+    value = cast("MergeMeasurement", measurement)
     common: dict[str, object] = {"measurement_frame": int(value.frame)}
     handlers = {"collision": _collision, "lane_invasion": _lane_invasion, "gnss": _gnss}
     return {**common, **handlers[kind](value)}
 
 
 def _collision(value: object) -> dict[str, object]:
-    measurement = cast("Any", value)
+    measurement = cast("MergeCollisionEvent", value)
     return {
         "collision_impulse": _vector(measurement.normal_impulse),
         "other_actor_id": int(measurement.other_actor.id),
@@ -69,12 +77,14 @@ def _collision(value: object) -> dict[str, object]:
 
 
 def _lane_invasion(value: object) -> dict[str, object]:
-    markings = [str(item.type) for item in cast("Any", value).crossed_lane_markings]
+    markings = [
+        str(item.type) for item in cast("MergeLaneInvasionEvent", value).crossed_lane_markings
+    ]
     return {"lane_invasion": {"count": len(markings), "markings": markings}}
 
 
 def _gnss(value: object) -> dict[str, object]:
-    measurement = cast("Any", value)
+    measurement = cast("MergeGnssMeasurement", value)
     return {
         "latitude": float(measurement.latitude),
         "longitude": float(measurement.longitude),
@@ -82,6 +92,5 @@ def _gnss(value: object) -> dict[str, object]:
     }
 
 
-def _vector(value: object) -> dict[str, float]:
-    vector = cast("Any", value)
+def _vector(vector: CarlaVector) -> dict[str, float]:
     return {"x": float(vector.x), "y": float(vector.y), "z": float(vector.z)}
