@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.authoritative_destroy import destroy_result_cleaned
 from carla_agentic_toolkit.errors import CarlaAdapterError
@@ -13,8 +13,13 @@ from carla_agentic_toolkit.world_timing import world_synchronous_mode
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from carla_agentic_toolkit.carla_protocols import CarlaActor, CarlaWorld
+    from carla_agentic_toolkit.carla_protocols import (
+        CarlaActor,
+        CarlaTelemetrySnapshot,
+        CarlaWorld,
+    )
     from carla_agentic_toolkit.models import DestroyResult
+    from carla_agentic_toolkit.world_a_types import CarlaPedestrianWorld, CarlaWalkerController
 
 WALKER_FRAME_TIMEOUT_SECONDS = 5.0
 
@@ -56,7 +61,7 @@ class WalkerLifecycle:
         if seed is not None:
             self.check()
             try:
-                cast("Any", self.world).set_pedestrians_seed(seed)
+                cast("CarlaPedestrianWorld", self.world).set_pedestrians_seed(seed)
             except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
                 message = f"Native pedestrian seeding failed: {exc}"
                 raise CarlaAdapterError(message) from exc
@@ -70,12 +75,12 @@ class WalkerLifecycle:
         self.check()
         seconds = self.timeout()
         frame = (
-            cast("Any", self.world).tick(seconds)
+            cast("CarlaPedestrianWorld", self.world).tick(seconds)
             if synchronous
             else self.world.wait_for_tick(seconds).frame
         )
         self.check()
-        snapshot = cast("Any", self.world.get_snapshot())
+        snapshot = cast("CarlaTelemetrySnapshot", self.world.get_snapshot())
         if frame <= before or snapshot.frame < frame or snapshot.find(walker_id) is None:
             message = "Walker startup snapshot did not publish the created walker."
             raise CarlaAdapterError(message)
@@ -85,7 +90,7 @@ class WalkerLifecycle:
     def stop(self, controller: CarlaActor) -> None:
         """Acknowledge navigation removal only on a normal native Stop return."""
         self.check()
-        cast("Any", controller).stop()
+        cast("CarlaWalkerController", controller).stop()
         self.check()
 
     def destroy(self, candidate: CarlaActor) -> bool:
