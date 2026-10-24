@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.actor_runtime import actor_by_id
 from carla_agentic_toolkit.errors import CarlaAdapterError
@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from carla_agentic_toolkit.carla_protocols import CarlaWorld
+    from carla_agentic_toolkit.world_a_types import CarlaWalkerController
 
 _NATIVE_ERRORS = (AttributeError, RuntimeError, TypeError, ValueError)
 
@@ -75,7 +76,7 @@ def _stop_controllers(
             continue
         try:
             require_episode()
-            cast("Any", candidate).stop()
+            cast("CarlaWalkerController", candidate).stop()
             require_episode()
         except _NATIVE_ERRORS as exc:
             record_operation_failure(exc)

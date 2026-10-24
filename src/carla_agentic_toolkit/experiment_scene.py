@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 import time
 from importlib import import_module
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.experiment_common import (
@@ -26,26 +26,31 @@ MAX_CHASE_DISTANCE = 30.0
 MAX_CHASE_HEIGHT = 15.0
 
 if TYPE_CHECKING:
-    from carla_agentic_toolkit.carla_protocols import CarlaWorld
+    from carla_agentic_toolkit.carla_protocols import CarlaActor, CarlaWorld
+    from carla_agentic_toolkit.world_a_types import (
+        CarlaSceneModule,
+        CarlaSceneWorld,
+        CarlaTrafficLight,
+    )
 
 
 def freeze_traffic_lights(world: CarlaWorld, *, enabled: bool) -> dict[str, object]:
     """Freeze or unfreeze all traffic lights."""
-    cast("Any", world).freeze_all_traffic_lights(enabled)
+    cast("CarlaSceneWorld", world).freeze_all_traffic_lights(enabled)
     return {"frozen": enabled}
 
 
 def set_traffic_light_state(world: CarlaWorld, *, actor_id: int, state: str) -> dict[str, object]:
     """Set one traffic light state."""
-    carla_module = import_module("carla")
-    traffic_light_state = cast("Any", carla_module).TrafficLightState
-    cast("Any", actor(world, actor_id)).set_state(enum_value(traffic_light_state, state))
+    traffic_light_state = cast("CarlaSceneModule", import_module("carla")).TrafficLightState
+    traffic_light = cast("CarlaTrafficLight", actor(world, actor_id))
+    traffic_light.set_state(enum_value(traffic_light_state, state))
     return {"actor_id": actor_id, "state": state}
 
 
 def set_spectator(world: CarlaWorld, transform: Transform) -> dict[str, object]:
     """Move the spectator camera and return its previous transform."""
-    spectator = cast("Any", world).get_spectator()
+    spectator = cast("CarlaSceneWorld", world).get_spectator()
     previous = typed_transform(spectator.get_transform())
     spectator.set_transform(carla_transform(transform))
     return {
@@ -71,8 +76,8 @@ def watch_actor(
         synchronous_mode=False,
         message="Actor watching requires asynchronous mode; synchronous owners must tick.",
     )
-    target = cast("Any", actor(world, actor_id))
-    spectator = cast("Any", world).get_spectator()
+    target = cast("CarlaActor", actor(world, actor_id))
+    spectator = cast("CarlaSceneWorld", world).get_spectator()
     previous = typed_transform(spectator.get_transform())
     deadline = time.monotonic() + seconds
     samples = 0
@@ -119,7 +124,7 @@ def _bounded_watch_value(value: float, name: str, lower: float, upper: float) ->
 
 def spectator_transform(world: CarlaWorld) -> Transform:
     """Return the spectator transform as an internal model."""
-    return typed_transform(cast("Any", world).get_spectator().get_transform())
+    return typed_transform(cast("CarlaSceneWorld", world).get_spectator().get_transform())
 
 
 def weather(world: CarlaWorld) -> dict[str, object]:
@@ -135,7 +140,7 @@ def set_weather(world: CarlaWorld, parameters: dict[str, float]) -> dict[str, ob
     if not hasattr(world, "set_weather"):
         return unavailable("world.set_weather is not available in this CARLA build.")
     carla_weather = weather_parameters(import_module("carla"), parameters)
-    cast("Any", world).set_weather(carla_weather)
+    cast("CarlaSceneWorld", world).set_weather(carla_weather)
     return weather(world)
 
 
