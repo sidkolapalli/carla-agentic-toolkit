@@ -142,7 +142,7 @@ class RouteActors:
         self, values: dict[str, RouteActor], snapshot: CarlaTelemetrySnapshot
     ) -> list[RouteActor]:
         neighbors = [actor for role, actor in values.items() if role != "policy"]
-        # Background handles are native vehicles; the shared CarlaActor omits bounding_box.
+        # Every native carla.Actor exposes bounding_box; the shared CarlaActor omits it.
         neighbors.extend(
             self.observe_actor(cast("RouteActorHandle", actor), snapshot)
             for actor in background_actors(self.session)
