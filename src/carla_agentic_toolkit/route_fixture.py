@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import math
 from importlib import import_module
-from typing import Any, cast
+from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.errors import UnsupportedFeatureError
 from carla_agentic_toolkit.merge_fixture import select_corridor, yaw_difference
 from carla_agentic_toolkit.route_geometry import RoutePath, RoutePoint
+
+if TYPE_CHECKING:
+    from carla_agentic_toolkit.route_types import CarlaRouteModule, RouteMap, RouteWaypoint
 
 FIXTURE_VERSION = "town10-route-ue5-v1"
 VEHICLE_BLUEPRINT = "vehicle.lincoln.mkz"
@@ -22,12 +25,12 @@ MIN_ROUTE_TURN_DEGREES = 70.0
 MAX_ROUTE_TURN_DEGREES = 110.0
 
 
-def select_route(world_map: object) -> RoutePath:
+def select_route(world_map: RouteMap) -> RoutePath:
     """Follow legal driving successors through reviewed road 24 at the first branch."""
     corridor = select_corridor(world_map, fixture_version="town10-merge-ue5-v1")
-    carla = cast("Any", import_module("carla"))
+    carla = cast("CarlaRouteModule", import_module("carla"))
     start = corridor.policy_start
-    waypoint = cast("Any", world_map).get_waypoint(carla.Location(x=start.x, y=start.y, z=start.z))
+    waypoint = world_map.get_waypoint(carla.Location(x=start.x, y=start.y, z=start.z))
     points = [_point(waypoint)]
     for _ in range(81):
         waypoint = _successor(waypoint)
@@ -39,8 +42,8 @@ def select_route(world_map: object) -> RoutePath:
     return path
 
 
-def _successor(waypoint: object) -> object:
-    options = list(cast("Any", waypoint).next(2.0))
+def _successor(waypoint: RouteWaypoint) -> RouteWaypoint:
+    options = list(waypoint.next(2.0))
     if len(options) == 1:
         return options[0]
     reviewed = [item for item in options if _reviewed_branch(item)]
@@ -50,8 +53,7 @@ def _successor(waypoint: object) -> object:
     return reviewed[0]
 
 
-def _point(waypoint: object) -> RoutePoint:
-    value = cast("Any", waypoint)
+def _point(value: RouteWaypoint) -> RoutePoint:
     if (
         str(value.lane_type).split(".")[-1] != "Driving"
         or float(value.lane_width) < MIN_LANE_WIDTH_M
@@ -90,6 +92,5 @@ def _verify_turn(path: RoutePath) -> None:
         raise UnsupportedFeatureError(message)
 
 
-def _reviewed_branch(waypoint: object) -> bool:
-    value = cast("Any", waypoint)
+def _reviewed_branch(value: RouteWaypoint) -> bool:
     return int(value.road_id) == TURN_ROAD_ID and int(value.lane_id) == 1

@@ -11,7 +11,7 @@ import pytest
 
 from carla_agentic_toolkit.route_geometry import RoutePath, RoutePoint
 from carla_agentic_toolkit.route_metrics import route_metrics
-from tests.test_route_backend import prepared
+from tests.test_route_backend import fake_handles, prepared
 
 if TYPE_CHECKING:
     from carla_agentic_toolkit.route_experiment import RouteExperiment
@@ -32,12 +32,12 @@ def _observe(
     progress_m: float = 12.0,
 ) -> RouteObservation:
     role = "pedestrian" if experiment.spec.scenario == "pedestrian_crossing" else "lead"
-    hazard = experiment.actors.handles[role]
+    hazard = fake_handles(experiment)[role]
     point = experiment.path.sample(32.0 if role == "pedestrian" else 14.0, lateral_m)
     hazard.location = SimpleNamespace(x=point.x, y=point.y, z=0.95)
     ego = experiment.path.sample(progress_m)
-    experiment.actors.handles["policy"].location = SimpleNamespace(x=ego.x, y=ego.y, z=0.5)
-    handles = {int(actor.id): actor for actor in experiment.actors.handles.values()}
+    fake_handles(experiment)["policy"].location = SimpleNamespace(x=ego.x, y=ego.y, z=0.5)
+    handles = {int(actor.id): actor for actor in fake_handles(experiment).values()}
 
     def frozen(actor_id: int) -> SimpleNamespace:
         actor = handles[actor_id]
@@ -84,7 +84,8 @@ def test_slow_walker_command_completion_does_not_prove_crossing(
     """Reproduce the retained six-second command with its measured slow displacement."""
     _session, experiment = prepared(monkeypatch, "pedestrian_crossing")
     first = _advance(experiment, 100, 10.0, 6.0)
-    assert experiment.actors.handles["pedestrian"].controls[-1].speed == WALKER_REQUEST_MPS
+    control = cast("SimpleNamespace", fake_handles(experiment)["pedestrian"].controls[-1])
+    assert control.speed == WALKER_REQUEST_MPS
     last = _advance(experiment, 220, 16.0, 5.41406245)
     assert last["hazard"]["active"] is False
     trial = _assert_invalid(last, "lane_entry_not_observed_by_deadline", 16.0)
@@ -235,7 +236,7 @@ def test_diagnostic_hazard_measurements_do_not_enter_provider_inputs(
     assert not {"hazard_trial", "commanded", "measured", "scenario"}.intersection(evidence)
     report = cast("dict[str, Any]", experiment.advance(value))
     assert (
-        report["hazard_trial"]["measured"]["actor_id"] == experiment.actors.handles["pedestrian"].id
+        report["hazard_trial"]["measured"]["actor_id"] == fake_handles(experiment)["pedestrian"].id
     )
 
 

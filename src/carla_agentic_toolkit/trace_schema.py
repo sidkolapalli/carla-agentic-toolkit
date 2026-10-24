@@ -7,10 +7,12 @@ import json
 import math
 import re
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
+
+    from carla_agentic_toolkit.models import JsonObject
 
 SCHEMA_VERSION = 1
 MAX_JSON_DEPTH = 32
@@ -32,7 +34,7 @@ _SENSITIVE_KEYS = frozenset(
 )
 
 
-def validate_event(event: dict[str, Any]) -> None:
+def validate_event(event: Mapping[str, object]) -> None:
     """Validate the stable envelope independently of event-specific numerical data."""
     validate_identifier(event["run_id"], "run_id")
     validate_identifier(event["kind"], "kind")
@@ -43,19 +45,29 @@ def validate_event(event: dict[str, Any]) -> None:
     canonical_json(event)
 
 
-def validate_event_time(event: dict[str, Any]) -> None:
+def validate_event_time(event: Mapping[str, object]) -> None:
     """Require finite elapsed timing and an explicitly zoned wall timestamp."""
-    monotonic = event["monotonic_seconds"]
-    if type(monotonic) not in (int, float) or not math.isfinite(monotonic):
-        message = "Trace monotonic_seconds must be finite numerical timing."
-        raise ValueError(message)
-    wall = datetime.fromisoformat(event["wall_time"])
+    _validate_monotonic(event["monotonic_seconds"])
+    wall_time = event["wall_time"]
+    if not isinstance(wall_time, str):
+        message = "Trace wall_time must be an ISO 8601 string."
+        raise TypeError(message)
+    wall = datetime.fromisoformat(wall_time)
     if wall.tzinfo is None:
         message = "Trace wall_time must include a timezone."
         raise ValueError(message)
 
 
-def _validate_identity_fields(event: dict[str, Any]) -> None:
+def _validate_monotonic(monotonic: object) -> None:
+    """Accept exact int or float timing only, never bool or other numeric subclasses."""
+    if (type(monotonic) is not int and type(monotonic) is not float) or not math.isfinite(
+        monotonic
+    ):
+        message = "Trace monotonic_seconds must be finite numerical timing."
+        raise ValueError(message)
+
+
+def _validate_identity_fields(event: Mapping[str, object]) -> None:
     """Require schema, generation, sequence, and object-shaped event evidence."""
     if event["schema_version"] != SCHEMA_VERSION or not isinstance(event["world_generation"], str):
         message = "Unsupported trace schema or world generation."
@@ -63,15 +75,21 @@ def _validate_identity_fields(event: dict[str, Any]) -> None:
     _validate_sequence_fields(event)
 
 
-def _validate_sequence_fields(event: dict[str, Any]) -> None:
+def _validate_sequence_fields(event: Mapping[str, object]) -> None:
     """Require sequence and payload identity after schema validation."""
     if not event["world_generation"] or type(event["sequence"]) is not int:
         message = "Trace world/sequence identity is missing."
         raise ValueError(message)
     _validate_actor(event["actor_id"])
-    if not isinstance(event["data"], dict):
+    json_object(event["data"])
+
+
+def json_object(value: object) -> JsonObject:
+    """Return decoded trace JSON as an object, rejecting any other shape."""
+    if not isinstance(value, dict):
         message = "Trace data must be an object."
         raise TypeError(message)
+    return value
 
 
 def _validate_frame(frame: object) -> None:
@@ -92,7 +110,7 @@ def _validate_actor(actor_id: object) -> None:
         raise ValueError(message)
 
 
-def validate_identifier(value: str, label: str) -> None:
+def validate_identifier(value: object, label: str) -> None:
     """Prevent directory traversal and unbounded identity strings."""
     if not isinstance(value, str) or not _IDENTIFIER.fullmatch(value):
         message = f"Invalid trace {label}."

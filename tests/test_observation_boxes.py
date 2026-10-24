@@ -6,7 +6,7 @@ import math
 from dataclasses import asdict, dataclass, field
 from itertools import product
 from types import SimpleNamespace
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import pytest
 
@@ -21,6 +21,10 @@ from carla_agentic_toolkit.route_experiment import RouteExperiment
 from carla_agentic_toolkit.route_geometry import RoutePath, RoutePoint, tracking_control
 from carla_agentic_toolkit.route_models import RouteActor
 from carla_agentic_toolkit.route_risk import box_separation, traffic_evidence
+
+if TYPE_CHECKING:
+    from carla_agentic_toolkit.carla_protocols import CarlaTelemetrySnapshot
+    from carla_agentic_toolkit.route_types import RouteControlledActor
 
 
 @dataclass
@@ -142,7 +146,7 @@ def _snapshot(actors: dict[str, Actor], transforms: dict[str, Transform]) -> Sim
 
 def _route(actors: dict[str, Actor]) -> RouteActors:
     route = RouteActors(object(), RoutePath((RoutePoint(0, 0), RoutePoint(100, 0))))
-    route.handles.update(actors)
+    route.handles.update(cast("dict[str, RouteControlledActor]", actors))
     return route
 
 
@@ -176,7 +180,7 @@ def _observed(backend: str, actor: Actor, transform: Transform) -> RouteActor | 
     actors = {"policy": actor, "ego": Actor(2)}
     snapshot = _snapshot(actors, {"policy": transform, "ego": Transform(Vector(24, 3.5))})
     if backend == "route":
-        return _route(actors).observe(snapshot)["policy"]
+        return _route(actors).observe(cast("CarlaTelemetrySnapshot", snapshot))["policy"]
     return _merge(actors).observe(snapshot).policy
 
 
@@ -295,7 +299,7 @@ def test_separation_and_predicted_overlap_consume_corrected_boxes() -> None:
         get_transform=original(actor_id).get_transform,
         get_velocity=lambda: Vector(y=-2 if actor_id == second.id else 0),
     )
-    values = _route(actors).observe(snapshot)
+    values = _route(actors).observe(cast("CarlaTelemetrySnapshot", snapshot))
     corners = _corners(first, transforms["policy"]), _corners(second, transforms["ego"])
     expected = _corner_gap(*corners)
     risk = traffic_evidence(values["policy"], (values["ego"],))[0]
