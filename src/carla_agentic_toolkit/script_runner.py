@@ -118,6 +118,7 @@ def main() -> None:
     outcome = run_script_file(
         script_path=args.script,
         host=args.host,
+        connect_host=args.connect_host,
         port=args.port,
         timeout_seconds=args.timeout_seconds,
         ownership_path=args.ownership_file,
@@ -133,6 +134,7 @@ def run_script_file(  # noqa: PLR0913 - direct callers may omit parent-initializ
     host: str,
     port: int,
     timeout_seconds: float,
+    connect_host: str | None = None,
     ownership_path: Path | None = None,
     require_settings_journal: bool = False,
     require_rpc_deadline: bool = False,
@@ -151,6 +153,7 @@ def run_script_file(  # noqa: PLR0913 - direct callers may omit parent-initializ
     )
     adapter = PythonCarlaAdapter(
         host=host,
+        connect_host=connect_host,
         port=port,
         timeout=min(timeout_seconds, 10.0),
         settings_journal=settings,
@@ -319,6 +322,7 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run one sandboxed CARLA script.")
     parser.add_argument("--script", required=True, type=Path)
     parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--connect-host")
     parser.add_argument("--port", default=2000, type=int)
     parser.add_argument("--timeout-seconds", default=30.0, type=float)
     parser.add_argument("--ownership-file", type=Path)

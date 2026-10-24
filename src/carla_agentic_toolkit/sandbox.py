@@ -36,6 +36,7 @@ from carla_agentic_toolkit.simulator_lease import (
     LeaseBusyError,
     RecoveryRequiredError,
     SimulatorLease,
+    connect_address,
 )
 
 if TYPE_CHECKING:
@@ -357,6 +358,8 @@ def _runner_command(request: RunnerCommandRequest) -> list[str]:
         str(request.script_path),
         "--host",
         request.host,
+        "--connect-host",
+        connect_address(request.host, request.port),
         "--port",
         str(request.port),
         "--timeout-seconds",

@@ -56,6 +56,7 @@ def _run_worker_finalization(
         script=config,
         ownership_file=case.ownership._path,  # noqa: SLF001 -- initialized real durable journal.
         host="127.0.0.1",
+        connect_host=None,
         port=2000,
         timeout_seconds=10.0,
     )

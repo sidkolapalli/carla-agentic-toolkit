@@ -194,6 +194,7 @@ def main() -> None:
     )
     adapter = PythonCarlaAdapter(
         host=args.host,
+        connect_host=args.connect_host,
         port=args.port,
         timeout=min(args.timeout_seconds, 10.0),
         rpc_timeout_policy=policy,

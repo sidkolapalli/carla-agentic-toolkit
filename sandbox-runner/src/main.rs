@@ -38,6 +38,9 @@ struct Args {
     script: PathBuf,
     #[arg(long, default_value = "127.0.0.1")]
     host: String,
+    /// Literal address resolved by the trusted parent, so the child needs no DNS.
+    #[arg(long)]
+    connect_host: Option<String>,
     #[arg(long, default_value_t = 2000)]
     port: u16,
     #[arg(long, default_value_t = 30.0)]
@@ -94,6 +97,9 @@ fn run() -> Result<Value> {
         .arg(args.port.to_string())
         .arg("--timeout-seconds")
         .arg(args.timeout_seconds.to_string());
+    if let Some(connect_host) = &args.connect_host {
+        command.arg("--connect-host").arg(connect_host);
+    }
     if let Some(ownership_file) = &args.ownership_file {
         command.arg("--ownership-file").arg(ownership_file);
     }
@@ -416,6 +422,7 @@ mod tests {
             module: String::new(),
             script: PathBuf::new(),
             host: String::new(),
+            connect_host: None,
             port: 0,
             timeout_seconds: 1.0,
             work_dir: tmp.path().to_path_buf(),
@@ -454,6 +461,7 @@ mod tests {
             module: String::new(),
             script: PathBuf::new(),
             host: String::new(),
+            connect_host: None,
             port: 0,
             timeout_seconds: 1.0,
             work_dir: tmp.path().to_path_buf(),
@@ -482,6 +490,7 @@ mod tests {
             module: String::new(),
             script: PathBuf::new(),
             host: String::new(),
+            connect_host: None,
             port: 0,
             timeout_seconds: 1.0,
             work_dir: tmp.path().to_path_buf(),
@@ -533,6 +542,7 @@ mod tests {
             module: "carla_agentic_toolkit.script_runner".into(),
             script: PathBuf::from("script.py"),
             host: "127.0.0.1".into(),
+            connect_host: None,
             port: 2000,
             timeout_seconds: 30.0,
             work_dir: tmp.path().to_path_buf(),

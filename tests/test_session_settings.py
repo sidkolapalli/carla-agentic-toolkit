@@ -171,6 +171,7 @@ def test_worker_keeps_sync_across_requests_and_restores_settings_on_session_clos
         script=config_path,
         ownership_file=ownership_path,
         host=owner.config.host,
+        connect_host=None,
         port=owner.config.port,
         timeout_seconds=5.0,
     )
