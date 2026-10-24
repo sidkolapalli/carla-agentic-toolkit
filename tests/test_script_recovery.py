@@ -173,3 +173,53 @@ def test_hard_linked_ownership_is_rejected(tmp_path: Path, monkeypatch: pytest.M
     (tmp_path / "alias").hardlink_to(path)
     report = script_recovery.cleanup_script_ownership("localhost", 3000, path, -1, 1)
     assert report["failures"]
+
+
+@pytest.mark.parametrize(
+    ("recorded", "expected"),
+    [([2000, 2001, 2002, 8000, 8500], (2000, 2001, 2002, 8000, 8500)), (None, (8000,))],
+)
+def test_lease_recovery_limits_tm_restore_to_recorded_ports(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    recorded: list[int] | None,
+    expected: tuple[int, ...],
+) -> None:
+    """Recovery uses the trusted recorded ports; legacy records allow only the default TM."""
+    captured: dict[str, object] = {}
+
+    def cleanup(*_args: object, **kwargs: object) -> dict[str, object]:
+        captured.update(kwargs)
+        return {"failures": []}
+
+    monkeypatch.setattr(script_recovery, "cleanup_script_ownership", cleanup)
+    path = tmp_path / "owned-actors.json"
+    state: dict[str, object] = {"kind": "script", "ownership_path": str(path)}
+    if recorded is not None:
+        state["allowed_ports"] = recorded
+    script_recovery._recover_lease_settings("127.0.0.1", 2000, state, 3, 10.0)  # noqa: SLF001
+    assert captured["allowed_ports"] == expected
+
+
+def test_cleanup_worker_forwards_the_requested_allowed_ports(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The unsandboxed worker restores TM settings only on the parent's allowed ports."""
+    path = journal(tmp_path, monkeypatch, [])
+    captured: dict[str, object] = {}
+
+    def connected(*_args: object, **kwargs: object) -> dict[str, object]:
+        captured.update(kwargs)
+        return {"failures": []}
+
+    monkeypatch.setattr(script_recovery, "_cleanup_connected", connected)
+    request = script_recovery._cleanup_request(  # noqa: SLF001
+        "127.0.0.1",
+        2000,
+        path,
+        require_settings=False,
+        destroy_actors=True,
+        allowed_ports=(8500, 2),
+    )
+    script_recovery._worker_cleanup(request)  # noqa: SLF001
+    assert captured["allowed_ports"] == (2, 8500)

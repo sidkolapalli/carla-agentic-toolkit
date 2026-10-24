@@ -25,6 +25,7 @@ from carla_agentic_toolkit.traffic_manager_settings import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
     from pathlib import Path
 
     from carla_agentic_toolkit.adapter import PythonCarlaAdapter
@@ -133,16 +134,20 @@ class RunSettings:
             record_manager_setting(managers, port, setting=setting, value=value)
             self._save(state)
 
-    def restore(self, adapter: PythonCarlaAdapter) -> dict[str, object]:
-        """Apply and reread the baseline; failed verification retains durable evidence."""
+    def restore(
+        self, adapter: PythonCarlaAdapter, *, allowed_ports: Collection[int] | None = None
+    ) -> dict[str, object]:
+        """Apply and reread the baseline; trusted callers pass the execution's allowed ports."""
         try:
             with self._lock:
-                return self._restore(adapter)
+                return self._restore(adapter, allowed_ports)
         except (AttributeError, OSError, RuntimeError, TypeError, ValueError) as exc:
             failure: dict[str, object] = {"actor_id": None, "error": str(exc)}
             return cleanup_report(failures=(failure,)) | {"settings_restored": False}
 
-    def _restore(self, adapter: PythonCarlaAdapter) -> dict[str, object]:
+    def _restore(
+        self, adapter: PythonCarlaAdapter, allowed_ports: Collection[int] | None
+    ) -> dict[str, object]:
         state = self._load()
         original = state["world_settings"]
         if original is None:
@@ -152,7 +157,10 @@ class RunSettings:
         _require_episode(state, world)
         managers = cast("list[dict[str, object]]", state["traffic_managers"])
         manager_report = restore_manager_settings(
-            client, managers, require_episode=lambda: _require_episode(state, client.get_world())
+            client,
+            managers,
+            require_episode=lambda: _require_episode(state, client.get_world()),
+            allowed_ports=allowed_ports,
         )
         values = cast("dict[str, object]", original)
         _require_episode(state, client.get_world())

@@ -6,7 +6,7 @@ import math
 from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Collection
 
     from carla_agentic_toolkit.carla_protocols import CarlaClient
 
@@ -177,8 +177,10 @@ def restore_manager_settings(
     managers: list[dict[str, object]],
     *,
     require_episode: Callable[[], None],
+    allowed_ports: Collection[int] | None = None,
 ) -> dict[str, object]:
     """Report acknowledged declared setters, without inventing TM readback getters."""
+    _require_allowed_ports(managers, allowed_ports)
     evidence: list[dict[str, object]] = []
     async_ports: list[int] = []
     for manager in managers:
@@ -194,6 +196,21 @@ def restore_manager_settings(
         if SYNC_SETTING in targets:
             async_ports.append(port)
     return {"traffic_manager_restore_targets": evidence, "traffic_manager_async_ports": async_ports}
+
+
+def _require_allowed_ports(
+    managers: list[dict[str, object]], allowed_ports: Collection[int] | None
+) -> None:
+    """Keep a sandbox-written journal from naming a port its execution could not reach."""
+    if allowed_ports is None:
+        return
+    for manager in managers:
+        if manager["port"] not in allowed_ports:
+            message = (
+                f"Traffic Manager restoration names port {manager['port']}, "
+                "outside this execution's allowed ports."
+            )
+            raise ValueError(message)
 
 
 def _targets(manager: dict[str, object]) -> dict[str, object]:

@@ -214,6 +214,7 @@ def _run_owned_sandbox(
         "kind": "script",
         "ownership_path": str(work_dir / OWNERSHIP_FILENAME),
         "settings_path": str(work_dir / SETTINGS_FILENAME),
+        "allowed_ports": list(request_ports(request)),
     }
     RunOwnership(work_dir / OWNERSHIP_FILENAME).clear()
     RunSettings(work_dir / SETTINGS_FILENAME).initialize()
@@ -249,6 +250,7 @@ def _verify_successful_settings(
         10.0,
         require_settings=True,
         destroy_actors=False,
+        allowed_ports=request_ports(request),
     )
     return verified_settings_outcome(outcome, report)
 
@@ -279,6 +281,16 @@ def _run_sandbox(
     except OSError as exc:
         return _failure("sandbox_launcher_error", str(exc), runner)
     return _decode_runner_output(completed, runner)
+
+
+def request_ports(request: ExecutionRequest) -> tuple[int, ...]:
+    """Return the TCP ports this execution's sandbox may connect to."""
+    return _allowed_tcp_ports(
+        port=request.port,
+        traffic_manager_ports=request.traffic_manager_ports,
+        streaming_port=request.streaming_port,
+        secondary_port=request.secondary_port,
+    )
 
 
 def _validate_execution(request: ExecutionRequest) -> str | None:
@@ -431,6 +443,7 @@ def _cleanup_failed_execution(
         lease_descriptor,
         10.0,
         require_settings=True,
+        allowed_ports=request_ports(request),
     )
     return failed_cleanup_outcome(outcome, report)
 

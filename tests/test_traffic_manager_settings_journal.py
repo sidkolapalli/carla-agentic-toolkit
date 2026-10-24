@@ -237,6 +237,22 @@ def test_fresh_reader_restores_only_the_recorded_field(tmp_path: Path, setting: 
     assert case.fresh().pending() is False
 
 
+def test_trusted_restore_refuses_ports_the_sandbox_could_not_reach(tmp_path: Path) -> None:
+    """A sandbox-written journal cannot make trusted cleanup connect to or bind another TM port."""
+    setting = "seed"
+    targets = {setting: TARGETS[setting]}
+    case = build_case(tmp_path, [entry(targets, {setting: ATTEMPTED[setting]}, port=9)])
+    looked_up: list[int] = []
+    client = cast("SimpleNamespace", case.adapter._connected_client)  # noqa: SLF001
+    client.get_trafficmanager = lambda port: looked_up.append(port) or case.manager
+
+    report = case.fresh().restore(case.adapter, allowed_ports=(2000, 8000))
+
+    assert report["settings_restored"] is False
+    assert "port 9" in str(report["failures"])
+    assert (looked_up, case.manager.calls, case.fresh().pending()) == ([], [], True)
+
+
 def _assert_restored_global_report(report: dict[str, object], targets: dict[str, object]) -> None:
     assert (report["settings_restored"], report["failures"]) == (True, [])
     assert report["traffic_manager_restore_targets"] == [{"port": PORT, "restore_targets": targets}]

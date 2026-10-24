@@ -19,10 +19,13 @@ from carla_agentic_toolkit.managed_process import parent_death_guard, terminate_
 from carla_agentic_toolkit.managed_session import world_identity
 from carla_agentic_toolkit.ownership import OWNERSHIP_FILENAME, RunOwnership, cleanup_report
 from carla_agentic_toolkit.recovery_snapshots import fresh_cleanup_frame
+from carla_agentic_toolkit.runtime_ports import DEFAULT_TRAFFIC_MANAGER_PORT
 from carla_agentic_toolkit.script_settings import SETTINGS_FILENAME, RunSettings
 from carla_agentic_toolkit.simulator_lease import SimulatorLease
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
+
     from carla_agentic_toolkit.adapter import PythonCarlaAdapter
     from carla_agentic_toolkit.carla_protocols import CarlaWorld
 
@@ -137,6 +140,7 @@ def cleanup_script_ownership(  # noqa: PLR0913 - retain the existing five positi
     require_settings: bool = False,
     destroy_actors: bool = True,
     require_connection: bool = False,
+    allowed_ports: Collection[int] = (DEFAULT_TRAFFIC_MANAGER_PORT,),
 ) -> dict[str, object]:
     """Clean under the caller's inherited lease and a hard native-process deadline."""
     ownership = None
@@ -156,6 +160,7 @@ def cleanup_script_ownership(  # noqa: PLR0913 - retain the existing five positi
                 require_settings=settings is not None,
                 destroy_actors=destroy_actors,
                 require_connection=connection is not None,
+                allowed_ports=allowed_ports,
             ),
             lease_descriptor,
             timeout_seconds,
@@ -188,6 +193,7 @@ def _cleanup_request(  # noqa: PLR0913 -- Keep independent journal validation fl
     require_settings: bool,
     destroy_actors: bool,
     require_connection: bool = False,
+    allowed_ports: Collection[int] = (DEFAULT_TRAFFIC_MANAGER_PORT,),
 ) -> dict[str, object]:
     return {
         "host": host,
@@ -196,6 +202,7 @@ def _cleanup_request(  # noqa: PLR0913 -- Keep independent journal validation fl
         "require_settings": require_settings,
         "destroy_actors": destroy_actors,
         "require_connection": require_connection,
+        "allowed_ports": sorted(allowed_ports),
     }
 
 
@@ -249,18 +256,19 @@ def _fresh_cleanup_snapshot(world: CarlaWorld) -> None:
     )
 
 
-def _cleanup_connected(
+def _cleanup_connected(  # noqa: PLR0913 - trusted cleanup inputs stay explicit.
     adapter: PythonCarlaAdapter,
     ownership: RunOwnership,
     settings: RunSettings | None = None,
     *,
     destroy_actors: bool = True,
     connection: ConnectionJournal | None = None,
+    allowed_ports: Collection[int] = (DEFAULT_TRAFFIC_MANAGER_PORT,),
 ) -> dict[str, object]:
     from carla_agentic_toolkit.ownership import cleanup_owned_actors  # noqa: PLC0415
 
     _check_connection_episode(adapter, connection, ownership)
-    restored = _restore_settings(adapter, settings)
+    restored = _restore_settings(adapter, settings, allowed_ports)
     if restored.get("failures"):
         return add_creation_failures(restored, ownership)
     if not _actor_cleanup_needed(ownership, settings, destroy_actors=destroy_actors):
@@ -306,9 +314,11 @@ def _clear_old_world(ownership: RunOwnership, restored: dict[str, object]) -> di
 
 
 def _restore_settings(
-    adapter: PythonCarlaAdapter, settings: RunSettings | None
+    adapter: PythonCarlaAdapter, settings: RunSettings | None, allowed_ports: Collection[int]
 ) -> dict[str, object]:
-    return settings.restore(adapter) if settings is not None else cleanup_report()
+    if settings is None:
+        return cleanup_report()
+    return settings.restore(adapter, allowed_ports=allowed_ports)
 
 
 def _actor_cleanup_needed(
@@ -343,6 +353,7 @@ def _worker_cleanup(
             settings,
             destroy_actors=request.get("destroy_actors") is not False,
             connection=connection,
+            allowed_ports=_ports(request.get("allowed_ports")),
         )
     except (OSError, RuntimeError, TypeError, ValueError) as error:
         report = _failure(str(error))
@@ -387,9 +398,27 @@ def _recover_lease_settings(
             timeout,
             require_settings=require_settings,
             require_connection=require_connection,
+            allowed_ports=_ports(state.get("allowed_ports")),
         )
     except (OSError, RuntimeError, TypeError, ValueError) as error:
         return _failure(str(error))
+
+
+def _ports(value: object) -> tuple[int, ...]:
+    """Read trusted allowed ports; legacy records without them allow only the default TM."""
+    if value is None:
+        return (DEFAULT_TRAFFIC_MANAGER_PORT,)
+    if not isinstance(value, list):
+        message = "Recorded allowed ports must be a list."
+        raise TypeError(message)
+    return tuple(_port(item) for item in value)
+
+
+def _port(value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        message = "Recorded allowed ports must be integers."
+        raise TypeError(message)
+    return value
 
 
 def _require_settings_path(state: dict[str, object], path: Path) -> bool:

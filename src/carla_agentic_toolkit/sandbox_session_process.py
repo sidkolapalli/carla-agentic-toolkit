@@ -22,6 +22,7 @@ from carla_agentic_toolkit.sandbox import (
     _runner_command,
     _sandbox_runner,
     output_dir_path,
+    request_ports,
 )
 from carla_agentic_toolkit.script_recovery import cleanup_script_ownership
 from carla_agentic_toolkit.script_settings import SETTINGS_FILENAME, RunSettings
@@ -137,6 +138,7 @@ class SessionProcess:
                 timeout_seconds=5.0,
                 require_settings=True,
                 require_connection=True,
+                allowed_ports=request_ports(self.request),
             )
             outcome = replace(outcome, cleanup=report)
             self._save_cleanup(outcome)
@@ -172,4 +174,5 @@ class SessionProcess:
             "ownership_path": str(self.work / OWNERSHIP_FILENAME),
             "settings_path": str(self.work / SETTINGS_FILENAME),
             "connection_path": str(self.work / CONNECTION_FILENAME),
+            "allowed_ports": list(request_ports(self.request)),
         }

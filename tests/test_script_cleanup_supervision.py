@@ -29,8 +29,10 @@ def test_cleanup_borrows_lease_and_preserves_script_failure(
         timeout_seconds: float,
         *,
         require_settings: bool = False,
+        allowed_ports: tuple[int, ...] = (),
     ) -> dict[str, object]:
         assert require_settings is True
+        assert allowed_ports
         calls.append((host, port, path, lease_descriptor, timeout_seconds))
         return {
             "attempted_actor_ids": [8],

@@ -58,6 +58,7 @@ def test_parent_restores_pending_settings_after_success_or_deadline(
         *,
         require_settings: bool = False,
         destroy_actors: bool = True,
+        allowed_ports: tuple[int, ...] = (),
     ) -> dict[str, object]:
         assert require_settings is True
         calls.append(destroy_actors)
@@ -66,6 +67,7 @@ def test_parent_restores_pending_settings_after_success_or_deadline(
             RunOwnership(path),
             RunSettings(path.with_name(SETTINGS_FILENAME), require_existing=True),
             destroy_actors=destroy_actors,
+            allowed_ports=allowed_ports,
         )
 
     monkeypatch.setattr(sandbox, "_run_sandbox", run)
