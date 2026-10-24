@@ -37,8 +37,10 @@ def install_creation_observers(adapter: PythonCarlaAdapter, ownership: RunOwners
 def prepare_owned_spawn(adapter: PythonCarlaAdapter, ownership: RunOwnership) -> None:
     """Block native creation if durable intent cannot be written."""
     ownership.creation_health.require_healthy()
+    # A failed read precedes any intent or mutation, so it is not an ownership fault.
+    world_id = adapter.get_world_identity()
     try:
-        ownership.begin_creation(adapter.get_world_identity())
+        ownership.begin_creation(world_id)
     except (OwnershipError, CarlaAdapterError, RuntimeError) as exc:
         ownership.creation_health.record(str(exc), ())
         raise OwnershipError(str(exc)) from exc

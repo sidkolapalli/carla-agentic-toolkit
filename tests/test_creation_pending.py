@@ -103,6 +103,28 @@ def test_a_failed_spawn_preparation_keeps_earlier_batch_results(
     assert "deadline" in str(second["error"])
 
 
+def test_a_transient_world_read_before_intent_does_not_block_later_creation(
+    creation_case: CreationCase, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """No intent or mutation happened yet, so one failed identity read is not an ownership fault."""
+    read = creation_case.adapter.get_world_identity
+    reads: list[int] = []
+
+    def flaky_read() -> int:
+        reads.append(1)
+        if len(reads) == 2:  # noqa: PLR2004 - the read inside prepare_owned_spawn.
+            message = "transient world read"
+            raise CarlaAdapterError(message)
+        return read()
+
+    monkeypatch.setattr(creation_case.adapter, "get_world_identity", flaky_read)
+    first = creation_case.api.spawn_actor_batch([_spawn_request()])
+    second = creation_case.api.spawn_actor_batch([_spawn_request()])
+    assert first["ok"] is False
+    assert creation_case.ownership.creation_health.error() is None
+    assert cast("list[dict[str, object]]", second["results"])[0]["actor_id"] == FIRST_ACTOR_ID
+
+
 def test_empty_pending_journal_cannot_authorize_trusted_cleanup(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
