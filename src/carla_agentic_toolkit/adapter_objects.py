@@ -9,6 +9,7 @@ from carla_agentic_toolkit.actor_creation import (
     creation_identity,
     observe_created_actor,
     observe_no_actor,
+    observe_spawn_error,
     prepare_spawn,
 )
 from carla_agentic_toolkit.actor_runtime import actor_by_id
@@ -119,10 +120,12 @@ def _spawn_actor(
     except (AttributeError, RuntimeError, TypeError, ValueError, CarlaAdapterError) as exc:
         return SpawnResult(request_index=index, actor_id=None, error=str(exc))
     prepare_spawn(observers.get("before_spawn"))
+    identity = None
     try:
         identity = creation_identity(world, observers.get("on_spawn"))
         actor = world.spawn_actor(blueprint, transform)
     except (AttributeError, RuntimeError, TypeError, ValueError, CarlaAdapterError) as exc:
+        observe_spawn_error(exc, identity, observers.get("on_no_actor"))
         return SpawnResult(request_index=index, actor_id=None, error=str(exc))
     if actor is None:
         observe_no_actor(identity, observers.get("on_no_actor"))

@@ -59,6 +59,27 @@ def test_pending_write_failure_prevents_native_creation(
     assert creation_case.world.actors == []
 
 
+@pytest.mark.parametrize(
+    ("error", "pending"),
+    [
+        ("Spawn failed because of collision at spawn position", 0),
+        ("time-out of 5000ms while waiting for the simulator", 1),
+    ],
+)
+def test_only_a_collision_rejection_resolves_creation_intent(
+    creation_case: CreationCase, monkeypatch: pytest.MonkeyPatch, error: str, pending: int
+) -> None:
+    """CARLA's collision rejection created no actor; a lost reply may have, so it stays pending."""
+
+    def reject(*_args: object) -> object:
+        raise RuntimeError(error)
+
+    monkeypatch.setattr(creation_case.world, "spawn_actor", reject)
+    result = creation_case.api.spawn_actor_batch([_spawn_request()])
+    assert result["ok"] is False
+    assert creation_case.ownership.pending_creations() == pending
+
+
 def test_empty_pending_journal_cannot_authorize_trusted_cleanup(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

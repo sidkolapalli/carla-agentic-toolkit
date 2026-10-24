@@ -16,6 +16,8 @@ type ActorCleanupObserver = Callable[[tuple[int, ...], int | None], None]
 type NoActorObserver = Callable[[int], None]
 type BeforeSpawn = Callable[[], object]
 
+SPAWN_COLLISION_ERROR = "Spawn failed because of collision at spawn position"
+
 
 class SpawnObservers(TypedDict, total=False):
     """Optional hooks preserve standalone helper and existing test-double behavior."""
@@ -48,6 +50,14 @@ def observe_no_actor(identity: int | None, observer: NoActorObserver | None) -> 
     """Resolve a definite collision without guessing an actor ID."""
     if observer is not None and identity is not None:
         observer(identity)
+
+
+def observe_spawn_error(
+    error: Exception, identity: int | None, observer: NoActorObserver | None
+) -> None:
+    """CARLA's collision rejection created no actor; any other spawn error stays unresolved."""
+    if SPAWN_COLLISION_ERROR in str(error):
+        observe_no_actor(identity, observer)
 
 
 def spawn_observers(
