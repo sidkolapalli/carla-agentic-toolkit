@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from importlib import import_module
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
 from carla_agentic_toolkit.experiment_common import (
@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from carla_agentic_toolkit.carla_protocols import CarlaWorld
+    from carla_agentic_toolkit.world_b_types import CarlaCommandModule, CarlaRecorderClient
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,7 +40,7 @@ def replay_recording(client: object, request: ReplayRequest) -> dict[str, object
     if not request.do_tick:
         message = "CARLA replay_file does not expose a non-ticking replay capability."
         raise UnsupportedFeatureError(message)
-    result = cast("Any", client).replay_file(
+    result = cast("CarlaRecorderClient", client).replay_file(
         str(request.path),
         request.start,
         request.duration,
@@ -57,7 +58,8 @@ def recording_collisions(
     other_type: str,
 ) -> dict[str, object]:
     """Query collisions: h=hero, v=vehicle, w=walker, t=traffic light, o=other, a=any."""
-    report = cast("Any", client).show_recorder_collisions(str(path), actor_type, other_type)
+    recorder = cast("CarlaRecorderClient", client)
+    report = recorder.show_recorder_collisions(str(path), actor_type, other_type)
     return {"path": str(path), "report": str(report)}
 
 
@@ -69,7 +71,8 @@ def recording_actors_blocked(
     min_distance: float,
 ) -> dict[str, object]:
     """Return recorder blocked-actor report text."""
-    report = cast("Any", client).show_recorder_actors_blocked(str(path), min_time, min_distance)
+    recorder = cast("CarlaRecorderClient", client)
+    report = recorder.show_recorder_actors_blocked(str(path), min_time, min_distance)
     return {"path": str(path), "report": str(report)}
 
 
@@ -79,7 +82,9 @@ def apply_batch(
     """Apply reviewed commands with CARLA's non-ticking apply_batch_sync default."""
     _validate_tick_flag(do_tick)
     carla_commands = [batch_command(import_module("carla"), command) for command in commands]
-    responses = cast("Any", client).apply_batch_sync(carla_commands, do_tick=do_tick)
+    responses = cast("CarlaRecorderClient", client).apply_batch_sync(
+        carla_commands, do_tick=do_tick
+    )
     return {"responses": [batch_response(response) for response in responses]}
 
 
@@ -162,7 +167,8 @@ def batch_command(module: object, command: dict[str, object]) -> object:
     """Build a supported carla.command object."""
     action = str(command.get("action", ""))
     if action == "destroy_actor":
-        return cast("Any", module).command.DestroyActor(int_value(command["actor_id"]))
+        commands = cast("CarlaCommandModule", module).command
+        return commands.DestroyActor(int_value(command["actor_id"]))
     msg = f"Unsupported batch action: {action}."
     raise CarlaAdapterError(msg)
 

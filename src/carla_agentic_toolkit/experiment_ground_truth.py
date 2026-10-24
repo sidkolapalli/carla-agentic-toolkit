@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import math
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.actor_boxes import bounding_box_metadata
 from carla_agentic_toolkit.errors import CarlaAdapterError
@@ -21,6 +21,11 @@ if TYPE_CHECKING:
 
     from carla_agentic_toolkit.carla_protocols import CarlaTelemetrySnapshot, CarlaWorld
     from carla_agentic_toolkit.models import Location
+    from carla_agentic_toolkit.world_b_types import (
+        CarlaAttributedActor,
+        CarlaBoundedActor,
+        CarlaRawImage,
+    )
 
 MAX_GROUND_TRUTH_ACTORS = 1000
 RAW_IMAGE_REPRESENTATION = "carla.Image.raw_data (32-bit BGRA)"
@@ -91,7 +96,7 @@ def _actor_box(
     measured_transform = transform_dict(transform)
     for components in measured_transform.values():
         _require_finite(cast("dict[str, float]", components).values())
-    bounds = cast("Any", actor(world, actor_id)).bounding_box
+    bounds = cast("CarlaBoundedActor", actor(world, actor_id)).bounding_box
     metadata = bounding_box_metadata(bounds)
     corners = cast("Iterable[object]", call_required(bounds, "get_world_vertices", transform))
     vertices = [finite_vector(value) for value in corners]
@@ -104,11 +109,11 @@ def _actor_box(
 def camera_intrinsics(world: CarlaWorld, sensor_id: int) -> dict[str, object]:
     """Build the tutorial K matrix from actual camera attributes, without Listen."""
     try:
-        camera = cast("Any", actor(world, sensor_id))
+        camera = cast("CarlaAttributedActor", actor(world, sensor_id))
         if not camera.type_id.startswith("sensor.camera."):
             message = f"Actor {sensor_id} is not a camera sensor."
             raise CarlaAdapterError(message)
-        attributes = cast("Mapping[str, str]", camera.attributes)
+        attributes = camera.attributes
         width = _dimension_attribute(attributes, "image_size_x")
         height = _dimension_attribute(attributes, "image_size_y")
         fov = camera_fov(attributes)
@@ -192,7 +197,7 @@ def _is_bgra_measurement(frame: object, sensor_type: str | None) -> bool:
 
 
 def _image_measurements(frame: object) -> tuple[int, int, memoryview]:
-    image = cast("Any", frame)
+    image = cast("CarlaRawImage", frame)
     width = _positive_dimension(image.width, "width")
     height = _positive_dimension(image.height, "height")
     raw = _bgra_buffer(image.raw_data, width * height * 4)

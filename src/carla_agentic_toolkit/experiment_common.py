@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from importlib import import_module
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.actor_runtime import actor_by_id
 from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
@@ -18,7 +18,14 @@ from carla_agentic_toolkit.models import (
 )
 
 if TYPE_CHECKING:
-    from carla_agentic_toolkit.carla_protocols import CarlaSensor, CarlaWorld, ObjectFactory
+    from carla_agentic_toolkit.carla_protocols import (
+        CarlaSensor,
+        CarlaTransformObject,
+        CarlaWorld,
+        ObjectFactory,
+    )
+
+_AXES = ("x", "y", "z")
 
 
 def world_state(world: CarlaWorld, *, warnings: tuple[str, ...] = ()) -> WorldState:
@@ -80,7 +87,7 @@ def frame(world: CarlaWorld) -> int | None:
 
 def typed_transform(transform: object) -> Transform:
     """Convert a CARLA transform object into the internal typed model."""
-    carla_transform = cast("Any", transform)
+    carla_transform = cast("CarlaTransformObject", transform)
     return Transform(
         location=Location(
             x=float(carla_transform.location.x),
@@ -157,20 +164,13 @@ def optional_transform_dict(transform: object | None) -> dict[str, object] | Non
 
 def vector_dict(vector: object) -> dict[str, object]:
     """Return a JSON-compatible vector dictionary."""
-    carla_vector = cast("Any", vector)
-    return {
-        "x": float(carla_vector.x),
-        "y": float(carla_vector.y),
-        "z": float(carla_vector.z),
-    }
+    return {axis: float(getattr(vector, axis)) for axis in _AXES}
 
 
 def vector_length(vector: object) -> float:
     """Return vector magnitude."""
-    carla_vector = cast("Any", vector)
-    return math.sqrt(
-        float(carla_vector.x) ** 2 + float(carla_vector.y) ** 2 + float(carla_vector.z) ** 2
-    )
+    x, y, z = (float(getattr(vector, axis)) for axis in _AXES)
+    return math.sqrt(x**2 + y**2 + z**2)
 
 
 def safe_vector_method(target: object, method_name: str) -> dict[str, object] | None:
