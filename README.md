@@ -77,7 +77,7 @@ The Python wheel alone does not include the Rust runner.
 For Codex on Linux, in the same shell:
 
 ```bash
-codex mcp add carla --env "CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR=$CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR" -- \
+codex mcp add carla-agentic-toolkit --env "CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR=$CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR" -- \
   "$UV_BIN" --directory "$CARLA_AGENTIC_TOOLKIT_HOME" run --no-sync carla-agentic-toolkit
 codex mcp list
 ```
