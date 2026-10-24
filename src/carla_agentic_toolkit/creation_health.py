@@ -48,15 +48,13 @@ class CreationHealth:
 
 
 def finish_creation_outcome(
-    outcome: dict[str, object], ownership: RunOwnership | None
+    outcome: dict[str, object], ownership: RunOwnership | None, *, check_pending: bool = True
 ) -> dict[str, object]:
     """Turn an ignored ownership error into a truthful terminal result."""
     if ownership is None:
         return outcome
-    try:
-        ownership.require_completed_creations()
-    except OwnershipError as exc:
-        ownership.creation_health.record(str(exc), ())
+    if check_pending:
+        _record_unresolved(ownership)
     if ownership.creation_health.error() is None:
         return outcome
     if outcome.get("ok"):
@@ -70,6 +68,13 @@ def finish_creation_outcome(
         cast("dict[str, object]", outcome.get("cleanup", {"failures": []})), ownership
     )
     return outcome
+
+
+def _record_unresolved(ownership: RunOwnership) -> None:
+    try:
+        ownership.require_completed_creations()
+    except OwnershipError as exc:
+        ownership.creation_health.record(str(exc), ())
 
 
 def add_creation_failures(cleanup: dict[str, object], ownership: RunOwnership) -> dict[str, object]:

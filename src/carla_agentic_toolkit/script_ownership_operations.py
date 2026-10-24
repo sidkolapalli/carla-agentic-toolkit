@@ -85,7 +85,10 @@ class ScriptOwnershipOperations(ScriptTimingOperations):
             self._ownership.require_completed_creations()
 
     def _finalize_owned_outcome(self, outcome: dict[str, object]) -> dict[str, object]:
-        return finish_creation_outcome(outcome, self._ownership)
+        # A running controller thread may hold an in-flight creation it will resolve itself.
+        status = self._traffic_controller.get_status()
+        idle = not (status.active or status.stopping)
+        return finish_creation_outcome(outcome, self._ownership, check_pending=idle)
 
 
 def _controller_observers(
