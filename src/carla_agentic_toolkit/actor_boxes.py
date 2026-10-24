@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import cast
 
 from carla_agentic_toolkit.errors import CarlaAdapterError
 
@@ -44,13 +44,16 @@ def _triplet(value: object, names: tuple[str, str, str]) -> Vector3:
     return values
 
 
+def _member_triplet(owner: object, member: str, names: tuple[str, str, str]) -> Vector3:
+    return _triplet(getattr(owner, member), names)
+
+
 def bounding_box_metadata(bounds: object) -> dict[str, dict[str, float]]:
     """Retain measured native local offsets, rotations and half-extents, never defaults."""
     try:
-        native = cast("Any", bounds)
-        location = _triplet(native.location, ("x", "y", "z"))
-        rotation = _triplet(native.rotation, ("pitch", "yaw", "roll"))
-        extent = _triplet(native.extent, ("x", "y", "z"))
+        location = _member_triplet(bounds, "location", ("x", "y", "z"))
+        rotation = _member_triplet(bounds, "rotation", ("pitch", "yaw", "roll"))
+        extent = _member_triplet(bounds, "extent", ("x", "y", "z"))
         _require_extents(extent)
     except (AttributeError, RuntimeError, TypeError, ValueError) as error:
         message = f"Native bounding box geometry is unavailable or invalid: {error}"
@@ -91,9 +94,8 @@ def _planar_heading(axes: tuple[Vector3, ...]) -> float:
 def project_actor_box(transform: object, bounds: object) -> ProjectedBox:
     """Compose full actor/box rotations; conservatively retain projected height."""
     measured = bounding_box_metadata(bounds)
-    runtime = cast("Any", transform)
-    origin = _triplet(runtime.location, ("x", "y", "z"))
-    rotation = _triplet(runtime.rotation, ("pitch", "yaw", "roll"))
+    origin = _member_triplet(transform, "location", ("x", "y", "z"))
+    rotation = _member_triplet(transform, "rotation", ("pitch", "yaw", "roll"))
     local_rotation = cast("Vector3", tuple(measured["rotation"].values()))
     offset = _rotate(cast("Vector3", tuple(measured["location"].values())), rotation)
     center = cast("Vector3", tuple(a + b for a, b in zip(origin, offset, strict=True)))
