@@ -145,7 +145,7 @@ def test_unexpected_episode_change_refuses_capture_and_restore(tmp_path: Path) -
     journal = RunSettings(path)
     _capture(journal, original_world)
     original_record = read_control(path)
-    replacement = FakeWorld(id=original_world.id + 1)
+    replacement = FakeWorld(id=original_world.id + 1, settings=FakeSettings(synchronous_mode=True))
 
     with pytest.raises(CarlaAdapterError, match="World changed"):
         _capture(journal, replacement)

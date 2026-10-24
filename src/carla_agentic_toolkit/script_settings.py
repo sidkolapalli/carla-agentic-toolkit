@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.managed_control_io import read_control, write_control
+from carla_agentic_toolkit.managed_replacement import check_replaced_world
 from carla_agentic_toolkit.managed_world import (
     SETTINGS_FIELDS,
     apply_world_settings,
@@ -29,7 +30,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from carla_agentic_toolkit.adapter import PythonCarlaAdapter
-    from carla_agentic_toolkit.carla_protocols import CarlaWorld
+    from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaWorld
 
 SETTINGS_FILENAME = "world-settings.json"
 
@@ -154,7 +155,8 @@ class RunSettings:
             return cleanup_report() | {"settings_restored": True}
         client = adapter._client()  # noqa: SLF001 - trusted cleanup retains one native connection.
         world = client.get_world()
-        _require_episode(state, world)
+        if state["world_id"] != world_identity(world):
+            return self._replaced(client, world, state)
         managers = cast("list[dict[str, object]]", state["traffic_managers"])
         manager_report = restore_manager_settings(
             client,
@@ -170,6 +172,22 @@ class RunSettings:
         _require_episode(state, client.get_world())
         self._save(_empty_state())
         return cleanup_report() | {"settings_restored": True} | manager_report
+
+    def _replaced(
+        self, client: CarlaClient, world: CarlaWorld, state: dict[str, object]
+    ) -> dict[str, object]:
+        """Never mutate a replaced world; it is clean only if it already holds the baseline."""
+        failures: list[str] = []
+        if state["traffic_managers"]:
+            failures.append("Traffic Manager targets cannot be verified after a world replacement.")
+            report = {"world_replaced": True, "settings_checked": False, "settings_restored": False}
+        else:
+            original = cast("dict[str, object]", state["world_settings"])
+            report = check_replaced_world(client, world, original, failures)
+        if not failures:
+            self._save(_empty_state())
+        errors: list[dict[str, object]] = [{"actor_id": None, "error": item} for item in failures]
+        return cleanup_report(failures=errors) | report
 
     def _load(self) -> dict[str, object]:
         if self._path is None:

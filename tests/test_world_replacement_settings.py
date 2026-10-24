@@ -18,7 +18,7 @@ from tests.test_sync_settings import FakeSettings, FakeWorld
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from carla_agentic_toolkit.carla_protocols import CarlaClient
+    from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaWorld
 
 ACTOR_ID = 101
 
@@ -94,27 +94,40 @@ def test_replacement_applied_before_rpc_failure_retains_unrestored_baseline(
 
     reopened = RunSettings(path, require_existing=True)
     result = _cleanup_connected(adapter, ownership, reopened)
-    _assert_fail_closed(result, client.world, ownership, settings)
+    _assert_fail_closed(result, client.world, ownership, settings, "settings differ")
     assert read_control(path) == original_record
 
 
 @pytest.mark.parametrize("method", ["load_world", "reload_world"])
-def test_unexpected_episode_after_completed_replacement_refuses_restore(
+def test_unrelated_world_already_at_baseline_is_clean_without_mutation(
     tmp_path: Path, method: str
 ) -> None:
-    """Completed map replacement binds its returned episode, never a later unrelated world."""
+    """A later replacement is never mutated; it is clean only because it holds the baseline."""
     adapter, client, settings, ownership = _prepared_adapter(tmp_path, lose_response=False)
     _replace(adapter, method)
     path = tmp_path / "world-settings.json"
-    rebound = read_control(path)
-    assert rebound["world_id"] == client.replacement.id
+    assert read_control(path)["world_id"] == client.replacement.id
     client.world = FakeWorld(id=client.replacement.id + 1)
     original = asdict(client.world.settings)
 
     result = _cleanup_connected(adapter, ownership, RunSettings(path, require_existing=True))
 
-    _assert_fail_closed(result, client.world, ownership, settings)
-    assert (asdict(client.world.settings), read_control(path)) == (original, rebound)
+    assert (result["settings_restored"], result["failures"]) == (True, [])
+    assert (client.world.applied, asdict(client.world.settings)) == ([], original)
+    assert (ownership.actor_ids(), settings.pending()) == ((), False)
+
+
+def test_replaced_world_with_a_journaled_tm_target_stays_dirty(tmp_path: Path) -> None:
+    """TM globals have no readback, so a replacement cannot prove they were restored."""
+    adapter, client, settings, ownership = _prepared_adapter(tmp_path, lose_response=False)
+    world = cast("CarlaWorld", client.world)
+    settings.capture_traffic_manager_setting(world, 8000, setting="seed", value=1)
+    client.world = FakeWorld(id=client.world.id + 2)
+    reopened = RunSettings(tmp_path / "world-settings.json", require_existing=True)
+
+    result = _cleanup_connected(adapter, ownership, reopened, allowed_ports=(8000,))
+
+    _assert_fail_closed(result, client.world, ownership, settings, "Traffic Manager targets")
 
 
 @pytest.mark.parametrize("method", ["load_world", "reload_world"])
@@ -136,8 +149,12 @@ def test_completed_replacement_rebinds_settings_before_a_later_deadline_failure(
 
 
 def _assert_fail_closed(
-    result: dict[str, object], world: FakeWorld, ownership: RunOwnership, settings: RunSettings
+    result: dict[str, object],
+    world: FakeWorld,
+    ownership: RunOwnership,
+    settings: RunSettings,
+    reason: str,
 ) -> None:
     assert (result["settings_restored"], bool(result["failures"])) == (False, True)
-    assert "World changed" in str(result["failures"])
+    assert reason in str(result["failures"])
     assert (world.applied, ownership.actor_ids(), settings.pending()) == ([], (ACTOR_ID,), True)
