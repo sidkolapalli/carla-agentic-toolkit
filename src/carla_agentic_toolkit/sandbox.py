@@ -39,7 +39,7 @@ from carla_agentic_toolkit.simulator_lease import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator, Sequence
+    from collections.abc import Generator, Sequence
 
 __all__ = ["ScriptOutcome", "execute_script", "output_dir_path"]
 
@@ -188,7 +188,7 @@ def _execute_with_runner(
 
 
 @contextmanager
-def _script_workdir(lease: SimulatorLease) -> Iterator[Path]:
+def _script_workdir(lease: SimulatorLease) -> Generator[Path, None, None]:
     """Retain failed ownership evidence until trusted recovery confirms cleanup."""
     path = Path(tempfile.mkdtemp(prefix="carla-agentic-toolkit-script-"))
     try:

@@ -1,6 +1,9 @@
 # /// script
 # requires-python = ">=3.12"
 # dependencies = ["matplotlib==3.11.2", "numpy==2.5.3"]
+#
+# [tool.ty.rules]
+# unresolved-import = "ignore"
 # ///
 """Render scientific PNG/SVG graphs from the portable, numerical route study."""
 

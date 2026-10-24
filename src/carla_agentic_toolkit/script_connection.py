@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, cast
 from carla_agentic_toolkit.persistent_connection import operation_episode_guard
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator
+    from collections.abc import Callable, Generator
 
     from carla_agentic_toolkit.carla_protocols import CarlaWorld
     from carla_agentic_toolkit.models import JsonObject
@@ -35,7 +35,7 @@ def guarded_operation(adapter: object, operation: Callable[[], JsonObject]) -> J
 
 
 @contextmanager
-def guarded_connection(adapter: object) -> Iterator[None]:
+def guarded_connection(adapter: object) -> Generator[None, None, None]:
     """Retain the same failure and episode boundary during calls and finalization."""
     guard = cast(
         "Callable[[CarlaWorld], None] | None", adapter_hook(adapter, "_persistent_operation_guard")

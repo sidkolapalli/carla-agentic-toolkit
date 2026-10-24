@@ -65,5 +65,5 @@ def test_density_is_immutable_and_none_is_disabled() -> None:
     config = spec.background_density
     assert config is not None
     with pytest.raises(ValidationError):
-        config.vehicle_count = 3
+        config.vehicle_count = 3  # ty: ignore[invalid-assignment]  # frozen field under test
     assert "background_density" not in ExperimentSpec(background_density=None).model_dump()

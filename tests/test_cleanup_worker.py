@@ -100,10 +100,12 @@ def test_missing_cleanup_report_identifies_worker_exit_and_retains_quarantine(
             [
                 sys.executable,
                 "-c",
-                "import os, resource, sys; resource.setrlimit(resource.RLIMIT_CORE, (0, 0)); "
-                "sys.stderr.write('SENSITIVE_TEST_DIAGNOSTIC'); sys.stderr.flush(); "
-                "code = int(sys.argv[1]); "
-                "os.kill(os.getpid(), -code) if code < 0 else sys.exit(code)",
+                (
+                    "import os, resource, sys; resource.setrlimit(resource.RLIMIT_CORE, (0, 0)); "
+                    "sys.stderr.write('SENSITIVE_TEST_DIAGNOSTIC'); sys.stderr.flush(); "
+                    "code = int(sys.argv[1]); "
+                    "os.kill(os.getpid(), -code) if code < 0 else sys.exit(code)"
+                ),
                 str(exit_code),
             ],
             stderr=subprocess.DEVNULL,
