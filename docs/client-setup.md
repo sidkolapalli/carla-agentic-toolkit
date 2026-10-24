@@ -23,8 +23,9 @@ Before starting, install or confirm:
   [uv](https://docs.astral.sh/uv/), Rust, and a C/C++ linker (`build-essential`
   on Ubuntu) for the source path. Pin Python 3.12: newer Linux releases may
   otherwise select Python 3.14, which CARLA 0.9.16 does not support.
-- Linux kernel 6.15 or newer, which provides the Landlock ABI V7 required by the
-  sandbox. On Windows this kernel must be supplied by WSL2.
+- Linux kernel 6.12 or newer, which provides the Landlock ABI V6 required by the
+  sandbox: filesystem and TCP rules plus signal and abstract-socket scopes. On
+  Windows this kernel must be supplied by WSL2.
 - A reachable CARLA server and a matching CARLA Python API release in the MCP
   virtual environment. A 0.9.16 server requires `carla==0.9.16`; see
   [version matching](#version-matching) for diagnostics and source-build suffixes.
@@ -154,7 +155,7 @@ docker run --rm --read-only --security-opt=no-new-privileges \
 
 Do not continue unless preflight reports `"ok": true` and
 `"ruleset_enforced": true`. The container fails closed when the host kernel or
-container runtime cannot enforce Landlock ABI V7. A Linux 6.15+ kernel and a
+container runtime cannot enforce Landlock ABI V6. A Linux 6.12+ kernel and a
 runtime that permits the `landlock_*` syscalls are required.
 
 Use this as the MCP stdio process. `-i` is required; do not add `-t`:
@@ -325,9 +326,9 @@ wsl --update
 wsl --version
 ```
 
-The Rust runner hard-requires Landlock ABI V7, introduced with Linux 6.15.
+The Rust runner hard-requires Landlock ABI V6, introduced with Linux 6.12.
 Older WSL2 kernels, including 6.6, fail closed because they cannot enforce the
-same filesystem and TCP rules. `carla-agentic-toolkit-windows --check` reports the actual
+same filesystem, TCP and scope rules; `wsl --update` installs a current kernel. `carla-agentic-toolkit-windows --check` reports the actual
 kernel and is the definitive compatibility test.
 
 Then, inside that WSL2 distribution:
@@ -607,7 +608,7 @@ authentication, deployment, and a packaged sandbox runner.
   Landlock feature. Execution intentionally fails closed; do not bypass it.
 - **`carla-agentic-toolkit-windows --check` rejects the distribution:** confirm
   `wsl --list --verbose` reports version 2 and `wsl --version` reports a Linux
-  6.15-or-newer kernel, then run `wsl --update`. Do not bypass a failed check.
+  6.12-or-newer kernel, then run `wsl --update`. Do not bypass a failed check.
 - **Windows cannot reach `wsl.exe`:** install or update WSL from an elevated
   PowerShell prompt, then reopen the client.
 - **`carla_api_unavailable`:** the message retains the original import or ABI

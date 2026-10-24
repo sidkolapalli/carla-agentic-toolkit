@@ -39,8 +39,9 @@ Details: [security policy](SECURITY.md) · [script workflows](docs/script-workfl
 ## Quick start
 
 > [!IMPORTANT]
-> - Linux, or Windows 11 through WSL2, with **kernel 6.15 or newer** for Landlock
->   ABI V7. Older kernels, including the WSL2 6.6 kernel, fail closed.
+> - Linux, or Windows 11 through WSL2, with **kernel 6.12 or newer** for Landlock
+>   ABI V6. Older kernels fail closed; on Windows, `wsl --update` replaces the
+>   older WSL2 6.6 kernel.
 > - **Python 3.12** (pin it; newer distributions may default to 3.14, which CARLA
 >   0.9.16 does not support), [uv](https://docs.astral.sh/uv/), and **Rust** with
 >   a C/C++ linker.

@@ -100,6 +100,13 @@ Landlock filters port numbers, not destination addresses or hostnames. An
 allowed port can therefore be reached on any routable host; connect only to
 trusted networks. Unlisted ports remain blocked by Landlock.
 
+## Process Scopes
+
+Landlock also scopes signals and abstract Unix sockets. The child cannot signal
+a process outside its sandbox, such as the MCP server or the cleanup guardian,
+and cannot connect to an abstract Unix socket created outside it. The trusted
+parent and guardian can still signal and stop the child.
+
 ## Resource and Output Policy
 
 The child has a 4 GiB address-space limit, 60 CPU-second limit, 128-process

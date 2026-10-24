@@ -80,6 +80,7 @@ def test_real_runner_exposes_actual_connect_rules_not_inherited_environment(
     assert payload["landlock"] == {
         "landlock": "available",
         "ruleset_enforced": True,
+        "scopes": ["signal", "abstract_unix_socket"],
         "tcp_connect_ports": ports,
     }
 
