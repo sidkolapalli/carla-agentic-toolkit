@@ -29,8 +29,9 @@ class RecorderClient:
     accepted_path: str
     requested_path: str | None = None
 
-    def start_recorder(self, path: str) -> str:
+    def start_recorder(self, path: str, *, additional_data: bool = False) -> str:
         """Return the path accepted by the simulator server."""
+        assert type(additional_data) is bool
         self.requested_path = path
         return self.accepted_path
 
@@ -43,10 +44,12 @@ class RecorderAdapter:
     """Test double for CARLA recorder operations."""
 
     started_recording: Path | None = None
+    started_additional_data: bool = False
 
-    def record_episode(self, output_path: Path) -> RecordingInfo:
+    def record_episode(self, output_path: Path, *, additional_data: bool = False) -> RecordingInfo:
         """Start recording to a managed path."""
         self.started_recording = output_path
+        self.started_additional_data = additional_data
         return RecordingInfo(recording_id=RECORDING_ID, path=output_path, active=True)
 
     def stop_recording(self) -> RecordingInfo:

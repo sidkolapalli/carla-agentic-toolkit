@@ -266,7 +266,7 @@ def _finish_partial_line(store: TraceStore) -> None:
         stream.seek(-1, os.SEEK_END)
         trailing = stream.read(1)
     if trailing != b"\n":
-        store._append_bytes(b"\n")  # noqa: SLF001
+        store._append_bytes(b"\n")  # noqa: SLF001 - module-internal TraceStore helper.
 
 
 def load_trace(path: Path) -> TraceRead:

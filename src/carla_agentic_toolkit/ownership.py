@@ -7,7 +7,12 @@ import threading
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, cast
 
+from carla_agentic_toolkit.creation_health import CreationHealth, add_creation_failures
 from carla_agentic_toolkit.errors import CarlaAdapterError, OwnershipError
+from carla_agentic_toolkit.ownership_creation import track_created_result
+from carla_agentic_toolkit.ownership_release import (
+    release_batch_destroyed as _release_batch_destroyed,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -23,6 +28,7 @@ OWNERSHIP_FILENAME = "owned-actors.json"
 class _Journal:
     world_id: int | None
     actor_ids: list[int]
+    pending_creations: int = 0
 
 
 class RunOwnership:
@@ -32,6 +38,7 @@ class RunOwnership:
         """Bind one execution journal."""
         self._path = path
         self._lock = threading.Lock()
+        self.creation_health = CreationHealth()
 
     def add(self, actor_ids: Iterable[int], *, world_id: int | None = None) -> None:
         """Append newly created actor IDs once."""
@@ -51,16 +58,44 @@ class RunOwnership:
             _bind_world(current, world_id)
             self._save(current)
 
+    def begin_creation(self, world_id: int) -> None:
+        """Persist an unresolved native mutation before issuing its RPC."""
+        with self._lock:
+            current = self._load()
+            _bind_world(current, world_id)
+            current.pending_creations += 1
+            self._save(current)
+
+    def complete_creation(self, world_id: int) -> None:
+        """Resolve one intent only after same-episode creation or rollback evidence."""
+        with self._lock:
+            current = self._load()
+            _bind_world(current, world_id)
+            current.pending_creations = max(0, current.pending_creations - 1)
+            self._save(current)
+
+    def require_completed_creations(self) -> None:
+        """Refuse recovery when an interrupted creation has no conclusive outcome."""
+        with self._lock:
+            _require_completed(self._load())
+
+    def pending_creations(self) -> int:
+        """Return the unresolved RPC count without dropping known actor IDs."""
+        with self._lock:
+            return self._load().pending_creations
+
     def world_id(self) -> int | None:
         """Return recorded episode identity, unknown for legacy journals."""
         with self._lock:
             return self._load().world_id
 
-    def discard(self, actor_ids: Iterable[int]) -> None:
-        """Remove actors explicitly cleaned by the script."""
+    def discard(self, actor_ids: Iterable[int], *, world_id: int | None = None) -> None:
+        """Remove cleaned actors, optionally only from their originating episode."""
         discarded = set(actor_ids)
         with self._lock:
             current = self._load()
+            if world_id is not None and current.world_id != world_id:
+                return
             current.actor_ids = [item for item in current.actor_ids if item not in discarded]
             self._save(current)
 
@@ -69,9 +104,11 @@ class RunOwnership:
         with self._lock:
             return tuple(self._load().actor_ids)
 
-    def clear(self) -> None:
+    def clear(self, *, require_completed: bool = False) -> None:
         """Clear ownership after world replacement or complete cleanup."""
         with self._lock:
+            if require_completed:
+                _require_completed(self._load())
             self._save(_Journal(None, []))
 
     def _load(self) -> _Journal:
@@ -91,6 +128,8 @@ class RunOwnership:
             "world_id": journal.world_id,
             "actor_ids": _validated_actor_ids(journal.actor_ids),
         }
+        if journal.pending_creations:
+            payload["pending_creations"] = journal.pending_creations
         try:
             self._path.parent.mkdir(parents=True, exist_ok=True)
             temporary.write_text(json.dumps(payload), encoding="utf-8")
@@ -108,7 +147,25 @@ def _validated_journal(value: object) -> _Journal:
         raise OwnershipError(message)
     identity = value.get("world_id")
     _validate_world_id(identity)
-    return _Journal(cast("int | None", identity), _validated_actor_ids(value.get("actor_ids")))
+    pending = value.get("pending_creations", 0)
+    _validate_pending_creations(pending)
+    return _Journal(
+        cast("int | None", identity),
+        _validated_actor_ids(value.get("actor_ids")),
+        cast("int", pending),
+    )
+
+
+def _validate_pending_creations(value: object) -> None:
+    if type(value) is not int or value < 0:
+        message = "Actor creation intent count must be a nonnegative integer."
+        raise OwnershipError(message)
+
+
+def _require_completed(journal: _Journal) -> None:
+    if journal.pending_creations:
+        message = "Unresolved actor creation requires manual recovery."
+        raise OwnershipError(message)
 
 
 def _validate_world_id(value: object) -> None:
@@ -140,37 +197,7 @@ def track_owned(
     actor_ids: Iterable[int],
 ) -> None:
     """Journal created actors or immediately roll them back if journaling fails."""
-    created = tuple(actor_ids)
-    if ownership is None or not created:
-        return
-    identity = ownership.world_id()
-    try:
-        if identity is None:
-            identity = adapter.get_world_identity()
-            ownership.bind_world(identity)
-        ownership.add(created)
-        _verify_creation_episode(adapter, identity)
-    except OwnershipError:
-        _rollback_creation(adapter, created, identity)
-        raise
-
-
-def _verify_creation_episode(adapter: PythonCarlaAdapter, identity: int) -> None:
-    if adapter.get_world_identity() != identity:
-        message = "CARLA world episode changed during actor creation."
-        raise OwnershipError(message)
-
-
-def _rollback_creation(
-    adapter: PythonCarlaAdapter,
-    created: tuple[int, ...],
-    world_id: int | None,
-) -> None:
-    try:
-        if world_id == adapter.get_world_identity():
-            adapter.destroy_actors(tuple(reversed(created)))
-    except (CarlaAdapterError, RuntimeError):
-        return
+    track_created_result(adapter, ownership, actor_ids)
 
 
 def cleanup_owned_actors(
@@ -181,10 +208,10 @@ def cleanup_owned_actors(
     if ownership is None:
         return cleanup_report()
     try:
-        return _cleanup_owned_actors(adapter, ownership)
+        return add_creation_failures(_cleanup_owned_actors(adapter, ownership), ownership)
     except (OwnershipError, CarlaAdapterError, RuntimeError) as exc:
         failure: dict[str, object] = {"actor_id": None, "error": str(exc)}
-        return cleanup_report(failures=(failure,))
+        return add_creation_failures(cleanup_report(failures=(failure,)), ownership)
 
 
 def _cleanup_owned_actors(
@@ -213,7 +240,8 @@ def _ownership_world_changed(
     current = adapter.get_world_identity()
     if current == recorded:
         return None
-    ownership.clear()
+    ownership.require_completed_creations()
+    ownership.clear(require_completed=True)
     return cleanup_report() | {
         "world_changed": True,
         "previous_world_id": recorded,
@@ -245,24 +273,11 @@ def release_destroyed(
 def release_batch_destroyed(
     ownership: RunOwnership | None,
     payload: dict[str, object],
+    *,
+    commands: list[dict[str, object]] | None = None,
 ) -> None:
-    """Remove successful destroy-actor batch responses from a journal."""
-    if ownership is not None:
-        ownership.discard(_successful_batch_ids(payload.get("responses")))
-
-
-def _successful_batch_ids(value: object) -> tuple[int, ...]:
-    if not isinstance(value, list):
-        return ()
-    actor_ids = (_successful_response_id(response) for response in value)
-    return tuple(actor_id for actor_id in actor_ids if actor_id is not None)
-
-
-def _successful_response_id(value: object) -> int | None:
-    if not isinstance(value, dict) or value.get("error") is not None:
-        return None
-    actor_id = value.get("actor_id")
-    return cast("int", actor_id) if _actor_id(actor_id) else None
+    """Release validated batch evidence through the ownership compatibility API."""
+    _release_batch_destroyed(ownership, payload, commands=commands)
 
 
 def payload_actor_ids(payload: dict[str, object], *keys: str) -> tuple[int, ...]:

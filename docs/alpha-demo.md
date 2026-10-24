@@ -1,4 +1,4 @@
-# Reproducible local alpha demo
+# Step-by-step local alpha demo
 
 This walkthrough demonstrates the finite local toolkit covered by
 [#82](https://github.com/sidkolapalli/carla-agentic-toolkit/issues/82). It needs no
@@ -6,6 +6,9 @@ provider key. Read the [alpha release notes](alpha-release-notes.md) and
 [client prerequisites](client-setup.md#prerequisites) first. Use a dedicated
 CARLA instance; the live step creates actors and temporarily changes weather
 and the spectator view.
+
+The asynchronous live workflow is a repeatable procedure, not a promise of
+matching numerical results.
 
 ## Prepare a fresh source environment
 

@@ -149,7 +149,7 @@ def test_projection_exports_only_reviewed_fields(tmp_path: Path) -> None:
         "run_id",
         "trace_sha256",
         "code_sha256",
-        "seed",
+        "replicate_index",
         "policy",
         "fixed_delta_seconds",
         "outcome",

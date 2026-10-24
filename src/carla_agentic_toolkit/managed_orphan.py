@@ -132,7 +132,9 @@ def _repair_locked(
 
 def main() -> None:
     """Run only for a private job selected by the local lifecycle controller."""
-    from carla_agentic_toolkit.managed_control import ManagedController  # noqa: PLC0415
+    from carla_agentic_toolkit.managed_control import (  # noqa: PLC0415 - deferred so importing this module stays light.
+        ManagedController,
+    )
 
     path = Path(sys.argv[1])
     job = ManagedController(path.parent.parent).job_path(path.name)

@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-SCENARIO_VERSION = "route-hazards-v1"
+SCENARIO_VERSION = "route-hazards-v2"
 TRIGGER_PROGRESS_M = 12.0
 DURATIONS = {"lead_brake": 3.0, "cut_in": 2.5, "pedestrian_crossing": 6.0}
 

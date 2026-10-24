@@ -3,9 +3,22 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from carla_agentic_toolkit.actor_boxes import ProjectedBox
 
 TERMINAL_PHASES = frozenset({"completed", "aborted"})
 COMMITTED_PHASES = frozenset({"committed", "settling"})
+
+
+@dataclass(frozen=True, slots=True)
+class CorridorBox:
+    """World-space box geometry and its conservative longitudinal corridor support."""
+
+    geometry: ProjectedBox
+    longitudinal_m: float
+    longitudinal_radius_m: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -24,6 +37,7 @@ class ActorObservation:
     position_m: tuple[float, float, float] = (0.0, 0.0, 0.0)
     velocity_mps: tuple[float, float, float] = (0.0, 0.0, 0.0)
     longitudinal_speed_mps: float | None = None
+    box: CorridorBox | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -56,7 +70,7 @@ class MergeObservation:
     frame: int
     simulation_seconds: float
     policy: ActorObservation
-    ego: ActorObservation
+    target: ActorObservation
     lane: LaneGeometry
     neighbors: tuple[ActorObservation, ...] = ()
     sensors: tuple[dict[str, object], ...] = ()
@@ -84,7 +98,7 @@ class PlannerSettings:
 
     fixed_delta_seconds: float = 0.05
     target_speed_mps: float = 6.0
-    ego_speed_mps: float = 5.0
+    target_vehicle_speed_mps: float = 5.0
     preparation_steps: int = 10
     settling_steps: int = 10
     expiry_frames: int = 20

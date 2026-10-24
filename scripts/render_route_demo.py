@@ -16,7 +16,15 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from carla_agentic_toolkit.experiment_trace import load_trace, summarize_trace
-from scripts.render_experiment_demo import ACCENT, MUTED, PANEL, Canvas, JoinedFrame
+from scripts.render_experiment_demo import (
+    ACCENT,
+    MUTED,
+    PANEL,
+    Canvas,
+    JoinedFrame,
+    camera_bytes,
+    camera_hash_representation,
+)
 
 if TYPE_CHECKING:
     from PIL import Image
@@ -35,7 +43,7 @@ HAZARDS = {
 
 
 def project_case(folder: Path) -> dict[str, Any]:
-    """Allowlist frame data and pin the trace and original PNG hashes before composition."""
+    """Allowlist frame data and verify the capture's explicitly named camera hash bytes."""
     capture = json.loads((folder / "result.json").read_text(encoding="utf-8"))
     trace = Path(capture["result"]["trace_path"])
     read = load_trace(trace)
@@ -52,8 +60,10 @@ def project_case(folder: Path) -> dict[str, Any]:
     executions = {
         event["frame"]: event["data"] for event in read.events if event["kind"] == "execution"
     }
+    representation = camera_hash_representation(capture["camera"])
     samples = [
-        _join(folder, record, observations, executions) for record in capture["camera"]["images"]
+        _join(folder, record, observations, executions, representation)
+        for record in capture["camera"]["images"]
     ]
     return {
         "run_id": identity,
@@ -75,16 +85,18 @@ def project_case(folder: Path) -> dict[str, Any]:
 
 
 def _join(
-    folder: Path, record: dict[str, Any], observations: dict[int, Any], executions: dict[int, Any]
+    folder: Path,
+    record: dict[str, Any],
+    observations: dict[int, Any],
+    executions: dict[int, Any],
+    representation: str | None = None,
 ) -> dict[str, Any]:
     frame = record["frame"]
     if type(frame) is not int or frame not in observations or frame not in executions:
         message = "Every camera frame must have an exact observation and execution match."
         raise ValueError(message)
     path = folder / "frames" / f"{frame}.png"
-    if hashlib.sha256(path.read_bytes()).hexdigest() != record["sha256"]:
-        message = "Recorded camera bytes changed after capture."
-        raise ValueError(message)
+    camera_bytes(JoinedFrame({}, path, record["sha256"], representation))
     value, execution = observations[frame], executions[frame]
     return {
         "frame": frame,
@@ -99,6 +111,7 @@ def _join(
         "intervention": execution["intervention"],
         "control": execution["controls"]["policy"],
         "sha256": record["sha256"],
+        "sha256_representation": representation,
     }
 
 
@@ -132,7 +145,12 @@ def _frame_image(
     canvas = Canvas(font)
     canvas.text((24, 18), f"{case['policy'].upper()} / ROUTE DRIVING WITH TRAFFIC", 30)
     canvas.text((24, 66), SCENARIOS[case["scenario"]], 22, ACCENT)
-    item = JoinedFrame(sample, folder / "frames" / f"{sample['frame']}.png", sample["sha256"])
+    item = JoinedFrame(
+        sample,
+        folder / "frames" / f"{sample['frame']}.png",
+        sample["sha256"],
+        sample.get("sha256_representation"),
+    )
     canvas.camera(item)
     canvas.draw.rectangle((884, 98, 1256, 570), fill=PANEL)
     _labels(canvas, case, sample, segment)

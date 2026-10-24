@@ -2,14 +2,21 @@
 
 from __future__ import annotations
 
-import time
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.models import TrafficPopulationRequest
+from carla_agentic_toolkit.traffic_frame_wait import (
+    FrameWaitError,
+    ResetProgress,
+    wait_for_density_frame,
+)
 from carla_agentic_toolkit.traffic_runtime import populate_traffic_actors
 
 if TYPE_CHECKING:
+    from typing import Unpack
+
+    from carla_agentic_toolkit.actor_creation import SpawnObservers
     from carla_agentic_toolkit.carla_protocols import (
         CarlaActor,
         CarlaTrafficManager,
@@ -36,6 +43,7 @@ class _DensityPopulation:
     owned: frozenset[int]
     spawned: tuple[int, ...]
     conflict: dict[str, object] | None
+    destroyed: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -52,21 +60,28 @@ def converge_density(
     request: TrafficDensityRequest,
     registered_actor_ids: frozenset[int],
     owned_actor_ids: frozenset[int],
+    **observers: Unpack[SpawnObservers],
 ) -> _DensityPopulation:
     """Execute a total-world target plan without deleting adopted vehicles."""
     vehicles = _vehicle_actors(world)
     plan = _plan_density(vehicles, request.vehicle_count, owned_actor_ids)
-    _destroy_vehicles(plan.trim)
+    destroyed = _destroy_vehicles(plan.trim)
     vehicles = _vehicle_actors(world)
     current_ids = frozenset(actor.id for actor in vehicles)
     registered, spawned = _register_population(
-        world, traffic_manager_instance, request, registered_actor_ids, plan.conflict
+        world,
+        traffic_manager_instance,
+        request,
+        registered_actor_ids,
+        plan.conflict,
+        **observers,
     )
     return _DensityPopulation(
         registered=registered,
         owned=(owned_actor_ids & current_ids) | frozenset(spawned),
         spawned=spawned,
         conflict=plan.conflict,
+        destroyed=destroyed,
     )
 
 
@@ -76,6 +91,7 @@ def _register_population(
     request: TrafficDensityRequest,
     registered_actor_ids: frozenset[int],
     conflict: dict[str, object] | None,
+    **observers: Unpack[SpawnObservers],
 ) -> tuple[frozenset[int], tuple[int, ...]]:
     """Adopt or create the missing population only when protected density permits it."""
     vehicles = _vehicle_actors(world)
@@ -91,6 +107,7 @@ def _register_population(
         traffic_manager_instance,
         request,
         len(vehicles),
+        **observers,
     )
     return current_ids | frozenset(spawned_ids), spawned_ids
 
@@ -100,6 +117,7 @@ def _spawn_missing_vehicles(
     traffic_manager_instance: CarlaTrafficManager,
     request: TrafficDensityRequest,
     current_count: int,
+    **observers: Unpack[SpawnObservers],
 ) -> tuple[int, ...]:
     """Spawn missing vehicles for a density target."""
     missing_count = request.vehicle_count - current_count
@@ -109,6 +127,7 @@ def _spawn_missing_vehicles(
         world=world,
         traffic_manager_instance=traffic_manager_instance,
         request=replace(_population_request(request), vehicle_count=missing_count),
+        **observers,
     )
     return tuple(actor_ids)
 
@@ -163,8 +182,9 @@ def _density_conflict(
     }
 
 
-def reset_existing_vehicles(world: CarlaWorld, traffic_manager_port: int) -> None:
+def reset_existing_vehicles(world: CarlaWorld, traffic_manager_port: int) -> tuple[int, ...]:
     """Disable autopilot and remove existing vehicles before opening Traffic Manager."""
+    world_id = getattr(world, "id", None)
     vehicles = _vehicle_actors(world)
     for actor in vehicles:
         try:
@@ -172,9 +192,32 @@ def reset_existing_vehicles(world: CarlaWorld, traffic_manager_port: int) -> Non
             actor.set_autopilot(autopilot_enabled, traffic_manager_port)
         except (AttributeError, RuntimeError, TypeError, ValueError):
             continue
-    wait_for_tick(world)
-    _destroy_vehicles(vehicles)
-    wait_for_tick(world)
+    _wait_for_reset_frame(world, world_id=world_id, phase="reset_before_destroy")
+    destroyed = _destroy_vehicles(vehicles)
+    _wait_for_reset_frame(
+        world,
+        world_id=world_id,
+        phase="reset_after_destroy",
+        destroyed=destroyed,
+        destroy_phase_completed=True,
+    )
+    return destroyed
+
+
+def _wait_for_reset_frame(
+    world: CarlaWorld,
+    *,
+    world_id: int | None,
+    phase: str,
+    destroyed: tuple[int, ...] = (),
+    destroy_phase_completed: bool = False,
+) -> None:
+    """Attach only acknowledged actions when a reset frame cannot be delivered."""
+    try:
+        wait_for_tick(world, phase=phase)
+    except FrameWaitError as exc:
+        exc.record_reset(ResetProgress(phase, world_id, destroy_phase_completed, destroyed))
+        raise
 
 
 def _enable_autopilot(vehicles: tuple[CarlaActor, ...], traffic_manager_port: int) -> None:
@@ -187,13 +230,16 @@ def _enable_autopilot(vehicles: tuple[CarlaActor, ...], traffic_manager_port: in
             continue
 
 
-def _destroy_vehicles(vehicles: tuple[CarlaActor, ...]) -> None:
+def _destroy_vehicles(vehicles: tuple[CarlaActor, ...]) -> tuple[int, ...]:
     """Destroy vehicles and ignore actors already gone."""
+    destroyed: list[int] = []
     for actor in vehicles:
         try:
-            actor.destroy()
+            if actor.destroy():
+                destroyed.append(actor.id)
         except (AttributeError, RuntimeError, TypeError, ValueError):
             continue
+    return tuple(destroyed)
 
 
 def vehicle_counts(world: CarlaWorld) -> tuple[int, int]:
@@ -217,9 +263,6 @@ def _squared_vector_magnitude(vector: CarlaVector) -> float:
     return x * x + y * y + z * z
 
 
-def wait_for_tick(world: CarlaWorld) -> None:
-    """Wait for a world tick without letting timeouts kill the controller."""
-    try:
-        world.wait_for_tick(1.0)
-    except (AttributeError, RuntimeError, TypeError, ValueError):
-        time.sleep(0.2)
+def wait_for_tick(world: CarlaWorld, *, phase: str = "maintenance_end") -> None:
+    """Report one missed asynchronous frame as a fatal density failure."""
+    wait_for_density_frame(world, phase=phase)

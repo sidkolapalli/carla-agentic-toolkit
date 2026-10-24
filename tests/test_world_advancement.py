@@ -61,8 +61,8 @@ def test_failed_population_advancement_cleans_created_actors_and_retains_failure
     """A post-spawn failure must retain ownership information for incomplete cleanup."""
     adapter = PythonCarlaAdapter()
     world = Mock()
-    world.get_settings.return_value.synchronous_mode = True
-    world.tick.side_effect = RuntimeError("lost during tick")
+    world.get_settings.return_value.synchronous_mode = False
+    world.wait_for_tick.side_effect = RuntimeError("lost during wait")
     monkeypatch.setattr(adapter, "_client", Mock())
     monkeypatch.setattr(adapter, "_world", Mock(return_value=world))
     monkeypatch.setattr(adapter, "configure_traffic_manager", Mock())
@@ -70,7 +70,7 @@ def test_failed_population_advancement_cleans_created_actors_and_retains_failure
     monkeypatch.setattr(
         adapter_module, "populate_traffic_actors", Mock(return_value=([11, 12], []))
     )
-    monkeypatch.setattr(adapter_module, "world_state", Mock())
+    monkeypatch.setattr(adapter, "_world_state", Mock())
     cleanup = Mock(
         return_value=(
             DestroyResult(12, destroyed=True, error=None),
@@ -79,7 +79,7 @@ def test_failed_population_advancement_cleans_created_actors_and_retains_failure
     )
     monkeypatch.setattr(adapter, "destroy_actors", cleanup)
 
-    with pytest.raises(CarlaAdapterError, match="lost during tick") as failure:
+    with pytest.raises(CarlaAdapterError, match="lost during wait") as failure:
         adapter.populate_traffic(request=TrafficPopulationRequest(vehicle_count=2))
 
     cleanup.assert_called_once_with((12, 11))

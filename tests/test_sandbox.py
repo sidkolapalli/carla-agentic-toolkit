@@ -12,6 +12,7 @@ from typing import Any, cast
 import pytest
 
 from carla_agentic_toolkit import sandbox
+from carla_agentic_toolkit.ownership import cleanup_report
 from carla_agentic_toolkit.script_runner import MAX_SCRIPT_STDOUT_BYTES, run_script_file
 from carla_agentic_toolkit.tool_inputs import (
     parse_traffic_population_request,
@@ -283,7 +284,7 @@ def test_large_script_output_is_bounded_without_a_false_timeout() -> None:
 @pytest.mark.skipif(sys.platform != "linux", reason="requires the Linux sandbox runner")
 def test_genuine_script_timeout_still_kills_the_child() -> None:
     """The watchdog margin must not turn script budget exhaustion into success."""
-    outcome = sandbox.execute_script("result = api.wait(10)", timeout_seconds=0.1)
+    outcome = sandbox.execute_script("while True: pass", timeout_seconds=0.1)
 
     assert outcome.ok is False
     assert outcome.error_type == "script_timeout"
@@ -559,3 +560,30 @@ def test_bool_rejected_as_float_in_tool_inputs() -> None:
     }
     with pytest.raises(TypeError, match="finite number"):
         parse_transform(payload)
+
+
+def test_failed_run_limits_trusted_tm_restore_to_its_allowed_ports(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """The parent passes cleanup exactly the TCP ports its sandbox could connect to."""
+    runner = tmp_path / "carla-agentic-toolkit-sandbox"
+    runner.write_text("runner", encoding="utf-8")
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_SANDBOX", str(runner))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_OUTPUT_DIR", str(tmp_path / "outputs"))
+    monkeypatch.setenv("CARLA_AGENTIC_TOOLKIT_STATE_DIR", str(tmp_path / "state"))
+    captured: list[object] = []
+
+    def fail(*_args: object, **_kwargs: object) -> None:
+        message = "denied"
+        raise PermissionError(message)
+
+    def cleanup(*_args: object, **kwargs: object) -> dict[str, object]:
+        captured.append(kwargs["allowed_ports"])
+        return cleanup_report()
+
+    monkeypatch.setattr(sandbox.subprocess, "run", fail)
+    monkeypatch.setattr(sandbox, "cleanup_script_ownership", cleanup)
+    sandbox.execute_script(
+        "result = 1", host="127.0.0.1", port=2000, timeout_seconds=1, traffic_manager_ports=[8500]
+    )
+    assert captured == [(2000, 2001, 2002, 8000, 8500)]

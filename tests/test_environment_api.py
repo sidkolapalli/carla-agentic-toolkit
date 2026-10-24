@@ -25,6 +25,10 @@ class EnvironmentAdapter:
 
     calls: list[tuple[object, ...]] = field(default_factory=list)
 
+    def get_synchronous_mode(self) -> bool:
+        """Observe the fake world's initial asynchronous mode."""
+        return False
+
     def get_environment_objects(
         self,
         *,
@@ -71,7 +75,7 @@ class EnvironmentAdapter:
     ) -> dict[str, object]:
         """Record bounded OpenDRIVE generation."""
         self.calls.append(("opendrive", opendrive, parameters, reset_settings))
-        return {"current_map": "OpenDriveMap", "frame": 1}
+        return {"current_map": "OpenDriveMap", "frame": 1, "settings": {"synchronous_mode": False}}
 
 
 def test_facade_exposes_environment_workflows() -> None:
@@ -106,7 +110,13 @@ def test_facade_exposes_environment_workflows() -> None:
         },
         "toggled": {"object_ids": [OBJECT_ID], "enabled": False},
         "layer": {"layer": "Props", "loaded": False},
-        "generated": {"current_map": "OpenDriveMap", "frame": 1},
+        "generated": {
+            "current_map": "OpenDriveMap",
+            "frame": 1,
+            "settings": {"synchronous_mode": False},
+            "synchronous_mode": False,
+            "synchronous_mode_changed": False,
+        },
     }
 
 

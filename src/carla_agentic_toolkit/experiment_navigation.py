@@ -61,15 +61,18 @@ def route(
     step_meters: float,
     max_steps: int,
 ) -> dict[str, object]:
-    """Generate an A-to-B waypoint route by following official waypoint.next links."""
+    """Follow greedy waypoint links, reporting arrival rather than promising planning."""
     world_map = world.get_map()
     carla_module = import_module("carla")
     start_waypoint = cast("Any", world_map).get_waypoint(carla_location(carla_module, start))
     end_location = carla_location(carla_module, end)
     waypoints = follow_waypoints(start_waypoint, end_location, step_meters, max_steps)
+    remaining = distance(cast("Any", waypoints[-1]).transform.location, end_location)
     return {
         "step_meters": step_meters,
         "waypoint_count": len(waypoints),
+        "reached_destination": remaining <= step_meters,
+        "remaining_distance_m": remaining,
         "route": [waypoint_dict(item) for item in waypoints],
     }
 
@@ -168,15 +171,15 @@ def follow_waypoints(
     step_meters: float,
     max_steps: int,
 ) -> list[object]:
-    """Follow waypoint.next options toward a destination."""
+    """Greedily follow the nearest successor, without searching alternative branches."""
     route_points = [start_waypoint]
     for _ in range(max(max_steps - 1, 0)):
+        if distance(cast("Any", route_points[-1]).transform.location, end_location) <= step_meters:
+            break
         choices = cast("Any", route_points[-1]).next(max(step_meters, 0.1))
         if not choices:
             break
         route_points.append(closest_waypoint(choices, end_location))
-        if distance(cast("Any", route_points[-1]).transform.location, end_location) <= step_meters:
-            break
     return route_points
 
 

@@ -11,7 +11,7 @@ from pathlib import Path
 
 def spawn_trusted(module: str, job: Path) -> subprocess.Popen[bytes]:
     """Run a reviewed package module in a separate group, without inherited output pipes."""
-    return subprocess.Popen(  # noqa: S603
+    return subprocess.Popen(  # noqa: S603 - fixed argv from reviewed code, no shell.
         [sys.executable, "-m", module, str(job)],
         stdin=subprocess.DEVNULL,
         stdout=subprocess.DEVNULL,

@@ -110,7 +110,7 @@ it does not add a server/runtime dependency. If automatic font discovery fails,
 pass `--font /absolute/path/to/font.ttf`.
 
 ```bash
-uv run --script scripts/render_experiment_demo.py \
+PYTHONPATH=src uv run --script scripts/render_experiment_demo.py \
   --success target/managed-demo-capture/success.json \
   --fallback target/managed-demo-capture/fallback.json \
   --success-frames target/managed-demo-capture/normal-budget/frames \

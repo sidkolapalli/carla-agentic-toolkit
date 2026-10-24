@@ -79,13 +79,13 @@ def test_verified_corridor_records_initial_poses_and_reachability() -> None:
         "source_lane": corridor.source_lane_id,
         "target_lane": corridor.target_lane_id,
         "source_start": (corridor.policy_start.x, corridor.policy_start.y),
-        "ego_start": (corridor.ego_start.x, corridor.ego_start.y),
+        "target_start": (corridor.target_start.x, corridor.target_start.y),
         "length": corridor.length_m,
     } == {
         "source_lane": -1,
         "target_lane": -2,
         "source_start": (0.0, 0.0),
-        "ego_start": (24.0, 3.5),
+        "target_start": (24.0, 3.5),
         "length": 50.0,
     }
 

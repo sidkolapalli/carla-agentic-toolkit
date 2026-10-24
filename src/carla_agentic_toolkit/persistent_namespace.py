@@ -13,6 +13,7 @@ from carla_agentic_toolkit.script_runner import (
     _script_outcome,
     _validate_script,
 )
+from carla_agentic_toolkit.script_values import value_constructors
 from carla_agentic_toolkit.snapshots import RunSnapshots
 
 if TYPE_CHECKING:
@@ -45,18 +46,31 @@ class PersistentNamespace:
         rejection = _validate_script(code)
         if rejection is not None:
             return _error("script_rejected", rejection, stdout="")
+        begin = getattr(self._api, "_begin_persistent_request", None)
+        if callable(begin):
+            begin()
+        self._namespace.update(value_constructors())
         self._namespace.update(__builtins__=_safe_builtins(), api=self._api, result=None)
         stream = _BoundedWriter(MAX_SCRIPT_STDOUT_BYTES)
         error = self._execute(code, stream)
-        if error is not None:
-            return error
-        return _script_outcome(self._namespace.get("result"), stream.getvalue(), self._snapshots)
+        outcome = (
+            error
+            if error is not None
+            else _script_outcome(self._namespace.get("result"), stream.getvalue(), self._snapshots)
+        )
+        return self._finish_outcome(outcome)
+
+    def _finish_outcome(self, outcome: dict[str, object]) -> dict[str, object]:
+        finalize = getattr(self._api, "_finalize_owned_outcome", None)
+        outcome = finalize(outcome) if callable(finalize) else outcome
+        finish = getattr(self._api, "_finish_persistent_outcome", None)
+        return finish(outcome) if callable(finish) else outcome
 
     def _execute(self, code: str, stream: _BoundedWriter) -> dict[str, object] | None:
         try:
             with contextlib.redirect_stdout(stream):
                 # Validated generated code runs only inside the existing OS sandbox.
-                exec(compile(code, "<carla-session>", "exec"), self._namespace)  # noqa: S102
+                exec(compile(code, "<carla-session>", "exec"), self._namespace)  # noqa: S102 - validated code, run only inside the OS sandbox.
         except Exception as exc:  # noqa: BLE001 - return arbitrary user-code exceptions.
             return _error(type(exc).__name__, str(exc), stdout=stream.getvalue())
         if stream.truncated:

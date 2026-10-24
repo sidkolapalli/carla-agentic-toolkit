@@ -41,12 +41,16 @@ METRIC_DEFINITIONS = {
         "Crossing-path and acceleration predictions are outside this metric version."
     ),
     "route_metrics": (
-        "Optional route-observed-metrics-v1: last measured route progress and goal in metres; "
-        "minimum visible-actor separating-axis box clearance is a 2D lower bound, not exact "
-        "distance or safety proof. Guard counts are frames, including signal stops. Choice "
+        "Optional route-observed-metrics-v2: last measured route progress and goal in metres; "
+        "minimum visible-actor separating-axis clearance bounds corrected 2D box geometry; "
+        "legacy observations without box geometry retain their actor-origin approximation. "
+        "Neither is exact distance or a safety proof. Guard counts are frames, including signal "
+        "stops. Choice "
         "counts include only context-accepted replies, grouped by their recorded source. "
         "Constant-velocity crossing predictions in route observations are approximate and "
-        "separate from the physical-metrics-v1 gap/TTC definition."
+        "separate from the physical-metrics-v1 gap/TTC definition. Physical hazard validity "
+        "uses explicit owned-snapshot evidence and declared deadlines, independently from "
+        "ego route completion and cleanup. Missing legacy hazard evidence is unverified."
     ),
 }
 
@@ -302,7 +306,9 @@ def _number(value: object) -> float | None:
 
 def write_trace_report(path: Path) -> dict[str, Path]:
     """Derive summary JSON and a self-contained escaped HTML report from saved evidence."""
-    from carla_agentic_toolkit.experiment_trace import load_trace  # noqa: PLC0415
+    from carla_agentic_toolkit.experiment_trace import (  # noqa: PLC0415 - breaks the import cycle with experiment_trace.
+        load_trace,
+    )
 
     summary = summarize_trace(load_trace(path))
     summary_path = path.with_name("summary.json")

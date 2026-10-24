@@ -7,6 +7,10 @@ from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.models import ActorSnapshot, DestroyResult, Location, Rotation, Transform
+from carla_agentic_toolkit.persistent_connection import (
+    record_operation_failure,
+    require_operation_episode,
+)
 
 MAX_SEMANTIC_TAGS = 64
 
@@ -39,7 +43,9 @@ def actor_by_id(world: CarlaWorld, actor_id: int) -> object | None:
     including actors spawned since the client's last received world snapshot.
     Resolution never ticks the world or promises a newer physics measurement.
     """
-    return world.get_actors([actor_id]).find(actor_id)
+    actor = world.get_actors([actor_id]).find(actor_id)
+    require_operation_episode(world)
+    return actor
 
 
 def destroy_actor(world: CarlaWorld, actor_id: int) -> DestroyResult:
@@ -50,6 +56,7 @@ def destroy_actor(world: CarlaWorld, actor_id: int) -> DestroyResult:
     try:
         destroyed = bool(require_actor(actor).destroy())
     except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+        record_operation_failure(exc)
         return DestroyResult(actor_id=actor_id, destroyed=False, error=str(exc))
     return DestroyResult(actor_id=actor_id, destroyed=destroyed, error=None)
 

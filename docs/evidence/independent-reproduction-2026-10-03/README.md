@@ -8,6 +8,12 @@ and cleaned up; the comparison accepted three eligible runs per policy with no
 exclusions or matching blockers. The Jev runs recorded 36 actual provider
 selections. No failed trial was retried.
 
+The trial plan is one initial condition, run three times per policy (labelled
+seeds 7, 19 and 31). Those labels varied nothing; they are repetitions, not
+independently varied conditions or a promise of bitwise CARLA determinism. The
+recorded specifications, comparison JSON/HTML, trace hashes, and media remain
+unchanged; current code calls these labels `replicate_index`.
+
 This is an independent automated operator test on the same supported Windows/WSL2
 host, not an external human trial or a second-machine portability claim. It used
 a fresh native Linux checkout, virtual environment, private state directory,

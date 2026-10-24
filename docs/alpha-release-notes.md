@@ -23,7 +23,7 @@ an earlier green implementation run does not stand in for that result.
 - Local stdio MCP, Linux Landlock sandboxing, owned-actor cleanup, captures and
   evidence. Windows clients use the documented WSL2 path.
 - Optional managed rules/Jev merge experiments, persistent script sessions and
-  reproducible recorded demos. Jev selects supplied tactics; local code owns
+  step-by-step recorded demos. Jev selects supplied tactics; local code owns
   steering, braking, per-frame guards and cleanup.
 - Experimental CARLA 0.10.0 / UE5.5 fixtures and validated cleanup fixes.
   The container remains pinned to the CARLA 0.9.16 client; client/server versions
@@ -77,7 +77,7 @@ are now retained. The article still requires review against the original under t
 These managed results are separate from the existing-toolkit alpha's finite demo
 and release conditions.
 
-## Reproduce the local demo
+## Run the local demo
 
 Follow the [alpha demo guide](alpha-demo.md) for a fresh checkout, the offline
 sandbox walkthrough, and a self-cleaning live MCP run. Preserve its commit,

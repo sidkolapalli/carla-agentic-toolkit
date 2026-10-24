@@ -1,4 +1,4 @@
-"""CARLA backend for the managed, no-background-traffic merge experiment."""
+"""CARLA backend for the managed merge experiment with protected fixture actors."""
 
 from __future__ import annotations
 
@@ -9,7 +9,10 @@ from dataclasses import asdict, replace
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, cast
 
+from carla_agentic_toolkit.actor_boxes import bounding_box_metadata, project_actor_box
 from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
+from carla_agentic_toolkit.managed_names import managed_role
+from carla_agentic_toolkit.managed_observations import background_actors
 from carla_agentic_toolkit.merge_fixture import (
     FIXTURE_VEHICLES,
     MergeCorridor,
@@ -17,6 +20,7 @@ from carla_agentic_toolkit.merge_fixture import (
     select_corridor,
     yaw_difference,
 )
+from carla_agentic_toolkit.merge_models import CorridorBox
 from carla_agentic_toolkit.merge_planner import (
     PLANNER_VERSION,
     TERMINAL_PHASES,
@@ -58,7 +62,7 @@ class MergeExperiment:
         self.settings = PlannerSettings(
             fixed_delta_seconds=self.spec.fixed_delta_seconds,
             target_speed_mps=self.spec.target_speed_mps,
-            ego_speed_mps=self.spec.ego_speed_mps,
+            target_vehicle_speed_mps=self.spec.target_vehicle_speed_mps,
             expiry_frames=max(1, round(1.0 / self.spec.fixed_delta_seconds)),
             tracker_heading_gain=1.8 if self.spec.fixture == "town10-merge-ue5-v1" else 0.9,
         )
@@ -79,21 +83,26 @@ class MergeExperiment:
         self.corridor = select_corridor(self.session.map, fixture_version=self.spec.fixture)
         self.session.on_close(self.close)
         self._actors["policy"] = self._spawn_vehicle("policy", self.corridor.policy_start)
-        self._actors["ego"] = self._spawn_vehicle("ego", self.corridor.ego_start)
+        self._actors["target"] = self._spawn_vehicle("target", self.corridor.target_start)
         for role, actor in self._actors.items():
             self._attach_sensors(role, actor)
 
     def fixture_metadata(self) -> dict[str, object]:
-        """Expose exact poses, seeds, units, and reviewed controller versions."""
+        """Expose exact poses, replicate labels, units, and reviewed controller versions."""
         return {
             **self._require_corridor().to_dict(),
-            "seed": self.spec.seed,
+            "replicate_index": self.spec.replicate_index,
             "planner_version": PLANNER_VERSION,
             "controller_version": TRACKER_VERSION,
             "settings": asdict(self.settings),
             "observation_mode": self.spec.observation_mode,
+            "initial_traffic_lights": self.session.initial_traffic_lights,
             "vehicle_blueprint": FIXTURE_VEHICLES[self.spec.fixture],
             "actor_ids": {role: int(cast("Any", actor).id) for role, actor in self._actors.items()},
+            "actor_bounding_boxes": {
+                role: bounding_box_metadata(cast("Any", actor).bounding_box)
+                for role, actor in self._actors.items()
+            },
         }
 
     def _spawn_vehicle(self, role: str, pose: Pose) -> object:
@@ -106,11 +115,14 @@ class MergeExperiment:
                 "provide. Select a fixture matching the simulator's vehicle catalog."
             )
             raise UnsupportedFeatureError(message) from error
-        blueprint.set_attribute("role_name", f"managed:{self.session.run_id}:{role}")
-        actor = self.session.world.spawn_actor(blueprint, _transform(pose))
-        self.session.own(actor, controller=f"{role}:{TRACKER_VERSION}", protected=True)
-        actor.set_autopilot(False)
-        return actor
+        role_name = managed_role(self.spec, self.session.run_id, role)
+        blueprint.set_attribute("role_name", role_name)
+        return self.session.spawn_actor(
+            blueprint,
+            _transform(pose),
+            role_name=role_name,
+            controller=f"{role}:{TRACKER_VERSION}",
+        )
 
     def _attach_sensors(self, role: str, actor: object) -> None:
         for kind in ("collision", "lane_invasion", "gnss"):
@@ -118,14 +130,22 @@ class MergeExperiment:
 
     def _attach_sensor(self, role: str, actor: object, kind: str) -> None:
         blueprint = self.session.world.get_blueprint_library().find(f"sensor.other.{kind}")
-        blueprint.set_attribute("role_name", f"managed:{self.session.run_id}:{role}-{kind}")
+        role_name = managed_role(self.spec, self.session.run_id, f"{role}-{kind}")
+        blueprint.set_attribute("role_name", role_name)
         if blueprint.has_attribute("sensor_tick"):
             blueprint.set_attribute("sensor_tick", str(self.spec.fixed_delta_seconds))
-        sensor = self.session.world.spawn_actor(
-            blueprint, import_module("carla").Transform(), attach_to=actor
+        sensor = self.session.spawn_actor(
+            blueprint,
+            import_module("carla").Transform(),
+            attach_to=actor,
+            role_name=role_name,
+            controller="sensor-listener",
         )
-        self.session.own(sensor, controller="sensor-listener", protected=True)
-        subscription = SensorSubscription(cast("CarlaSensor", sensor), event_sensor=kind != "gnss")
+        subscription = SensorSubscription(
+            cast("CarlaSensor", sensor),
+            event_sensor=kind != "gnss",
+            fixed_delta_seconds=self.spec.fixed_delta_seconds,
+        )
         self._sensors.append(
             MergeSensor(int(sensor.id), int(cast("Any", actor).id), role, kind, subscription)
         )
@@ -138,7 +158,7 @@ class MergeExperiment:
             raise CarlaAdapterError(message)
         corridor = self._require_corridor()
         policy = self._actor_observation("policy", snapshot)
-        ego = self._actor_observation("ego", snapshot)
+        target = self._actor_observation("target", snapshot)
         sensors = tuple(sensor.drain(frame) for sensor in self._sensors)
         value = MergeObservation(
             run_id=str(self.session.run_id),
@@ -146,9 +166,14 @@ class MergeExperiment:
             frame=frame,
             simulation_seconds=float(cast("Any", snapshot).timestamp.elapsed_seconds),
             policy=policy,
-            ego=ego,
+            target=target,
             lane=_lane(corridor, policy),
-            neighbors=_visible_neighbors(policy, ego, self.spec.observation_range_m),
+            neighbors=_visible_neighbors(
+                policy,
+                target,
+                self.spec.observation_range_m,
+                background=self._background_observations(snapshot),
+            ),
             sensors=sensors,
             phase=self.state.phase,
             history=tuple(self._history),
@@ -173,6 +198,15 @@ class MergeExperiment:
 
     def _actor_observation(self, role: str, snapshot: object) -> ActorObservation:
         actor = cast("Any", self._actors[role])
+        return self._handle_observation(actor, snapshot)
+
+    def _background_observations(self, snapshot: object) -> tuple[ActorObservation, ...]:
+        return tuple(
+            self._handle_observation(actor, snapshot) for actor in background_actors(self.session)
+        )
+
+    def _handle_observation(self, handle: object, snapshot: object) -> ActorObservation:
+        actor = cast("Any", handle)
         frozen = cast("Any", snapshot).find(actor.id)
         if frozen is None:
             message = f"Actor {actor.id} is missing from the owner snapshot."
@@ -245,7 +279,7 @@ class MergeExperiment:
 
     def _controls(self, value: MergeObservation) -> dict[str, LocalControl]:
         if self.state.phase in TERMINAL_PHASES:
-            return dict.fromkeys(("policy", "ego"), LocalControl(0.0, 1.0, 0.0))
+            return dict.fromkeys(("policy", "target"), LocalControl(0.0, 1.0, 0.0))
         return {
             "policy": tracking_control(
                 value.policy,
@@ -253,9 +287,9 @@ class MergeExperiment:
                 target_lateral_m=lateral_target(self.state, value, self.settings),
                 heading_gain=self.settings.tracker_heading_gain,
             ),
-            "ego": tracking_control(
-                value.ego,
-                target_speed_mps=self.settings.ego_speed_mps,
+            "target": tracking_control(
+                value.target,
+                target_speed_mps=self.settings.target_vehicle_speed_mps,
                 target_lateral_m=value.lane.target_offset_m,
                 heading_gain=self.settings.tracker_heading_gain,
             ),
@@ -344,6 +378,17 @@ def _actor_value(
             float(velocity.x) * math.cos(math.radians(corridor.policy_start.yaw))
             + float(velocity.y) * math.sin(math.radians(corridor.policy_start.yaw))
         ),
+        box=_corridor_box(transform, cast("Any", actor).bounding_box, corridor),
+    )
+
+
+def _corridor_box(transform: object, bounds: object, corridor: MergeCorridor) -> CorridorBox:
+    box = project_actor_box(transform, bounds)
+    yaw = math.radians(corridor.policy_start.yaw)
+    return CorridorBox(
+        box,
+        corridor.project(box.center_m[0], box.center_m[1])[0],
+        box.radius((math.cos(yaw), math.sin(yaw))),
     )
 
 
@@ -364,12 +409,20 @@ def _lane(corridor: MergeCorridor, policy: ActorObservation) -> LaneGeometry:
 
 
 def _visible_neighbors(
-    policy: ActorObservation, ego: ActorObservation, radius: float
+    policy: ActorObservation,
+    target: ActorObservation,
+    radius: float,
+    *,
+    background: tuple[ActorObservation, ...] = (),
 ) -> tuple[ActorObservation, ...]:
-    distance = math.hypot(
-        ego.longitudinal_m - policy.longitudinal_m, ego.lateral_m - policy.lateral_m
+    return tuple(
+        actor
+        for actor in (target, *background)
+        if math.hypot(
+            actor.longitudinal_m - policy.longitudinal_m, actor.lateral_m - policy.lateral_m
+        )
+        <= radius
     )
-    return (ego,) if distance <= radius else ()
 
 
 def _has_collision(sensors: tuple[dict[str, object], ...]) -> bool:

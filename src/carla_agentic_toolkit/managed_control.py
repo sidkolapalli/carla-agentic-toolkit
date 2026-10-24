@@ -146,7 +146,7 @@ class ManagedController:
 
 def launch_supervisor(job: Path) -> None:
     """Detach the trusted supervisor from the CLI/MCP connection lifetime."""
-    process = subprocess.Popen(  # noqa: S603
+    process = subprocess.Popen(  # noqa: S603 - fixed argv from reviewed code, no shell.
         [sys.executable, "-m", "carla_agentic_toolkit.managed_supervisor", str(job)],
         stdin=subprocess.DEVNULL,
         stdout=subprocess.DEVNULL,

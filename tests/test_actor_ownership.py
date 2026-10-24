@@ -147,7 +147,7 @@ def test_legacy_unknown_episode_cleanup_fails_closed(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("resolved_handle", [False, True])
-@pytest.mark.parametrize("server_error", [None, "server refused destruction"])
+@pytest.mark.parametrize("server_error", ["", "server refused destruction"])
 def test_fresh_actor_cleanup_uses_server_destroy_when_snapshot_omits_it(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -177,7 +177,7 @@ def test_fresh_actor_cleanup_uses_server_destroy_when_snapshot_omits_it(
 
     def batch(commands: list[dict[str, object]], *, do_tick: bool = True) -> dict[str, object]:
         batches.append((commands, do_tick))
-        return {"responses": [{"actor_id": ACTOR_ID, "error": server_error}]}
+        return {"responses": [{"actor_id": 0 if server_error else ACTOR_ID, "error": server_error}]}
 
     monkeypatch.setattr(adapter, "apply_batch", batch)
     ownership = RunOwnership(tmp_path / OWNERSHIP_FILENAME)
@@ -238,7 +238,7 @@ def test_journal_failure_rolls_back_newly_spawned_actors(
     ownership = RunOwnership(tmp_path / OWNERSHIP_FILENAME)
     adapter = OwnershipAdapter()
 
-    def fail(_actor_ids: object) -> None:
+    def fail(_actor_ids: object, **_kwargs: object) -> None:
         message = "journal unavailable"
         raise OwnershipError(message)
 
@@ -323,7 +323,7 @@ def test_parent_cleans_owned_actors_after_sandbox_timeout(
     monkeypatch.setattr(
         sandbox,
         "cleanup_script_ownership",
-        lambda _host, _port, path, *_rest: cleanup_owned_actors(
+        lambda _host, _port, path, *_rest, **_kwargs: cleanup_owned_actors(
             cast("PythonCarlaAdapter", adapter),
             RunOwnership(path),
         ),
@@ -372,7 +372,7 @@ def test_parent_cleans_journal_after_wrapper_failure(
     monkeypatch.setattr(
         sandbox,
         "cleanup_script_ownership",
-        lambda _host, _port, path, *_rest: cleanup_owned_actors(
+        lambda _host, _port, path, *_rest, **_kwargs: cleanup_owned_actors(
             cast("PythonCarlaAdapter", adapter),
             RunOwnership(path),
         ),

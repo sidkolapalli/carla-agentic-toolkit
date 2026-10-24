@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, cast
 
 import pytest
 
+from carla_agentic_toolkit import experiment_replay
 from carla_agentic_toolkit.managed_session import ManagedSession, SessionInvariantError
 from carla_agentic_toolkit.managed_spec import ExperimentSpec
 from carla_agentic_toolkit.simulator_lease import SimulatorLease
@@ -25,6 +26,7 @@ class FakeWorld:
     id: int = 7
     frame: int = 100
     extra_tick: int = 0
+    batch_error: str = ""
     destroyed: list[int] = field(default_factory=list)
     actors: list[SimpleNamespace] = field(default_factory=list)
     settings: dict[str, object] = field(
@@ -72,9 +74,42 @@ class FakeWorld:
         self.frame += 1 + self.extra_tick
         return self.frame
 
+    def reload_world(self, reset_settings: bool = True) -> FakeWorld:  # noqa: FBT001, FBT002
+        """Keep this fixture reference usable while advancing its native episode identity."""
+        assert reset_settings is False
+        self.id += 1
+        self.actors.clear()
+        return self
+
+    def reset_all_traffic_lights(self) -> None:
+        """Reset the numerical fixture's empty traffic-light catalog."""
+
+
+@pytest.fixture(autouse=True)
+def authoritative_batch(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Use CARLA's server-response format independently of cached actor destroy results."""
+    monkeypatch.setattr(experiment_replay, "apply_batch", _apply_destroy_batch)
+
+
+def _apply_destroy_batch(
+    client: object, commands: list[dict[str, object]], *, do_tick: bool
+) -> dict[str, object]:
+    assert do_tick is False
+    world = cast("FakeWorld", cast("CarlaClient", client).get_world())
+    return {"responses": [_destroy_response(world, command) for command in commands]}
+
+
+def _destroy_response(world: FakeWorld, command: dict[str, object]) -> dict[str, object]:
+    actor_id = int(str(command["actor_id"]))
+    if not world.batch_error:
+        world.destroyed.append(actor_id)
+    return {"actor_id": 0 if world.batch_error else actor_id, "error": world.batch_error}
+
 
 def _session(world: FakeWorld, lease: SimulatorLease) -> ManagedSession:
-    client = cast("CarlaClient", SimpleNamespace(get_world=lambda: world))
+    client = cast(
+        "CarlaClient", SimpleNamespace(get_world=lambda: world, reload_world=world.reload_world)
+    )
     return ManagedSession(ExperimentSpec(), client, lease, "test-run")
 
 
@@ -135,7 +170,7 @@ def test_reload_invalidates_handles_without_destroying_reused_actor_id(tmp_path:
         )
         world.actors.append(actor)
         session.own(cast("CarlaActor", actor), controller="ego", protected=True)
-        world.id = 8
+        world.id += 1
         with pytest.raises(SessionInvariantError, match="world"):
             session.step()
         report = session.close()
@@ -168,7 +203,7 @@ def test_protection_is_separate_from_creation_and_controller(tmp_path: Path) -> 
 
 def test_partial_cleanup_keeps_recovery_required(tmp_path: Path) -> None:
     """Failed destroy must remain visible and keep the endpoint quarantined."""
-    world = FakeWorld()
+    world = FakeWorld(batch_error="destruction failed")
     with SimulatorLease("localhost", 3000, state_root=tmp_path) as lease:
         session = _session(world, lease)
         session.open()

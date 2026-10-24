@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 def prepared(
-    monkeypatch: pytest.MonkeyPatch, scenario: str = "lead_brake"
+    monkeypatch: pytest.MonkeyPatch, scenario: str = "lead_brake", *, path: RoutePath | None = None
 ) -> tuple[Session, route_experiment.RouteExperiment]:
     """Use real route/session contracts with CARLA-free actor handles that cannot tick."""
     module = SimpleNamespace(
@@ -37,7 +37,7 @@ def prepared(
         Vector3D=SimpleNamespace,
     )
     monkeypatch.setattr(route_actors, "import_module", lambda _name: module)
-    path = RoutePath((RoutePoint(0.0, 0.0), RoutePoint(165.0, 0.0)))
+    path = path or RoutePath((RoutePoint(0.0, 0.0), RoutePoint(165.0, 0.0)))
     monkeypatch.setattr(route_experiment, "select_route", lambda _map: path)
     spec = ExperimentSpec.model_validate({"fixture": "town10-route-ue5-v1", "scenario": scenario})
     session = Session(spec=spec)
@@ -55,7 +55,7 @@ def observed(experiment: route_experiment.RouteExperiment, frame: int = 100) -> 
         handle = handles[identity]
         return SimpleNamespace(
             get_transform=lambda: SimpleNamespace(
-                location=handle.location, rotation=SimpleNamespace(yaw=0.0)
+                location=handle.location, rotation=SimpleNamespace(pitch=0.0, yaw=0.0, roll=0.0)
             ),
             get_velocity=lambda: SimpleNamespace(x=0.0, y=0.0),
         )
@@ -70,7 +70,7 @@ def observed(experiment: route_experiment.RouteExperiment, frame: int = 100) -> 
 
 
 @pytest.mark.parametrize("scenario", ["lead_brake", "cut_in", "pedestrian_crossing"])
-def test_all_actors_are_journaled_and_every_vehicle_disables_autopilot(
+def test_all_actors_are_journaled_without_autopilot_calls(
     monkeypatch: pytest.MonkeyPatch,
     scenario: str,
 ) -> None:
@@ -78,9 +78,7 @@ def test_all_actors_are_journaled_and_every_vehicle_disables_autopilot(
     session, _experiment = prepared(monkeypatch, scenario)
     assert {item[0] for item in session.owned} == {item.id for item in session.world.actors}
     assert all(
-        item.autopilot == [False]
-        for item in session.world.actors
-        if item.type_id.startswith("vehicle.")
+        not item.autopilot for item in session.world.actors if item.type_id.startswith("vehicle.")
     )
     assert all(item[2] for item in session.owned)
 

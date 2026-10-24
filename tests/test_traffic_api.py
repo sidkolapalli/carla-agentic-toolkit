@@ -60,6 +60,10 @@ class TrafficAdapter:
             frame=10,
         )
 
+    def get_synchronous_mode(self) -> bool:
+        """Expose settings-only preflight without actor inventory."""
+        return self.population.world_state.settings.synchronous_mode
+
     def populate_traffic(
         self,
         *,

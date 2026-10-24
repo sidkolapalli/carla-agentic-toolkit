@@ -18,14 +18,13 @@ from carla_agentic_toolkit.experiment_common import (
     safe_numeric_method,
     safe_object_dict_method,
     safe_text_method,
-    safe_vector_method,
     transform_dict,
     vector_dict,
     vector_length,
 )
 
 if TYPE_CHECKING:
-    from carla_agentic_toolkit.carla_protocols import CarlaWorld
+    from carla_agentic_toolkit.carla_protocols import CarlaTelemetrySnapshot, CarlaWorld
     from carla_agentic_toolkit.models import Location, Transform
 
 
@@ -47,18 +46,29 @@ def apply_vehicle_control(
 
 
 def vehicle_telemetry(world: CarlaWorld, actor_id: int) -> dict[str, object]:
-    """Return vehicle state useful for closed-loop control."""
+    """Bind motion to one frame; read actor-only control and road state separately."""
     vehicle = actor(world, actor_id)
-    return {
-        "actor_id": actor_id,
-        "transform": transform_dict(cast("Any", vehicle).get_transform()),
-        "velocity": vector_dict(cast("Any", vehicle).get_velocity()),
-        "acceleration": safe_vector_method(vehicle, "get_acceleration"),
-        "control": safe_object_dict_method(vehicle, "get_control"),
-        "speed_limit": safe_numeric_method(vehicle, "get_speed_limit"),
-        "traffic_light_state": safe_text_method(vehicle, "get_traffic_light_state"),
-        "speed_mps": vector_length(cast("Any", vehicle).get_velocity()),
-    }
+    try:
+        snapshot = cast("CarlaTelemetrySnapshot", world.get_snapshot())
+        state = snapshot.find(actor_id)
+        if state is None:
+            message = f"Actor {actor_id} was not found in world snapshot frame {snapshot.frame}."
+            raise CarlaAdapterError(message)
+        velocity = state.get_velocity()
+        return {
+            "actor_id": actor_id,
+            "frame": snapshot.frame,
+            "elapsed_seconds": snapshot.timestamp.elapsed_seconds,
+            "transform": transform_dict(state.get_transform()),
+            "velocity": vector_dict(velocity),
+            "acceleration": vector_dict(state.get_acceleration()),
+            "control": safe_object_dict_method(vehicle, "get_control"),
+            "speed_limit": safe_numeric_method(vehicle, "get_speed_limit"),
+            "traffic_light_state": safe_text_method(vehicle, "get_traffic_light_state"),
+            "speed_mps": vector_length(velocity),
+        }
+    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+        raise CarlaAdapterError(str(exc)) from exc
 
 
 def set_actor_transform(

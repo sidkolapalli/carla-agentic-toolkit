@@ -59,7 +59,7 @@ def _runtime(monkeypatch: pytest.MonkeyPatch, world: MultiWorld) -> list[Traffic
     monkeypatch.setattr(
         traffic_controller_step,
         "configure_traffic_manager",
-        lambda _manager, request: configurations.append(request),
+        lambda _manager, request, **_kwargs: configurations.append(request),
     )
     monkeypatch.setattr(traffic_density, "populate_traffic_actors", lambda **_kwargs: ([], []))
     monkeypatch.setattr(controller, "_client", lambda _request: _client(world))

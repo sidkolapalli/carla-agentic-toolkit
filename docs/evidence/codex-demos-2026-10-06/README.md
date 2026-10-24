@@ -21,8 +21,10 @@ The opening request is:
 > Drive demo-car for six seconds, brake, and report the distance.
 
 Codex resolves the existing Lincoln, applies throttle for six seconds while a
-chase camera follows, then brakes. The measured displacement is **15.93m during
-the drive and 18.75m including stopping**. These are distances between recorded
+chase camera follows, then brakes. The recorded endpoint displacements are
+**15.93m during the drive and 18.75m including stopping**. The drive phase lasts
+six wall-clock seconds in an asynchronous, variable-step world. These figures
+are illustrative, not repeatable and not measurements; they compare recorded
 3D endpoints, not a continuously sampled trajectory length. A subsequent check
 measured 0.00000827m/s and confirmed that the handbrake was engaged.
 
@@ -122,7 +124,7 @@ After both takes, the [cleanup request and result](evidence-cleanup.json) remove
 the car, forgot its alias, and restored the saved spectator transform. Its
 measured health result confirmed matching 0.10.0 versions, zero vehicles,
 sensors or walkers, and no warnings. The cleanup result reported no missing
-unrelated actors; the 23 existing traffic actors remained.
+unrelated actors; the 23 traffic signs and lights (`traffic.*` actors) remained.
 
 The [independent baseline check](final-world-state.json) then verified that the
 original 24 actors, world settings and spectator transform matched the saved

@@ -2,6 +2,8 @@
 
 from dataclasses import asdict, dataclass
 
+from carla_agentic_toolkit.actor_boxes import ProjectedBox
+
 
 @dataclass(frozen=True, slots=True)
 class RouteActor:
@@ -21,6 +23,7 @@ class RouteActor:
     lateral_m: float = 0.0
     lane_id: int = -1
     z: float = 0.5
+    box: ProjectedBox | None = None
 
 
 @dataclass(frozen=True, slots=True)

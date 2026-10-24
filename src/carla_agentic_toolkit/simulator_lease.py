@@ -131,6 +131,11 @@ class SimulatorLease:
             raise RecoveryRequiredError(self.recovery_state)
 
     @property
+    def state_root(self) -> Path:
+        """Share the validated private root for local-resource locks across endpoints."""
+        return self._root
+
+    @property
     def descriptor(self) -> int:
         """Borrow the lock for a sandbox process, preserving ownership on parent death."""
         if self._fd is None:

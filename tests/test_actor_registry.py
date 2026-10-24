@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Final, cast
 
 import pytest
 
+from carla_agentic_toolkit.actor_identity import ActorIdentity
 from carla_agentic_toolkit.actor_registry import ActorRegistry, actor_registry_path
 from carla_agentic_toolkit.models import ActorSnapshot, Location, Rotation, Transform
 from carla_agentic_toolkit.script_api import CarlaScriptApi
@@ -28,6 +29,13 @@ class NamedActorAdapter:
     host: str = "127.0.0.1"
     port: int = 2000
     timeout: float = 10.0
+
+    def get_actor_identity(self, actor_id: int) -> ActorIdentity | None:
+        """Return the explicit server description for a known actor in episode seven."""
+        actor = next((item for item in self.actors if item.actor_id == actor_id), None)
+        if actor is None:
+            return None
+        return ActorIdentity(actor.actor_id, 7, actor.type_id, actor.role_name)
 
     def list_actors(self, filter_pattern: str) -> tuple[ActorSnapshot, ...]:
         """Return the current actor inventory."""
@@ -107,7 +115,7 @@ def test_registry_path_is_isolated_by_endpoint(tmp_path: Path) -> None:
     first = actor_registry_path(tmp_path, "127.0.0.1", 2000)
     second = actor_registry_path(tmp_path, "127.0.0.1", 3000)
 
-    ActorRegistry(first).set("ego", ACTOR_ID)
+    ActorRegistry(first).set("ego", ActorIdentity(ACTOR_ID, 7, "vehicle.tesla.model3", "ego"))
 
     assert first != second
     assert ActorRegistry(second).items() == ()

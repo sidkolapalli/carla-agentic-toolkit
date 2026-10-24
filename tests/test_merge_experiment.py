@@ -34,7 +34,11 @@ class Actor:
     @property
     def bounding_box(self) -> SimpleNamespace:
         """Expose static actor bounds, which are not frame-dependent kinematics."""
-        return SimpleNamespace(extent=SimpleNamespace(x=2.4, y=0.95, z=0.7))
+        return SimpleNamespace(
+            extent=SimpleNamespace(x=2.4, y=0.95, z=0.7),
+            location=SimpleNamespace(x=0.0, y=0.0, z=0.0),
+            rotation=SimpleNamespace(pitch=0.0, yaw=0.0, roll=0.0),
+        )
 
     def get_transform(self) -> None:
         """Reject mixing current actor state with an earlier snapshot."""
@@ -42,7 +46,7 @@ class Actor:
         raise AssertionError(message)
 
     def set_autopilot(self, enabled: object, *_args: object) -> None:
-        """Record explicit TM disabling before local control."""
+        """Record any forbidden autopilot call from a managed fixture."""
         assert isinstance(enabled, bool)
         self.autopilot.append(enabled)
 
@@ -104,12 +108,30 @@ class Session:
     map: Map = field(default_factory=lambda: Map(Waypoint()))
     run_id: str = "run-test"
     world_generation: str = "generation-test"
+    initial_traffic_lights: dict[str, object] = field(
+        default_factory=lambda: {"frame": 10, "lights": []}
+    )
     owned: list[tuple[int, str, bool]] = field(default_factory=list)
     callbacks: list[Callable[[], object]] = field(default_factory=list)
 
     def own(self, actor: Actor, *, controller: str, protected: bool = True) -> None:
         """Record creation and controller identity independently."""
         self.owned.append((actor.id, controller, protected))
+
+    def spawn_actor(
+        self,
+        blueprint: Blueprint,
+        transform: object,
+        *,
+        role_name: str,
+        controller: str,
+        attach_to: object | None = None,
+    ) -> Actor:
+        """Reflect the centralized owner boundary while leaving durable tests to real leases."""
+        assert blueprint.attributes["role_name"] == role_name
+        actor = self.world.spawn_actor(blueprint, transform, attach_to=attach_to)
+        self.own(actor, controller=controller, protected=True)
+        return actor
 
     def on_close(self, callback: Callable[[], object]) -> None:
         """Retain trailing sensor evidence callbacks for the timing owner."""
@@ -139,7 +161,7 @@ def _snapshot(session: Session, frame: int = 10) -> SimpleNamespace:
         actor = session.world.actors[actor_id - 1]
         return SimpleNamespace(
             get_transform=lambda: SimpleNamespace(
-                location=actor.location, rotation=SimpleNamespace(yaw=0.0)
+                location=actor.location, rotation=SimpleNamespace(pitch=0.0, yaw=0.0, roll=0.0)
             ),
             get_velocity=lambda: SimpleNamespace(x=0.0, y=0.0, z=0.0),
         )
@@ -149,15 +171,16 @@ def _snapshot(session: Session, frame: int = 10) -> SimpleNamespace:
     )
 
 
-def test_prepare_assigns_unique_controllers_and_disables_autopilot(
+def test_prepare_assigns_unique_controllers_without_autopilot(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Every spawned actor is protected, with role identity present before spawning."""
     session, _experiment = _prepare(monkeypatch)
     vehicles = session.world.actors[:2]
-    assert [actor.autopilot for actor in vehicles] == [[False], [False]]
+    assert [actor.autopilot for actor in vehicles] == [[], []]
     assert len({item[0] for item in session.owned}) == len(session.world.actors)
-    assert all(actor.role.startswith("managed:run-test:") for actor in session.world.actors)
+    assert vehicles[0].role == "hero"
+    assert all(actor.role.startswith("managed:run-test:") for actor in session.world.actors[1:])
 
 
 @pytest.mark.parametrize(
@@ -228,7 +251,7 @@ def test_observation_uses_one_snapshot_and_empty_events_never_block(
     session, experiment = _prepare(monkeypatch)
     value = experiment.observe(_snapshot(session))
     payload = value.to_dict()
-    assert (value.frame, value.policy.frame, value.ego.frame, payload["observation_mode"]) == (
+    assert (value.frame, value.policy.frame, value.target.frame, payload["observation_mode"]) == (
         10,
         10,
         10,

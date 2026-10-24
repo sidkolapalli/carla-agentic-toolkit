@@ -60,8 +60,9 @@ class ActorAdapter:
         """Return available maps."""
         return ("Town10HD_Opt",)
 
-    def load_world(self, map_name: str) -> WorldState:
+    def load_world(self, map_name: str, *, reset_settings: bool = True) -> WorldState:
         """Load a map."""
+        del reset_settings
         return WorldState(
             current_map=map_name,
             settings=_world_settings(),

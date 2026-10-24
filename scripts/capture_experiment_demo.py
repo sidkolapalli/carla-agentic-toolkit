@@ -15,9 +15,7 @@ import hashlib
 import json
 import math
 import os
-import queue
 import sys
-import threading
 import uuid
 from importlib import import_module
 from pathlib import Path
@@ -25,13 +23,22 @@ from typing import TYPE_CHECKING, Any, Protocol, cast
 from unittest.mock import patch
 
 from carla_agentic_toolkit import managed_engine
+from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.managed_spec import ExperimentSpec
 from carla_agentic_toolkit.managed_world import world_identity, world_settings
 from carla_agentic_toolkit.merge_experiment import MergeExperiment
+from carla_agentic_toolkit.sensor_subscription import SensorSubscription
 from carla_agentic_toolkit.simulator_lease import private_state_root
 
 if TYPE_CHECKING:
-    from carla_agentic_toolkit.carla_protocols import CarlaActor, CarlaClient, CarlaWorld
+    from collections.abc import Callable
+
+    from carla_agentic_toolkit.carla_protocols import (
+        CarlaActor,
+        CarlaClient,
+        CarlaSensor,
+        CarlaWorld,
+    )
     from carla_agentic_toolkit.managed_session import ManagedSession
     from carla_agentic_toolkit.merge_planner import MergeObservation
 
@@ -43,10 +50,11 @@ CASES = (("normal-budget", 40), ("restricted-budget", 1))
 
 
 class SensorImage(Protocol):
-    """Only image identity and CARLA's native PNG writer are needed."""
+    """Retain native pixels for hashing independently of CARLA's PNG writer."""
 
     frame: int
     timestamp: float
+    raw_data: bytes
 
     def save_to_disk(self, path: str) -> object:
         """Save a delivered CARLA frame."""
@@ -57,6 +65,9 @@ class CameraSensor(Protocol):
 
     def stop(self) -> None:
         """Stop the owned camera listener."""
+
+    def listen(self, callback: Callable[[object], None]) -> None:
+        """Deliver original camera data to the shared bounded subscription."""
 
 
 def _write_json(path: Path, value: object) -> None:
@@ -71,31 +82,38 @@ class FrameRecorder:
         self.folder = folder
         self.frames = folder / "frames"
         self.frames.mkdir(parents=True, exist_ok=False)
-        self.images: queue.Queue[SensorImage] = queue.Queue(maxsize=QUEUE_CAPACITY)
+        self.subscription: SensorSubscription | None = None
         self.saved: list[dict[str, object]] = []
-        self.dropped = 0
         self.errors: list[str] = []
         self._closed = False
-        self._lock = threading.Lock()
+        self._last_frame = 0
 
-    def receive(self, image: SensorImage) -> None:
-        """Never block the sensor callback on filesystem or queue capacity."""
-        with self._lock:
-            if self._closed:
-                return
-            try:
-                self.images.put_nowait(image)
-            except queue.Full:
-                self.dropped += 1
+    def subscribe(self, sensor: CameraSensor) -> None:
+        """Bind the already-owned camera to the same drop-oldest listener as other consumers."""
+        if self.subscription is not None:
+            message = "Camera recorder is already subscribed."
+            raise ValueError(message)
+        self.subscription = SensorSubscription(cast("CarlaSensor", sensor), capacity=QUEUE_CAPACITY)
 
     def save_arrived(self) -> None:
         """Drain at most one queue capacity on the owner thread, preserving errors."""
+        if self._closed:
+            return
         for _ in range(QUEUE_CAPACITY):
-            try:
-                image = self.images.get_nowait()
-            except queue.Empty:
+            image = self._next_image()
+            if image is None:
                 return
-            self._save_checked(image)
+            self._save_checked(cast("SensorImage", image))
+
+    def _next_image(self) -> object | None:
+        if self.subscription is None:
+            return None
+        try:
+            return self.subscription.next_frame(timeout_seconds=0.0)
+        except CarlaAdapterError as error:
+            if str(error) != "Timed out waiting for a sensor frame.":
+                raise
+            return None
 
     def _save_checked(self, image: SensorImage) -> None:
         try:
@@ -113,6 +131,7 @@ class FrameRecorder:
         if path.exists():
             message = "Duplicate camera frame."
             raise ValueError(message)
+        digest = hashlib.sha256(image.raw_data).hexdigest()
         image.save_to_disk(str(path))
         if path.stat().st_size > MAX_FRAME_BYTES:
             message = "Camera frame exceeds its byte limit."
@@ -121,18 +140,21 @@ class FrameRecorder:
             {
                 "frame": image.frame,
                 "timestamp": image.timestamp,
-                "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                "sha256": digest,
             }
         )
+        self._last_frame = max(self._last_frame, image.frame)
 
     def finish(self, sensor: CameraSensor) -> dict[str, Any]:
         """Write failure evidence even when camera stop or final draining fails."""
-        stopped = self._stop(sensor)
-        with self._lock:
-            self._closed = True
-        # _save_checked retains errors before propagating them.
+        # Save bounded arrivals before a failed Stop can freeze the shared queue.
         with contextlib.suppress(OSError, RuntimeError, ValueError):
             self.save_arrived()
+        stopped, trailing = self._stop(sensor)
+        self._closed = True
+        with contextlib.suppress(OSError, RuntimeError, ValueError):
+            for image in trailing:
+                self._save_checked(cast("SensorImage", image))
         manifest = self._manifest(stopped=stopped)
         _write_json(self.folder / "camera-manifest.json", manifest)
         if self.errors:
@@ -140,15 +162,18 @@ class FrameRecorder:
             raise RuntimeError(message)
         return manifest
 
-    def _stop(self, sensor: CameraSensor) -> bool:
+    def _stop(self, sensor: CameraSensor) -> tuple[bool, tuple[object, ...]]:
         try:
-            sensor.stop()
+            if self.subscription is None:
+                sensor.stop()
+                return True, ()
+            return True, self.subscription.close_and_drain(self._last_frame).frames
         except (OSError, RuntimeError, ValueError) as error:
             self.errors.append(f"stop_camera:{type(error).__name__}")
-            return False
-        return True
+            return False, ()
 
     def _manifest(self, *, stopped: bool) -> dict[str, Any]:
+        dropped, pending = self._delivery_counts()
         return {
             "schema_version": 1,
             "camera_type": "sensor.camera.rgb",
@@ -157,13 +182,19 @@ class FrameRecorder:
             "fov": 80,
             "sensor_tick": 0.05,
             "view": "fixed birdseye, original CARLA renderer",
+            "sha256_representation": "carla.Image.raw_data (32-bit BGRA)",
             "camera_stopped": stopped,
-            "dropped_queue_frames": self.dropped,
-            "pending_queue_frames": self.images.qsize(),
+            "dropped_queue_frames": dropped,
+            "pending_queue_frames": pending,
             "errors": self.errors,
-            "ok": stopped and bool(self.saved) and not self.errors and self.dropped == 0,
+            "ok": stopped and bool(self.saved) and not self.errors and dropped == 0,
             "images": self.saved,
         }
+
+    def _delivery_counts(self) -> tuple[int, int]:
+        if self.subscription is None:
+            return 0, 0
+        return self.subscription.dropped_samples, self.subscription.pending_samples
 
 
 def _validate_image(image: SensorImage) -> None:
@@ -196,10 +227,14 @@ class CameraExperiment(MergeExperiment):
         }
         for key, value in attributes.items():
             blueprint.set_attribute(key, value)
-        camera = self.session.world.spawn_actor(blueprint, self._camera_transform())
-        self.session.own(camera, controller="demo-camera", protected=True)
+        camera = self.session.spawn_actor(
+            blueprint,
+            self._camera_transform(),
+            role_name=attributes["role_name"],
+            controller="demo-camera",
+        )
         self.session.on_close(lambda: self._close_camera(camera))
-        camera.listen(self.recorder.receive)
+        self.recorder.subscribe(camera)
 
     def _close_camera(self, camera: CameraSensor) -> dict[str, object]:
         manifest = self.recorder.finish(camera)

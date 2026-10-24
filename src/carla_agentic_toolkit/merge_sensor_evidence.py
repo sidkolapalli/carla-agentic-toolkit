@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, cast
 
+from carla_agentic_toolkit.sensor_subscription import DEFAULT_SENSOR_DRAIN_SECONDS
+
 if TYPE_CHECKING:
     from carla_agentic_toolkit.sensor_subscription import SensorDrain, SensorSubscription
 
@@ -20,8 +22,9 @@ class MergeSensor:
     subscription: SensorSubscription
 
     def drain(self, frame: int, *, trailing: bool = False) -> dict[str, object]:
-        """Collect existing events without waiting for a collision or owning a tick."""
-        drained = self.subscription.drain(frame, timeout_seconds=0.0)
+        """Wait boundedly for GNSS delivery; collect events without waiting or ticking."""
+        timeout = DEFAULT_SENSOR_DRAIN_SECONDS if self.kind == "gnss" else 0.0
+        drained = self.subscription.drain(frame, timeout_seconds=timeout)
         return self._evidence(drained, frame, trailing=trailing)
 
     def close(self, frame: int) -> dict[str, object]:

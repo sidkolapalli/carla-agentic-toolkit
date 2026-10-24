@@ -41,7 +41,7 @@ def test_spec_is_immutable_and_default_baseline_needs_no_key() -> None:
     assert spec.policy == "rules"
     assert spec.fixed_delta_seconds <= spec.max_substeps * spec.max_substep_delta_time
     with pytest.raises(ValidationError):
-        spec.seed = 99
+        spec.replicate_index = 99
 
 
 def test_ue5_fixture_is_explicit_and_preserves_the_original_default() -> None:
