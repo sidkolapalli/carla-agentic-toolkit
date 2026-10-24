@@ -10,12 +10,15 @@ import pytest
 from carla_agentic_toolkit import experiment_comparison as comparison
 from carla_agentic_toolkit.experiment_trace import TraceStore
 from carla_agentic_toolkit.managed_spec import ExperimentSpec
+from carla_agentic_toolkit.metrics_types import metadata_identity
 
 PAIR_SIZE = 2
 LATENCY_SECONDS = 0.25
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+    from carla_agentic_toolkit.metrics_types import AggregateMetrics, ComparisonReport
 
 
 def _save_run(
@@ -92,19 +95,19 @@ def test_comparison_matches_saved_trials_and_keeps_exact_policy_metadata(tmp_pat
         report["policies"]["rules"]["sample_count"],
         report["policies"]["jev"]["usage"],
     ) == (1, None)
-    metrics = report["policies"]["rules"]["metrics"]
+    metrics = _policy_metrics(report, "rules")
     assert (
         metrics["completion"],
         metrics["observed_collision"],
-        metrics["interventions"]["mean"],
-        metrics["fallbacks"]["mean"],
-        metrics["decision_latency_mean_seconds"]["mean"],
+        metrics["interventions"],
+        metrics["fallbacks"],
+        metrics["decision_latency_mean_seconds"],
     ) == (
         {"numerator": 1, "denominator": 1, "rate": 1.0},
         {"numerator": 1, "denominator": 1, "rate": 1.0},
-        1.0,
-        1.0,
-        LATENCY_SECONDS,
+        {"mean": 1.0, "denominator": 1},
+        {"mean": 1.0, "denominator": 1},
+        {"mean": LATENCY_SECONDS, "denominator": 1},
     )
     assert report["runs"][1]["decision_metadata"] == [
         {"requested_model": "jev-test", "question_version": "choice-test"},
@@ -170,8 +173,8 @@ def test_invalid_and_partial_runs_remain_visible_but_leave_physical_denominators
         report["policies"]["jev"]["status_counts"]["partial"],
     ) == (True, PAIR_SIZE, 1, 1)
     assert (
-        report["policies"]["rules"]["metrics"]["observed_collision"],
-        report["policies"]["jev"]["metrics"]["completion"]["denominator"],
+        _policy_metrics(report, "rules")["observed_collision"],
+        _policy_metrics(report, "jev")["completion"]["denominator"],
     ) == ({"numerator": 0, "denominator": 1, "rate": 0.0}, 1)
     assert "excluded" in report["definitions"]["physical_denominator"]
 
@@ -235,3 +238,17 @@ def test_static_report_cli_escapes_evidence_and_preserves_unknown_usage(tmp_path
         "https://" in rendered,
     ) == (False, True, False)
     assert report["policies"]["jev"]["usage"] is None
+
+
+def test_typed_metadata_identity_copies_exactly_the_match_metadata_fields() -> None:
+    """The typed matching evidence stays in step with the required reproduction fields."""
+    metadata: dict[str, object] = {
+        key: f"{key}-value" for key in (*comparison.MATCH_METADATA, "policy_version")
+    }
+    assert metadata_identity(metadata) == {key: metadata[key] for key in comparison.MATCH_METADATA}
+
+
+def _policy_metrics(report: ComparisonReport, policy: str) -> AggregateMetrics:
+    metrics = report["policies"][policy]["metrics"]
+    assert metrics is not None
+    return metrics
