@@ -16,6 +16,9 @@ if TYPE_CHECKING:
 MAX_SENSOR_QUEUE_BYTES = 512 * 1024 * 1024
 VARIABLE_SENSOR_QUEUE_BYTES = 16 * 1024 * 1024
 SAMPLE_METADATA_BYTES = 256
+BGRA_PIXEL_BYTES = 4
+# Optical flow carries two float32 channels per pixel instead of BGRA.
+OPTICAL_FLOW_PIXEL_BYTES = 8
 
 
 class SensorQueueBudget:
@@ -79,7 +82,9 @@ def camera_queue_bytes(sensor: CarlaSensor, capacity: int) -> int | None:
         return None
     width = _dimension(attributes, "image_size_x")
     height = _dimension(attributes, "image_size_y")
-    return width * height * 4 * capacity
+    optical_flow = sensor.type_id == "sensor.camera.optical_flow"
+    pixel_bytes = OPTICAL_FLOW_PIXEL_BYTES if optical_flow else BGRA_PIXEL_BYTES
+    return width * height * pixel_bytes * capacity
 
 
 def _dimension(attributes: Mapping[str, object], name: str) -> int:
@@ -106,10 +111,26 @@ def sample_payload_bytes(data: object) -> int:
 
 
 def _camera_payload_bytes(data: object) -> int | None:
+    pixel_bytes = _sample_pixel_bytes(data)
+    pixels = _pixel_count(data)
+    if pixel_bytes is None or pixels is None:
+        return None
+    return pixels * pixel_bytes if pixels > 0 else MAX_SENSOR_QUEUE_BYTES + 1
+
+
+def _sample_pixel_bytes(data: object) -> int | None:
+    """DVS event counts vary per frame, so its buffer is counted like other variable data."""
+    kind = type(data).__name__
+    if kind == "DVSEventArray":
+        return None
+    return OPTICAL_FLOW_PIXEL_BYTES if kind == "OpticalFlowImage" else BGRA_PIXEL_BYTES
+
+
+def _pixel_count(data: object) -> int | None:
     width, height = getattr(data, "width", None), getattr(data, "height", None)
-    if type(width) is int and type(height) is int:
-        return width * height * 4 if width > 0 and height > 0 else MAX_SENSOR_QUEUE_BYTES + 1
-    return None
+    if type(width) is not int or type(height) is not int:
+        return None
+    return width * height if width > 0 and height > 0 else 0
 
 
 def _buffer_payload_bytes(raw: object) -> int:

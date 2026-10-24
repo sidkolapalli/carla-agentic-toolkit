@@ -14,6 +14,7 @@ import pytest
 
 from carla_agentic_toolkit.adapter import PythonCarlaAdapter
 from carla_agentic_toolkit.errors import CarlaAdapterError
+from carla_agentic_toolkit.sensor_memory import camera_queue_bytes, sample_payload_bytes
 from carla_agentic_toolkit.snapshots import RunSnapshots
 from tests.api_helpers import build_api
 from tests.test_sensor_evidence_formats import PNG_BYTES, WritableFrame
@@ -21,6 +22,8 @@ from tests.test_sensor_evidence_formats import PNG_BYTES, WritableFrame
 if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
+
+    from carla_agentic_toolkit.carla_protocols import CarlaSensor
 
 DEFAULT_CAPACITY = 32
 SMALL_BYTE_BUDGET = 2048
@@ -293,3 +296,24 @@ def test_closed_subscription_does_not_inspect_late_payload(
     adapter.subscribe_sensor(7)
     adapter.close_sensor_subscription(7)
     sensor.emit(LateFrame())
+
+
+class OpticalFlowImage(SimpleNamespace):
+    """Native class name: two float32 channels per pixel."""
+
+
+class DVSEventArray(SimpleNamespace):
+    """Native class name: a variable-length event buffer."""
+
+
+def test_queue_bytes_follow_each_sensor_payload_format() -> None:
+    """Optical flow is 8 B/px and DVS uses its event buffer, not the 4 B/px BGRA estimate."""
+    assert sample_payload_bytes(OpticalFlowImage(width=10, height=10)) == 800  # noqa: PLR2004
+    events = DVSEventArray(width=10, height=10, raw_data=bytes(1000))
+    assert sample_payload_bytes(events) == 1000  # noqa: PLR2004
+    assert sample_payload_bytes(SimpleNamespace(width=10, height=10)) == 400  # noqa: PLR2004
+    flow = SimpleNamespace(
+        type_id="sensor.camera.optical_flow",
+        attributes={"image_size_x": "10", "image_size_y": "10"},
+    )
+    assert camera_queue_bytes(cast("CarlaSensor", flow), 2) == 1600  # noqa: PLR2004
