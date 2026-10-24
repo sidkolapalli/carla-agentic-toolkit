@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from carla_agentic_toolkit.managed_policy import PolicyDecision, PolicyRequest
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from carla_agentic_toolkit.experiment_trace import TraceRead
 
 _CONTEXT_KEYS = (
@@ -67,7 +69,7 @@ def _validate_context(saved: object, requested: dict[str, object]) -> None:
         raise ValueError(message)
 
 
-def _validated_choice(saved: dict[str, Any], request: PolicyRequest) -> str:
+def _validated_choice(saved: Mapping[str, object], request: PolicyRequest) -> str:
     choice = saved.get("choice_id")
     if not isinstance(choice, str) or choice not in {
         item.candidate_id for item in request.candidates
