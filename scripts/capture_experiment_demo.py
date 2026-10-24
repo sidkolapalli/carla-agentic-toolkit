@@ -227,12 +227,14 @@ class CameraExperiment(MergeExperiment):
         }
         for key, value in attributes.items():
             blueprint.set_attribute(key, value)
-        camera = self.session.spawn_actor(
+        spawned = self.session.spawn_actor(
             blueprint,
             self._camera_transform(),
             role_name=attributes["role_name"],
             controller="demo-camera",
         )
+        # A sensor.camera.rgb blueprint spawns a native carla.Sensor.
+        camera = cast("CameraSensor", spawned)
         self.session.on_close(lambda: self._close_camera(camera))
         self.recorder.subscribe(camera)
 

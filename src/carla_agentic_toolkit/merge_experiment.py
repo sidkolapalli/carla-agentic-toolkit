@@ -7,7 +7,7 @@ import time
 from collections import deque
 from dataclasses import asdict, replace
 from importlib import import_module
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from carla_agentic_toolkit.actor_boxes import bounding_box_metadata, project_actor_box
 from carla_agentic_toolkit.errors import CarlaAdapterError, UnsupportedFeatureError
@@ -41,9 +41,22 @@ from carla_agentic_toolkit.merge_sensor_evidence import MergeSensor
 from carla_agentic_toolkit.sensor_subscription import SensorSubscription
 
 if TYPE_CHECKING:
-    from carla_agentic_toolkit.carla_protocols import CarlaSensor
+    from carla_agentic_toolkit.carla_protocols import (
+        CarlaActorSnapshot,
+        CarlaSensor,
+        CarlaTelemetrySnapshot,
+        CarlaTransformObject,
+    )
     from carla_agentic_toolkit.managed_policy import DecisionContext, PolicyDecision, PolicyRequest
     from carla_agentic_toolkit.managed_spec import ExperimentSpec
+    from carla_agentic_toolkit.merge_types import (
+        MergeActor,
+        MergeBoundingBox,
+        MergeCarlaModule,
+        MergeSession,
+        MergeSpawned,
+        MergeVehicle,
+    )
 
 MAX_RETAINED_POLICY_REQUESTS = 32
 
@@ -57,7 +70,9 @@ class MergeExperiment:
 
     def __init__(self, session: object) -> None:
         """Bind the established session contract without acquiring a second owner."""
-        self.session = cast("Any", session)
+        # build_experiment passes a ManagedSession through import_module; its shared
+        # protocols omit the native map and vehicle members this backend reads.
+        self.session = cast("MergeSession", session)
         self.spec: ExperimentSpec = self.session.spec
         self.settings = PlannerSettings(
             fixed_delta_seconds=self.spec.fixed_delta_seconds,
@@ -68,7 +83,7 @@ class MergeExperiment:
         )
         self.state = ManeuverState()
         self.corridor: MergeCorridor | None = None
-        self._actors: dict[str, object] = {}
+        self._actors: dict[str, MergeVehicle] = {}
         self._sensors: list[MergeSensor] = []
         self._history: deque[dict[str, object]] = deque(maxlen=20)
         self._requests: dict[DecisionContext, PolicyRequest] = {}
@@ -98,14 +113,14 @@ class MergeExperiment:
             "observation_mode": self.spec.observation_mode,
             "initial_traffic_lights": self.session.initial_traffic_lights,
             "vehicle_blueprint": FIXTURE_VEHICLES[self.spec.fixture],
-            "actor_ids": {role: int(cast("Any", actor).id) for role, actor in self._actors.items()},
+            "actor_ids": {role: int(actor.id) for role, actor in self._actors.items()},
             "actor_bounding_boxes": {
-                role: bounding_box_metadata(cast("Any", actor).bounding_box)
+                role: bounding_box_metadata(actor.bounding_box)
                 for role, actor in self._actors.items()
             },
         }
 
-    def _spawn_vehicle(self, role: str, pose: Pose) -> object:
+    def _spawn_vehicle(self, role: str, pose: Pose) -> MergeVehicle:
         blueprint_id = FIXTURE_VEHICLES[self.spec.fixture]
         try:
             blueprint = self.session.world.get_blueprint_library().find(blueprint_id)
@@ -117,18 +132,20 @@ class MergeExperiment:
             raise UnsupportedFeatureError(message) from error
         role_name = managed_role(self.spec, self.session.run_id, role)
         blueprint.set_attribute("role_name", role_name)
-        return self.session.spawn_actor(
+        spawned = self.session.spawn_actor(
             blueprint,
             _transform(pose),
             role_name=role_name,
             controller=f"{role}:{TRACKER_VERSION}",
         )
+        # A vehicle.* blueprint spawns a native carla.Vehicle.
+        return cast("MergeVehicle", spawned)
 
-    def _attach_sensors(self, role: str, actor: object) -> None:
+    def _attach_sensors(self, role: str, actor: MergeSpawned) -> None:
         for kind in ("collision", "lane_invasion", "gnss"):
             self._attach_sensor(role, actor, kind)
 
-    def _attach_sensor(self, role: str, actor: object, kind: str) -> None:
+    def _attach_sensor(self, role: str, actor: MergeSpawned, kind: str) -> None:
         blueprint = self.session.world.get_blueprint_library().find(f"sensor.other.{kind}")
         role_name = managed_role(self.spec, self.session.run_id, f"{role}-{kind}")
         blueprint.set_attribute("role_name", role_name)
@@ -136,7 +153,7 @@ class MergeExperiment:
             blueprint.set_attribute("sensor_tick", str(self.spec.fixed_delta_seconds))
         sensor = self.session.spawn_actor(
             blueprint,
-            import_module("carla").Transform(),
+            _carla().Transform(),
             attach_to=actor,
             role_name=role_name,
             controller="sensor-listener",
@@ -146,25 +163,25 @@ class MergeExperiment:
             event_sensor=kind != "gnss",
             fixed_delta_seconds=self.spec.fixed_delta_seconds,
         )
-        self._sensors.append(
-            MergeSensor(int(sensor.id), int(cast("Any", actor).id), role, kind, subscription)
-        )
+        self._sensors.append(MergeSensor(int(sensor.id), int(actor.id), role, kind, subscription))
 
     def observe(self, snapshot: object) -> MergeObservation:
         """Read every controlled actor from exactly the supplied WorldSnapshot."""
-        frame = int(cast("Any", snapshot).frame)
+        # The managed engine passes a native carla.WorldSnapshot.
+        telemetry = cast("CarlaTelemetrySnapshot", snapshot)
+        frame = int(telemetry.frame)
         if frame <= self._last_frame:
             message = "Merge observations require a new, increasing snapshot frame."
             raise CarlaAdapterError(message)
         corridor = self._require_corridor()
-        policy = self._actor_observation("policy", snapshot)
-        target = self._actor_observation("target", snapshot)
+        policy = self._actor_observation("policy", telemetry)
+        target = self._actor_observation("target", telemetry)
         sensors = tuple(sensor.drain(frame) for sensor in self._sensors)
         value = MergeObservation(
             run_id=str(self.session.run_id),
             world_generation=str(self.session.world_generation),
             frame=frame,
-            simulation_seconds=float(cast("Any", snapshot).timestamp.elapsed_seconds),
+            simulation_seconds=float(telemetry.timestamp.elapsed_seconds),
             policy=policy,
             target=target,
             lane=_lane(corridor, policy),
@@ -172,7 +189,7 @@ class MergeExperiment:
                 policy,
                 target,
                 self.spec.observation_range_m,
-                background=self._background_observations(snapshot),
+                background=self._background_observations(telemetry),
             ),
             sensors=sensors,
             phase=self.state.phase,
@@ -196,24 +213,24 @@ class MergeExperiment:
         )
         return value
 
-    def _actor_observation(self, role: str, snapshot: object) -> ActorObservation:
-        actor = cast("Any", self._actors[role])
-        return self._handle_observation(actor, snapshot)
+    def _actor_observation(self, role: str, snapshot: CarlaTelemetrySnapshot) -> ActorObservation:
+        return self._handle_observation(self._actors[role], snapshot)
 
-    def _background_observations(self, snapshot: object) -> tuple[ActorObservation, ...]:
-        return tuple(
-            self._handle_observation(actor, snapshot) for actor in background_actors(self.session)
-        )
+    def _background_observations(
+        self, snapshot: CarlaTelemetrySnapshot
+    ) -> tuple[ActorObservation, ...]:
+        # Native carla.Actor handles carry bounding_box; the shared CarlaActor omits it.
+        actors = cast("tuple[MergeActor, ...]", background_actors(self.session))
+        return tuple(self._handle_observation(actor, snapshot) for actor in actors)
 
-    def _handle_observation(self, handle: object, snapshot: object) -> ActorObservation:
-        actor = cast("Any", handle)
-        frozen = cast("Any", snapshot).find(actor.id)
+    def _handle_observation(
+        self, actor: MergeActor, snapshot: CarlaTelemetrySnapshot
+    ) -> ActorObservation:
+        frozen = snapshot.find(actor.id)
         if frozen is None:
             message = f"Actor {actor.id} is missing from the owner snapshot."
             raise CarlaAdapterError(message)
-        return _actor_value(
-            actor, frozen, int(cast("Any", snapshot).frame), self._require_corridor()
-        )
+        return _actor_value(actor, frozen, int(snapshot.frame), self._require_corridor())
 
     def policy_request(
         self, observation: MergeObservation, *, revision: int, deadline_monotonic: float
@@ -243,9 +260,7 @@ class MergeExperiment:
         self.state = transition(self.state, observation, choice, self.settings)
         controls = self._controls(observation)
         for role, control in controls.items():
-            cast("Any", self._actors[role]).apply_control(
-                import_module("carla").VehicleControl(**asdict(control))
-            )
+            self._actors[role].apply_control(_carla().VehicleControl(**asdict(control)))
         return self._step_report(observation, decision, choice, reason, controls)
 
     def _validated_choice(
@@ -336,20 +351,23 @@ class MergeExperiment:
         return self.corridor
 
 
+def _carla() -> MergeCarlaModule:
+    return cast("MergeCarlaModule", import_module("carla"))
+
+
 def _transform(pose: Pose) -> object:
-    carla = cast("Any", import_module("carla"))
+    carla = _carla()
     location = carla.Location(x=pose.x, y=pose.y, z=pose.z + 0.4)
     rotation = carla.Rotation(yaw=pose.yaw)
     return carla.Transform(location, rotation)
 
 
 def _actor_value(
-    actor: object, frozen: object, frame: int, corridor: MergeCorridor
+    actor: MergeActor, frozen: CarlaActorSnapshot, frame: int, corridor: MergeCorridor
 ) -> ActorObservation:
-    runtime = cast("Any", frozen)
-    transform, velocity = runtime.get_transform(), runtime.get_velocity()
+    transform, velocity = frozen.get_transform(), frozen.get_velocity()
     along, lateral = corridor.project(float(transform.location.x), float(transform.location.y))
-    extent = cast("Any", actor).bounding_box.extent
+    extent = actor.bounding_box.extent
     target_distance = abs(lateral - corridor.target_offset_m)
     lane_id = (
         corridor.target_lane_id
@@ -357,7 +375,7 @@ def _actor_value(
         else corridor.source_lane_id
     )
     return ActorObservation(
-        actor_id=int(cast("Any", actor).id),
+        actor_id=int(actor.id),
         frame=frame,
         longitudinal_m=along,
         lateral_m=lateral,
@@ -378,11 +396,13 @@ def _actor_value(
             float(velocity.x) * math.cos(math.radians(corridor.policy_start.yaw))
             + float(velocity.y) * math.sin(math.radians(corridor.policy_start.yaw))
         ),
-        box=_corridor_box(transform, cast("Any", actor).bounding_box, corridor),
+        box=_corridor_box(transform, actor.bounding_box, corridor),
     )
 
 
-def _corridor_box(transform: object, bounds: object, corridor: MergeCorridor) -> CorridorBox:
+def _corridor_box(
+    transform: CarlaTransformObject, bounds: MergeBoundingBox, corridor: MergeCorridor
+) -> CorridorBox:
     box = project_actor_box(transform, bounds)
     yaw = math.radians(corridor.policy_start.yaw)
     return CorridorBox(
