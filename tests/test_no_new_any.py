@@ -17,7 +17,9 @@ def _typing_imports(tree: ast.Module) -> set[str]:
 
 def _qualified_attributes(tree: ast.Module) -> set[str]:
     attributes = (node for node in ast.walk(tree) if isinstance(node, ast.Attribute))
-    return {f"{node.value.id}.{node.attr}" for node in attributes if isinstance(node.value, ast.Name)}
+    return {
+        f"{node.value.id}.{node.attr}" for node in attributes if isinstance(node.value, ast.Name)
+    }
 
 
 def _uses_any(tree: ast.Module) -> bool:
