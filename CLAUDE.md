@@ -47,10 +47,11 @@ uv run python scripts/live_smoke.py --reset-existing --vehicle-count 12   # dedi
 
 ### What the gate enforces
 
-- Ruff runs with `select = ["ALL"]` at line length 100. Suppressions are per line and give a
-  reason, for example `# noqa: PLR0913 - Public endpoint permission inputs.`
+- Ruff runs with `select = ["ALL"]` at line length 100. Every suppression in `src/` is per line
+  and gives a reason, for example `# noqa: PLR0913 - Public endpoint permission inputs.`
+  `tests/test_noqa_reasons.py` fails on a bare one.
 - Radon fails on any function below complexity grade A and any module below maintainability
-  grade A (`-n B`). This is why the package has about 190 small single-purpose modules. Split
+  grade A (`-n B`). This is why the package has about 150 small single-purpose modules. Split
   code into a new module rather than growing an existing one past the limit.
 - `ty` is configured to ignore unresolved imports, since `carla` is not in the lock.
 

@@ -136,6 +136,10 @@ structured report preserves the original failure classification and records any
 CARLA connection or destroy failure. Successful scripts retain actors unless
 they explicitly clean them.
 
+Trusted cleanup restores Traffic Manager settings only on ports the execution was
+allowed to connect to. A sandbox-written journal naming any other port fails closed
+before native access, so cleanup never connects to or binds a port Landlock denied.
+
 Failed cleanup retains the ownership journal and an independent dirty simulator
 marker. An available process lock alone does not establish that cleanup succeeded.
 Do not remove recovery markers to admit another mutator without verifying the

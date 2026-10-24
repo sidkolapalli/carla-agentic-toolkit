@@ -438,7 +438,12 @@ but the execution still fails. Unverified rollback retains the actor ID and erro
 in cleanup failures; a failed completion write also leaves the intent unresolved.
 Both require recovery without releasing the dirty simulator lease.
 Do not delete recovery markers or change the state directory or endpoint to bypass
-that barrier; only verified recovery can establish cleanup.
+that barrier; only verified recovery can establish cleanup. After a simulator restart
+or other world replacement, recovery never writes to the new world: it clears the
+settings journal only when the replacement already reports the recorded six-field
+baseline and no Traffic Manager setting was journaled, and it never destroys
+old-episode actor IDs. Otherwise the lease stays dirty with the reason. Persistent
+sessions also require matching connection evidence, so they stay dirty after a restart.
 
 If a worker is killed or a spawn reply is lost before a conclusive outcome is
 recorded, the pending intent keeps the lease dirty even when the actor-ID list is

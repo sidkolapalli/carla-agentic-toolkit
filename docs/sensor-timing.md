@@ -71,7 +71,10 @@ cadence is nonintegral or its clock evidence changes, `no_sample_due` is `null`.
 A first or later callback cannot prove pre-subscription emission history. Phase
 inference assumes the observed cadence remains stable until contradicted; it is not
 a guarantee of future sensor emission. Unknown missing frames use the bounded wait
-unless a queued future frame already ends it.
+unless a queued future frame already ends it. In a synchronous world, a `sensor_tick`
+that is not a whole multiple of `fixed_delta_seconds` therefore pays the full wait on
+every frame without an emission; use an integral tick or pass a shorter
+`timeout_seconds` to `api.drain_sensor`.
 
 Trusted managed consumers can call `SensorSubscription.close_and_drain(frame)` to stop
 upstream and then freeze the queue. It returns all bounded trailing samples, including

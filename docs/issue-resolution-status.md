@@ -1,6 +1,6 @@
 # Open Issue Implementation Status
 
-Updated: 2026-10-10. Scope: the 51 open issues retrieved from GitHub for this
+Updated: 2026-10-24. Scope: the 51 open issues retrieved from GitHub for this
 repository. This implementation ledger distinguishes code verification,
 publication, and issue closure; it does not claim all GitHub issues are resolved.
 
@@ -679,6 +679,60 @@ Provider calls remain disabled; #87 is explicitly skipped for now.
   CARLA 0.9.16 (Windows) and 0.10.0 (WSL); its full gate passes.
   #162's live comparison did not reproduce a material brightness difference in
   the tested 0.9.16 setup; no default warmup or manual-exposure fix was applied.
+
+## Code review follow-up, 2026-10-24
+
+A source review of `develop...WIP/fix/120-script-settings` reported 15 findings. Each
+fix below reproduced its finding as a failing test before the change, then passed the
+focused tests and the full gate (Ruff/format, Ty, Radon all A, Rustfmt, Clippy, Rust
+build, nine Rust tests). Python counts are from Linux/WSL2 with an isolated state
+directory; four skips there are the live-provider test, the non-WSL host test and the
+two optional Jev SDK tests, which pass separately with the extra installed.
+
+- Managed reload ran under the spec's 5-second RPC timeout instead of the elevated
+  map timeout; the reload now uses `MAP_RPC_SECONDS` and restores the spec timeout
+  (`3703cd1`). This is the likely cause of the default-profile #133 native failures;
+  the default profile has not been rerun natively. Gate: 2,720 passed.
+- `api.wait()` reported `wait_failed` when the window closed between frames; a timeout
+  is now normal only once the deadline has passed, and a stalled server still fails
+  (`ba34232`). Gate: 2,722 passed.
+- A persistent request ending during a traffic-controller spawn poisoned creation
+  health; the pending-count check is skipped only while the controller is active
+  (`e0daef7`). Gate: 2,724 passed.
+- CARLA's `Spawn failed because of collision at spawn position` rejection left the
+  creation intent pending and quarantined the endpoint; only that definite rejection
+  is resolved (`8ed300b`). Gate: 2,726 passed.
+- A failed preparation on request k of a batch spawn discarded earlier actor IDs;
+  preparation now runs inside the per-request error boundary (`00e299f`). Gate: 2,727.
+- A failed world read before any intent permanently poisoned creation health; the read
+  now precedes the guarded intent write (`491f8ea`). Gate: 2,728 passed.
+- A managed TM open refused before construction (port conflict) quarantined the
+  endpoint; never-constructed evidence without density records is resolved
+  (`7fa9298`). Gate: 2,729 passed.
+- Security: trusted cleanup restored TM settings for any in-range journaled port. The
+  parent now records the execution's allowed connect ports in trusted lease state and
+  restoration refuses any other port before native access; legacy records allow only
+  8000 (`6c71926`). Gate: 2,734 passed.
+- After a map change the settings journal was rebound only after a deadline-bound
+  timeout refresh; it is now rebound first (`1759365`). Gate: 2,736 passed.
+- Optical-flow (8 B/px) and DVS (variable) samples were counted as 4 B/px BGRA; queue
+  reservation and per-sample accounting now follow the native format (`d26faa7`).
+  Gate: 2,737 passed.
+- 31 suppressions in `src` had no reason; two were removed by fixing the code, 29 now
+  state why, and `tests/test_noqa_reasons.py` enforces it (`9d0a59e`). Gate: 2,738.
+- Script settings recovery could never clean a lease after a world replacement. It now
+  follows the managed `check_replaced_world` policy: no mutation; clean only when the
+  replacement already holds the six-field baseline and no TM target was journaled
+  (`ff00393`). This reverses the earlier script-only refusal. Persistent-session leases
+  still require matching connection evidence after a restart. Gate: 2,739 passed.
+- Not changed: the 2-second drain wait for unknown cadence is the documented #135
+  contract, so non-integral `sensor_tick` costs are now documented instead; per-call
+  episode and version re-reads were not reduced without measurement, because they guard
+  episode races; duplicated port validators sit at different trust boundaries with
+  different messages; already-pushed commit titles were not rewritten.
+- Also found: LibCarla `TrySpawnActor` returns `None` on any exception, including a lost
+  reply, so the walker, traffic and managed creation paths may clear intent for an actor
+  that exists. Tracked separately in #182.
 
 ## Native Safe-Filter Lists
 

@@ -486,8 +486,8 @@ This metadata is not added to selector inputs.
 
 Native settings/reload internals may also advance setup frames. None of these are
 scheduled experiment steps, and no frame-zero or bitwise-repeatability guarantee
-is made. The existing client deadline applies to internal reload RPCs, not to the
-aggregate native call: CARLA can make several RPCs and publication waits inside
+is made. The reload call runs under the 120-second map RPC timeout and then restores
+the spec's `rpc_timeout_seconds`; CARLA can make several RPCs and publication waits inside
 [LoadEpisode](https://github.com/carla-simulator/carla/blob/0.10.0/LibCarla/source/carla/client/detail/Simulator.cpp#L87-L112).
 The separate supervisor wall deadline still bounds the worker. Two provider-free
 consecutive `lead_brake` route repetitions passed on dedicated CARLA 0.10.0 with
@@ -509,11 +509,12 @@ For new native UE5 specifications on that tested host, the verified RPC profile 
 
 Configure the dedicated endpoint separately. The global default remains five
 seconds and the supported maximum remains ten; this explicit profile does not
-change script defaults, saved specifications or provider deadlines. Five-second
-native attempts on the tested server failed before reload acknowledgement and
-retained their pending journals. The ten-second result does not identify the
-precise native failure phase or promise that every server will reload in that
-time. Never retry a reload against a dirty lease; the failed evidence required
+change script defaults, saved specifications or provider deadlines. Earlier
+five-second native attempts failed before reload acknowledgement and retained
+their pending journals: the reload itself then ran under that RPC timeout. It now
+uses the map timeout, but the default profile has not been rerun natively since,
+so the ten-second profile above remains the verified one. Never retry a reload
+against a dirty lease; the failed evidence required
 verified operator decommission/replacement before the new successful attempt.
 See the [issue ledger](issue-resolution-status.md) for acceptance limits.
 
