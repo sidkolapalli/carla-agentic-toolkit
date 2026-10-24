@@ -101,6 +101,7 @@ class PythonCarlaAdapter(
         port: int = 2000,
         timeout: float = 10.0,
         *,
+        connect_host: str | None = None,
         settings_journal: RunSettings | None = None,
         rpc_timeout_policy: RpcTimeoutPolicy | None = None,
         sensor_queue_budget_bytes: int = MAX_SENSOR_QUEUE_BYTES,
@@ -108,6 +109,8 @@ class PythonCarlaAdapter(
     ) -> None:
         """Create an adapter for a CARLA server."""
         self._host = host
+        # The sandboxed child dials the parent-resolved address; the host stays the label.
+        self._connect_host = connect_host or host
         self._sensor_queue_budget = SensorQueueBudget(sensor_queue_budget_bytes)
         self._port = port
         self._timeout = timeout

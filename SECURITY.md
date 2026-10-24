@@ -100,6 +100,10 @@ Landlock filters port numbers, not destination addresses or hostnames. An
 allowed port can therefore be reached on any routable host; connect only to
 trusted networks. Unlisted ports remain blocked by Landlock.
 
+The trusted parent resolves the CARLA host before launch and passes the child one
+literal address to dial, so the child needs no DNS. The configured host name stays
+the label for results, the lease and the named-actor registry.
+
 ## Process Scopes
 
 Landlock also scopes signals and abstract Unix sockets. The child cannot signal

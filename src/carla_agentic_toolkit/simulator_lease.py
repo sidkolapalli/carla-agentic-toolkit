@@ -52,11 +52,26 @@ def simulator_identity(host: str, port: int) -> str:
     return f"{canonical.pop()}:{port}"
 
 
-def _address_identity(address: str) -> str:
+def connect_address(host: str, port: int) -> str:
+    """Return the one literal address a sandboxed client dials, preferring IPv4 loopback."""
+    simulator_identity(host, port)
+    addresses = {
+        _literal_address(str(entry[4][0]))
+        for entry in socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
+    }
+    return min(addresses, key=lambda address: (":" in address, address))
+
+
+def _literal_address(address: str) -> str:
     ip = ipaddress.ip_address(address)
     if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped is not None:
         ip = ip.ipv4_mapped
-    return "loopback" if ip.is_loopback else ip.compressed
+    return ip.compressed
+
+
+def _address_identity(address: str) -> str:
+    literal = _literal_address(address)
+    return "loopback" if ipaddress.ip_address(literal).is_loopback else literal
 
 
 def private_state_root() -> Path:

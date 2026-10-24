@@ -28,6 +28,7 @@ class PythonCarlaConnectionMixin:
     _persistent_connection_path: Path | None
     _rpc_timeout_policy: RpcTimeoutPolicy
     _host: str
+    _connect_host: str
     _port: int
 
     def _client(self, *, inspect_episode: bool = True) -> CarlaClient:
@@ -65,7 +66,7 @@ class PythonCarlaConnectionMixin:
         except (ImportError, TypeError) as exc:
             raise CarlaApiUnavailableError(str(exc)) from exc
         try:
-            client_candidate = client_factory(self._host, self._port)
+            client_candidate = client_factory(self._connect_host, self._port)
         except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
             raise CarlaAdapterError(str(exc)) from exc
         client = _require_carla_client(client_candidate)
