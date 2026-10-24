@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import time
 from importlib import import_module
-from typing import TYPE_CHECKING, Any, Protocol, cast
+from typing import TYPE_CHECKING, Protocol, cast
 
 from carla_agentic_toolkit.carla_versions import read_version_info, require_matching_release
 from carla_agentic_toolkit.experiment_trace import (
@@ -32,6 +32,8 @@ if TYPE_CHECKING:
     from carla_agentic_toolkit.carla_protocols import CarlaClient, CarlaSnapshot
     from carla_agentic_toolkit.managed_policy import PolicyDecision, PolicyRequest
     from carla_agentic_toolkit.managed_spec import ExperimentSpec
+    from carla_agentic_toolkit.merge_models import MergeObservation
+    from carla_agentic_toolkit.route_models import RouteObservation
 
 
 class Policy(Protocol):
@@ -70,6 +72,10 @@ class Experiment[ObservationT](Protocol):
         """Apply local controls and return evidence without advancing the world."""
 
 
+type ManagedExperiment = Experiment[MergeObservation] | Experiment[RouteObservation]
+type ManagedScheduler = DecisionScheduler[MergeObservation] | DecisionScheduler[RouteObservation]
+
+
 class RulesPolicy:
     """No-key selector using the exact same candidate contract as Jev."""
 
@@ -91,7 +97,7 @@ def connect_client(spec: ExperimentSpec) -> CarlaClient:
     return client
 
 
-def build_experiment(session: ManagedSession) -> Experiment[Any]:
+def build_experiment(session: ManagedSession) -> ManagedExperiment:
     """Load only the reviewed fixed experiment implementation."""
     if session.spec.fixture == "town10-route-ue5-v1":
         return import_module("carla_agentic_toolkit.route_experiment").RouteExperiment(session)
@@ -130,9 +136,9 @@ class ExperimentRun:
         self.started = time.monotonic()
         self.pace_origin = self.started
         self.session: ManagedSession | None = None
-        self.experiment: Experiment[Any] | None = None
+        self.experiment: ManagedExperiment | None = None
         self.policy: Policy | None = None
-        self.selection: DecisionScheduler | None = None
+        self.selection: ManagedScheduler | None = None
         self.frame: int | None = None
         self.actor_id: int | None = None
         self.state = "starting"
@@ -239,14 +245,25 @@ class ExperimentRun:
 
     async def _iteration(self, snapshot: CarlaSnapshot, step: int) -> bool:
         record_background(self)
-        experiment = cast("Experiment[Any]", self.experiment)
+        experiment = cast("ManagedExperiment", self.experiment)
+        selection = cast("ManagedScheduler", self.selection)
+        return await self._observe_and_advance(experiment, selection, snapshot, step)
+
+    async def _observe_and_advance[ObservationT: MergeObservation | RouteObservation](
+        self,
+        experiment: Experiment[ObservationT],
+        selection: DecisionScheduler[ObservationT],
+        snapshot: CarlaSnapshot,
+        step: int,
+    ) -> bool:
+        """Advance one fixture whose scheduler was built from that same fixture."""
         observation = experiment.observe(snapshot)
         self.frame, self.actor_id = observation.frame, observation.policy.actor_id
         data = observation.to_dict()
         self.event("observation", data)
         for sensor in observation.sensors:
             self._sensor_events(sensor)
-        decision = await cast("DecisionScheduler", self.selection).choose(observation, step)
+        decision = await selection.choose(observation, step)
         if self._should_stop():
             return False
         cast("ManagedSession", self.session).assert_current()

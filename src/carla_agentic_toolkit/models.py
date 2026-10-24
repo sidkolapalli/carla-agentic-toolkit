@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, cast
+from typing import TYPE_CHECKING, ClassVar, cast
+
+if TYPE_CHECKING:
+    from dataclasses import Field
 
 type JsonObject = dict[str, object]
 
@@ -30,9 +33,13 @@ def _jsonable_sequence(value: list[object] | tuple[object, ...]) -> list[object]
 class _JsonModel:
     __slots__ = ()
 
+    if TYPE_CHECKING:
+        # Every subclass is a dataclass; this declares the DataclassInstance shape for asdict().
+        __dataclass_fields__: ClassVar[dict[str, Field[object]]]
+
     def to_dict(self) -> JsonObject:
         """Return a JSON-compatible representation."""
-        return cast("JsonObject", _jsonable(asdict(cast("Any", self))))
+        return cast("JsonObject", _jsonable(asdict(self)))
 
 
 @dataclass(frozen=True, slots=True)

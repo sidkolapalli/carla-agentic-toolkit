@@ -55,6 +55,8 @@ class SessionConfig:
             normalized["traffic_manager_ports"] = _traffic_ports(
                 normalized["traffic_manager_ports"]
             )
+        # Any is deliberate: these JSON values are unchecked until validate() runs on the instance.
+        # Typing them first would mean re-implementing validate() before construction.
         result = cls(**cast("dict[str, Any]", normalized))
         result.validate()
         return result
