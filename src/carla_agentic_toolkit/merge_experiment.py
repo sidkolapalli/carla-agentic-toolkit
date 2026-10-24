@@ -70,8 +70,8 @@ class MergeExperiment:
 
     def __init__(self, session: object) -> None:
         """Bind the established session contract without acquiring a second owner."""
-        # build_experiment passes a ManagedSession through import_module; its shared
-        # protocols omit the native map and vehicle members this backend reads.
+        # build_experiment passes a ManagedSession through import_module. Its CarlaMap
+        # omits generate_waypoints, and its spawn_actor wants a full CarlaActor parent.
         self.session = cast("MergeSession", session)
         self.spec: ExperimentSpec = self.session.spec
         self.settings = PlannerSettings(

@@ -8,8 +8,10 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
     from carla_agentic_toolkit.carla_protocols import (
+        CarlaBlueprint,
         CarlaTransformObject,
         CarlaVector,
+        CarlaWorld,
         ObjectFactory,
     )
     from carla_agentic_toolkit.managed_spec import ExperimentSpec
@@ -96,12 +98,16 @@ class MergeBoundingBox(Protocol):
         """Return the box half-extents in metres."""
 
 
-class MergeActor(Protocol):
-    """Live actor handle whose static bounds accompany snapshot motion."""
+class MergeSpawned(Protocol):
+    """Any actor returned by a session spawn."""
 
     @property
     def id(self) -> int:
         """Return the actor ID."""
+
+
+class MergeActor(MergeSpawned, Protocol):
+    """Live actor handle whose static bounds accompany snapshot motion."""
 
     @property
     def bounding_box(self) -> MergeBoundingBox:
@@ -115,38 +121,6 @@ class MergeVehicle(MergeActor, Protocol):
         """Apply one native VehicleControl."""
 
 
-class MergeSpawned(Protocol):
-    """Any actor returned by a session spawn."""
-
-    @property
-    def id(self) -> int:
-        """Return the actor ID."""
-
-
-class MergeBlueprint(Protocol):
-    """Blueprint attributes set before spawning."""
-
-    def set_attribute(self, attribute_id: str, value: str, /) -> None:
-        """Set one blueprint attribute."""
-
-    def has_attribute(self, attribute_id: str, /) -> bool:
-        """Return whether the blueprint exposes an attribute."""
-
-
-class MergeBlueprintLibrary(Protocol):
-    """Blueprint lookup by exact ID."""
-
-    def find(self, blueprint_id: str, /) -> MergeBlueprint:
-        """Return one blueprint, raising when the catalog lacks it."""
-
-
-class MergeWorld(Protocol):
-    """World access needed only for blueprint lookup."""
-
-    def get_blueprint_library(self) -> MergeBlueprintLibrary:
-        """Return the blueprint library."""
-
-
 class MergeSession(Protocol):
     """Managed session contract the merge backend uses without owning timing."""
 
@@ -155,7 +129,7 @@ class MergeSession(Protocol):
         """Return the validated experiment spec."""
 
     @property
-    def world(self) -> MergeWorld:
+    def world(self) -> CarlaWorld:
         """Return the owned world."""
 
     @property
@@ -179,7 +153,7 @@ class MergeSession(Protocol):
 
     def spawn_actor(
         self,
-        blueprint: MergeBlueprint,
+        blueprint: CarlaBlueprint,
         transform: object,
         *,
         role_name: str,
