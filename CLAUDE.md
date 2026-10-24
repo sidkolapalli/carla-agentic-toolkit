@@ -7,7 +7,7 @@ content, and the one-issue-at-a-time TDD workflow. This file does not repeat it.
 
 ## Platform
 
-The security boundary is Linux Landlock (ABI V7), so the Rust runner, the MCP server and the
+The security boundary is Linux Landlock (ABI V6), so the Rust runner, the MCP server and the
 full gate run on Linux or WSL2. On a Windows host, `ruff`, `ty` and pytest collection work. The
 Rust crate does not build there (it uses `std::os::unix`), the real Landlock preflight test
 skips, and `make radon` needs a POSIX shell. `carla-agentic-toolkit-windows`

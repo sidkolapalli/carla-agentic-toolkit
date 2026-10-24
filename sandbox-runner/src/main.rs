@@ -2,7 +2,7 @@ use anyhow::{anyhow, Context, Result};
 use clap::Parser;
 use landlock::{
     path_beneath_rules, Access, AccessFs, AccessNet, CompatLevel, Compatible, LandlockStatus,
-    NetPort, Ruleset, RulesetAttr, RulesetCreatedAttr, RulesetStatus, ABI,
+    NetPort, Ruleset, RulesetAttr, RulesetCreatedAttr, RulesetStatus, Scope, ABI,
 };
 use serde_json::{json, Value};
 use std::io::{self, Read};
@@ -354,11 +354,14 @@ fn kill_process_group(child_pid: u32) -> io::Result<()> {
 }
 
 fn apply_landlock(args: &Args) -> Result<Value> {
-    let abi = ABI::V7;
+    // V6 is the newest ABI whose features the policy uses: the V5 filesystem rights (V7 adds
+    // only audit-log flags), V4 TCP rules, and the V6 signal and abstract-socket scopes.
+    let abi = ABI::V6;
     let ruleset = Ruleset::default()
         .set_compatibility(CompatLevel::HardRequirement)
         .handle_access(AccessFs::from_all(abi))?
-        .handle_access(AccessNet::ConnectTcp | AccessNet::BindTcp)?;
+        .handle_access(AccessNet::ConnectTcp | AccessNet::BindTcp)?
+        .scope(Scope::Signal | Scope::AbstractUnixSocket)?;
     let mut created = ruleset
         .create()?
         .add_rules(path_beneath_rules(
@@ -392,6 +395,7 @@ fn apply_landlock(args: &Args) -> Result<Value> {
     Ok(json!({
         "landlock": landlock,
         "ruleset_enforced": enforced,
+        "scopes": ["signal", "abstract_unix_socket"],
         "tcp_connect_ports": args.tcp_connect
     }))
 }
@@ -470,6 +474,55 @@ mod tests {
             Ok(_listener) => panic!("bind should be denied even with --tcp-connect rules"),
             Err(e) => panic!("bind failed with unexpected error: {e}"),
         }
+    }
+
+    fn restricted_test_args(tmp: &tempfile::TempDir) -> Args {
+        Args {
+            python: PathBuf::from("/usr/bin/python3"),
+            module: String::new(),
+            script: PathBuf::new(),
+            host: String::new(),
+            port: 0,
+            timeout_seconds: 1.0,
+            work_dir: tmp.path().to_path_buf(),
+            ownership_file: None,
+            cancel_file: None,
+            output_dir: tmp.path().to_path_buf(),
+            recorder_dir: None,
+            read_only: vec!["/usr".into(), "/lib".into(), "/lib64".into(), "/etc".into()],
+            read_write: vec![tmp.path().to_path_buf()],
+            tcp_connect: vec![],
+        }
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn signals_to_processes_outside_the_sandbox_are_denied() {
+        // Started before the ruleset, so it is outside the sandbox's Landlock domain.
+        let mut outside = Command::new("sleep").arg("2").spawn().unwrap();
+        let tmp = tempfile::TempDir::new().unwrap();
+        apply_landlock(&restricted_test_args(&tmp)).unwrap();
+        // Signal 0 only checks permission; nothing is delivered.
+        let result = unsafe { libc::kill(outside.id() as libc::pid_t, 0) };
+        let error = io::Error::last_os_error();
+        outside.wait().unwrap();
+        assert_eq!(result, -1, "signal to an outside process should be denied");
+        assert_eq!(error.raw_os_error(), Some(libc::EPERM));
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn abstract_unix_sockets_outside_the_sandbox_are_unreachable() {
+        use std::os::linux::net::SocketAddrExt;
+        use std::os::unix::net::{SocketAddr, UnixListener, UnixStream};
+        let name = format!("carla-agentic-toolkit-test-{}", std::process::id());
+        let address = SocketAddr::from_abstract_name(name.as_bytes()).unwrap();
+        // Bound before the ruleset, so the socket belongs to no Landlock domain.
+        let _listener = UnixListener::bind_addr(&address).unwrap();
+        let tmp = tempfile::TempDir::new().unwrap();
+        apply_landlock(&restricted_test_args(&tmp)).unwrap();
+        let error = UnixStream::connect_addr(&address).unwrap_err();
+        assert_eq!(error.raw_os_error(), Some(libc::EPERM));
     }
 
     #[test]
