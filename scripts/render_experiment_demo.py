@@ -1,6 +1,9 @@
 # /// script
 # requires-python = ">=3.12"
 # dependencies = ["Pillow==12.3.0"]
+#
+# [tool.ty.rules]
+# unresolved-import = "ignore"
 # ///
 """Compose an evidence-linked recorded CARLA camera demo; requires a local ffmpeg binary."""
 

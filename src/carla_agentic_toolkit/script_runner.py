@@ -11,7 +11,7 @@ import json
 import math
 import runpy
 import sys
-from collections.abc import Collection, Iterator, Mapping
+from collections.abc import Collection, Generator, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import cast
@@ -259,7 +259,9 @@ def _settings_evidence(restored: dict[str, object]) -> dict[str, object]:
 
 
 @contextlib.contextmanager
-def _sensor_listener_lifetime(adapter: PythonCarlaAdapter, errors: list[str]) -> Iterator[None]:
+def _sensor_listener_lifetime(
+    adapter: PythonCarlaAdapter, errors: list[str]
+) -> Generator[None, None, None]:
     """Release listener storage without hiding an original script failure."""
     try:
         yield
@@ -446,7 +448,7 @@ def _jsonable_scalar(value: object) -> object:
 @contextlib.contextmanager
 def _json_container(
     value: Collection[object], *, _state: _JsonState, _depth: int
-) -> Iterator[None]:
+) -> Generator[None, None, None]:
     """Enforce common collection bounds and track cycles only on the active path."""
     if _depth > MAX_JSON_DEPTH:
         msg = f"Result exceeded maximum nesting depth of {MAX_JSON_DEPTH}."

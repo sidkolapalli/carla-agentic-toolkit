@@ -1,6 +1,9 @@
 # /// script
 # requires-python = ">=3.12"
 # dependencies = ["Pillow==12.3.0"]
+#
+# [tool.ty.rules]
+# unresolved-import = "ignore"
 # ///
 """Render exact-frame route trial highlights with separate model and controller labels."""
 

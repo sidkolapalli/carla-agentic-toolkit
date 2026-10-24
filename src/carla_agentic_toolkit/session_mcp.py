@@ -12,7 +12,7 @@ from mcp.types import ToolAnnotations
 from carla_agentic_toolkit import __version__
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
+    from collections.abc import AsyncGenerator
 
 SessionAction = Literal["open", "execute", "read", "cancel", "close", "telemetry"]
 
@@ -63,7 +63,7 @@ def build_session_server() -> MCPServer:
     manager = create_manager()
 
     @asynccontextmanager
-    async def lifespan(_server: MCPServer) -> AsyncIterator[None]:
+    async def lifespan(_server: MCPServer) -> AsyncGenerator[None, None]:
         try:
             yield None
         finally:

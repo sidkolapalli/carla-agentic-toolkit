@@ -19,7 +19,7 @@ from carla_agentic_toolkit.errors import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator
+    from collections.abc import Callable, Generator
     from pathlib import Path
     from typing import Never
 
@@ -168,7 +168,7 @@ def operation_episode_guard(
     guard: Callable[[CarlaWorld], None] | None,
     *,
     on_error: Callable[[Exception], object] | None = None,
-) -> Iterator[None]:
+) -> Generator[None, None, None]:
     """Isolate the optional lookup/setter check to this operation and execution context."""
     token = _OPERATION_GUARD.set(guard)
     failure_token = _OPERATION_FAILURE.set(on_error)

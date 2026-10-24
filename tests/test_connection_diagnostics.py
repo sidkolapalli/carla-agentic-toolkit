@@ -97,8 +97,10 @@ TM_PORT = 8500
         'api.set_traffic_vehicle_path(1, {"route": ["Straight"], "traffic_manager_port": 8500})',
         'api.start_traffic_controller({"traffic_manager_port": 8500})',
         'api.set_traffic_density({"traffic_manager_port": 8500})',
-        'api.set_vehicle_behavior({"actor_ids": [1], "profile": "cautious", '
-        '"traffic_manager_port": 8500})',
+        (
+            'api.set_vehicle_behavior({"actor_ids": [1], "profile": "cautious", '
+            '"traffic_manager_port": 8500})'
+        ),
     ],
 )
 def test_facade_rejects_unlisted_tm_port_before_any_native_connection(

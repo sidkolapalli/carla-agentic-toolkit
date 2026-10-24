@@ -20,12 +20,11 @@ class PythonCarlaActorCleanupMixin:
         """Return the concrete adapter's retained native client."""
         raise NotImplementedError
 
-    @staticmethod
-    def _world(client: CarlaClient) -> CarlaWorld:
+    def _world(self, client: CarlaClient) -> CarlaWorld:
         """Fetch its current world without changing the episode."""
         raise NotImplementedError
 
-    def _has_retained_sensor(self, actor_id: int) -> bool:
+    def _has_retained_sensor(self, sensor_id: int) -> bool:
         """Identify sensors handled by the existing listener/origin cleanup path."""
         raise NotImplementedError
 

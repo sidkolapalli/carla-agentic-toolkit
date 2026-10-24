@@ -72,7 +72,7 @@ def _register_script_tool(mcp: MCPServer) -> None:
         ),
         structured_output=True,
     )
-    def execute_carla_script(  # noqa: PLR0913 - Public endpoint permission inputs.
+    def execute_carla_script(  # noqa: PLR0913, PLR0917 - Public endpoint permission inputs.
         code: str,
         host: StrictStr = _HOST_DEFAULT,
         port: StrictInt = _PORT_DEFAULT,

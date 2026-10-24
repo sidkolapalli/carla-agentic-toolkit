@@ -12,7 +12,7 @@ from carla_agentic_toolkit.simulator_lease import SimulatorLease
 from tests.managed_density_fakes import DensityClient, DensityWorld, density_spec, unused_port
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Generator
     from pathlib import Path
 
     import pytest
@@ -32,7 +32,7 @@ def running(
     count: int = 2,
     interval: int = 1,
     start: bool = True,
-) -> Iterator[tuple[ManagedSession, DensityWorld, DensityClient, SimulatorLease]]:
+) -> Generator[tuple[ManagedSession, DensityWorld, DensityClient, SimulatorLease], None, None]:
     """Use the actual durable lease and authoritative non-ticking response boundary."""
     world, port = DensityWorld(), unused_port()
     client = DensityClient(world)

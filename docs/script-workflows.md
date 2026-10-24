@@ -356,8 +356,10 @@ spectator:
 
 ```python
 level = api.get_level_bounding_boxes(
-    "Buildings", max_count=20,
-    origin={"x": 12.0, "y": 3.0, "z": 1.0}, max_distance=50.0,
+    "Buildings",
+    max_count=20,
+    origin={"x": 12.0, "y": 3.0, "z": 1.0},
+    max_distance=50.0,
 )
 actors = api.get_actor_bounding_boxes([vehicle_id])
 camera = api.get_camera_intrinsics(camera_id)

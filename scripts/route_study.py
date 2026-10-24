@@ -10,7 +10,7 @@ import re
 from collections import Counter, defaultdict
 from itertools import pairwise
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypedDict
 
 from carla_agentic_toolkit.experiment_trace import load_trace, summarize_trace
 
@@ -83,7 +83,23 @@ def _minimum(samples: list[dict[str, Any]], key: str) -> float | None:
     return min((row[key] for row in samples if row[key] is not None), default=None)
 
 
-def _decision_statistics(decisions: list[dict[str, Any]], trigger: float) -> dict[str, Any]:
+class DecisionStatistics(TypedDict):
+    """Per-run decision workload and latency derived from recorded decisions."""
+
+    accepted_jev_choices: dict[str, int]
+    provider_fallbacks: dict[str, int]
+    provider_attempts: int
+    rejected_decisions: int
+    latency_samples: int
+    latency_mean_ms: float | None
+    latency_p50_ms: float | None
+    latency_p95_ms: float | None
+    latency_max_ms: float | None
+    last_pre_trigger: dict[str, object] | None
+    first_post_trigger: dict[str, object] | None
+
+
+def _decision_statistics(decisions: list[dict[str, Any]], trigger: float) -> DecisionStatistics:
     accepted = [row for row in decisions if row["accepted"] and row["source"] == "jev"]
     fallback = [row for row in decisions if row["source"] == "fallback"]
     latency = [row["latency_ms"] for row in decisions if row["latency_ms"] is not None]
@@ -104,7 +120,7 @@ def _decision_statistics(decisions: list[dict[str, Any]], trigger: float) -> dic
     }
 
 
-def _relative_decision(row: dict[str, Any], trigger: float) -> dict[str, Any]:
+def _relative_decision(row: dict[str, Any], trigger: float) -> dict[str, object]:
     return {**row, "after_trigger_s": row["time_s"] - trigger}
 
 
@@ -384,6 +400,9 @@ def analyze_dataset(dataset: dict[str, Any]) -> dict[str, Any]:
         analyze_trial(row) | {"scenario_fidelity": scenario_fidelity(row)}
         for row in dataset["trials"]
     ]
+    statistics = [
+        _decision_statistics(row["decisions"], row["trigger_s"]) for row in dataset["trials"]
+    ]
     latencies = [
         decision["latency_ms"]
         for row in dataset["trials"]
@@ -398,11 +417,13 @@ def analyze_dataset(dataset: dict[str, Any]) -> dict[str, Any]:
         ).hexdigest(),
         "trials": trials,
         "workload": {
-            "provider_attempts": sum(row["provider_attempts"] for row in trials),
+            "provider_attempts": sum(item["provider_attempts"] for item in statistics),
             "accepted_jev_decisions": sum(
-                sum(row["accepted_jev_choices"].values()) for row in trials
+                sum(item["accepted_jev_choices"].values()) for item in statistics
             ),
-            "provider_fallbacks": sum(sum(row["provider_fallbacks"].values()) for row in trials),
+            "provider_fallbacks": sum(
+                sum(item["provider_fallbacks"].values()) for item in statistics
+            ),
             "latency_p50_ms": percentile(latencies, 0.5),
             "latency_p95_ms": percentile(latencies, 0.95),
             "latency_max_ms": max(latencies, default=None),

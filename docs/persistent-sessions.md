@@ -59,11 +59,15 @@ while one is outstanding returns `session_busy`. For example:
 ```python
 # First execute: retain an owned vehicle and ordinary local state.
 points = api.get_spawn_points()["spawn_points"]
-spawned = api.spawn_actor_batch([{
-    "blueprint_id": "vehicle.tesla.model3",
-    "transform": points[0],
-    "attributes": {"role_name": "session-demo"},
-}])
+spawned = api.spawn_actor_batch(
+    [
+        {
+            "blueprint_id": "vehicle.tesla.model3",
+            "transform": points[0],
+            "attributes": {"role_name": "session-demo"},
+        }
+    ]
+)
 vehicle = spawned["results"][0]["actor_id"]
 steps = []
 result = vehicle

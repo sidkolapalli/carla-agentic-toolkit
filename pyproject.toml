@@ -85,6 +85,7 @@ target-version = "py312"
 select = ["ALL"]
 ignore = [
     "COM812",
+    "CPY001",  # MIT terms live in LICENSE; per-file copyright headers add nothing.
     "D203",
     "D213",
 ]
