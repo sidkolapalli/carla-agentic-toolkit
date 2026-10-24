@@ -15,7 +15,7 @@ from carla_agentic_toolkit.managed_policy import PolicyDecision
 from carla_agentic_toolkit.managed_spec import ExperimentSpec
 from carla_agentic_toolkit.route_geometry import RoutePath, RoutePoint
 from carla_agentic_toolkit.route_risk import traffic_evidence
-from tests.test_merge_experiment import Session
+from tests.test_merge_experiment import Actor, Session
 from tests.test_route_driving import actor
 
 if TYPE_CHECKING:
@@ -47,9 +47,14 @@ def prepared(
     return session, experiment
 
 
+def fake_handles(experiment: route_experiment.RouteExperiment) -> dict[str, Actor]:
+    """Expose the CARLA-free doubles that the fake session spawned."""
+    return cast("dict[str, Actor]", experiment.actors.handles)
+
+
 def observed(experiment: route_experiment.RouteExperiment, frame: int = 100) -> RouteObservation:
     """Provide one coherent snapshot without permitting actor live-position reads."""
-    handles = {int(handle.id): handle for handle in experiment.actors.handles.values()}
+    handles = {int(handle.id): handle for handle in fake_handles(experiment).values()}
 
     def frozen(identity: int) -> SimpleNamespace:
         handle = handles[identity]
@@ -88,12 +93,12 @@ def test_range_filter_excludes_distant_actors_from_model_evidence(
 ) -> None:
     """Owned background actors outside sensing range are not leaked to the selector."""
     _session, experiment = prepared(monkeypatch)
-    experiment.actors.handles["lead"].location.x = 200.0
+    cast("SimpleNamespace", fake_handles(experiment)["lead"].location).x = 200.0
     value = observed(experiment)
     request = experiment.policy_request(value, revision=1, deadline_monotonic=time.monotonic() + 5)
     assert request is not None
     assert {item.actor.actor_id for item in value.traffic} == {
-        experiment.actors.handles["traffic"].id
+        fake_handles(experiment)["traffic"].id
     }
 
 
@@ -124,7 +129,7 @@ def test_emergency_override_keeps_accepted_jev_choice_visible(
     assert request is not None
     decision = PolicyDecision(request.context, "cruise", "jev", "selected")
     result = experiment.advance(value, decision)
-    control = experiment.actors.handles["policy"].controls[-1]
+    control = cast("SimpleNamespace", fake_handles(experiment)["policy"].controls[-1])
     assert (result["requested_choice"], result["executed_choice"], control.brake) == (
         "cruise",
         "local_stop",
@@ -176,5 +181,5 @@ def test_background_vehicle_stops_before_exhausting_its_route(
 def test_ue5_walker_spawns_with_capsule_ground_clearance(monkeypatch: pytest.MonkeyPatch) -> None:
     """Walker capsules need more initial vertical clearance than a vehicle chassis."""
     _session, experiment = prepared(monkeypatch, "pedestrian_crossing")
-    walker = experiment.actors.handles["pedestrian"]
-    assert walker.location.z >= 1.0
+    walker = fake_handles(experiment)["pedestrian"]
+    assert cast("SimpleNamespace", walker.location).z >= 1.0
