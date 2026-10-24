@@ -174,7 +174,7 @@ class ExperimentRun:
         self.status("starting")
         try:
             await self._owned_run()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001 - any run failure is recorded before the lease is released.
             self.error = f"{type(exc).__name__}: {exc}"
             self.state = "failed"
         return self._finish_trace()

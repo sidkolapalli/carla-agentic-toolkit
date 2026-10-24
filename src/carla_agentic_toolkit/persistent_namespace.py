@@ -70,7 +70,7 @@ class PersistentNamespace:
         try:
             with contextlib.redirect_stdout(stream):
                 # Validated generated code runs only inside the existing OS sandbox.
-                exec(compile(code, "<carla-session>", "exec"), self._namespace)  # noqa: S102
+                exec(compile(code, "<carla-session>", "exec"), self._namespace)  # noqa: S102 - validated code, run only inside the OS sandbox.
         except Exception as exc:  # noqa: BLE001 - return arbitrary user-code exceptions.
             return _error(type(exc).__name__, str(exc), stdout=stream.getvalue())
         if stream.truncated:

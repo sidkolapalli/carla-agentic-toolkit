@@ -32,7 +32,7 @@ __all__ = ["ManagedTrafficManager", "failures_from_state"]
 class _OwnedManager(Protocol):
     def get_port(self) -> int: ...
 
-    def set_synchronous_mode(self, enabled: bool) -> None: ...  # noqa: FBT001
+    def set_synchronous_mode(self, enabled: bool) -> None: ...  # noqa: FBT001 - mirrors CARLA's native TrafficManager signature.
 
     def shut_down(self) -> None: ...
 

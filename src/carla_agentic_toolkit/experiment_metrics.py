@@ -306,7 +306,9 @@ def _number(value: object) -> float | None:
 
 def write_trace_report(path: Path) -> dict[str, Path]:
     """Derive summary JSON and a self-contained escaped HTML report from saved evidence."""
-    from carla_agentic_toolkit.experiment_trace import load_trace  # noqa: PLC0415
+    from carla_agentic_toolkit.experiment_trace import (  # noqa: PLC0415 - breaks the import cycle with experiment_trace.
+        load_trace,
+    )
 
     summary = summarize_trace(load_trace(path))
     summary_path = path.with_name("summary.json")

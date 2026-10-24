@@ -23,7 +23,7 @@ class JevTransport(Protocol):
         ...
 
 
-class ProviderFailure(Exception):  # noqa: N818
+class ProviderFailure(Exception):  # noqa: N818 - public name already used across the provider boundary.
     """Sanitized provider failure, deliberately excluding response bodies and headers."""
 
     def __init__(self, category: str, *, retryable: bool, request_id: str | None = None) -> None:
@@ -39,7 +39,10 @@ class TypeSafeTransport:
 
     def __init__(self, api_key: str, timeout_seconds: float) -> None:
         """Retain one SDK client, with endpoint and model fixed by reviewed code."""
-        from typesafe_sdk import AsyncTypeSafeClient, RetryPolicy  # noqa: PLC0415
+        from typesafe_sdk import (  # noqa: PLC0415 - the optional Jev SDK loads only when a client is used.
+            AsyncTypeSafeClient,
+            RetryPolicy,
+        )
 
         self._client: AsyncTypeSafeClient = AsyncTypeSafeClient(
             api_key=api_key,
@@ -51,7 +54,7 @@ class TypeSafeTransport:
 
     async def infer(self, state_json: str, criteria: dict[str, str]) -> JevReply:
         """Make one independent Choice request and normalize documented response fields."""
-        from typesafe_sdk import (  # noqa: PLC0415
+        from typesafe_sdk import (  # noqa: PLC0415 - the optional Jev SDK loads only when a client is used.
             Choice,
             TypeSafeAPIConnectionError,
             TypeSafeAPIError,

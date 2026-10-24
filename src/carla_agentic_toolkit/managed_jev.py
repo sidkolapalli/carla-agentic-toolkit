@@ -108,7 +108,7 @@ class JevPolicy:
                 return await self._current(attempt)
         except TimeoutError:
             return attempt.decision("timeout")
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001 - any provider SDK failure becomes a provider_error fallback.
             return attempt.decision("provider_error")
 
     async def _current(self, attempt: _Attempt) -> PolicyDecision:

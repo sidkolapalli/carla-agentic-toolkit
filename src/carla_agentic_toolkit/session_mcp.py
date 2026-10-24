@@ -51,7 +51,9 @@ class SessionManager(Protocol):
 
 def create_manager() -> SessionManager:
     """Import persistent execution only when the server explicitly enables it."""
-    from carla_agentic_toolkit.sandbox_sessions import SandboxSessionManager  # noqa: PLC0415
+    from carla_agentic_toolkit.sandbox_sessions import (  # noqa: PLC0415 - optional features load only when enabled.
+        SandboxSessionManager,
+    )
 
     return SandboxSessionManager()
 

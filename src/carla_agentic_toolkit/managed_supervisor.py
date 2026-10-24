@@ -58,7 +58,7 @@ def supervise(job: Path, limits: SupervisorLimits | None = None) -> dict[str, ob
     monitor = _Monitor(job, spec, process, limits or SupervisorLimits())
     try:
         monitor.wait_for_death()
-    except Exception as error:  # noqa: BLE001
+    except Exception as error:  # noqa: BLE001 - the worker tree is terminated whatever the monitor raised.
         monitor.failure = type(error).__name__
     finally:
         terminate_tree(process)

@@ -54,7 +54,7 @@ def _recover(job: Path, spec: ExperimentSpec) -> dict[str, object]:
             spec.host, spec.port, state_root=job.parent.parent, recovering=True
         ) as lease:
             return _recover_owned(job, spec, lease)
-    except Exception as error:  # noqa: BLE001
+    except Exception as error:  # noqa: BLE001 - recovery reports every failure as recovery_required.
         return {"ok": False, "error_type": type(error).__name__, "recovery_required": True}
 
 
@@ -67,9 +67,11 @@ def _recover_owned(job: Path, spec: ExperimentSpec, lease: SimulatorLease) -> di
 
 
 def _recover_session(job: Path, spec: ExperimentSpec, lease: SimulatorLease) -> dict[str, object]:
-    import carla  # noqa: PLC0415
+    import carla  # noqa: PLC0415 - CARLA loads only inside the recovery process.
 
-    from carla_agentic_toolkit.managed_session import recover_managed_session  # noqa: PLC0415
+    from carla_agentic_toolkit.managed_session import (  # noqa: PLC0415 - deferred so importing this module stays light.
+        recover_managed_session,
+    )
 
     world_id = str(lease.recovery_state.get("world_generation", "unknown"))
     client = carla.Client(spec.host, spec.port)
@@ -85,7 +87,9 @@ def _record_recovery(
     world_id: str,
     result: dict[str, object],
 ) -> None:
-    from carla_agentic_toolkit.experiment_trace import TraceStore  # noqa: PLC0415
+    from carla_agentic_toolkit.experiment_trace import (  # noqa: PLC0415 - deferred so importing this module stays light.
+        TraceStore,
+    )
 
     path = job.parent.parent / "runs" / job.name / "events.jsonl"
     if not path.exists():

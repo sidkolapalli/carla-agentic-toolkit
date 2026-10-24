@@ -62,7 +62,7 @@ def execute_worker(job: Path, *, engine: ExperimentEngine | None = None) -> None
             publish_status=publish,
         )
         publish(result)
-    except Exception as error:  # noqa: BLE001
+    except Exception as error:  # noqa: BLE001 - every worker failure is published as a failed status.
         publish(
             {
                 "state": "failed",
@@ -74,7 +74,9 @@ def execute_worker(job: Path, *, engine: ExperimentEngine | None = None) -> None
 
 
 def _engine() -> ExperimentEngine:
-    from carla_agentic_toolkit.managed_engine import run_experiment  # noqa: PLC0415
+    from carla_agentic_toolkit.managed_engine import (  # noqa: PLC0415 - deferred so importing this module stays light.
+        run_experiment,
+    )
 
     return run_experiment
 

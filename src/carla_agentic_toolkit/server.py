@@ -41,7 +41,9 @@ def build_server() -> MCPServer:
     _register_capture_resource(mcp)
     _register_prompts(mcp)
     if os.environ.get("CARLA_AGENTIC_TOOLKIT_MANAGED_EXPERIMENTS") == "1":
-        from carla_agentic_toolkit.managed_mcp import register_managed_tool  # noqa: PLC0415
+        from carla_agentic_toolkit.managed_mcp import (  # noqa: PLC0415 - optional features load only when enabled.
+            register_managed_tool,
+        )
 
         register_managed_tool(mcp)
     return mcp
@@ -49,7 +51,9 @@ def build_server() -> MCPServer:
 
 def _configured_server() -> MCPServer:
     if os.environ.get("CARLA_AGENTIC_TOOLKIT_ENABLE_SCRIPT_SESSIONS") == "1":
-        from carla_agentic_toolkit.session_mcp import build_session_server  # noqa: PLC0415
+        from carla_agentic_toolkit.session_mcp import (  # noqa: PLC0415 - optional features load only when enabled.
+            build_session_server,
+        )
 
         return build_session_server()
     return MCPServer("carla-agentic-toolkit", title="CARLA Agentic Toolkit", version=__version__)

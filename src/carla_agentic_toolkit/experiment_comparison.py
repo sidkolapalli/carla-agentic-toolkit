@@ -427,7 +427,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("traces", nargs="+", type=Path, help="Saved events.jsonl paths")
     args = parser.parse_args(argv)
     paths = write_comparison_report(args.traces, args.output)
-    print(json.dumps({key: str(path) for key, path in paths.items()}))  # noqa: T201
+    print(json.dumps({key: str(path) for key, path in paths.items()}))  # noqa: T201 - the CLI prints its JSON result.
     report = json.loads(paths["summary"].read_text(encoding="utf-8"))
     return 0 if report["comparable"] else 2
 

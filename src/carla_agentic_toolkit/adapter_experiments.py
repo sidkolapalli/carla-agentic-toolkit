@@ -447,7 +447,9 @@ class PythonCarlaExperimentMixin(PythonCarlaGroundTruthMixin, PythonCarlaSensorL
         seed: int | None = None,
     ) -> dict[str, object]:
         """Spawn pedestrians and AI walker controllers."""
-        from carla_agentic_toolkit.walker_lifecycle import WalkerLifecycle  # noqa: PLC0415
+        from carla_agentic_toolkit.walker_lifecycle import (  # noqa: PLC0415 - deferred so importing this module stays light.
+            WalkerLifecycle,
+        )
 
         client = self._client()
         world = self._world(client)

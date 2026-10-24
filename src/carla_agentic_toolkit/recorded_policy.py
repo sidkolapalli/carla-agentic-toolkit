@@ -27,7 +27,9 @@ class RecordedPolicy:
 
     def __init__(self, read: TraceRead) -> None:
         """Load trusted saved evidence without issuing provider requests."""
-        from carla_agentic_toolkit.experiment_trace import RecordedDecisionReplay  # noqa: PLC0415
+        from carla_agentic_toolkit.experiment_trace import (  # noqa: PLC0415 - breaks the import cycle with experiment_trace.
+            RecordedDecisionReplay,
+        )
 
         self._replay = RecordedDecisionReplay(read)
 

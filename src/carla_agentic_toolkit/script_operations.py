@@ -100,7 +100,7 @@ class ScriptOperations:
         return payload
 
 
-def _retryable_error(exc: Exception, requested: bool) -> bool:  # noqa: FBT001
+def _retryable_error(exc: Exception, *, requested: bool) -> bool:
     return (
         requested
         and not isinstance(exc, OwnershipError)
@@ -118,5 +118,5 @@ def _operation_failure(
         "error": str(error),
         **details,
         **getattr(error, "details", {}),
-        "retryable": _retryable_error(error, retryable),
+        "retryable": _retryable_error(error, requested=retryable),
     }

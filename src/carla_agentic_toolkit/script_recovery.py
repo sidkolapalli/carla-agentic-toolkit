@@ -11,6 +11,7 @@ import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from carla_agentic_toolkit import ownership as ownership_journal
 from carla_agentic_toolkit.connection_journal import CONNECTION_FILENAME, ConnectionJournal
 from carla_agentic_toolkit.creation_health import add_creation_failures
 from carla_agentic_toolkit.errors import OwnershipError
@@ -265,8 +266,6 @@ def _cleanup_connected(  # noqa: PLR0913 - trusted cleanup inputs stay explicit.
     connection: ConnectionJournal | None = None,
     allowed_ports: Collection[int] = (DEFAULT_TRAFFIC_MANAGER_PORT,),
 ) -> dict[str, object]:
-    from carla_agentic_toolkit.ownership import cleanup_owned_actors  # noqa: PLC0415
-
     _check_connection_episode(adapter, connection, ownership)
     restored = _restore_settings(adapter, settings, allowed_ports)
     if restored.get("failures"):
@@ -279,14 +278,15 @@ def _cleanup_connected(  # noqa: PLR0913 - trusted cleanup inputs stay explicit.
     if original_world != ownership.world_id():
         return _clear_old_world(ownership, restored)
     _fresh_cleanup_snapshot(world)
-    if world_identity(adapter._client().get_world()) != original_world:  # noqa: SLF001
+    if world_identity(adapter._client().get_world()) != original_world:  # noqa: SLF001 - trusted cleanup owns the native client.
         message = "World changed while publishing the script cleanup snapshot."
         raise RuntimeError(message)
-    return restored | cleanup_owned_actors(adapter, ownership)
+    # Looked up at call time so a cleanup worker sees the current ownership implementation.
+    return restored | ownership_journal.cleanup_owned_actors(adapter, ownership)
 
 
 def _cleanup_world(adapter: PythonCarlaAdapter, connection: ConnectionJournal | None) -> CarlaWorld:
-    world = adapter._client().get_world()  # noqa: SLF001
+    world = adapter._client().get_world()  # noqa: SLF001 - trusted cleanup owns the native client.
     if connection is not None:
         connection.require_identity(world_identity(world))
     return world
@@ -299,7 +299,7 @@ def _check_connection_episode(
         return
     identity = connection.world_id()
     if identity is not None:
-        connection.require_identity(world_identity(adapter._client().get_world()))  # noqa: SLF001
+        connection.require_identity(world_identity(adapter._client().get_world()))  # noqa: SLF001 - trusted cleanup owns the native client.
         if ownership.actor_ids() and ownership.world_id() != identity:
             message = "Persistent actor ownership differs from its connection origin."
             raise RuntimeError(message)
@@ -335,7 +335,9 @@ def _worker_cleanup(
     request: dict[str, object],
 ) -> tuple[dict[str, object], PythonCarlaAdapter | None]:
     """Return the result and retain its native client until the worker exits."""
-    from carla_agentic_toolkit.adapter import PythonCarlaAdapter  # noqa: PLC0415
+    from carla_agentic_toolkit.adapter import (  # noqa: PLC0415 - only the cleanup worker process loads the native adapter.
+        PythonCarlaAdapter,
+    )
 
     adapter = None
     ownership = None
