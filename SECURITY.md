@@ -72,14 +72,14 @@ does not claim to enable or verify them.
 
 The child receives read/execute access only to existing paths in these classes:
 
-- the project root, including source and a project-local virtual environment;
+- the installed package source (`src/` in a checkout) and the active virtual
+  environment, but not the rest of the checkout, such as `.env` files or `.git`;
 - the resolved Python installation containing the selected interpreter;
 - `/usr`, `/lib`, and `/lib64` for the Linux runtime and shared libraries.
 - existing system hostname and resolver configuration files under `/etc`.
 
-`/dev`, `/sys`, and `/proc` are not granted. A virtual environment outside both
-the project root and resolved interpreter installation is unsupported unless its
-path is added deliberately after a real runtime need is demonstrated.
+`/dev`, `/sys`, and `/proc` are not granted. Other paths are added only
+deliberately, after a real runtime need is demonstrated.
 
 Write access is limited to:
 

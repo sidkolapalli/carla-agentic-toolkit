@@ -9,9 +9,12 @@ from pathlib import Path
 
 def read_only_paths() -> tuple[Path, ...]:
     """Return host paths the child Python process may read/execute."""
-    project_root = Path(__file__).resolve().parents[2]
+    # The package source and the active environment, not the whole checkout: files such
+    # as .env, .git and earlier outputs stay out of the child's view.
+    package_root = Path(__file__).resolve().parents[1]
     candidates = [
-        project_root,
+        package_root,
+        Path(sys.prefix).resolve(),
         Path(sys.executable).resolve().parent.parent,
         Path("/usr"),
         Path("/lib"),

@@ -84,6 +84,7 @@ fn run() -> Result<Value> {
     let expected_parent = unsafe { libc::getppid() };
     let guardian = guardian::Guardian::start().context("failed to start cleanup guardian")?;
     let guardian_descriptor = guardian.descriptor();
+    let _pinned = pin_granted_paths(&args)?;
     let status = apply_landlock(&args)?;
     let mut command = Command::new(&args.python);
     command
@@ -359,6 +360,20 @@ fn kill_process_group(child_pid: u32) -> io::Result<()> {
     Ok(())
 }
 
+/// Hold every granted path open until the child exits. Landlock tags inodes, and some
+/// filesystems (WSL's 9p drive mounts) hand out a new inode on a later lookup unless the
+/// directory stays referenced, which would silently drop the grant.
+fn pin_granted_paths(args: &Args) -> Result<Vec<std::fs::File>> {
+    args.read_only
+        .iter()
+        .chain(&args.read_write)
+        .map(|path| {
+            std::fs::File::open(path)
+                .with_context(|| format!("failed to open granted path: {}", path.display()))
+        })
+        .collect()
+}
+
 fn apply_landlock(args: &Args) -> Result<Value> {
     // V6 is the newest ABI whose features the policy uses: the V5 filesystem rights (V7 adds
     // only audit-log flags), V4 TCP rules, and the V6 signal and abstract-socket scopes.
@@ -532,6 +547,14 @@ mod tests {
         apply_landlock(&restricted_test_args(&tmp)).unwrap();
         let error = UnixStream::connect_addr(&address).unwrap_err();
         assert_eq!(error.raw_os_error(), Some(libc::EPERM));
+    }
+
+    #[test]
+    fn every_granted_path_is_held_open() {
+        let tmp = tempfile::TempDir::new().unwrap();
+        let args = restricted_test_args(&tmp);
+        let pinned = pin_granted_paths(&args).unwrap();
+        assert_eq!(pinned.len(), args.read_only.len() + args.read_write.len());
     }
 
     #[test]
