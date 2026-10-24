@@ -4,15 +4,20 @@ from __future__ import annotations
 
 import ast
 from pathlib import Path
+from typing import TypeGuard
 
 SOURCE = Path(__file__).resolve().parents[1] / "src" / "carla_agentic_toolkit"
 # Each remaining use carries a comment at the use site explaining why it stays.
 ALLOWED = {"experiment_trace.py", "session_protocol.py"}
 
 
+def _imports_from_typing(node: ast.AST) -> TypeGuard[ast.ImportFrom]:
+    return isinstance(node, ast.ImportFrom) and node.module == "typing"
+
+
 def _typing_imports(tree: ast.Module) -> set[str]:
-    imports = (node for node in ast.walk(tree) if isinstance(node, ast.ImportFrom))
-    return {alias.name for node in imports if node.module == "typing" for alias in node.names}
+    imports = [node for node in ast.walk(tree) if _imports_from_typing(node)]
+    return {alias.name for node in imports for alias in node.names}
 
 
 def _qualified_attributes(tree: ast.Module) -> set[str]:
