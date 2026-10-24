@@ -119,9 +119,9 @@ def _spawn_actor(
         transform = carla_transform(request.transform)
     except (AttributeError, RuntimeError, TypeError, ValueError, CarlaAdapterError) as exc:
         return SpawnResult(request_index=index, actor_id=None, error=str(exc))
-    prepare_spawn(observers.get("before_spawn"))
     identity = None
     try:
+        prepare_spawn(observers.get("before_spawn"))
         identity = creation_identity(world, observers.get("on_spawn"))
         actor = world.spawn_actor(blueprint, transform)
     except (AttributeError, RuntimeError, TypeError, ValueError, CarlaAdapterError) as exc:

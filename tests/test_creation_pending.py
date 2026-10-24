@@ -16,7 +16,7 @@ import pytest
 
 from carla_agentic_toolkit import adapter_objects, script_recovery
 from carla_agentic_toolkit.adapter import PythonCarlaAdapter
-from carla_agentic_toolkit.errors import OwnershipError
+from carla_agentic_toolkit.errors import CarlaAdapterError, OwnershipError
 from carla_agentic_toolkit.ownership import RunOwnership
 from carla_agentic_toolkit.script_api import CarlaScriptApi
 from carla_agentic_toolkit.snapshots import RunSnapshots
@@ -33,6 +33,7 @@ from tests.test_incremental_actor_ownership import (
 from tests.test_script_recovery import journal
 
 if TYPE_CHECKING:
+    from carla_agentic_toolkit.actor_creation import BeforeSpawn
     from carla_agentic_toolkit.carla_protocols import CarlaClient
     from carla_agentic_toolkit.ownership import _Journal
 
@@ -78,6 +79,28 @@ def test_only_a_collision_rejection_resolves_creation_intent(
     result = creation_case.api.spawn_actor_batch([_spawn_request()])
     assert result["ok"] is False
     assert creation_case.ownership.pending_creations() == pending
+
+
+def test_a_failed_spawn_preparation_keeps_earlier_batch_results(
+    creation_case: CreationCase, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A deadline before request k fails only that request; earlier actor IDs stay visible."""
+    prepare = adapter_objects.prepare_spawn
+    calls: list[BeforeSpawn | None] = []
+
+    def expire_second(callback: BeforeSpawn | None) -> None:
+        calls.append(callback)
+        if len(calls) == 2:  # noqa: PLR2004 - the second request in the batch.
+            message = "Execution deadline expired before a native CARLA request."
+            raise CarlaAdapterError(message)
+        prepare(callback)
+
+    monkeypatch.setattr(adapter_objects, "prepare_spawn", expire_second)
+    result = creation_case.api.spawn_actor_batch([_spawn_request(), _spawn_request()])
+    assert "results" in result
+    first, second = cast("list[dict[str, object]]", result["results"])
+    assert (first["actor_id"], second["actor_id"]) == (FIRST_ACTOR_ID, None)
+    assert "deadline" in str(second["error"])
 
 
 def test_empty_pending_journal_cannot_authorize_trusted_cleanup(
