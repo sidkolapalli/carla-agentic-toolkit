@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from carla_agentic_toolkit.rpc_timeouts import MAP_RPC_SECONDS
 from carla_agentic_toolkit.simulator_lease import SimulatorLease
 from tests.test_merge_experiment import _prepare as prepare_merge
 from tests.test_route_backend import prepared as prepare_route
@@ -107,6 +108,23 @@ def test_repetition_records_reset_states_with_different_actor_ids(tmp_path: Path
     for evidence in observations:
         _assert_stable_light(evidence)
     assert client.world.settings["synchronous_mode"] is False
+
+
+def test_reload_uses_the_map_rpc_timeout_then_restores_the_spec_timeout(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """A real map reload outlasts the 5 s default RPC timeout, as native acceptance showed."""
+    _old, _new, client = _case()
+    timeouts: list[float] = []
+    reload_timeouts: list[float | None] = []
+    monkeypatch.setattr(client, "set_timeout", timeouts.append, raising=False)
+    client.on_reload = lambda: reload_timeouts.append(timeouts[-1] if timeouts else None)
+    with SimulatorLease("localhost", 3000, state_root=tmp_path) as lease:
+        session = _session(client, lease)
+        session.open()
+        assert reload_timeouts == [MAP_RPC_SECONDS]
+        assert timeouts[-1] == session.spec.rpc_timeout_seconds
+        session.close()
 
 
 @pytest.mark.parametrize("backend", ["merge", "route"])

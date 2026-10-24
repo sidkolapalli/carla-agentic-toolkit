@@ -36,6 +36,7 @@ from carla_agentic_toolkit.managed_world import (
     world_settings,
 )
 from carla_agentic_toolkit.recovery_snapshots import fresh_cleanup_frame
+from carla_agentic_toolkit.rpc_timeouts import MAP_RPC_SECONDS, configure_timeout
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -128,7 +129,11 @@ class ManagedSession(ManagedBackgroundMixin, ManagedCleanupMixin):
         require_setup_episode(self.client, self.world_id)
         self.reload.pending()
         self.background.require_setup_owner()
-        returned = self.client.reload_world(reset_settings=False)
+        configure_timeout(self.client, MAP_RPC_SECONDS)
+        try:
+            returned = self.client.reload_world(reset_settings=False)
+        finally:
+            configure_timeout(self.client, self.spec.rpc_timeout_seconds)
         identity = returned_world_identity(returned, self.world_id)
         self._bind_reloaded_world(returned, identity)
         self.reload.acknowledge(identity)
