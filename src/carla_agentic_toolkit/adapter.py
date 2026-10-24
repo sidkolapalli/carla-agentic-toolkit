@@ -198,10 +198,11 @@ class PythonCarlaAdapter(
             lambda: client.load_world(map_name, reset_settings=reset_settings),
         )
         self._acknowledge_world_replacement(world)
-        self.configure_rpc_timeout(client)
         self._forget_sensor_records()
         if self._settings_journal is not None:
             self._settings_journal.rebind_world(world)
+        # Rebind before anything deadline-bound can fail after the world was replaced.
+        self.configure_rpc_timeout(client)
         return self._world_state(world, client=client)
 
     def get_world_identity(self) -> int:

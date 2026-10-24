@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, cast
 import pytest
 
 from carla_agentic_toolkit.adapter import PythonCarlaAdapter
+from carla_agentic_toolkit.errors import CarlaAdapterError
 from carla_agentic_toolkit.managed_control_io import read_control
 from carla_agentic_toolkit.ownership import RunOwnership
 from carla_agentic_toolkit.script_recovery import _cleanup_connected
@@ -114,6 +115,24 @@ def test_unexpected_episode_after_completed_replacement_refuses_restore(
 
     _assert_fail_closed(result, client.world, ownership, settings)
     assert (asdict(client.world.settings), read_control(path)) == (original, rebound)
+
+
+@pytest.mark.parametrize("method", ["load_world", "reload_world"])
+def test_completed_replacement_rebinds_settings_before_a_later_deadline_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, method: str
+) -> None:
+    """A deadline after the map RPC must not leave the journal bound to the replaced world."""
+    adapter, client, _settings, _ownership = _prepared_adapter(tmp_path, lose_response=False)
+
+    def expire_after_replacement(_client: object) -> None:
+        if client.world is client.replacement:
+            message = "Execution deadline expired before a native CARLA request."
+            raise CarlaAdapterError(message)
+
+    monkeypatch.setattr(adapter, "configure_rpc_timeout", expire_after_replacement)
+    with pytest.raises(CarlaAdapterError, match="deadline"):
+        _replace(adapter, method)
+    assert read_control(tmp_path / "world-settings.json")["world_id"] == client.replacement.id
 
 
 def _assert_fail_closed(

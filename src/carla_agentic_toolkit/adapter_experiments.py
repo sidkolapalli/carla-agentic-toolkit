@@ -346,9 +346,9 @@ class PythonCarlaExperimentMixin(PythonCarlaGroundTruthMixin, PythonCarlaSensorL
                 reset_settings=reset_settings,
             ),
         )
-        self.configure_rpc_timeout(client)
         self._rebind_replacement_settings(cast("CarlaWorld", world))
         self._forget_sensor_records()
+        self.configure_rpc_timeout(client)
         return self._world_state(cast("CarlaWorld", world), client=client).to_dict()
 
     def configure_actor_physics(
@@ -627,9 +627,9 @@ class PythonCarlaExperimentMixin(PythonCarlaGroundTruthMixin, PythonCarlaSensorL
             self._rpc_timeout_policy,
             lambda: cast("Any", client).reload_world(reset_settings),
         )
-        self.configure_rpc_timeout(client)
         self._rebind_replacement_settings(world)
         self._forget_sensor_records()
+        self.configure_rpc_timeout(client)
         return self._world_state(world, client=client).to_dict()
 
     def _capture_replacement_settings(self) -> None:
